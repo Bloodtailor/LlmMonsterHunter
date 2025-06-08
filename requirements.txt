@@ -1,0 +1,12 @@
+Flask==3.0.0
+Flask-CORS==4.0.0
+mysql-connector-python==8.2.0
+python-dotenv==1.0.0
+requests==2.31.0
+
+# For future LLM integration (from your Android app experience)
+# llama-cpp-python==0.2.11  # Uncomment when ready for LLM integration
+
+# Development tools
+pytest==7.4.3
+python-decouple==3.8
