@@ -15,6 +15,108 @@ A revolutionary text-based monster-catching game that leverages **Large Language
 
 **This isn't just a game—it's a demonstration of AI in interactive entertainment.**
 
+## 🚀 **Quick Start**
+
+### Prerequisites (Install BEFORE running setup)
+
+#### ✅ **Required Software:**
+1. **Python 3.8+** - [Download from python.org](https://www.python.org/downloads/)
+2. **Node.js 16+** - [Download from nodejs.org](https://nodejs.org/) 
+   - ✅ npm comes included with Node.js
+3. **MySQL Server** - [Download MySQL Community Server](https://dev.mysql.com/downloads/mysql/)
+   - ⚠️ **Important:** MySQL Workbench is just the GUI - you need the actual server
+   - 💡 During installation, remember your root password!
+4. **Git** - [Download from git-scm.com](https://git-scm.com/downloads)
+
+#### 🎯 **For CUDA Support (Recommended for AI features):**
+5. **NVIDIA GPU Drivers** - [Download latest drivers](https://www.nvidia.com/drivers/)
+6. **CUDA Toolkit** - [Download CUDA 12.x](https://developer.nvidia.com/cuda-toolkit)
+7. **Visual Studio Build Tools** - [Download Build Tools](https://visualstudio.microsoft.com/downloads/)
+   - Install the "C++ build tools" workload
+
+#### 🔧 **Hardware Requirements:**
+- **NVIDIA GPU** with 8GB+ VRAM (for AI model acceleration)
+- **32GB RAM** recommended (16GB minimum)
+- **10GB+ free storage**
+
+### Installation Steps
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Bloodtailor/LlmMonsterHunter.git
+cd LlmMonsterHunter
+
+# 2. Make sure MySQL Server is running
+# Check in MySQL Workbench or run: sc query MySQL84
+
+# 3. Verify Node.js and npm are working
+node --version
+npm --version
+
+# 4. Run automated setup (handles Python dependencies, React setup, database config)
+python setup_environment.py
+
+# 5. Download an LLM model
+# Create a 'models' folder and download a GGUF format model
+# Recommended: Llama 2 7B Chat or Mistral 7B Instruct
+# Example: llama-2-7b-chat.Q4_K_M.gguf
+
+# 6. Configure your environment
+# Edit the .env file with your MySQL password and model path
+# Example:
+# DB_PASSWORD=your_mysql_password
+# LLM_MODEL_PATH=models/llama-2-7b-chat.Q4_K_M.gguf
+
+# 7. Start the backend server
+python backend/run.py
+
+# 8. In a new terminal window, start the frontend
+cd frontend
+npm start
+```
+
+🎉 **The game will be available at `http://localhost:3000`**
+
+### What the Setup Script Does
+
+The `setup_environment.py` script automatically:
+- ✅ Checks your system requirements
+- ✅ Creates a Python virtual environment in `backend/venv/`
+- ✅ Installs Python dependencies with CUDA support
+- ✅ Installs React frontend dependencies
+- ✅ Creates a `.env` configuration file
+- ✅ Sets up the models directory
+- ✅ Attempts to create the MySQL database
+
+### Troubleshooting
+
+#### **What are Node.js and npm?**
+- **Node.js:** A JavaScript runtime that lets you run JavaScript outside web browsers
+- **npm:** Node Package Manager - comes with Node.js, manages JavaScript libraries
+- **Why we need them:** React frontend is built with JavaScript and needs these tools
+- **To verify:** Run `node --version` and `npm --version` in command prompt
+
+#### **"Node.js & npm" check failed but Node.js detected:**
+- This is usually a false positive - if Node.js version shows, you have npm
+- Verify with: `npm --version`
+- Continue with setup, it should work fine
+
+#### **"MySQL Database" check failed:**
+- Make sure MySQL **Server** is installed and running (not just Workbench)
+- MySQL Workbench = GUI tool, MySQL Server = actual database
+- Check if running: `sc query MySQL84` (Windows) or check MySQL Workbench
+- The setup script will try to create the database for you
+- If it fails, manually create: `CREATE DATABASE monster_hunter_game;`
+
+#### **CUDA compilation takes forever:**
+- This is normal! Can take 10-15 minutes
+- The script tries multiple methods to get CUDA working
+- If all else fails, it installs CPU-only version (slower but works)
+
+#### **Running setup multiple times:**
+- ✅ **Safe to rerun!** Script checks what's already done and skips it
+- Use this if you need to install prerequisites and run again
+
 ## ✨ **Key Features**
 
 ### 🤖 **AI-Powered Everything**
@@ -34,39 +136,6 @@ A revolutionary text-based monster-catching game that leverages **Large Language
 - **Full-Stack Development:** Python/Flask backend with React frontend
 - **AI Integration:** Practical application of local LLM inference and prompt engineering
 - **Database Design:** MySQL implementation with complex entity relationships
-
-## 🚀 **Quick Start**
-
-### Prerequisites
-- **Hardware:** NVIDIA GPU with 8GB+ VRAM, 32GB RAM recommended
-- **Software:** Python 3.8+, Node.js 16+, MySQL 8.0+, Git
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/Bloodtailor/LlmMonsterHunter.git
-cd LlmMonsterHunter
-
-# Set up Python environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up database
-mysql -u root -p < database/schema.sql
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your database credentials
-
-# Start the backend
-python app.py
-```
-
-The game will be available at `http://localhost:5000`
 
 ## 🏗️ **Project Architecture**
 
