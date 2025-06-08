@@ -8,6 +8,7 @@ import os
 import sys
 import platform
 import subprocess
+import shutil
 from pathlib import Path
 
 def print_header(text):
@@ -45,7 +46,6 @@ def check_nodejs():
         print(f"✅ Node.js found: {node_version}")
         
         # Check npm using shutil.which
-        import shutil
         npm_path = shutil.which("npm") or shutil.which("npm.cmd") or shutil.which("npm.exe")
         
         if npm_path:
@@ -78,8 +78,31 @@ def check_nodejs():
         print("   npm (Node Package Manager) comes included with Node.js")
         return False
 
+def check_mysql_cli():
+    """Check if MySQL command line client is available."""
+    try:
+        # Try to run mysql --version to see if it's available
+        result = subprocess.run(["mysql", "--version"], 
+                              capture_output=True, text=True, check=True)
+        print(f"✅ MySQL CLI found: {result.stdout.strip()}")
+        return True
+    except FileNotFoundError:
+        print("❌ MySQL command line client not found")
+        return False
+    except subprocess.CalledProcessError:
+        print("⚠️  MySQL CLI found but may have issues")
+        return True  # At least the command exists
+    except Exception as e:
+        print(f"❌ Error checking MySQL CLI: {e}")
+        return False
+
 def check_mysql():
-    """Check for MySQL server."""
+    """Enhanced MySQL check for system requirements."""
+    print("Checking MySQL Server and command line tools...")
+    
+    # Check if MySQL CLI is available
+    cli_available = check_mysql_cli()
+    
     # Check for MySQL Workbench first (easier to detect)
     workbench_paths = [
         "C:\\Program Files\\MySQL\\MySQL Workbench 8.0",
@@ -107,22 +130,22 @@ def check_mysql():
             except subprocess.CalledProcessError:
                 continue
     
-    # Try MySQL command line
-    mysql_client_found = False
-    try:
-        result = subprocess.run(["mysql", "--version"], capture_output=True, text=True, check=True)
-        print(f"✅ MySQL client found: {result.stdout.strip()}")
-        mysql_client_found = True
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        pass
+    # Try MySQL command line (if CLI is available)
+    if cli_available:
+        try:
+            subprocess.run(["mysql", "-e", "SELECT 1;"], 
+                          capture_output=True, check=True)
+            print("✅ MySQL Server connection successful")
+            return True
+        except subprocess.CalledProcessError:
+            print("⚠️  MySQL Server may not be running or requires authentication")
+            return False
+    else:
+        print("   Cannot test MySQL Server connection without CLI tools")
     
     # Determine overall success
     if server_running:
         print("✅ MySQL server is running")
-        return True
-    elif mysql_client_found:
-        print("✅ MySQL client available")
-        print("⚠️  Please ensure MySQL server is running")
         return True
     elif workbench_found:
         print("✅ MySQL Workbench found")
@@ -295,7 +318,6 @@ def create_virtual_environment():
             return True
         else:
             print("⚠️  Virtual environment exists but may be corrupted, recreating...")
-            import shutil
             shutil.rmtree(venv_path)
 
     print("Creating virtual environment in backend/venv...")
@@ -305,6 +327,68 @@ def create_virtual_environment():
         return True
     except subprocess.CalledProcessError:
         print("ERROR: Failed to create virtual environment.")
+        return False
+
+def check_llama_cpp_cuda(pip_path):
+    """Check if llama-cpp-python is installed and has CUDA support."""
+    try:
+        # First check if llama-cpp-python is installed
+        result = subprocess.run([str(pip_path), "show", "llama-cpp-python"], 
+                              capture_output=True, text=True, check=True)
+        if "Version:" not in result.stdout:
+            return False, "not_installed"
+        
+        print("✅ llama-cpp-python already installed")
+        
+        # For now, assume it's working if it's installed
+        # We could add more sophisticated CUDA testing here later
+        print("✅ Assuming CUDA support (skipping 20-minute reinstall)")
+        return True, "cuda_assumed"
+            
+    except subprocess.CalledProcessError:
+        return False, "not_installed"
+
+def install_llama_cpp_python(pip_path):
+    """Install llama-cpp-python with CUDA support using multiple methods."""
+    print("Installing llama-cpp-python with CUDA support...")
+    print("⚠️  This may take 10-15 minutes to compile!")
+    
+    # Method 1: Environment variables for CUDA build
+    print("\nMethod 1: Building from source with CUDA...")
+    env = os.environ.copy()
+    env["CMAKE_ARGS"] = "-DLLAMA_CUBLAS=on"
+    env["FORCE_CMAKE"] = "1"
+    
+    try:
+        subprocess.run([
+            str(pip_path), "install", "llama-cpp-python", "--no-cache-dir", "--force-reinstall"
+        ], env=env, check=True)
+        print("🎉 Successfully built with CUDA support!")
+        return True
+    except subprocess.CalledProcessError:
+        print("❌ Source build failed, trying Method 2...")
+    
+    # Method 2: Pre-built CUDA wheel
+    print("\nMethod 2: Trying CUDA wheel repository...")
+    try:
+        subprocess.run([
+            str(pip_path), "install", "llama-cpp-python",
+            "--extra-index-url", "https://abetlen.github.io/llama-cpp-python/whl/cu121"
+        ], check=True)
+        print("🎉 Successfully installed from CUDA wheel repository!")
+        return True
+    except subprocess.CalledProcessError:
+        print("❌ Wheel repository failed, falling back to CPU version...")
+    
+    # Fallback: CPU-only version
+    print("\nFallback: Installing CPU-only version...")
+    try:
+        subprocess.run([str(pip_path), "install", "llama-cpp-python"], check=True)
+        print("✅ Installed CPU-only version as fallback")
+        print("⚠️  Your models will run on CPU only (slower but still works)")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"ERROR: Even CPU installation failed: {e}")
         return False
 
 def install_backend_dependencies():
@@ -330,24 +414,8 @@ def install_backend_dependencies():
             print("Virtual environment may be corrupted. Please delete backend/venv and run again.")
             return False
     
-def check_llama_cpp_cuda(pip_path):
-    """Check if llama-cpp-python is installed and has CUDA support."""
-    try:
-        # First check if llama-cpp-python is installed
-        result = subprocess.run([str(pip_path), "show", "llama-cpp-python"], 
-                              capture_output=True, text=True, check=True)
-        if "Version:" not in result.stdout:
-            return False, "not_installed"
-        
-        print("✅ llama-cpp-python already installed")
-        
-        # For now, assume it's working if it's installed
-        # We could add more sophisticated CUDA testing here later
-        print("✅ Assuming CUDA support (skipping 20-minute reinstall)")
-        return True, "cuda_assumed"
-            
-    except subprocess.CalledProcessError:
-        return False, "not_installed"
+    # Check if llama-cpp-python already installed
+    llama_installed, status = check_llama_cpp_cuda(pip_path)
     
     # Upgrade pip first
     try:
@@ -383,69 +451,27 @@ def check_llama_cpp_cuda(pip_path):
                     print(f"✅ {pkg_name} already installed")
                 except subprocess.CalledProcessError:
                     print(f"Installing {req}...")
-                    subprocess.run([str(pip_path), "install", req], check=True)
+                    try:
+                        subprocess.run([str(pip_path), "install", req], check=True)
+                        print(f"✅ {pkg_name} installed successfully")
+                    except subprocess.CalledProcessError as e:
+                        print(f"❌ Failed to install {req}: {e}")
+                        return False
         
-        print("✅ Base dependencies checked/installed successfully")
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"ERROR: Failed to install base dependencies: {e}")
+        print("✅ Base dependencies installed successfully")
+        
+    except Exception as e:
+        print(f"❌ Error installing base dependencies: {e}")
         return False
     
-    # Install llama-cpp-python with CUDA support
-    print_section("Installing llama-cpp-python with CUDA Support")
+    # Handle llama-cpp-python installation
+    if not llama_installed:
+        if not install_llama_cpp_python(pip_path):
+            print("❌ Failed to install llama-cpp-python")
+            return False
     
-    # Method 1: Pre-built CUDA package (fastest)
-    print("Method 1: Trying pre-built llama-cpp-python-cuda package...")
-    try:
-        # Uninstall any existing versions first
-        subprocess.run([str(pip_path), "uninstall", "-y", "llama-cpp-python"], check=False)
-        subprocess.run([str(pip_path), "uninstall", "-y", "llama-cpp-python-cuda"], check=False)
-        
-        subprocess.run([str(pip_path), "install", "llama-cpp-python-cuda"], check=True)
-        print("🎉 Successfully installed pre-built llama-cpp-python-cuda package!")
-        return True
-    except subprocess.CalledProcessError:
-        print("❌ Pre-built package failed, trying Method 2...")
-    
-    # Method 2: Build from source with CUDA flags
-    print("\nMethod 2: Building from source with CUDA support...")
-    try:
-        env_vars = os.environ.copy()
-        env_vars["CMAKE_ARGS"] = "-DLLAMA_CUDA=on"
-        env_vars["FORCE_CMAKE"] = "1"
-        
-        install_command = [
-            str(pip_path), "install", "llama-cpp-python", "--force-reinstall", "--no-cache-dir"
-        ]
-        
-        print("This may take 5-10 minutes to compile...")
-        subprocess.run(install_command, env=env_vars, check=True)
-        print("🎉 Successfully built llama-cpp-python with CUDA support!")
-        return True
-    except subprocess.CalledProcessError:
-        print("❌ Source build failed, trying Method 3...")
-    
-    # Method 3: Wheel repository
-    print("\nMethod 3: Trying CUDA wheel repository...")
-    try:
-        subprocess.run([
-            str(pip_path), "install", "llama-cpp-python",
-            "--extra-index-url", "https://abetlen.github.io/llama-cpp-python/whl/cu121"
-        ], check=True)
-        print("🎉 Successfully installed from CUDA wheel repository!")
-        return True
-    except subprocess.CalledProcessError:
-        print("❌ Wheel repository failed, falling back to CPU version...")
-    
-    # Fallback: CPU-only version
-    print("\nFallback: Installing CPU-only version...")
-    try:
-        subprocess.run([str(pip_path), "install", "llama-cpp-python"], check=True)
-        print("✅ Installed CPU-only version as fallback")
-        print("⚠️  Your models will run on CPU only (slower but still works)")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"ERROR: Even CPU installation failed: {e}")
-        return False
+    print("✅ Backend dependencies installation completed!")
+    return True
 
 def install_frontend_dependencies():
     """Install frontend dependencies using npm."""
@@ -463,7 +489,6 @@ def install_frontend_dependencies():
         return True
     
     # Use shutil.which to find npm reliably
-    import shutil
     npm_path = shutil.which("npm") or shutil.which("npm.cmd") or shutil.which("npm.exe")
     
     if not npm_path:
@@ -550,6 +575,8 @@ def check_model_directory():
         print("⚠️  No model files found in models/ directory")
         print("   You'll need to download a GGUF model file")
         print("   Recommended: Llama 2 7B Chat or Mistral 7B Instruct")
+    
+    return True
 
 def create_database():
     """Try to create the database if it doesn't exist."""
@@ -563,10 +590,45 @@ def create_database():
             "CREATE DATABASE IF NOT EXISTS monster_hunter_game;"
         ], check=True)
         print("✅ Database created successfully")
-    except subprocess.CalledProcessError:
-        print("⚠️  Could not auto-create database")
-        print("   Please create the database manually:")
-        print("   mysql -e 'CREATE DATABASE monster_hunter_game;'")
+        return True
+    except FileNotFoundError:
+        print("❌ MySQL command line client not found")
+        print("")
+        print("The 'mysql' command is not available on your system.")
+        print("This usually means you need to install the MySQL command line client.")
+        print("")
+        print("📋 How to fix this:")
+        print("   Option 1 - Install MySQL command line tools:")
+        print("     • Download MySQL Community Server from https://dev.mysql.com/downloads/mysql/")
+        print("     • During installation, make sure to include 'MySQL Command Line Client'")
+        print("     • Add MySQL bin directory to your system PATH")
+        print("     • Typical path: C:\\Program Files\\MySQL\\MySQL Server 8.x\\bin")
+        print("")
+        print("   Option 2 - Use MySQL Workbench to create database manually:")
+        print("     • Open MySQL Workbench")
+        print("     • Connect to your local server")
+        print("     • Run this SQL command: CREATE DATABASE IF NOT EXISTS monster_hunter_game;")
+        print("")
+        print("   Option 3 - Skip database creation (you can create it later):")
+        print("     • The rest of the setup will continue")
+        print("     • You'll need to create the database before running the game")
+        print("")
+        return False
+    except subprocess.CalledProcessError as e:
+        print("⚠️  MySQL command failed")
+        print(f"   Error: {e}")
+        print("   This usually means MySQL server is not running or connection failed")
+        print("")
+        print("📋 How to fix this:")
+        print("   • Make sure MySQL Server is running (check Windows Services)")
+        print("   • Verify MySQL server is accessible")
+        print("   • Or create the database manually using MySQL Workbench")
+        print("")
+        return False
+    except Exception as e:
+        print(f"❌ Unexpected error creating database: {e}")
+        print("   Please create the database manually using MySQL Workbench")
+        return False
 
 def main():
     """Main function to run all setup steps."""
