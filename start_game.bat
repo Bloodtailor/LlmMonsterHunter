@@ -1,7 +1,4 @@
 @echo off
-REM Monster Hunter Game - Main Launcher
-REM Automatically checks requirements and starts the game
-
 title Monster Hunter Game Launcher
 
 echo.
@@ -23,34 +20,45 @@ REM Step 2: Check all requirements
 echo.
 echo [2/4] Checking system requirements...
 python check_requirements.py
-set "requirements_result=%errorlevel%"
+set requirements_result=%errorlevel%
 
-REM Step 3: Decide what to do based on requirements
+REM Step 3: Handle requirements result
 echo.
 if %requirements_result%==0 (
     echo [3/4] All requirements met! Starting game...
-    goto :start_game
-) else (
-    echo [3/4] Some requirements are missing.
-    echo.
-    set /p "user_choice=Do you want to (S)tart anyway, (R)un setup, or (Q)uit? [S/R/Q]: "
-    
-    if /i "%user_choice%"=="S" (
-        echo Starting game with missing requirements...
-        goto :start_game
-    ) else if /i "%user_choice%"=="R" (
-        echo Running interactive setup...
-        python setup_environment.py
-        echo.
-        echo Setup complete! You can now run this launcher again.
-        pause
-        exit /b 0
-    ) else (
-        echo Exiting...
-        pause
-        exit /b 0
-    )
+    goto start_game
 )
+
+echo [3/4] Some requirements are missing.
+echo.
+
+:ask_choice
+set /p choice="Do you want to (S)tart anyway, (R)un setup, or (Q)uit? [S/R/Q]: "
+
+if /i "%choice%"=="S" goto start_anyway
+if /i "%choice%"=="R" goto run_setup  
+if /i "%choice%"=="Q" goto quit_game
+
+echo Invalid choice. Please enter S, R, or Q.
+goto ask_choice
+
+:start_anyway
+echo Starting game with missing requirements...
+goto start_game
+
+:run_setup
+echo.
+echo Running interactive setup...
+python setup_environment.py
+echo.
+echo Setup complete! You can now run this launcher again.
+pause
+exit /b 0
+
+:quit_game
+echo Exiting...
+pause
+exit /b 0
 
 :start_game
 echo.
@@ -61,10 +69,10 @@ echo                        GAME IS RUNNING!
 echo                    (Placeholder for actual game)
 echo ================================================================
 echo.
-echo Backend would start: python backend/run.py
-echo Frontend would start: cd frontend && npm start
+echo Backend would start
+echo Frontend would start
 echo Game URL: http://localhost:3000
 echo.
 echo Press Ctrl+C to stop the game when it's actually implemented.
-pause
+pause 
 exit /b 0

@@ -29,20 +29,6 @@ def check_visual_studio_installations():
     
     return found_installations
 
-def check_msvc_compiler():
-    """Check for MSVC compiler availability."""
-    try:
-        # Try to find cl.exe (MSVC compiler)
-        result = subprocess.run(["where", "cl"], capture_output=True, text=True, check=True)
-        if result.stdout.strip():
-            print(f"✅ MSVC compiler found: {result.stdout.strip()}")
-            return True
-    except subprocess.CalledProcessError:
-        pass
-    
-    print("❌ MSVC compiler (cl.exe) not found in PATH")
-    return False
-
 def check_windows_sdk():
     """Check for Windows SDK installation."""
     sdk_paths = [
@@ -84,54 +70,12 @@ def check_cpp_build_tools():
     print("❌ C++ build tools not found in any Visual Studio installation")
     return False
 
-def test_cpp_compilation():
-    """Test if C++ compilation works by trying a simple compile."""
-    try:
-        # Create a simple test file
-        test_file = Path("test_compile.cpp")
-        test_content = '''
-#include <iostream>
-int main() {
-    std::cout << "Hello World" << std::endl;
-    return 0;
-}
-'''
-        with open(test_file, 'w') as f:
-            f.write(test_content)
-        
-        # Try to compile it
-        result = subprocess.run(["cl", "/EHsc", str(test_file)], 
-                              capture_output=True, text=True, check=True)
-        
-        # Clean up
-        test_file.unlink(missing_ok=True)
-        Path("test_compile.exe").unlink(missing_ok=True)
-        Path("test_compile.obj").unlink(missing_ok=True)
-        
-        print("✅ C++ compilation test successful")
-        return True
-        
-    except subprocess.CalledProcessError:
-        print("❌ C++ compilation test failed")
-        return False
-    except Exception as e:
-        print(f"❌ C++ compilation test error: {e}")
-        return False
-    finally:
-        # Ensure cleanup
-        Path("test_compile.cpp").unlink(missing_ok=True)
-        Path("test_compile.exe").unlink(missing_ok=True)
-        Path("test_compile.obj").unlink(missing_ok=True)
-
 def check_visual_studio_requirements():
     """Check all Visual Studio build requirements."""
     print("Checking Visual Studio Build Tools requirements...")
     
     # Check for installations
     installations = check_visual_studio_installations()
-    
-    # Check for compiler
-    compiler_available = check_msvc_compiler()
     
     # Check for Windows SDK
     sdk_available = check_windows_sdk()

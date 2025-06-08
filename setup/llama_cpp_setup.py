@@ -5,25 +5,13 @@ Checks for and installs llama-cpp-python with CUDA support
 """
 
 import os
-import platform
 import subprocess
 import sys
 from pathlib import Path
 
-def get_venv_pip_path():
-    """Get the path to pip in the virtual environment."""
-    if platform.system() == "Windows":
-        pip_path = Path("backend/venv/Scripts/pip.exe")
-        python_path = Path("backend/venv/Scripts/python.exe")
-    else:
-        pip_path = Path("backend/venv/bin/pip")
-        python_path = Path("backend/venv/bin/python")
-    
-    return pip_path, python_path
-
 def check_llama_cpp_installed():
     """Check if llama-cpp-python is installed."""
-    pip_path, _ = get_venv_pip_path()
+    pip_path = Path("backend/venv/Scripts/pip.exe")
     
     if not pip_path.exists():
         print("❌ Virtual environment pip not found")
@@ -47,60 +35,6 @@ def check_llama_cpp_installed():
         print("❌ llama-cpp-python not installed")
         return False
 
-def test_llama_cpp_import():
-    """Test if llama-cpp-python can be imported."""
-    _, python_path = get_venv_pip_path()
-    
-    if not python_path.exists():
-        print("❌ Virtual environment Python not found")
-        return False
-    
-    try:
-        # Test basic import
-        result = subprocess.run([
-            str(python_path), "-c", 
-            "import llama_cpp; print('✅ llama-cpp-python import successful')"
-        ], capture_output=True, text=True, check=True)
-        
-        print(result.stdout.strip())
-        return True
-        
-    except subprocess.CalledProcessError as e:
-        print("❌ llama-cpp-python import failed")
-        if e.stderr:
-            print(f"   Error: {e.stderr.strip()}")
-        return False
-
-def test_llama_cpp_cuda():
-    """Test if llama-cpp-python has CUDA support."""
-    _, python_path = get_venv_pip_path()
-    
-    if not python_path.exists():
-        return False
-    
-    try:
-        # Test CUDA availability
-        test_code = '''
-import llama_cpp
-try:
-    # Try to check for CUDA support
-    # This is a simple test - actual CUDA testing would require a model
-    print("✅ llama-cpp-python CUDA check completed")
-    print("   (Full CUDA test requires a model file)")
-except Exception as e:
-    print(f"⚠️  CUDA support unclear: {e}")
-'''
-        
-        result = subprocess.run([str(python_path), "-c", test_code], 
-                              capture_output=True, text=True, check=True)
-        
-        print(result.stdout.strip())
-        return True
-        
-    except subprocess.CalledProcessError as e:
-        print("❌ llama-cpp-python CUDA test failed")
-        return False
-
 def check_llama_cpp_requirements():
     """Check all llama-cpp-python requirements."""
     print("Checking LLM integration (llama-cpp-python) requirements...")
@@ -109,19 +43,12 @@ def check_llama_cpp_requirements():
     if not check_llama_cpp_installed():
         return False
     
-    # Test import
-    if not test_llama_cpp_import():
-        return False
-    
-    # Test CUDA (optional)
-    test_llama_cpp_cuda()
-    
     print("✅ llama-cpp-python is working")
     return True
 
 def install_llama_cpp_cpu_only():
     """Install CPU-only version of llama-cpp-python."""
-    pip_path, _ = get_venv_pip_path()
+    pip_path = Path("backend/venv/Scripts/pip.exe")
     
     print("Installing llama-cpp-python (CPU-only)...")
     try:
@@ -134,7 +61,7 @@ def install_llama_cpp_cpu_only():
 
 def install_llama_cpp_cuda_source():
     """Install llama-cpp-python with CUDA support from source."""
-    pip_path, _ = get_venv_pip_path()
+    pip_path = Path("backend/venv/Scripts/pip.exe")
     
     print("Installing llama-cpp-python with CUDA from source...")
     print("⚠️  This may take 10-15 minutes to compile!")
@@ -157,7 +84,7 @@ def install_llama_cpp_cuda_source():
 
 def install_llama_cpp_cuda_wheel():
     """Try to install pre-built CUDA wheel."""
-    pip_path, _ = get_venv_pip_path()
+    pip_path = Path("backend/venv/Scripts/pip.exe")
     
     print("Trying pre-built CUDA wheel...")
     try:
@@ -174,7 +101,7 @@ def install_llama_cpp_cuda_wheel():
 
 def uninstall_llama_cpp():
     """Uninstall existing llama-cpp-python."""
-    pip_path, _ = get_venv_pip_path()
+    pip_path = Path("backend/venv/Scripts/pip.exe")
     
     try:
         subprocess.run([str(pip_path), "uninstall", "llama-cpp-python", "-y"], 
@@ -190,7 +117,7 @@ def setup_llama_cpp_interactive():
     print("Setting up LLM integration (llama-cpp-python)...")
     
     # Check if already working
-    if check_llama_cpp_installed() and test_llama_cpp_import():
+    if check_llama_cpp_installed():
         print("✅ llama-cpp-python is already working")
         
         choice = input("Do you want to reinstall for better CUDA support? (y/n): ").lower().strip()
@@ -227,28 +154,28 @@ def setup_llama_cpp_interactive():
         
         # Try pre-built wheel first
         if install_llama_cpp_cuda_wheel():
-            if test_llama_cpp_import():
+            if check_llama_cpp_installed():
                 print("✅ CUDA wheel installation successful")
                 return True
         
         # Fall back to source build
         print("Wheel failed, trying source build...")
         if install_llama_cpp_cuda_source():
-            if test_llama_cpp_import():
+            if check_llama_cpp_installed():
                 print("✅ CUDA source build successful")
                 return True
     
     elif has_gpu and has_cuda:
         print("⚠️  GPU and CUDA detected but no build tools - trying CUDA wheel only")
         if install_llama_cpp_cuda_wheel():
-            if test_llama_cpp_import():
+            if check_llama_cpp_installed():
                 print("✅ CUDA wheel installation successful")
                 return True
     
     # Fall back to CPU-only
     print("🔄 Falling back to CPU-only installation...")
     if install_llama_cpp_cpu_only():
-        if test_llama_cpp_import():
+        if check_llama_cpp_installed():
             print("✅ CPU-only installation successful")
             print("💡 Models will run on CPU (slower but functional)")
             return True

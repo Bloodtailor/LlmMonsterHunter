@@ -6,7 +6,6 @@ These components usually work correctly on first try, so they're grouped togethe
 
 import os
 import sys
-import platform
 import subprocess
 import urllib.request
 from pathlib import Path
@@ -15,9 +14,9 @@ def check_python_version():
     """Check if Python version is adequate."""
     version = sys.version_info
     if version.major < 3 or (version.major == 3 and version.minor < 8):
-        print(f"❌ Python 3.8+ required. Current: {platform.python_version()}")
+        print(f"❌ Python 3.8+ required. Current: {sys.version}")
         return False
-    print(f"✅ Python {platform.python_version()} is adequate")
+    print(f"✅ Python {sys.version.split()[0]} is adequate")
     return True
 
 def check_pip():
@@ -50,12 +49,8 @@ def check_virtual_environment():
         return False
     
     # Check if Python executable exists in venv
-    if platform.system() == "Windows":
-        python_path = venv_path / "Scripts" / "python.exe"
-        pip_path = venv_path / "Scripts" / "pip.exe"
-    else:
-        python_path = venv_path / "bin" / "python"
-        pip_path = venv_path / "bin" / "pip"
+    python_path = venv_path / "Scripts" / "python.exe"
+    pip_path = venv_path / "Scripts" / "pip.exe"
     
     if not python_path.exists():
         print("❌ Virtual environment Python not found")
@@ -66,10 +61,7 @@ def check_virtual_environment():
 
 def check_basic_dependencies():
     """Check if basic Flask dependencies are installed."""
-    if platform.system() == "Windows":
-        pip_path = Path("backend/venv/Scripts/pip.exe")
-    else:
-        pip_path = Path("backend/venv/bin/pip")
+    pip_path = Path("backend/venv/Scripts/pip.exe")
     
     if not pip_path.exists():
         print("❌ Virtual environment pip not found")
@@ -132,10 +124,7 @@ def create_virtual_environment():
 
 def install_basic_dependencies():
     """Install basic Flask dependencies (without llama-cpp-python)."""
-    if platform.system() == "Windows":
-        pip_path = Path("backend/venv/Scripts/pip.exe")
-    else:
-        pip_path = Path("backend/venv/bin/pip")
+    pip_path = Path("backend/venv/Scripts/pip.exe")
     
     if not pip_path.exists():
         print(f"❌ Virtual environment pip not found at {pip_path}")
