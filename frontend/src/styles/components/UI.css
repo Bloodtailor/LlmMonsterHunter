@@ -1,0 +1,171 @@
+/* Monster Hunter Game - Reusable UI Components */
+/* Cards, buttons, status indicators, and other reusable elements */
+
+/* Status Indicators */
+.status-indicators {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.status-indicator {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-indicator.connected {
+  background: var(--success-color);
+  color: white;
+}
+
+.status-indicator.disconnected {
+  background: var(--error-color);
+  color: white;
+}
+
+.game-version {
+  background: var(--background-light);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+/* Grid Layouts */
+.status-grid, .preview-grid, .tools-grid {
+  display: grid;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+}
+
+.status-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.preview-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.tools-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Cards */
+.status-card, .preview-card, .tool-card {
+  background: var(--background-medium);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--background-light);
+  transition: var(--transition-normal);
+}
+
+.status-card:hover, .tool-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.preview-card.disabled {
+  opacity: 0.6;
+  position: relative;
+}
+
+.preview-card.disabled::before {
+  content: "Coming Soon";
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  background: var(--warning-color);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Buttons */
+.retry-button, .test-button, .refresh-button, .preview-button {
+  border: none;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: var(--transition-normal);
+  margin-top: var(--spacing-md);
+}
+
+.retry-button {
+  background: var(--accent-color);
+  color: white;
+}
+
+.retry-button:hover {
+  background: #e67e22;
+}
+
+.test-button, .refresh-button {
+  background: var(--primary-color);
+  color: white;
+}
+
+.test-button:hover, .refresh-button:hover {
+  background: var(--secondary-color);
+}
+
+.preview-button:disabled {
+  background: var(--text-dim);
+  cursor: not-allowed;
+}
+
+/* Test Results */
+.test-results {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+}
+
+.test-results.success {
+  background: rgba(39, 174, 96, 0.2);
+  border: 1px solid var(--success-color);
+}
+
+.test-results.error {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid var(--error-color);
+}
+
+/* Features List */
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.feature-status.enabled {
+  color: var(--success-color);
+}
+
+.feature-status.disabled {
+  color: var(--warning-color);
+}
+
+/* Responsive Design for UI Components */
+@media (max-width: 768px) {
+  .status-grid, .preview-grid, .tools-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .status-indicators {
+    justify-content: center;
+  }
+}

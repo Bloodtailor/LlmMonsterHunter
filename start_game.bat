@@ -61,17 +61,43 @@ exit /b 0
 
 :start_game
 echo.
-echo Launching Monster Hunter Game...
+echo ================================================================
+echo                     LAUNCHING MONSTER HUNTER GAME
+echo ================================================================
+echo.
+echo Starting backend server...
+
+REM Start backend in a new window
+start "Monster Hunter Backend" cmd /c "call backend\venv\Scripts\activate.bat && cd backend && python run.py && pause"
+
+REM Wait a moment for backend to start
+echo Waiting for backend to initialize...
+timeout /t 3 /nobreak > nul
+
+echo.
+echo Starting frontend server...
+
+REM Start frontend in a new window  
+start "Monster Hunter Frontend" cmd /c "cd frontend && npm start"
+
 echo.
 echo ================================================================
 echo                        GAME IS RUNNING!
-echo                    (Placeholder for actual game)
 echo ================================================================
 echo.
-echo Backend would start: 
-echo Frontend would start: 
-echo Game URL: http://localhost:3000
+echo 🎮 Game Interface: http://localhost:3000
+echo 🔧 Backend API:   http://localhost:5000
 echo.
-echo Press Ctrl+C to stop the game when it's actually implemented.
-pause
+echo Two new windows should have opened:
+echo   1. Backend Server (Flask API)
+echo   2. Frontend Server (React App)
+echo.
+echo 💡 Tips:
+echo   - Wait for both servers to fully load
+echo   - The React app will open in your browser automatically
+echo   - Close server windows or press Ctrl+C to stop the game
+echo.
+echo This launcher window can be closed now.
+echo Press any key to exit launcher...
+pause > nul
 exit /b 0
