@@ -3,7 +3,6 @@
 // Provides app-level error handling and API integration
 
 import React, { useState, useEffect } from 'react';
-import './App.css';
 import HomeBase from './components/screens/HomeBase';
 import { healthCheck, getGameStatus } from './services/api';
 

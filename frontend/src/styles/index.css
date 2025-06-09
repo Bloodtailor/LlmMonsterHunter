@@ -1,0 +1,23 @@
+/* Monster Hunter Game - Main CSS Entry Point */
+/* Imports all modular stylesheets in the correct order */
+
+/* 1. Design system and theme variables */
+@import './theme.css';
+
+/* 2. Global styles, reset, and layout */
+@import './globals.css';
+
+/* 3. Reusable UI components */
+@import './components/UI.css';
+
+/* 4. Screen-specific styles */
+@import './screens/HomeBase.css';
+
+/* Code highlighting for development */
+code {
+  font-family: var(--font-family-mono);
+  background: var(--background-light);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+}
