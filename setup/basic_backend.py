@@ -31,14 +31,14 @@ def check_pip():
         return False
 
 def check_network_access():
-    """Check if we can access PyPI."""
+    """Check if we can access PyPI (optional - only needed for installing packages)."""
     try:
-        urllib.request.urlopen('https://pypi.org', timeout=10)
-        print("✅ Network access to PyPI confirmed")
+        urllib.request.urlopen('https://pypi.org', timeout=5)
+        print("✅ Network access to PyPI confirmed (for package installation)")
         return True
     except Exception:
-        print("❌ Cannot access PyPI - check internet connection")
-        return False
+        print("⚠️  No network access to PyPI (only needed for installing packages)")
+        return True  # Return True since network isn't required to run the game
 
 def check_virtual_environment():
     """Check if virtual environment exists and is functional."""
@@ -92,18 +92,65 @@ def check_env_file():
 
 def check_basic_backend_requirements():
     """Check all basic backend requirements."""
-    print("Checking basic backend requirements...")
-    
+    # Silent check - only return True/False
     checks = [
         check_python_version(),
         check_pip(),
-        check_network_access(),
+        True,  # Network is optional - only needed for installing
         check_virtual_environment(),
         check_basic_dependencies(),
         check_env_file()
     ]
     
+    # Also run network check for info, but don't fail on it
+    check_network_access()
+    
     return all(checks)
+
+def check_basic_backend_requirements_silent():
+    """Silently check basic backend requirements."""
+    try:
+        version = sys.version_info
+        if version.major < 3 or (version.major == 3 and version.minor < 8):
+            return False
+        
+        # Check pip
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "--version"], 
+                          capture_output=True, text=True, check=True)
+        except subprocess.CalledProcessError:
+            return False
+        
+        # Network is optional - skip check
+        
+        # Check venv
+        venv_path = Path("backend/venv")
+        if not venv_path.exists():
+            return False
+        python_path = venv_path / "Scripts" / "python.exe"
+        if not python_path.exists():
+            return False
+        
+        # Check Flask
+        pip_path = Path("backend/venv/Scripts/pip.exe")
+        if not pip_path.exists():
+            return False
+        try:
+            result = subprocess.run([str(pip_path), "show", "Flask"], 
+                                  capture_output=True, text=True, check=True)
+            if "Version:" not in result.stdout:
+                return False
+        except subprocess.CalledProcessError:
+            return False
+        
+        # Check .env
+        env_file = Path(".env")
+        if not env_file.exists():
+            return False
+        
+        return True
+    except Exception:
+        return False
 
 def create_virtual_environment():
     """Create virtual environment."""
@@ -177,11 +224,9 @@ def create_env_file():
     env_example = Path(".env.example")
     
     if env_file.exists():
-        print("✅ .env file already exists")
-        return True
+        return True  # Don't print if running silently
     
     if env_example.exists():
-        print("Creating .env from .env.example...")
         try:
             with open(env_example, 'r') as example:
                 content = example.read()
@@ -192,7 +237,6 @@ def create_env_file():
             print(f"❌ Failed to create .env from example: {e}")
             return False
     else:
-        print("Creating basic .env file...")
         env_content = """# Monster Hunter Game Environment Variables
 
 # Database Configuration
@@ -218,7 +262,7 @@ MAX_PARTY_SIZE=4
         try:
             with open(env_file, 'w') as f:
                 f.write(env_content)
-            print("✅ Basic .env file created")
+            print("✅ .env file created")
         except Exception as e:
             print(f"❌ Failed to create .env file: {e}")
             return False
@@ -282,8 +326,53 @@ def setup_basic_backend_interactive():
     print("✅ Basic backend setup completed")
     return True
 
+def auto_setup_basic_backend():
+    """Automatically set up basic backend requirements, only showing output when installing."""
+    # Check if everything is already working
+    if check_basic_backend_requirements_silent():
+        return True  # All good, no output needed
+    
+    print("Setting up basic backend requirements...")
+    
+    # Create virtual environment if needed
+    venv_path = Path("backend/venv")
+    if not venv_path.exists():
+        print("Creating virtual environment...")
+        try:
+            subprocess.run([sys.executable, "-m", "venv", str(venv_path)], check=True)
+            print("✅ Virtual environment created")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to create virtual environment: {e}")
+            return False
+    
+    # Install basic dependencies if needed
+    pip_path = Path("backend/venv/Scripts/pip.exe")
+    if pip_path.exists():
+        try:
+            result = subprocess.run([str(pip_path), "show", "Flask"], 
+                                  capture_output=True, text=True, check=True)
+            if "Version:" not in result.stdout:
+                raise subprocess.CalledProcessError(1, "Flask not found")
+        except subprocess.CalledProcessError:
+            if not install_basic_dependencies():
+                return False
+    else:
+        print("❌ Virtual environment pip not found")
+        return False
+    
+    # Create .env file if needed
+    env_file = Path(".env")
+    if not env_file.exists():
+        if not create_env_file():
+            return False
+    
+    print("✅ Basic backend setup completed")
+    return True
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "setup":
         setup_basic_backend_interactive()
+    elif len(sys.argv) > 1 and sys.argv[1] == "auto":
+        auto_setup_basic_backend()
     else:
         check_basic_backend_requirements()

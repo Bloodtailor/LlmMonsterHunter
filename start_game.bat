@@ -6,30 +6,29 @@ echo ================================================================
 echo                   Monster Hunter Game Launcher
 echo ================================================================
 echo.
+echo Checking requirements...
+echo.
 
-REM Step 1: Run basic backend setup automatically
-echo [1/4] Setting up basic backend environment...
-python setup/basic_backend.py
+REM Step 1: Auto-setup basic backend (silent unless installing)
+python setup/basic_backend.py auto
 if errorlevel 1 (
     echo ERROR: Basic backend setup failed
     pause
     exit /b 1
 )
 
-REM Step 2: Check all requirements
-echo.
-echo [2/4] Checking system requirements...
-python check_requirements.py
+REM Step 2: Check all requirements (summary mode)
+python check_requirements.py summary
 set requirements_result=%errorlevel%
 
 REM Step 3: Handle requirements result
 echo.
 if %requirements_result%==0 (
-    echo [3/4] All requirements met! Starting game...
+    echo All requirements met! Starting game...
     goto start_game
 )
 
-echo [3/4] Some requirements are missing.
+echo Some requirements are missing.
 echo.
 
 :ask_choice
@@ -62,17 +61,17 @@ exit /b 0
 
 :start_game
 echo.
-echo [4/4] Launching Monster Hunter Game...
+echo Launching Monster Hunter Game...
 echo.
 echo ================================================================
 echo                        GAME IS RUNNING!
 echo                    (Placeholder for actual game)
 echo ================================================================
 echo.
-echo Backend would start
-echo Frontend would start
+echo Backend would start: 
+echo Frontend would start: 
 echo Game URL: http://localhost:3000
 echo.
 echo Press Ctrl+C to stop the game when it's actually implemented.
-pause 
+pause
 exit /b 0
