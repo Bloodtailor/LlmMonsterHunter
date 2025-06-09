@@ -33,9 +33,10 @@ def test_connection():
     """
     
     try:
-        # Try to execute a simple query
-        result = db.engine.execute(text('SELECT 1 as test'))
-        result.close()
+        # Try to execute a simple query using modern SQLAlchemy 2.x syntax
+        with db.engine.connect() as connection:
+            result = connection.execute(text('SELECT 1 as test'))
+            result.close()
         print("✅ Database connection successful")
         return True
         

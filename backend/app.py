@@ -91,8 +91,11 @@ def check_database_connection():
     """
     try:
         from config.database import db
-        # Try a simple query to test connection
-        db.engine.execute('SELECT 1')
+        from sqlalchemy import text
+        # Try a simple query to test connection using modern SQLAlchemy syntax
+        with db.engine.connect() as connection:
+            result = connection.execute(text('SELECT 1'))
+            result.close()
         return True
     except Exception:
         return False

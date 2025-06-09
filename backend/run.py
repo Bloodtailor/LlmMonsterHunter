@@ -21,19 +21,19 @@ def main():
     print(f"🔧 Environment: {os.getenv('FLASK_ENV', 'development')}")
     print(f"🔧 Debug mode: {app.config['DEBUG']}")
     
-    # Print database info
-    db_info = get_db_info()
-    print(f"🗄️  Database: {db_info.get('database_url', 'Not configured')}")
-    
-    if db_info.get('connected'):
-        print("✅ Database connection verified")
+    # Print database info (within app context)
+    with app.app_context():
+        db_info = get_db_info()
+        print(f"🗄️  Database: {db_info.get('database_url', 'Not configured')}")
         
-        # Create tables if they don't exist
-        with app.app_context():
+        if db_info.get('connected'):
+            print("✅ Database connection verified")
+            
+            # Create tables if they don't exist
             create_tables()
-    else:
-        print("❌ Database connection failed - check configuration")
-        print("💡 The API will still start but database features won't work")
+        else:
+            print("❌ Database connection failed - check configuration")
+            print("💡 The API will still start but database features won't work")
     
     # Print available endpoints
     print("\n📡 Available API endpoints:")
