@@ -12,9 +12,9 @@ import os
 backend_path = os.path.join(os.path.dirname(__file__), 'backend')
 sys.path.append(backend_path)
 
-from app import create_app
-from config.database import db
-from models.monster import Monster
+from backend.app import create_app
+from backend.config.database import db
+from backend.models.monster import Monster
 
 def test_monster_model():
     """Test that Monster model works with database"""
