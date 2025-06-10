@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 
 REM Step 2: Check all requirements (summary mode)
-python check_requirements.py summary
+python -m setup.check_requirements summary
 set requirements_result=%errorlevel%
 
 REM Step 3: Handle requirements result
@@ -48,7 +48,7 @@ goto start_game
 :run_setup
 echo.
 echo Running interactive setup...
-python setup_environment.py
+python -m setup.setup_environment
 echo.
 echo Setup complete! You can now run this launcher again.
 pause

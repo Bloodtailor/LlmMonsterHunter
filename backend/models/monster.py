@@ -2,8 +2,8 @@
 # Defines the structure for storing AI-generated monsters
 # Focuses only on data storage and retrieval - NO game logic
 
-from .base import BaseModel
-from ..config.database import db
+from backend.models.base import BaseModel
+from backend.config.database import db
 from sqlalchemy import Column, Integer, String, Text, JSON
 import json
 
