@@ -1,0 +1,40 @@
+{
+  "basic_monster": {
+    "description": "Generate a basic monster with name and description only",
+    "max_tokens": 150,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_monster_parser",
+      "expected_fields": ["name", "description"],
+      "required_fields": ["name", "description"]
+    },
+    "prompt_template": "You are a creative monster designer for a fantasy game. Create a unique monster with the following format:\n\n{\"name\": \"Monster Name\", \"description\": \"A detailed description of the monster's appearance, personality, and background\"}\n\nMake the monster interesting and unique. The description should be 2-3 sentences long.\n\nGenerate only valid JSON, no additional text:"
+  },
+  
+  "detailed_monster": {
+    "description": "Generate a detailed monster with stats, abilities, and backstory",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "detailed_monster_parser",
+      "expected_fields": ["name", "species", "description", "backstory", "stats", "personality", "abilities"],
+      "required_fields": ["name", "description"]
+    },
+    "prompt_template": "You are a creative monster designer for a fantasy game. Every monster has a unique wish they seek to fulfill - this drives their personality and actions.\n\nCreate a unique monster with the following JSON format:\n\n{\n  \"name\": \"Monster Name\",\n  \"species\": \"Species Type\",\n  \"description\": \"Brief physical description\",\n  \"backstory\": \"Their history and what wish drives them\",\n  \"stats\": {\n    \"health\": 80-150,\n    \"attack\": 15-35,\n    \"defense\": 10-30,\n    \"speed\": 5-25\n  },\n  \"personality\": {\n    \"traits\": [\"trait1\", \"trait2\", \"trait3\"]\n  },\n  \"abilities\": [\n    {\"name\": \"Ability Name\", \"description\": \"What it does\"}\n  ]\n}\n\nMake the monster interesting with a compelling wish/motivation. Generate only valid JSON, no additional text:"
+  },
+  
+  "story_driven_monster": {
+    "description": "Generate a monster with rich storytelling focus",
+    "max_tokens": 600,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json", 
+      "parser_name": "story_monster_parser",
+      "expected_fields": ["name", "species", "description", "backstory", "wish", "personality", "abilities", "stats"],
+      "required_fields": ["name", "description", "wish"]
+    },
+    "prompt_template": "You are a master storyteller creating monsters for an epic fantasy adventure. In this world, there exists a mysterious power capable of granting any wish - all monsters seek this power for their own personal reasons.\n\nCreate a monster with deep narrative focus:\n\n{\n  \"name\": \"Monster Name\",\n  \"species\": \"Species Type\", \n  \"description\": \"Physical appearance and demeanor\",\n  \"backstory\": \"Their detailed history - what happened to them?\",\n  \"wish\": \"What they desperately want from the wish-granting power\",\n  \"personality\": {\n    \"traits\": [\"personality traits that reflect their wish\"],\n    \"motivation\": \"How their wish drives their behavior\"\n  },\n  \"abilities\": [\n    {\"name\": \"Ability Name\", \"description\": \"Description reflecting their story\"}\n  ],\n  \"stats\": {\n    \"health\": 80-150,\n    \"attack\": 15-35, \n    \"defense\": 10-30,\n    \"speed\": 5-25\n  }\n}\n\nFocus on emotional depth - what drives them? What do they fear? What do they hope for? Generate only valid JSON, no additional text:"
+  }
+}

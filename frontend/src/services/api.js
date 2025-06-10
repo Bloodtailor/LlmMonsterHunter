@@ -94,6 +94,20 @@ export async function getGameStatus() {
   return await apiRequest('/api/game/status');
 }
 
+
+/**
+ * Utility function to log API calls for debugging
+ */
+export function logApiCall(endpoint, data, error = null) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🔗 API Call: ${endpoint}`, {
+      data,
+      error,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
 /**
  * Test API connectivity
  * Calls both health and status endpoints to verify full API functionality
@@ -122,41 +136,58 @@ export async function testApiConnectivity() {
   }
 }
 
-// Future API endpoints will be added here as we build more features:
+/**
+ * LLM monitoring and debugging endpoints
+ */
 
 /**
- * Player management endpoints (future)
+ * Get LLM status information
+ * @returns {Promise<object>} LLM status data
  */
-// export async function getPlayer() { ... }
-// export async function savePlayer(playerData) { ... }
+export async function getLLMStatus() {
+  return await apiRequest('/api/llm/status');
+}
 
 /**
- * Monster management endpoints (future)
+ * Get recent LLM logs for debugging
+ * @param {object} options - Query options (limit, status, prompt_type)
+ * @returns {Promise<object>} LLM logs data
  */
-// export async function getMonsterRoster() { ... }
-// export async function getPartyMonsters() { ... }
+export async function getLLMLogs(options = {}) {
+  const params = new URLSearchParams(options).toString();
+  const endpoint = params ? `/api/llm/logs?${params}` : '/api/llm/logs';
+  return await apiRequest(endpoint);
+}
 
 /**
- * Chat system endpoints (future)
+ * Get detailed information about a specific LLM log
+ * @param {number} logId - ID of the log to retrieve
+ * @returns {Promise<object>} Detailed log data
  */
-// export async function getChatHistory(monsterId) { ... }
-// export async function sendChatMessage(monsterId, message) { ... }
+export async function getLLMLogDetail(logId) {
+  return await apiRequest(`/api/llm/logs/${logId}`);
+}
 
 /**
- * Battle system endpoints (future)
+ * Get LLM generation statistics
+ * @returns {Promise<object>} Statistics data
  */
-// export async function startBattle(partyData) { ... }
-// export async function submitBattleAction(actionData) { ... }
+export async function getLLMStats() {
+  return await apiRequest('/api/llm/stats');
+}
 
 /**
- * Utility function to log API calls for debugging
+ * Get available LLM prompts
+ * @returns {Promise<object>} Available prompts
  */
-export function logApiCall(endpoint, data, error = null) {
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`🔗 API Call: ${endpoint}`, {
-      data,
-      error,
-      timestamp: new Date().toISOString()
-    });
-  }
+export async function getLLMPrompts() {
+  return await apiRequest('/api/llm/prompts');
+}
+
+/**
+ * Get current generation status
+ * @returns {Promise<object>} Current generation info
+ */
+export async function getCurrentGeneration() {
+  return await apiRequest('/api/llm/current-generation');
 }
