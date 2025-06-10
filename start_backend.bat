@@ -34,7 +34,7 @@ echo ================================================================
 echo.
 
 REM Run the server
-python run.py
+python -m backend.run
 
 REM If we get here, the server stopped
 echo.
