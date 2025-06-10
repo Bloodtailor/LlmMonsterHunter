@@ -102,14 +102,6 @@
 - Allow Users to chat with Monster as a roleplay chatbot
 - Display Monster response
 
-### 1.6 Save Management
-
-#### 1.6.1 Save
-- User must save the game at home screen
-
-#### 1.6.2 Load
-- User must load the game from the save file at startup
-
 ## 2. Non-Functional Requirements
 
 ### 2.1 Performance

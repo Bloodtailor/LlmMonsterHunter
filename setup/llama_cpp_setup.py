@@ -11,7 +11,7 @@ from pathlib import Path
 
 def check_llama_cpp_installed():
     """Check if llama-cpp-python is installed."""
-    pip_path = Path("backend/venv/Scripts/pip.exe")
+    pip_path = Path("venv/Scripts/pip.exe")
     
     if not pip_path.exists():
         print("❌ Virtual environment pip not found")
@@ -48,7 +48,7 @@ def check_llama_cpp_requirements():
 
 def install_llama_cpp_cpu_only():
     """Install CPU-only version of llama-cpp-python."""
-    pip_path = Path("backend/venv/Scripts/pip.exe")
+    pip_path = Path("venv/Scripts/pip.exe")
     
     print("Installing llama-cpp-python (CPU-only)...")
     try:
@@ -61,7 +61,7 @@ def install_llama_cpp_cpu_only():
 
 def install_llama_cpp_cuda_source():
     """Install llama-cpp-python with CUDA support from source."""
-    pip_path = Path("backend/venv/Scripts/pip.exe")
+    pip_path = Path("venv/Scripts/pip.exe")
     
     print("Installing llama-cpp-python with CUDA from source...")
     print("⚠️  This may take 10-15 minutes to compile!")
@@ -84,7 +84,7 @@ def install_llama_cpp_cuda_source():
 
 def install_llama_cpp_cuda_wheel():
     """Try to install pre-built CUDA wheel."""
-    pip_path = Path("backend/venv/Scripts/pip.exe")
+    pip_path = Path("venv/Scripts/pip.exe")
     
     print("Trying pre-built CUDA wheel...")
     try:
@@ -101,7 +101,7 @@ def install_llama_cpp_cuda_wheel():
 
 def uninstall_llama_cpp():
     """Uninstall existing llama-cpp-python."""
-    pip_path = Path("backend/venv/Scripts/pip.exe")
+    pip_path = Path("venv/Scripts/pip.exe")
     
     try:
         subprocess.run([str(pip_path), "uninstall", "llama-cpp-python", "-y"], 
@@ -182,7 +182,7 @@ def setup_llama_cpp_interactive():
     
     print("❌ All llama-cpp-python installation methods failed")
     print("📋 You can try manually:")
-    print("1. Activate virtual environment: backend\\venv\\Scripts\\activate")
+    print("1. Activate virtual environment: venv\\Scripts\\activate")
     print("2. Install manually: pip install llama-cpp-python")
     print("3. Or check the llama-cpp-python documentation for your system")
     return False

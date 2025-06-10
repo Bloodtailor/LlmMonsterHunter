@@ -68,7 +68,7 @@ echo.
 echo Starting backend server...
 
 REM Start backend in a new window
-start "Monster Hunter Backend" cmd /c "call backend\venv\Scripts\activate.bat && cd backend && python run.py && pause"
+start "Monster Hunter Backend" cmd /k "call venv\Scripts\activate.bat && python -m backend.run && pause"
 
 REM Wait a moment for backend to start
 echo Waiting for backend to initialize...

@@ -44,7 +44,7 @@ def create_app(config_name='development'):
     CORS(app, origins=['http://localhost:3000'])
     
     # Initialize database with app
-    from config.database import init_db
+    from backend.config.database import init_db
     init_db(app)
     
     # Register API routes (blueprints)
@@ -90,7 +90,7 @@ def check_database_connection():
     Returns True if database is accessible, False otherwise
     """
     try:
-        from config.database import db
+        from backend.config.database import db
         from sqlalchemy import text
         # Try a simple query to test connection using modern SQLAlchemy syntax
         with db.engine.connect() as connection:

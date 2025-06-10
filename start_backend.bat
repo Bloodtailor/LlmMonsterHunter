@@ -9,7 +9,7 @@ echo.
 
 REM Activate virtual environment
 echo Activating Python virtual environment...
-call backend\venv\Scripts\activate.bat
+call venv\Scripts\activate.bat
 
 if errorlevel 1 (
     echo ERROR: Could not activate virtual environment
@@ -33,9 +33,8 @@ echo Press Ctrl+C to stop the server
 echo ================================================================
 echo.
 
-REM Change to backend directory and run the server
-cd backend
-python run.py
+REM Run the server
+python -m backend.run
 
 REM If we get here, the server stopped
 echo.

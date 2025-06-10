@@ -2,8 +2,8 @@
 # Starts the Flask development server
 # Entry point for running the Monster Hunter Game backend
 
-from app import create_app
-from config.database import create_tables, get_db_info
+from backend.app import create_app
+from backend.config.database import create_tables, get_db_info
 import os
 
 def main():

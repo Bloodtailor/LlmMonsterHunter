@@ -188,29 +188,6 @@ This document defines the functional use cases for the Monster Hunter Game syste
 
 ---
 
-## UC-8: Saving Game State
-
-**Use Case Name:** Saving Game State  
-**ID:** UC-8  
-**Priority:** Low  
-**Actor:** Player  
-**Description:** The player saves the game allowing them to exit the game and return where they left off  
-**Trigger:** The player clicks the save button  
-**Type:** External
-
-### Preconditions
-1. The player is at the home base screen
-
-### Normal Course
-1. Player selects the "Save Game" option from the home base screen
-2. The game saves the current state to a file
-3. Player can later select "Load Game" from the main menu to resume from the saved state
-
-### Postconditions
-1. The game's current state is saved, and the player can resume from this point later
-
----
-
 ## UC-9: Selecting Monster Actions in Battle
 
 **Use Case Name:** Selecting Monster Actions in Battle  

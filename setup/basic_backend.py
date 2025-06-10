@@ -42,10 +42,10 @@ def check_network_access():
 
 def check_virtual_environment():
     """Check if virtual environment exists and is functional."""
-    venv_path = Path("backend/venv")
+    venv_path = Path("venv")
     
     if not venv_path.exists():
-        print("❌ Virtual environment not found at backend/venv")
+        print("❌ Virtual environment not found at venv")
         return False
     
     # Check if Python executable exists in venv
@@ -61,7 +61,7 @@ def check_virtual_environment():
 
 def check_basic_dependencies():
     """Check if basic Flask dependencies are installed."""
-    pip_path = Path("backend/venv/Scripts/pip.exe")
+    pip_path = Path("venv/Scripts/pip.exe")
     
     if not pip_path.exists():
         print("❌ Virtual environment pip not found")
@@ -124,7 +124,7 @@ def check_basic_backend_requirements_silent():
         # Network is optional - skip check
         
         # Check venv
-        venv_path = Path("backend/venv")
+        venv_path = Path("venv")
         if not venv_path.exists():
             return False
         python_path = venv_path / "Scripts" / "python.exe"
@@ -132,7 +132,7 @@ def check_basic_backend_requirements_silent():
             return False
         
         # Check Flask
-        pip_path = Path("backend/venv/Scripts/pip.exe")
+        pip_path = Path("venv/Scripts/pip.exe")
         if not pip_path.exists():
             return False
         try:
@@ -154,7 +154,7 @@ def check_basic_backend_requirements_silent():
 
 def create_virtual_environment():
     """Create virtual environment."""
-    venv_path = Path("backend/venv")
+    venv_path = Path("venv")
     
     if venv_path.exists():
         print("✅ Virtual environment already exists")
@@ -171,7 +171,7 @@ def create_virtual_environment():
 
 def install_basic_dependencies():
     """Install basic Flask dependencies (without llama-cpp-python)."""
-    pip_path = Path("backend/venv/Scripts/pip.exe")
+    pip_path = Path("venv/Scripts/pip.exe")
     
     if not pip_path.exists():
         print(f"❌ Virtual environment pip not found at {pip_path}")
@@ -335,7 +335,7 @@ def auto_setup_basic_backend():
     print("Setting up basic backend requirements...")
     
     # Create virtual environment if needed
-    venv_path = Path("backend/venv")
+    venv_path = Path("venv")
     if not venv_path.exists():
         print("Creating virtual environment...")
         try:
@@ -346,7 +346,7 @@ def auto_setup_basic_backend():
             return False
     
     # Install basic dependencies if needed
-    pip_path = Path("backend/venv/Scripts/pip.exe")
+    pip_path = Path("venv/Scripts/pip.exe")
     if pip_path.exists():
         try:
             result = subprocess.run([str(pip_path), "show", "Flask"], 
