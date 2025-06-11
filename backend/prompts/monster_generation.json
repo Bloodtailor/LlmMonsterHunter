@@ -1,21 +1,21 @@
 {
   "basic_monster": {
     "description": "Generate a basic monster with name and description only",
-    "max_tokens": 150,
-    "temperature": 0.8,
+    "max_tokens": 200,
+    "temperature": 0.9,
     "parser": {
       "type": "json",
       "parser_name": "basic_monster_parser",
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "You are a creative monster designer for a fantasy game. Create a unique monster with the following format:\n\n{\"name\": \"Monster Name\", \"description\": \"A detailed description of the monster's appearance, personality, and background\"}\n\nMake the monster interesting and unique. The description should be 2-3 sentences long.\n\nGenerate only valid JSON, no additional text:"
+    "prompt_template": "You are a creative monster designer for a fantasy game. Create a unique monster.\n\nRespond with valid JSON in this exact format:\n{\"name\": \"Monster Name\", \"description\": \"A detailed description of the monster's appearance, personality, and background\"}\n\nMake the monster interesting and unique. The description should be 2-3 sentences long.\n\nJSON:"
   },
   
   "detailed_monster": {
     "description": "Generate a detailed monster with stats, abilities, and backstory",
     "max_tokens": 400,
-    "temperature": 0.8,
+    "temperature": 0.9,
     "parser": {
       "type": "json",
       "parser_name": "detailed_monster_parser",

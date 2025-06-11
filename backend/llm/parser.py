@@ -25,6 +25,9 @@ def clean_json_response(text: str) -> str:
     Returns:
         str: Cleaned JSON text
     """
+    if not text:
+        return ""
+    
     # Remove leading/trailing whitespace
     text = text.strip()
     
@@ -36,6 +39,7 @@ def clean_json_response(text: str) -> str:
         "```",
         "JSON:",
         "Response:",
+        "Answer:",
     ]
     
     for prefix in prefixes_to_remove:
@@ -53,11 +57,30 @@ def clean_json_response(text: str) -> str:
         if text.endswith(suffix):
             text = text[:-len(suffix)].strip()
     
-    # Find JSON block using regex
-    json_pattern = r'\{.*\}'
+    # Find JSON block using regex - look for content between braces
+    json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
     match = re.search(json_pattern, text, re.DOTALL)
     if match:
         text = match.group(0)
+    
+    # If no braces found, maybe the JSON is incomplete - try to find start
+    elif '{' in text:
+        start_idx = text.find('{')
+        text = text[start_idx:]
+        
+        # Try to find where it should end (look for closing brace)
+        brace_count = 0
+        end_idx = len(text)
+        for i, char in enumerate(text):
+            if char == '{':
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    end_idx = i + 1
+                    break
+        
+        text = text[:end_idx]
     
     return text
 
@@ -96,11 +119,33 @@ def basic_monster_parser(response_text: str, parser_config: Dict[str, Any]) -> P
         ParseResult: Parsing results
     """
     try:
+        # 🔧 DEBUG: Show what we're parsing
+        print(f"🔧 PARSER DEBUG: Input text: {repr(response_text)}")
+        print(f"🔧 PARSER DEBUG: Input length: {len(response_text) if response_text else 'None'}")
+        
+        # Handle empty or None input
+        if not response_text or response_text.strip() == "":
+            return ParseResult(
+                success=False,
+                error="Response text is empty or None",
+                parser_used="basic_monster_parser"
+            )
+        
         # Clean the response
         cleaned = clean_json_response(response_text)
+        print(f"🔧 PARSER DEBUG: Cleaned text: {repr(cleaned)}")
+        
+        # Handle empty cleaned response
+        if not cleaned or cleaned.strip() == "":
+            return ParseResult(
+                success=False,
+                error="No JSON found in response after cleaning",
+                parser_used="basic_monster_parser"
+            )
         
         # Parse JSON
         data = json.loads(cleaned)
+        print(f"🔧 PARSER DEBUG: Parsed JSON: {data}")
         
         # Validate it's a dictionary
         if not isinstance(data, dict):
@@ -127,6 +172,8 @@ def basic_monster_parser(response_text: str, parser_config: Dict[str, Any]) -> P
             'description': str(data['description']).strip()
         }
         
+        print(f"🔧 PARSER DEBUG: Final cleaned data: {cleaned_data}")
+        
         return ParseResult(
             success=True,
             data=cleaned_data,
@@ -134,15 +181,20 @@ def basic_monster_parser(response_text: str, parser_config: Dict[str, Any]) -> P
         )
         
     except json.JSONDecodeError as e:
+        error_msg = f"Invalid JSON: {str(e)}"
+        print(f"🔧 PARSER DEBUG: JSON decode error: {error_msg}")
+        print(f"🔧 PARSER DEBUG: Attempted to parse: {repr(response_text)}")
         return ParseResult(
             success=False,
-            error=f"Invalid JSON: {str(e)}",
+            error=error_msg,
             parser_used="basic_monster_parser"
         )
     except Exception as e:
+        error_msg = f"Parsing error: {str(e)}"
+        print(f"🔧 PARSER DEBUG: Unexpected error: {error_msg}")
         return ParseResult(
             success=False,
-            error=f"Parsing error: {str(e)}",
+            error=error_msg,
             parser_used="basic_monster_parser"
         )
 

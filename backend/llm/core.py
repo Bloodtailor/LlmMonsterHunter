@@ -195,8 +195,14 @@ def generate_text(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
         print(f"🔄 Generating {prompt_type} ({max_tokens} max tokens)...")
         start_time = time.time()
         
-        # Configure stop sequences
-        stop = stop_sequences or ["</s>", "\n\n\n"]
+        # Configure stop sequences - FIX: Use simpler default stop sequences
+        if stop_sequences is None:
+            stop = ["</s>"]  # Only use model's end-of-sequence token
+        else:
+            stop = stop_sequences
+        
+        # 🔧 DEBUG: Print generation parameters
+        print(f"🔧 DEBUG: max_tokens={max_tokens}, temperature={temperature}, stop={stop}")
         
         # Generate with the model
         response = _model(
@@ -210,9 +216,39 @@ def generate_text(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
         end_time = time.time()
         duration = end_time - start_time
         
-        # Extract response data
-        generated_text = response['choices'][0]['text']
-        tokens_generated = response['usage']['completion_tokens']
+        # 🔧 DEBUG: Print raw response structure
+        print(f"🔧 DEBUG: Raw response type: {type(response)}")
+        print(f"🔧 DEBUG: Raw response keys: {list(response.keys()) if isinstance(response, dict) else 'Not a dict'}")
+        
+        # Extract response data with better error handling
+        try:
+            generated_text = response['choices'][0]['text']
+            tokens_generated = response['usage']['completion_tokens']
+            
+            # 🔧 DEBUG: Print extraction results
+            print(f"🔧 DEBUG: Extracted text: {repr(generated_text)}")
+            print(f"🔧 DEBUG: Extracted tokens: {tokens_generated}")
+            print(f"🔧 DEBUG: Text length: {len(generated_text) if generated_text else 'None/Empty'}")
+            
+        except KeyError as e:
+            print(f"❌ KeyError extracting response data: {e}")
+            print(f"🔧 DEBUG: Full response: {response}")
+            return {
+                'success': False,
+                'error': f'Response format error: {e}',
+                'text': None,
+                'tokens': 0,
+                'duration': duration
+            }
+        except Exception as e:
+            print(f"❌ Error extracting response data: {e}")
+            return {
+                'success': False,
+                'error': f'Extraction error: {e}',
+                'text': None,
+                'tokens': 0,
+                'duration': duration
+            }
         
         print(f"✅ Generated {tokens_generated} tokens in {duration:.1f}s ({tokens_generated/duration:.1f} tok/s)")
         

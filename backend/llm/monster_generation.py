@@ -101,7 +101,7 @@ def generate_monster(prompt_name: str = "basic_monster") -> Dict[str, Any]:
             max_tokens=prompt_config['max_tokens'],
             temperature=prompt_config['temperature'],
             prompt_type=f'monster_generation_{prompt_name}',
-            stop_sequences=['}', '\n\n']  # Stop after JSON or double newline
+            stop_sequences=None  # 🔧 FIX: Let model use default stop sequences
         )
         
         if not generation_result['success']:
