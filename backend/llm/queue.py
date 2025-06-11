@@ -1,6 +1,6 @@
 # LLM Prompt Queue System
 # Handles queuing multiple LLM requests and processing them sequentially
-# Provides streaming updates and queue status monitoring
+# 🔧 FIXED: Proper log status updates throughout the entire lifecycle
 
 import threading
 import time
@@ -30,6 +30,7 @@ class QueueItem:
     created_at: datetime
     status: QueueItemStatus
     priority: int = 5  # 1=highest, 10=lowest
+    log_id: Optional[int] = None  # Link to LLM log entry
     
     # Results
     result: Optional[Dict[str, Any]] = None
@@ -56,8 +57,8 @@ class QueueItem:
 
 class LLMQueue:
     """
-    Thread-safe LLM prompt queue with streaming support
-    Processes requests sequentially while providing real-time updates
+    Thread-safe LLM prompt queue with streaming support and MANDATORY logging
+    🔧 FIXED: Proper Flask context handling for database operations
     """
     
     def __init__(self):
@@ -68,6 +69,12 @@ class LLMQueue:
         self._running = False
         self._current_item = None
         self._streaming_callbacks = []  # Global streaming callbacks
+        self._app = None  # 🔧 NEW: Store Flask app for context
+        
+    def set_flask_app(self, app):
+        """🔧 NEW: Set Flask app for database operations"""
+        self._app = app
+        print(f"📱 Flask app set for queue: {app}")
         
     def start_worker(self):
         """Start the background worker thread"""
@@ -88,20 +95,10 @@ class LLMQueue:
     
     def add_request(self, prompt: str, max_tokens: int = 256, temperature: float = 0.8,
                    prompt_type: str = "unknown", priority: int = 5,
-                   streaming_callback: Optional[Callable] = None) -> str:
+                   streaming_callback: Optional[Callable] = None,
+                   log_id: Optional[int] = None) -> str:
         """
-        Add a new request to the queue
-        
-        Args:
-            prompt (str): Text prompt to generate from
-            max_tokens (int): Maximum tokens to generate
-            temperature (float): Sampling temperature
-            prompt_type (str): Type of prompt for monitoring
-            priority (int): Priority (1=highest, 10=lowest)
-            streaming_callback (callable): Optional callback for streaming updates
-            
-        Returns:
-            str: Unique request ID
+        Add a new request to the queue with optional log linking
         """
         request_id = str(uuid.uuid4())
         
@@ -114,16 +111,23 @@ class LLMQueue:
             created_at=datetime.utcnow(),
             status=QueueItemStatus.PENDING,
             priority=priority,
-            streaming_callback=streaming_callback
+            streaming_callback=streaming_callback,
+            log_id=log_id
         )
         
         with self._lock:
             self._items[request_id] = item
             self._queue.put((priority, request_id))
         
-        self._notify_streaming("queue_update", {"action": "added", "item": item.to_dict()})
+        # Broadcast queue update
+        self._notify_streaming("queue_update", {
+            "action": "added", 
+            "item": item.to_dict(),
+            "queue_size": self._queue.qsize(),
+            "total_items": len(self._items)
+        })
         
-        print(f"📥 Added request {request_id} to queue (priority: {priority})")
+        print(f"📥 Added request {request_id} to queue (priority: {priority}, log_id: {log_id})")
         return request_id
     
     def get_request_status(self, request_id: str) -> Optional[Dict[str, Any]]:
@@ -138,7 +142,16 @@ class LLMQueue:
             item = self._items.get(request_id)
             if item and item.status == QueueItemStatus.PENDING:
                 item.status = QueueItemStatus.CANCELLED
-                self._notify_streaming("queue_update", {"action": "cancelled", "item": item.to_dict()})
+                
+                # Update associated log if exists
+                if item.log_id:
+                    self._update_log_status(item.log_id, 'cancelled', 'Request cancelled by user')
+                
+                self._notify_streaming("queue_update", {
+                    "action": "cancelled", 
+                    "item": item.to_dict(),
+                    "queue_size": self._queue.qsize()
+                })
                 return True
         return False
     
@@ -186,11 +199,13 @@ class LLMQueue:
     def add_streaming_callback(self, callback: Callable):
         """Add global streaming callback for all updates"""
         self._streaming_callbacks.append(callback)
+        print(f"🔗 Added streaming callback, total: {len(self._streaming_callbacks)}")
     
     def remove_streaming_callback(self, callback: Callable):
         """Remove global streaming callback"""
         if callback in self._streaming_callbacks:
             self._streaming_callbacks.remove(callback)
+            print(f"🔗 Removed streaming callback, total: {len(self._streaming_callbacks)}")
     
     def _notify_streaming(self, event_type: str, data: Dict[str, Any]):
         """Notify all streaming callbacks of an event"""
@@ -200,14 +215,70 @@ class LLMQueue:
             "timestamp": datetime.utcnow().isoformat()
         }
         
+        # More robust callback handling
+        callbacks_to_remove = []
+        
         for callback in self._streaming_callbacks:
             try:
                 callback(event)
             except Exception as e:
                 print(f"⚠️ Streaming callback error: {e}")
+                callbacks_to_remove.append(callback)
+        
+        # Remove failed callbacks
+        for callback in callbacks_to_remove:
+            self._streaming_callbacks.remove(callback)
+        
+        # Debug output
+        print(f"📡 Broadcast {event_type} to {len(self._streaming_callbacks)} connections")
+    
+    def _update_log_status(self, log_id: int, status: str, error_msg: str = None, response_text: str = None, tokens: int = None):
+        """🔧 COMPLETELY REWRITTEN: Proper log status updates with Flask context"""
+        if not log_id:
+            return
+            
+        try:
+            # 🔧 CRITICAL FIX: Ensure Flask app context
+            if not self._app:
+                print("⚠️ No Flask app available for log update")
+                return
+                
+            with self._app.app_context():
+                from backend.models.llm_log import LLMLog
+                
+                log = LLMLog.query.get(log_id)
+                if not log:
+                    print(f"⚠️ Log {log_id} not found for update")
+                    return
+                
+                print(f"📋 Updating log {log_id}: {status}")
+                
+                if status == 'started':
+                    log.mark_started()
+                elif status == 'completed':
+                    log.mark_completed(
+                        response_text=response_text or "Completed via queue", 
+                        response_tokens=tokens or 0
+                    )
+                elif status == 'failed':
+                    log.mark_failed(error_msg or "Failed in queue")
+                elif status == 'cancelled':
+                    log.status = 'failed'
+                    log.error_message = error_msg or "Cancelled"
+                    log.end_time = datetime.utcnow()
+                
+                if log.save():
+                    print(f"✅ Log {log_id} updated successfully: {status}")
+                else:
+                    print(f"❌ Failed to save log {log_id}")
+                    
+        except Exception as e:
+            print(f"❌ Error updating log {log_id}: {e}")
+            import traceback
+            traceback.print_exc()
     
     def _worker_loop(self):
-        """Main worker loop - processes queue items sequentially"""
+        """🔧 ENHANCED: Main worker loop with proper Flask context"""
         from backend.llm.core import generate_text, ensure_model_loaded
         
         print("🔄 LLM Queue worker loop started")
@@ -227,90 +298,151 @@ class LLMQueue:
                 if not item or item.status != QueueItemStatus.PENDING:
                     continue
                 
-                # Mark as processing
-                item.status = QueueItemStatus.PROCESSING
-                item.started_at = datetime.utcnow()
-                self._current_item = item
-                
-                self._notify_streaming("generation_started", {"item": item.to_dict()})
-                
-                # Ensure model is loaded
-                if not ensure_model_loaded():
-                    item.status = QueueItemStatus.FAILED
-                    item.error = "Failed to load LLM model"
-                    item.completed_at = datetime.utcnow()
-                    self._current_item = None
-                    self._notify_streaming("generation_failed", {"item": item.to_dict()})
-                    continue
-                
-                # Create streaming callback wrapper
-                def streaming_wrapper(partial_text):
-                    item.partial_response = partial_text
-                    
-                    # Call item-specific callback
-                    if item.streaming_callback:
-                        try:
-                            item.streaming_callback(partial_text)
-                        except Exception as e:
-                            print(f"⚠️ Item streaming callback error: {e}")
-                    
-                    # Notify global streaming
-                    self._notify_streaming("generation_update", {
-                        "request_id": request_id,
-                        "partial_text": partial_text,
-                        "item": item.to_dict()
-                    })
-                
-                # Generate with streaming
-                print(f"🎲 Processing request {request_id}: {item.prompt_type}")
-                
-                result = self._generate_with_streaming(
-                    item.prompt,
-                    item.max_tokens,
-                    item.temperature,
-                    item.prompt_type,
-                    streaming_wrapper
-                )
-                
-                # Update item with results
-                item.result = result
-                item.completed_at = datetime.utcnow()
-                
-                if result['success']:
-                    item.status = QueueItemStatus.COMPLETED
-                    self._notify_streaming("generation_completed", {"item": item.to_dict()})
+                # 🔧 CRITICAL: Set up Flask context for this entire operation
+                if self._app:
+                    with self._app.app_context():
+                        self._process_item(item, request_id)
                 else:
-                    item.status = QueueItemStatus.FAILED
-                    item.error = result.get('error', 'Unknown error')
-                    self._notify_streaming("generation_failed", {"item": item.to_dict()})
-                
-                self._current_item = None
-                
+                    print("⚠️ No Flask app context - processing without database updates")
+                    self._process_item(item, request_id)
+                    
             except Exception as e:
                 print(f"❌ Worker loop error: {e}")
+                import traceback
+                traceback.print_exc()
+                
                 if self._current_item:
                     self._current_item.status = QueueItemStatus.FAILED
                     self._current_item.error = f"Worker error: {str(e)}"
                     self._current_item.completed_at = datetime.utcnow()
-                    self._notify_streaming("generation_failed", {"item": self._current_item.to_dict()})
+                    
+                    # Update log
+                    if self._current_item.log_id:
+                        self._update_log_status(self._current_item.log_id, 'failed', self._current_item.error)
+                    
+                    self._notify_streaming("generation_failed", {
+                        "item": self._current_item.to_dict(),
+                        "error": self._current_item.error
+                    })
                     self._current_item = None
     
-    # Real Streaming Implementation
-
+    def _process_item(self, item, request_id):
+        """🔧 NEW: Process a single queue item (extracted for cleaner code)"""
+        from backend.llm.core import ensure_model_loaded
+        
+        # Mark as processing
+        item.status = QueueItemStatus.PROCESSING
+        item.started_at = datetime.utcnow()
+        self._current_item = item
+        
+        # 🔧 Update log to started status
+        if item.log_id:
+            self._update_log_status(item.log_id, 'started')
+        
+        # Enhanced generation_started event
+        self._notify_streaming("generation_started", {
+            "item": item.to_dict(),
+            "request_id": request_id,
+            "prompt_type": item.prompt_type,
+            "max_tokens": item.max_tokens
+        })
+        
+        # Ensure model is loaded
+        if not ensure_model_loaded():
+            error_msg = "Failed to load LLM model"
+            item.status = QueueItemStatus.FAILED
+            item.error = error_msg
+            item.completed_at = datetime.utcnow()
+            self._current_item = None
+            
+            # 🔧 Update log to failed status
+            if item.log_id:
+                self._update_log_status(item.log_id, 'failed', error_msg)
+            
+            self._notify_streaming("generation_failed", {
+                "item": item.to_dict(),
+                "error": error_msg
+            })
+            return
+        
+        # Create streaming callback wrapper
+        def streaming_wrapper(partial_text):
+            item.partial_response = partial_text
+            
+            # Call item-specific callback
+            if item.streaming_callback:
+                try:
+                    item.streaming_callback(partial_text)
+                except Exception as e:
+                    print(f"⚠️ Item streaming callback error: {e}")
+            
+            # Enhanced generation_update event
+            self._notify_streaming("generation_update", {
+                "request_id": request_id,
+                "partial_text": partial_text,
+                "item": item.to_dict(),
+                "tokens_so_far": len(partial_text.split()) if partial_text else 0
+            })
+        
+        # Generate with streaming
+        print(f"🎲 Processing request {request_id}: {item.prompt_type}")
+        
+        result = self._generate_with_streaming(
+            item.prompt,
+            item.max_tokens,
+            item.temperature,
+            item.prompt_type,
+            streaming_wrapper
+        )
+        
+        # Update item with results
+        item.result = result
+        item.completed_at = datetime.utcnow()
+        
+        if result['success']:
+            item.status = QueueItemStatus.COMPLETED
+            
+            # 🔧 Update log with full results
+            if item.log_id:
+                self._update_log_status(
+                    item.log_id, 
+                    'completed',
+                    response_text=result.get('text', ''),
+                    tokens=result.get('tokens', 0)
+                )
+            
+            # Enhanced generation_completed event
+            self._notify_streaming("generation_completed", {
+                "item": item.to_dict(),
+                "result": result,
+                "final_text": result.get('text', ''),
+                "tokens_generated": result.get('tokens', 0),
+                "duration": result.get('duration', 0)
+            })
+        else:
+            item.status = QueueItemStatus.FAILED
+            item.error = result.get('error', 'Unknown error')
+            
+            # 🔧 Update log to failed status
+            if item.log_id:
+                self._update_log_status(item.log_id, 'failed', item.error)
+            
+            # Enhanced generation_failed event
+            self._notify_streaming("generation_failed", {
+                "item": item.to_dict(),
+                "error": item.error,
+                "result": result
+            })
+        
+        self._current_item = None
+        
+        # Send queue status update after completion
+        self._notify_streaming("queue_status", self.get_queue_status())
+    
     def _generate_with_streaming(self, prompt: str, max_tokens: int, temperature: float,
                             prompt_type: str, streaming_callback: Callable) -> Dict[str, Any]:
         """
         Generate text with REAL streaming updates using llama-cpp-python streaming
-        
-        Args:
-            prompt (str): Text prompt to generate from
-            max_tokens (int): Maximum tokens to generate
-            temperature (float): Sampling temperature
-            prompt_type (str): Type of prompt for monitoring
-            streaming_callback (Callable): Function to call with partial updates
-            
-        Returns:
-            dict: Generation results with text, timing, and metadata
         """
         from backend.llm.core import _model, _model_info, ensure_model_loaded
         import time
@@ -339,7 +471,7 @@ class LLMQueue:
             start_time = time.time()
             
             # Configure generation parameters
-            stop_sequences = ["</s>", "\n\n"]
+            stop_sequences = ["</s>"]  # Simple stop sequence
             
             # Initialize streaming variables
             accumulated_text = ""
@@ -355,35 +487,40 @@ class LLMQueue:
                 temperature=temperature,
                 stop=stop_sequences,
                 echo=False,
-                stream=True  # 🔥 THIS IS THE KEY - Enable streaming!
+                stream=True  # 🔥 Enable streaming!
             )
             
-            # Process the stream
-            for output in stream:
-                try:
-                    # Extract the token from the streaming output
-                    if 'choices' in output and len(output['choices']) > 0:
-                        choice = output['choices'][0]
+            # Process the stream with better error handling
+            try:
+                for output in stream:
+                    try:
+                        # Extract the token from the streaming output
+                        if 'choices' in output and len(output['choices']) > 0:
+                            choice = output['choices'][0]
+                            
+                            if 'text' in choice:
+                                new_token = choice['text']
+                                accumulated_text += new_token
+                                token_count += 1
+                                
+                                # Send streaming update
+                                streaming_callback(accumulated_text)
+                                
+                                # Small delay for visibility
+                                time.sleep(0.01)  # 10ms delay
+                                
+                            # Check if we're done
+                            if choice.get('finish_reason') is not None:
+                                print(f"🏁 Streaming finished: {choice.get('finish_reason')}")
+                                break
+                                
+                    except Exception as e:
+                        print(f"⚠️ Error processing stream token: {e}")
+                        continue
                         
-                        if 'text' in choice:
-                            new_token = choice['text']
-                            accumulated_text += new_token
-                            token_count += 1
-                            
-                            # Send streaming update with accumulated text
-                            streaming_callback(accumulated_text)
-                            
-                            # Small delay to make streaming visible (remove in production)
-                            time.sleep(0.01)  # 10ms delay for demo
-                            
-                        # Check if we're done
-                        if choice.get('finish_reason') is not None:
-                            print(f"🏁 Streaming finished: {choice.get('finish_reason')}")
-                            break
-                            
-                except Exception as e:
-                    print(f"⚠️ Error processing stream token: {e}")
-                    continue
+            except Exception as e:
+                print(f"❌ Error in streaming loop: {e}")
+                # Continue with whatever we have so far
             
             end_time = time.time()
             duration = end_time - start_time
@@ -428,8 +565,6 @@ def get_llm_queue() -> LLMQueue:
             _global_queue.start_worker()
     
     return _global_queue
-
-
 
 def shutdown_queue():
     """Shutdown the global queue (for cleanup)"""
