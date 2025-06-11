@@ -11,6 +11,7 @@ function StreamingDisplay() {
   const [queueStatus, setQueueStatus] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [lastActivity, setLastActivity] = useState(null);
+  const [streamingText, setStreamingText] = useState(''); // 🔧 NEW: Track streaming text
   
   const eventSourceRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
@@ -41,12 +42,14 @@ function StreamingDisplay() {
         eventSourceRef.current.close();
       }
 
+      console.log('🔗 Connecting to LLM streaming...');
+      
       // Create new EventSource connection
       const eventSource = new EventSource('http://localhost:5000/api/streaming/llm-events');
       eventSourceRef.current = eventSource;
 
       eventSource.onopen = () => {
-        console.log('🔗 LLM Streaming connected');
+        console.log('✅ LLM Streaming connected');
         setIsConnected(true);
         setConnectionError(null);
       };
@@ -66,22 +69,26 @@ function StreamingDisplay() {
       // Handle different event types
       eventSource.addEventListener('connected', (event) => {
         const data = JSON.parse(event.data);
-        console.log('✅ Connected:', data.message);
+        console.log('✅ SSE Connected:', data.message);
       });
 
       eventSource.addEventListener('queue_status', (event) => {
         const data = JSON.parse(event.data);
+        console.log('📊 Queue status:', data);
         setQueueStatus(data);
         setLastActivity(new Date());
       });
 
       eventSource.addEventListener('generation_started', (event) => {
         const data = JSON.parse(event.data);
+        console.log('🎲 Generation started:', data);
+        
         setCurrentGeneration({
           ...data.item,
           status: 'generating',
-          partial_text: ''
+          request_id: data.request_id
         });
+        setStreamingText(''); // 🔧 NEW: Reset streaming text
         setIsMinimized(false); // Auto-expand when generation starts
         setLastActivity(new Date());
         clearAutoHideTimeout();
@@ -89,28 +96,53 @@ function StreamingDisplay() {
 
       eventSource.addEventListener('generation_update', (event) => {
         const data = JSON.parse(event.data);
+        console.log('📝 Generation update:', {
+          request_id: data.request_id,
+          text_length: data.partial_text?.length || 0,
+          tokens_so_far: data.tokens_so_far
+        });
+        
+        // 🔧 CRITICAL FIX: Update streaming text from partial_text
+        if (data.partial_text !== undefined) {
+          setStreamingText(data.partial_text);
+        }
+        
         setCurrentGeneration(prev => ({
           ...prev,
-          partial_text: data.partial_text
+          partial_text: data.partial_text,
+          tokens_so_far: data.tokens_so_far
         }));
         setLastActivity(new Date());
       });
 
       eventSource.addEventListener('generation_completed', (event) => {
         const data = JSON.parse(event.data);
+        console.log('✅ Generation completed:', {
+          tokens: data.tokens_generated,
+          duration: data.duration,
+          final_text_length: data.final_text?.length || 0
+        });
+        
         setCurrentGeneration({
           ...data.item,
-          status: 'completed'
+          status: 'completed',
+          final_text: data.final_text,
+          tokens_generated: data.tokens_generated,
+          duration: data.duration
         });
+        setStreamingText(data.final_text || ''); // 🔧 NEW: Set final text
         setLastActivity(new Date());
         startAutoHideTimer();
       });
 
       eventSource.addEventListener('generation_failed', (event) => {
         const data = JSON.parse(event.data);
+        console.log('❌ Generation failed:', data.error);
+        
         setCurrentGeneration({
           ...data.item,
-          status: 'failed'
+          status: 'failed',
+          error: data.error
         });
         setLastActivity(new Date());
         startAutoHideTimer();
@@ -118,13 +150,19 @@ function StreamingDisplay() {
 
       eventSource.addEventListener('queue_update', (event) => {
         const data = JSON.parse(event.data);
-        // Update queue status based on action
+        console.log('📥 Queue update:', data.action);
         setLastActivity(new Date());
       });
 
       eventSource.addEventListener('ping', (event) => {
         // Keep-alive ping - just update last activity
         setLastActivity(new Date());
+      });
+
+      // 🔧 NEW: Debug event to see all events
+      eventSource.addEventListener('debug_test', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('🐛 Debug event:', data);
       });
 
     } catch (error) {
@@ -137,7 +175,7 @@ function StreamingDisplay() {
     clearAutoHideTimeout();
     autoHideTimeoutRef.current = setTimeout(() => {
       setIsMinimized(true);
-    }, 10000); // Auto-minimize after 10 seconds of completion
+    }, 15000); // Auto-minimize after 15 seconds of completion
   };
 
   const clearAutoHideTimeout = () => {
@@ -159,9 +197,6 @@ function StreamingDisplay() {
     if (currentGeneration?.status === 'failed') return '#e74c3c';
     return '#6c757d';
   };
-
-// Timing Calculation Fix
-// Replace the formatDuration function in frontend/src/components/streaming/StreamingDisplay.js
 
   const formatDuration = (item) => {
     if (!item.started_at) return 'Not started';
@@ -250,24 +285,36 @@ function StreamingDisplay() {
                     <div className="progress-fill" />
                   </div>
                   <div className="progress-text">
-                    Generating response...
+                    {currentGeneration.tokens_so_far ? 
+                      `Generated ${currentGeneration.tokens_so_far} tokens...` : 
+                      'Generating response...'}
                   </div>
                 </div>
               )}
 
               <div className="generation-output">
-                {currentGeneration.partial_text ? (
+                {/* 🔧 CRITICAL FIX: Display streaming text properly */}
+                {streamingText ? (
                   <div className="partial-text">
-                    {currentGeneration.partial_text}
+                    {streamingText}
                     {currentGeneration.status === 'generating' && (
                       <span className="cursor">|</span>
                     )}
                   </div>
+                ) : currentGeneration.status === 'generating' ? (
+                  <div className="no-output">
+                    <div className="loading-dots">
+                      Waiting for response<span className="dots">...</span>
+                    </div>
+                  </div>
+                ) : currentGeneration.status === 'completed' ? (
+                  <div className="completion-summary">
+                    ✅ Generated {currentGeneration.tokens_generated || 0} tokens 
+                    {currentGeneration.duration && ` in ${currentGeneration.duration.toFixed(1)}s`}
+                  </div>
                 ) : (
                   <div className="no-output">
-                    {currentGeneration.status === 'generating' ? 
-                      'Waiting for response...' : 
-                      'No output available'}
+                    No output available
                   </div>
                 )}
               </div>
@@ -288,6 +335,24 @@ function StreamingDisplay() {
                 <span>Completed: {queueStatus.status_counts?.completed || 0}</span>
                 <span>Failed: {queueStatus.status_counts?.failed || 0}</span>
               </div>
+            </div>
+          )}
+
+          {/* 🔧 NEW: Debug info when in development */}
+          {process.env.NODE_ENV === 'development' && currentGeneration && (
+            <div className="debug-info">
+              <details>
+                <summary>🐛 Debug Info</summary>
+                <pre style={{fontSize: '10px', overflow: 'auto', maxHeight: '100px'}}>
+                  {JSON.stringify({
+                    status: currentGeneration.status,
+                    request_id: currentGeneration.request_id,
+                    streaming_text_length: streamingText?.length || 0,
+                    tokens_so_far: currentGeneration.tokens_so_far,
+                    last_activity: lastActivity?.toISOString()
+                  }, null, 2)}
+                </pre>
+              </details>
             </div>
           )}
         </div>

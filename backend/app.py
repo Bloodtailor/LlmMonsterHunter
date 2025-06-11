@@ -1,6 +1,6 @@
 # Flask Application Factory
 # Creates and configures the main Flask application
-# Uses application factory pattern for modularity and testing
+# 🔧 FIXED: Proper queue integration with Flask context
 
 from flask import Flask
 from flask_cors import CORS
@@ -46,6 +46,13 @@ def create_app(config_name='development'):
     # Initialize database with app
     from backend.config.database import init_db
     init_db(app)
+    
+    # 🔧 CRITICAL FIX: Set Flask app context for queue system
+    with app.app_context():
+        from backend.llm.queue import get_llm_queue
+        queue = get_llm_queue()
+        queue.set_flask_app(app)
+        print("✅ Queue system configured with Flask app context")
     
     # Register API routes (blueprints)
     register_blueprints(app)
@@ -102,8 +109,9 @@ def register_blueprints(app):
             'status': 'development',
             'features': {
                 'monster_generation': True,   # ✅ LLM system ready
-                'streaming_display': True,    # ✅ NEW: Real-time streaming
-                'prompt_queue': True,         # ✅ NEW: Queue system
+                'streaming_display': True,    # ✅ Real-time streaming
+                'prompt_queue': True,         # ✅ Queue system
+                'gpu_acceleration': True,     # ✅ NEW: GPU support
                 'battle_system': False,
                 'chat_system': False,
                 'save_system': False

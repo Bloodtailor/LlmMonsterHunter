@@ -1,6 +1,6 @@
 # LLM Core Module
 # Handles model loading, inference, and state management
-# Ensures only one model is loaded and one generation runs at a time
+# OPTIMIZED: Uses existing .env configuration with GPU optimizations
 
 import os
 import threading
@@ -18,18 +18,10 @@ _model_info = {
     'loaded': False,
     'model_path': None,
     'load_time': None,
-    'error': None
+    'error': None,
+    'gpu_layers': None,
+    'load_duration': None
 }
-
-class LLMStatus:
-    """Container for LLM status information"""
-    def __init__(self):
-        self.model_loaded = False
-        self.model_path = None
-        self.currently_generating = False
-        self.current_prompt_type = None
-        self.generation_progress = None
-        self.error = None
 
 def get_llm_status() -> Dict[str, Any]:
     """
@@ -47,6 +39,8 @@ def get_llm_status() -> Dict[str, Any]:
         'model_loaded': _model_info['loaded'],
         'model_path': _model_info['model_path'],
         'load_time': _model_info['load_time'],
+        'load_duration': _model_info['load_duration'],
+        'gpu_layers': _model_info['gpu_layers'],
         'error': _model_info['error'],
         'currently_generating': current_gen is not None,
         'current_generation': current_gen
@@ -54,8 +48,8 @@ def get_llm_status() -> Dict[str, Any]:
 
 def load_model() -> bool:
     """
-    Load the LLM model from configuration
-    Thread-safe, only loads if not already loaded
+    Load the LLM model using existing .env configuration with optimizations
+    Only loads if not already loaded - avoids unnecessary reloads
     
     Returns:
         bool: True if model loaded successfully, False otherwise
@@ -63,38 +57,44 @@ def load_model() -> bool:
     global _model, _model_info
     
     with _model_lock:
-        # Check if already loaded
+        # 🔧 CHECK: If already loaded, don't reload
         if _model is not None and _model_info['loaded']:
-            print("✅ Model already loaded")
+            print("✅ Model already loaded, skipping reload")
             return True
         
         try:
-            print("🔄 Loading LLM model...")
+            print("🔄 Loading LLM model with optimized settings...")
             
-            # Get model path from environment
+            # Get configuration from .env (verified by startup script)
             model_path = os.getenv('LLM_MODEL_PATH')
-            if not model_path:
-                raise ValueError("LLM_MODEL_PATH not set in .env file")
+            gpu_layers = int(os.getenv('LLM_GPU_LAYERS', '35'))
+            context_size = int(os.getenv('LLM_CONTEXT_SIZE', '4096'))
             
-            model_file = Path(model_path)
-            if not model_file.exists():
-                raise FileNotFoundError(f"Model file not found: {model_path}")
+            print(f"📋 Configuration from .env:")
+            print(f"   Model: {Path(model_path).name}")
+            print(f"   GPU Layers: {gpu_layers}")
+            print(f"   Context Size: {context_size}")
             
-            # Import llama-cpp-python (only when needed)
-            try:
-                from llama_cpp import Llama
-            except ImportError:
-                raise ImportError("llama-cpp-python not installed. Run: pip install llama-cpp-python")
+            # Import llama-cpp-python (CUDA support verified by startup)
+            from llama_cpp import Llama
             
-            # Load model with configuration
-            print(f"📂 Loading model from: {model_path}")
+            # Load model with full optimizations
+            print(f"🚀 Loading with optimizations...")
             start_time = time.time()
             
             _model = Llama(
-                model_path=str(model_file),
-                n_ctx=int(os.getenv('LLM_CONTEXT_SIZE', '4096')),
-                n_gpu_layers=int(os.getenv('LLM_GPU_LAYERS', '35')),
-                verbose=False  # Reduce console output
+                model_path=str(model_path),
+                n_ctx=context_size,           # From .env
+                n_gpu_layers=gpu_layers,      # From .env - ensures GPU usage
+                n_threads=8,                  # 🔧 OPTIMIZED: 8 threads as requested
+                n_batch=512,                  # 🔧 OPTIMIZED: Batch processing
+                f16_kv=True,                  # 🔧 OPTIMIZED: FP16 key-value cache
+                use_mlock=True,               # 🔧 OPTIMIZED: Lock model in memory
+                use_mmap=True,                # 🔧 OPTIMIZED: Memory mapping
+                verbose=False,                # Reduce console spam
+                # Additional optimizations
+                low_vram=False,               # We have good GPU, don't limit VRAM
+                numa=False                    # Usually better performance on single GPU
             )
             
             load_duration = time.time() - start_time
@@ -102,13 +102,16 @@ def load_model() -> bool:
             # Update model info
             _model_info.update({
                 'loaded': True,
-                'model_path': str(model_file),
+                'model_path': str(model_path),
                 'load_time': datetime.utcnow().isoformat(),
                 'load_duration': round(load_duration, 2),
+                'gpu_layers': gpu_layers,
                 'error': None
             })
             
             print(f"✅ Model loaded successfully in {load_duration:.1f} seconds")
+            print(f"🎮 GPU Layers: {gpu_layers} (ensuring GPU acceleration)")
+            
             return True
             
         except Exception as e:
@@ -119,16 +122,15 @@ def load_model() -> bool:
                 'loaded': False,
                 'model_path': None,
                 'load_time': None,
+                'load_duration': None,
+                'gpu_layers': None,
                 'error': error_msg
             })
             
             return False
 
 def unload_model():
-    """
-    Unload the current model to free memory
-    Thread-safe
-    """
+    """Unload the current model to free memory"""
     global _model, _model_info
     
     with _model_lock:
@@ -139,6 +141,8 @@ def unload_model():
                 'loaded': False,
                 'model_path': None,
                 'load_time': None,
+                'load_duration': None,
+                'gpu_layers': None,
                 'error': None
             })
             print("✅ Model unloaded")
@@ -148,7 +152,7 @@ def unload_model():
 def generate_text(prompt: str, max_tokens: int = 256, temperature: float = 0.8, 
                  prompt_type: str = "unknown", stop_sequences: list = None) -> Dict[str, Any]:
     """
-    Generate text using the loaded model
+    Generate text using the loaded model with optimized settings
     Thread-safe, only one generation at a time
     
     Args:
@@ -195,44 +199,38 @@ def generate_text(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
         print(f"🔄 Generating {prompt_type} ({max_tokens} max tokens)...")
         start_time = time.time()
         
-        # Configure stop sequences - FIX: Use simpler default stop sequences
+        # Configure stop sequences
         if stop_sequences is None:
-            stop = ["</s>"]  # Only use model's end-of-sequence token
+            stop = ["</s>"]
         else:
             stop = stop_sequences
         
-        # 🔧 DEBUG: Print generation parameters
-        print(f"🔧 DEBUG: max_tokens={max_tokens}, temperature={temperature}, stop={stop}")
-        
-        # Generate with the model
+        # 🔧 OPTIMIZED: Generate with performance settings
         response = _model(
             prompt,
             max_tokens=max_tokens,
             temperature=temperature,
             stop=stop,
-            echo=False  # Don't include prompt in response
+            echo=False,
+            # 🔧 PERFORMANCE OPTIMIZATIONS:
+            top_p=0.9,                    # Nucleus sampling for quality
+            repeat_penalty=1.1,           # Reduce repetition
+            tfs_z=1.0,                    # Tail free sampling
+            typical_p=1.0,                # Typical sampling
+            mirostat_mode=0,              # Disable mirostat for speed
+            seed=-1                       # Random seed
         )
         
         end_time = time.time()
         duration = end_time - start_time
         
-        # 🔧 DEBUG: Print raw response structure
-        print(f"🔧 DEBUG: Raw response type: {type(response)}")
-        print(f"🔧 DEBUG: Raw response keys: {list(response.keys()) if isinstance(response, dict) else 'Not a dict'}")
-        
-        # Extract response data with better error handling
+        # Extract response data
         try:
             generated_text = response['choices'][0]['text']
             tokens_generated = response['usage']['completion_tokens']
             
-            # 🔧 DEBUG: Print extraction results
-            print(f"🔧 DEBUG: Extracted text: {repr(generated_text)}")
-            print(f"🔧 DEBUG: Extracted tokens: {tokens_generated}")
-            print(f"🔧 DEBUG: Text length: {len(generated_text) if generated_text else 'None/Empty'}")
-            
         except KeyError as e:
-            print(f"❌ KeyError extracting response data: {e}")
-            print(f"🔧 DEBUG: Full response: {response}")
+            print(f"❌ Response format error: {e}")
             return {
                 'success': False,
                 'error': f'Response format error: {e}',
@@ -240,17 +238,9 @@ def generate_text(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
                 'tokens': 0,
                 'duration': duration
             }
-        except Exception as e:
-            print(f"❌ Error extracting response data: {e}")
-            return {
-                'success': False,
-                'error': f'Extraction error: {e}',
-                'text': None,
-                'tokens': 0,
-                'duration': duration
-            }
         
-        print(f"✅ Generated {tokens_generated} tokens in {duration:.1f}s ({tokens_generated/duration:.1f} tok/s)")
+        tokens_per_sec = tokens_generated / duration if duration > 0 else 0
+        print(f"✅ Generated {tokens_generated} tokens in {duration:.1f}s ({tokens_per_sec:.1f} tok/s)")
         
         return {
             'success': True,
@@ -258,7 +248,7 @@ def generate_text(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
             'text': generated_text,
             'tokens': tokens_generated,
             'duration': duration,
-            'tokens_per_second': round(tokens_generated / duration, 2) if duration > 0 else 0
+            'tokens_per_second': round(tokens_per_sec, 2)
         }
         
     except Exception as e:
@@ -292,8 +282,6 @@ def get_current_generation_info() -> Optional[Dict[str, Any]]:
     """Get information about current generation, if any"""
     return _current_generation.copy() if _current_generation else None
 
-# Utility functions for model management
-
 def ensure_model_loaded() -> bool:
     """
     Ensure model is loaded, load if necessary
@@ -307,10 +295,7 @@ def ensure_model_loaded() -> bool:
     return load_model()
 
 def warm_up_model():
-    """
-    Warm up the model with a simple generation to prepare for use
-    This can reduce latency on the first real generation
-    """
+    """Warm up the model with a quick generation"""
     if not ensure_model_loaded():
         return False
     
@@ -323,7 +308,11 @@ def warm_up_model():
     )
     
     if warm_up_result['success']:
-        print("✅ Model warmed up successfully")
+        tokens_per_sec = warm_up_result['tokens_per_second']
+        if tokens_per_sec > 15:
+            print(f"✅ Model warmed up successfully ({tokens_per_sec:.1f} tok/s - GPU performance)")
+        else:
+            print(f"⚠️  Model warmed up ({tokens_per_sec:.1f} tok/s - check GPU usage)")
         return True
     else:
         print(f"⚠️  Model warmup failed: {warm_up_result['error']}")
@@ -333,19 +322,7 @@ def warm_up_model():
 
 def queue_generation(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
                     prompt_type: str = "unknown", priority: int = 5) -> str:
-    """
-    Queue a generation request instead of executing immediately
-    
-    Args:
-        prompt (str): Text prompt to generate from
-        max_tokens (int): Maximum tokens to generate
-        temperature (float): Sampling temperature
-        prompt_type (str): Type of prompt for monitoring
-        priority (int): Priority (1=highest, 10=lowest)
-        
-    Returns:
-        str: Request ID for tracking
-    """
+    """Queue a generation request instead of executing immediately"""
     from backend.llm.queue import get_llm_queue
     
     queue = get_llm_queue()
@@ -358,31 +335,14 @@ def queue_generation(prompt: str, max_tokens: int = 256, temperature: float = 0.
     )
 
 def get_generation_result(request_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Get the result of a queued generation request
-    
-    Args:
-        request_id (str): Request ID from queue_generation()
-        
-    Returns:
-        dict: Request status and result, or None if not found
-    """
+    """Get the result of a queued generation request"""
     from backend.llm.queue import get_llm_queue
     
     queue = get_llm_queue()
     return queue.get_request_status(request_id)
 
 def wait_for_generation(request_id: str, timeout: int = 300) -> Optional[Dict[str, Any]]:
-    """
-    Wait for a queued generation to complete
-    
-    Args:
-        request_id (str): Request ID to wait for
-        timeout (int): Maximum seconds to wait
-        
-    Returns:
-        dict: Final result or None if timeout
-    """
+    """Wait for a queued generation to complete"""
     from backend.llm.queue import get_llm_queue, QueueItemStatus
     
     queue = get_llm_queue()

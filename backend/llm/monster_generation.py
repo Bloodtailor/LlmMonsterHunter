@@ -76,7 +76,7 @@ def generate_monster(prompt_name: str = "basic_monster", use_queue: bool = True)
 
 def generate_monster_with_queue(prompt_config: Dict[str, Any], prompt_name: str) -> Dict[str, Any]:
     """
-    Generate monster using the queue system (recommended approach)
+    Generate monster using the queue system with proper LLM logging
     
     Args:
         prompt_config (dict): Prompt configuration
@@ -87,92 +87,162 @@ def generate_monster_with_queue(prompt_config: Dict[str, Any], prompt_name: str)
     """
     from backend.llm.queue import get_llm_queue
     
-    # Add to queue with high priority for monster generation
-    queue = get_llm_queue()
-    request_id = queue.add_request(
-        prompt=prompt_config['prompt_template'],
+    # 🔧 FIX: Create LLM log entry BEFORE queuing
+    log = LLMLog.create_log(
+        prompt_type='monster_generation',
+        prompt_name=prompt_name,
+        prompt_text=prompt_config['prompt_template'],
         max_tokens=prompt_config['max_tokens'],
-        temperature=prompt_config['temperature'],
-        prompt_type=f'monster_generation_{prompt_name}',
-        priority=3  # High priority for monster generation
+        temperature=prompt_config['temperature']
     )
     
-    print(f"🎲 Monster generation queued with ID: {request_id}")
-    
-    # Wait for completion (with longer timeout for monster generation)
-    result = wait_for_generation(request_id, timeout=600)  # 10 minutes max
-    
-    if not result:
-        return {
-            'success': False,
-            'error': 'Generation timed out or failed',
-            'monster': None,
-            'request_id': request_id
-        }
-    
-    if result['status'] != 'completed':
-        return {
-            'success': False,
-            'error': result.get('error', 'Generation failed'),
-            'monster': None,
-            'request_id': request_id
-        }
-    
-    # Get the generation result
-    generation_result = result['result']
-    
-    if not generation_result['success']:
-        return {
-            'success': False,
-            'error': f"Generation failed: {generation_result['error']}",
-            'monster': None,
-            'request_id': request_id
-        }
-    
-    # Parse the response
-    print("🔍 Parsing response...")
-    
-    parse_result = parse_response(
-        response_text=generation_result['text'],
-        parser_config=prompt_config['parser']
-    )
-    
-    if not parse_result.success:
-        return {
-            'success': False,
-            'error': f"Parsing failed: {parse_result.error}",
-            'monster': None,
-            'request_id': request_id,
-            'raw_response': generation_result['text']
-        }
-    
-    print(f"✅ Parsing successful using {parse_result.parser_used}")
-    
-    # Create monster from parsed data
-    print("🐉 Creating monster...")
-    
-    monster = create_monster_from_parsed_data(parse_result.data, prompt_name)
-    
-    if monster and monster.save():
-        print(f"✅ Monster created: {monster.name}")
+    try:
+        # Save initial log entry
+        if not log.save():
+            print("⚠️  Could not save initial log entry")
+        
+        # Add to queue with high priority for monster generation
+        queue = get_llm_queue()
+        request_id = queue.add_request(
+            prompt=prompt_config['prompt_template'],
+            max_tokens=prompt_config['max_tokens'],
+            temperature=prompt_config['temperature'],
+            prompt_type=f'monster_generation_{prompt_name}',
+            priority=3  # High priority for monster generation
+        )
+        
+        print(f"🎲 Monster generation queued with ID: {request_id}")
+        
+        # Mark log as started and associate with request
+        log.mark_started()
+        log.save()
+        
+        # Wait for completion (with longer timeout for monster generation)
+        result = wait_for_generation(request_id, timeout=600)  # 10 minutes max
+        
+        if not result:
+            log.mark_failed("Generation timed out")
+            log.save()
+            return {
+                'success': False,
+                'error': 'Generation timed out or failed',
+                'monster': None,
+                'request_id': request_id,
+                'log_id': log.id
+            }
+        
+        if result['status'] != 'completed':
+            error_msg = result.get('error', 'Generation failed')
+            log.mark_failed(error_msg)
+            log.save()
+            return {
+                'success': False,
+                'error': error_msg,
+                'monster': None,
+                'request_id': request_id,
+                'log_id': log.id
+            }
+        
+        # Get the generation result
+        generation_result = result['result']
+        
+        if not generation_result['success']:
+            error_msg = f"Generation failed: {generation_result['error']}"
+            log.mark_failed(error_msg)
+            log.save()
+            return {
+                'success': False,
+                'error': error_msg,
+                'monster': None,
+                'request_id': request_id,
+                'log_id': log.id
+            }
+        
+        # 🔧 FIX: Update log with generation results
+        log.mark_completed(
+            response_text=generation_result['text'],
+            response_tokens=generation_result['tokens']
+        )
+        log.save()
+        
+        # Parse the response
+        print("🔍 Parsing response...")
+        
+        parse_result = parse_response(
+            response_text=generation_result['text'],
+            parser_config=prompt_config['parser']
+        )
+        
+        if not parse_result.success:
+            log.mark_parse_failed(parse_result.error, parse_result.parser_used)
+            log.save()
+            return {
+                'success': False,
+                'error': f"Parsing failed: {parse_result.error}",
+                'monster': None,
+                'request_id': request_id,
+                'log_id': log.id,
+                'raw_response': generation_result['text']
+            }
+        
+        # 🔧 FIX: Mark parsing as successful
+        log.mark_parsed(parse_result.data, parse_result.parser_used)
+        log.save()
+        
+        print(f"✅ Parsing successful using {parse_result.parser_used}")
+        
+        # Create monster from parsed data
+        print("🐉 Creating monster...")
+        
+        monster = create_monster_from_parsed_data(parse_result.data, prompt_name)
+        
+        if monster and monster.save():
+            # 🔧 FIX: Associate monster with log
+            log.entity_type = 'monster'
+            log.entity_id = monster.id
+            log.save()
+            
+            print(f"✅ Monster created: {monster.name}")
+            
+            return {
+                'success': True,
+                'error': None,
+                'monster': monster.to_dict(),
+                'request_id': request_id,
+                'log_id': log.id,
+                'generation_stats': {
+                    'tokens': generation_result['tokens'],
+                    'duration': generation_result['duration'],
+                    'tokens_per_second': generation_result['tokens_per_second']
+                }
+            }
+        else:
+            log.entity_type = 'monster'
+            log.entity_id = None  # Failed to create
+            log.save()
+            return {
+                'success': False,
+                'error': 'Failed to save monster to database',
+                'monster': None,
+                'request_id': request_id,
+                'log_id': log.id
+            }
+            
+    except Exception as e:
+        # Mark log as failed if not already done
+        if log.status != 'failed':
+            log.mark_failed(str(e))
+            log.save()
+        
+        print(f"❌ Monster generation failed: {e}")
+        import traceback
+        traceback.print_exc()
         
         return {
-            'success': True,
-            'error': None,
-            'monster': monster.to_dict(),
-            'request_id': request_id,
-            'generation_stats': {
-                'tokens': generation_result['tokens'],
-                'duration': generation_result['duration'],
-                'tokens_per_second': generation_result['tokens_per_second']
-            }
-        }
-    else:
-        return {
             'success': False,
-            'error': 'Failed to save monster to database',
+            'error': f"Unexpected error: {str(e)}",
             'monster': None,
-            'request_id': request_id
+            'log_id': log.id
         }
 
 def generate_monster_direct(prompt_config: Dict[str, Any], prompt_name: str) -> Dict[str, Any]:
