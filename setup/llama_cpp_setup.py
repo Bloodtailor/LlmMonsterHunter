@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Llama-cpp-python Setup Module
-Checks for and installs llama-cpp-python with CUDA support
+Only installs llama-cpp-python with CUDA support (no CPU-only fallback)
 """
 
 import os
@@ -10,182 +10,99 @@ import sys
 from pathlib import Path
 
 def check_llama_cpp_installed():
-    """Check if llama-cpp-python is installed."""
+    """Check if llama-cpp-python or llama-cpp-python-cuda is installed."""
     pip_path = Path("venv/Scripts/pip.exe")
     
     if not pip_path.exists():
         print("❌ Virtual environment pip not found")
         return False
-    
+
     try:
-        result = subprocess.run([str(pip_path), "show", "llama-cpp-python"], 
-                              capture_output=True, text=True, check=True)
-        
-        # Parse version info
+        result = subprocess.run([str(pip_path), "show", "llama-cpp-python-cuda"], capture_output=True, text=True, check=True)
         version_line = [line for line in result.stdout.split('\n') if line.startswith('Version:')]
         if version_line:
             version = version_line[0].split(':', 1)[1].strip()
-            print(f"✅ llama-cpp-python installed: {version}")
+            print(f"✅ llama-cpp-python-cuda installed: {version}")
             return True
-        else:
-            print("⚠️  llama-cpp-python found but version unclear")
-            return True
-            
     except subprocess.CalledProcessError:
-        print("❌ llama-cpp-python not installed")
-        return False
+        pass
+
+    print("❌ llama-cpp-python-cuda not installed")
+    return False
 
 def check_llama_cpp_requirements():
-    """Check all llama-cpp-python requirements."""
-    print("Checking LLM integration (llama-cpp-python) requirements...")
-    
-    # Check if installed
+    """Check llama-cpp-python CUDA installation."""
+    print("Checking llama-cpp-python CUDA installation...")
     if not check_llama_cpp_installed():
         return False
-    
-    print("✅ llama-cpp-python is working")
+    print("✅ llama-cpp-python-cuda is working")
     return True
 
-def install_llama_cpp_cpu_only():
-    """Install CPU-only version of llama-cpp-python."""
+def uninstall_existing_llama_cpp():
+    """Remove any existing llama-cpp installations."""
     pip_path = Path("venv/Scripts/pip.exe")
-    
-    print("Installing llama-cpp-python (CPU-only)...")
-    try:
-        subprocess.run([str(pip_path), "install", "llama-cpp-python"], check=True)
-        print("✅ llama-cpp-python (CPU-only) installed successfully")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ CPU-only installation failed: {e}")
-        return False
+    subprocess.run([str(pip_path), "uninstall", "-y", "llama-cpp-python"], check=False)
+    subprocess.run([str(pip_path), "uninstall", "-y", "llama-cpp-python-cuda"], check=False)
 
-def install_llama_cpp_cuda_source():
-    """Install llama-cpp-python with CUDA support from source."""
+def install_llama_cpp_with_cuda():
+    """Attempt CUDA-based llama-cpp-python installation using three methods."""
     pip_path = Path("venv/Scripts/pip.exe")
-    
-    print("Installing llama-cpp-python with CUDA from source...")
-    print("⚠️  This may take 10-15 minutes to compile!")
-    
-    # Set environment variables for CUDA build
-    env = os.environ.copy()
-    env["CMAKE_ARGS"] = "-DLLAMA_CUBLAS=on"
-    env["FORCE_CMAKE"] = "1"
-    
+
+    print("Installing llama-cpp-python with CUDA support...")
+
+    # Method 1: Pre-built llama-cpp-python-cuda package
+    print("Method 1: Trying pre-built llama-cpp-python-cuda package...")
     try:
+        uninstall_existing_llama_cpp()
+        subprocess.run([str(pip_path), "install", "llama-cpp-python-cuda"], check=True)
+        print("🎉 Successfully installed pre-built llama-cpp-python-cuda package!")
+        return True
+    except subprocess.CalledProcessError:
+        print("❌ Pre-built package failed, trying Method 2...")
+
+    # Method 2: Build from source
+    print("Method 2: Building from source with CUDA support...")
+    try:
+        env_vars = os.environ.copy()
+        env_vars["CMAKE_ARGS"] = "-DLLAMA_CUDA=on"
+        env_vars["FORCE_CMAKE"] = "1"
+
         subprocess.run([
-            str(pip_path), "install", "llama-cpp-python", 
-            "--no-cache-dir", "--force-reinstall"
-        ], env=env, check=True)
-        print("🎉 llama-cpp-python with CUDA compiled successfully!")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ CUDA source build failed: {e}")
-        return False
+            str(pip_path), "install", "llama-cpp-python", "--force-reinstall", "--no-cache-dir"
+        ], env=env_vars, check=True)
 
-def install_llama_cpp_cuda_wheel():
-    """Try to install pre-built CUDA wheel."""
-    pip_path = Path("venv/Scripts/pip.exe")
-    
-    print("Trying pre-built CUDA wheel...")
+        print("🎉 Successfully built llama-cpp-python with CUDA support!")
+        return True
+    except subprocess.CalledProcessError:
+        print("❌ Source build failed, trying Method 3...")
+
+    # Method 3: Install from CUDA wheel repo
+    print("Method 3: Trying CUDA wheel repository...")
     try:
         subprocess.run([
             str(pip_path), "install", "llama-cpp-python",
             "--extra-index-url", "https://abetlen.github.io/llama-cpp-python/whl/cu121",
             "--force-reinstall"
         ], check=True)
-        print("✅ Pre-built CUDA wheel installed successfully!")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ CUDA wheel installation failed: {e}")
-        return False
-
-def uninstall_llama_cpp():
-    """Uninstall existing llama-cpp-python."""
-    pip_path = Path("venv/Scripts/pip.exe")
-    
-    try:
-        subprocess.run([str(pip_path), "uninstall", "llama-cpp-python", "-y"], 
-                      capture_output=True, check=True)
-        print("✅ Previous llama-cpp-python uninstalled")
+        print("🎉 Successfully installed from CUDA wheel repository!")
         return True
     except subprocess.CalledProcessError:
-        # It's okay if uninstall fails (package might not be installed)
-        return True
+        print("❌ All CUDA installation methods failed")
+        return False
 
 def setup_llama_cpp_interactive():
-    """Interactive setup for llama-cpp-python."""
-    print("Setting up LLM integration (llama-cpp-python)...")
-    
-    # Check if already working
+    """Interactive installer for llama-cpp-python with CUDA only."""
+    print("Setting up llama-cpp-python with CUDA...")
+
     if check_llama_cpp_installed():
-        print("✅ llama-cpp-python is already working")
-        
-        choice = input("Do you want to reinstall for better CUDA support? (y/n): ").lower().strip()
-        if choice not in ['y', 'yes']:
+        choice = input("llama-cpp-python-cuda is already installed. Reinstall? (y/n): ").lower().strip()
+        if choice not in ('y', 'yes'):
             return True
-    
-    # Determine installation strategy based on system capabilities
-    print("\n📋 Determining best installation method...")
-    
-    # Check for CUDA availability (from gpu_cuda_setup)
-    try:
-        from setup.gpu_cuda_setup import check_nvidia_gpu, check_cuda_directories
-        has_gpu = check_nvidia_gpu()
-        has_cuda = check_cuda_directories()
-    except ImportError:
-        has_gpu = False
-        has_cuda = False
-    
-    # Check for build tools (from visual_studio_setup)
-    try:
-        from setup.visual_studio_setup import check_visual_studio_requirements
-        has_build_tools = check_visual_studio_requirements()
-    except ImportError:
-        has_build_tools = False
-    
-    # Uninstall existing version first
-    if check_llama_cpp_installed():
-        print("Removing existing installation...")
-        uninstall_llama_cpp()
-    
-    # Choose installation method
-    if has_gpu and has_cuda and has_build_tools:
-        print("🚀 Full CUDA setup detected - trying CUDA installation")
-        
-        # Try pre-built wheel first
-        if install_llama_cpp_cuda_wheel():
-            if check_llama_cpp_installed():
-                print("✅ CUDA wheel installation successful")
-                return True
-        
-        # Fall back to source build
-        print("Wheel failed, trying source build...")
-        if install_llama_cpp_cuda_source():
-            if check_llama_cpp_installed():
-                print("✅ CUDA source build successful")
-                return True
-    
-    elif has_gpu and has_cuda:
-        print("⚠️  GPU and CUDA detected but no build tools - trying CUDA wheel only")
-        if install_llama_cpp_cuda_wheel():
-            if check_llama_cpp_installed():
-                print("✅ CUDA wheel installation successful")
-                return True
-    
-    # Fall back to CPU-only
-    print("🔄 Falling back to CPU-only installation...")
-    if install_llama_cpp_cpu_only():
-        if check_llama_cpp_installed():
-            print("✅ CPU-only installation successful")
-            print("💡 Models will run on CPU (slower but functional)")
-            return True
-    
-    print("❌ All llama-cpp-python installation methods failed")
-    print("📋 You can try manually:")
-    print("1. Activate virtual environment: venv\\Scripts\\activate")
-    print("2. Install manually: pip install llama-cpp-python")
-    print("3. Or check the llama-cpp-python documentation for your system")
-    return False
+
+    success = install_llama_cpp_with_cuda()
+    if not success:
+        print("❌ Failed to install llama-cpp-python with CUDA")
+    return success
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "setup":
