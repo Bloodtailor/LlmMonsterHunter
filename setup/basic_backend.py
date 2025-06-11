@@ -258,6 +258,9 @@ LLM_GPU_LAYERS=35
 
 # Game Configuration
 MAX_PARTY_SIZE=4
+
+# Python Root
+PYTHONPATH=.
 """
         try:
             with open(env_file, 'w') as f:

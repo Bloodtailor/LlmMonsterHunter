@@ -41,52 +41,10 @@ A revolutionary text-based monster-catching game that leverages **Large Language
 
 ### Installation Steps
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/Bloodtailor/LlmMonsterHunter.git
-cd LlmMonsterHunter
-
-# 2. Make sure MySQL Server is running
-# Check in MySQL Workbench or run: sc query MySQL84
-
-# 3. Verify Node.js and npm are working
-node --version
-npm --version
-
-# 4. Run automated setup (handles Python dependencies, React setup, database config)
-python setup_environment.py
-
-# 5. Download an LLM model
-# Create a 'models' folder and download a GGUF format model
-# Recommended: Llama 2 7B Chat or Mistral 7B Instruct
-# Example: llama-2-7b-chat.Q4_K_M.gguf
-
-# 6. Configure your environment
-# Edit the .env file with your MySQL password and model path
-# Example:
-# DB_PASSWORD=your_mysql_password
-# LLM_MODEL_PATH=models/llama-2-7b-chat.Q4_K_M.gguf
-
-# 7. Start the backend server
-python backend/run.py
-
-# 8. In a new terminal window, start the frontend
-cd frontend
-npm start
-```
+Installation steps need to be added here. Make sure to mention that start_game bat helps you setup the enviroment, check if everything is set up correctly and can be ran multiple times safely.
 
 🎉 **The game will be available at `http://localhost:3000`**
 
-### What the Setup Script Does
-
-The `setup_environment.py` script automatically:
-- ✅ Checks your system requirements
-- ✅ Creates a Python virtual environment in `backend/venv/`
-- ✅ Installs Python dependencies with CUDA support
-- ✅ Installs React frontend dependencies
-- ✅ Creates a `.env` configuration file
-- ✅ Sets up the models directory
-- ✅ Attempts to create the MySQL database
 
 ### Troubleshooting
 
@@ -95,27 +53,6 @@ The `setup_environment.py` script automatically:
 - **npm:** Node Package Manager - comes with Node.js, manages JavaScript libraries
 - **Why we need them:** React frontend is built with JavaScript and needs these tools
 - **To verify:** Run `node --version` and `npm --version` in command prompt
-
-#### **"Node.js & npm" check failed but Node.js detected:**
-- This is usually a false positive - if Node.js version shows, you have npm
-- Verify with: `npm --version`
-- Continue with setup, it should work fine
-
-#### **"MySQL Database" check failed:**
-- Make sure MySQL **Server** is installed and running (not just Workbench)
-- MySQL Workbench = GUI tool, MySQL Server = actual database
-- Check if running: `sc query MySQL84` (Windows) or check MySQL Workbench
-- The setup script will try to create the database for you
-- If it fails, manually create: `CREATE DATABASE monster_hunter_game;`
-
-#### **CUDA compilation takes forever:**
-- This is normal! Can take 10-15 minutes
-- The script tries multiple methods to get CUDA working
-- If all else fails, it installs CPU-only version (slower but works)
-
-#### **Running setup multiple times:**
-- ✅ **Safe to rerun!** Script checks what's already done and skips it
-- Use this if you need to install prerequisites and run again
 
 ## ✨ **Key Features**
 
@@ -131,11 +68,6 @@ The `setup_environment.py` script automatically:
 - **Dungeon Exploration:** Navigate procedurally generated encounters and challenges
 - **Evolution System:** Watch your monsters grow and change based on their experiences
 
-### 🧠 **Educational Focus**
-- **SDLC Methodology:** Complete documentation following Systems Development Life Cycle
-- **Full-Stack Development:** Python/Flask backend with React frontend
-- **AI Integration:** Practical application of local LLM inference and prompt engineering
-- **Database Design:** MySQL implementation with complex entity relationships
 
 ## 🏗️ **Project Architecture**
 
@@ -159,7 +91,6 @@ React Frontend ←→ Flask API ←→ MySQL Database
 This project includes comprehensive documentation following SDLC methodology:
 
 ### 📋 **Core Documents**
-- **[Documentation Index](docs/README_Documentation.md)** - Complete documentation overview
 - **[MVP Development Strategy](docs/strategy/mvp_development_strategy.md)** - Current development approach
 - **[Technical Architecture](docs/design/technical_architecture.md)** - System design and implementation
 
@@ -178,6 +109,7 @@ docs/
 **Development Phase:** Rapid Prototyping (June 2025)  
 **Methodology:** MVP-First Development after comprehensive planning
 
+Development status needs to be updated!
 ### ✅ **Completed**
 - [x] Complete SDLC planning documentation (February 2025)
 - [x] Feasibility analysis and risk assessment
@@ -217,7 +149,7 @@ Every monster you meet has been created by AI with:
 
 ## 🎓 **Educational Objectives**
 
-This project serves as a capstone demonstrating:
+This is a personal project of mine and serves as a capstone demonstrating:
 
 ### **Academic Application**
 - **CSUF Information Systems & Data Science** degree knowledge
@@ -253,16 +185,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 **Acknowledgments**
 
-- **CSUF Information Systems Program** - SDLC methodology and project management foundation
 - **Open Source Community** - Flask, React, and AI model ecosystems
 - **AI Research Community** - LLM advancement enabling this type of application
 
-## 📞 **Contact**
+## **Contact**
 
 **Aaron Orelup**  
-📧 Email: [Contact through GitHub]  
-🔗 LinkedIn: [Add your LinkedIn profile]  
-📁 Portfolio: [Add your portfolio site]
+📧 Email: Aaronjorelup@gmail.com
+📞 Text(best): (510) 695-1134 
 
 ---
 
