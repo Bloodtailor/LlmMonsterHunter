@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import HomeBase from './components/screens/HomeBase';
+import StreamingDisplay from './components/streaming/StreamingDisplay';
 import { healthCheck, getGameStatus } from './services/api';
 
 function App() {
@@ -92,6 +93,9 @@ function App() {
   // Main application - backend is connected
   return (
     <div className="App">
+      {/* Always-visible LLM Streaming Display */}
+      <StreamingDisplay />
+      
       {/* App Header */}
       <header className="app-header">
         <h1>🎮 Monster Hunter Game</h1>
