@@ -142,21 +142,39 @@ class LLMQueue:
                 return True
         return False
     
+
     def get_queue_status(self) -> Dict[str, Any]:
-        """Get overall queue status"""
+        """Get overall queue status with proper counting"""
         with self._lock:
             items = list(self._items.values())
             
-            status_counts = {}
-            for status in QueueItemStatus:
-                status_counts[status.value] = len([i for i in items if i.status == status])
+            # Count by status
+            status_counts = {
+                'pending': 0,
+                'processing': 0, 
+                'completed': 0,
+                'failed': 0,
+                'cancelled': 0
+            }
+            
+            for item in items:
+                status_key = item.status.value if hasattr(item.status, 'value') else str(item.status)
+                if status_key in status_counts:
+                    status_counts[status_key] += 1
+            
+            # Handle processing vs generating
+            if self._current_item:
+                status_counts['processing'] = 1
+                if 'pending' in status_counts:
+                    status_counts['pending'] = max(0, status_counts['pending'] - 1)
             
             return {
                 "queue_size": self._queue.qsize(),
                 "total_items": len(items),
                 "status_counts": status_counts,
                 "current_item": self._current_item.to_dict() if self._current_item else None,
-                "worker_running": self._running
+                "worker_running": self._running,
+                "active_connections": len(getattr(self, '_streaming_callbacks', []))
             }
     
     def get_recent_items(self, limit: int = 20) -> List[Dict[str, Any]]:
