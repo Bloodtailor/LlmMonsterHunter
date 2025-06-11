@@ -99,3 +99,39 @@ def check_database_connection():
         return True
     except Exception:
         return False
+
+def register_blueprints(app):
+    """
+    Register all API route blueprints with the Flask app
+    This keeps routes organized and modular
+    """
+    
+    # Register LLM routes blueprint
+    from backend.routes.llm_routes import llm_bp
+    app.register_blueprint(llm_bp)
+    
+    # Health check route - simple test endpoint
+    @app.route('/api/health')
+    def health_check():
+        """Simple health check endpoint to verify API is working"""
+        return {
+            'status': 'healthy',
+            'message': 'Monster Hunter Game API is running',
+            'database': 'connected' if check_database_connection() else 'disconnected'
+        }
+    
+    # Game status route - basic game state info
+    @app.route('/api/game/status')
+    def game_status():
+        """Get basic game status information"""
+        return {
+            'game_name': 'Monster Hunter Game',
+            'version': '0.1.0-mvp',
+            'status': 'development',
+            'features': {
+                'monster_generation': True,   # ✅ LLM system ready
+                'battle_system': False,
+                'chat_system': False,
+                'save_system': False
+            }
+        }

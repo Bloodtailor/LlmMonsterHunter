@@ -157,3 +157,13 @@
   margin-bottom: var(--spacing-md);
   font-size: 14px;
 }
+
+/* LLM Debug Panel */
+.llm-debug-panel {
+  background: var(--background-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+/* Instructions Section */

@@ -9,6 +9,7 @@
 
 /* 3. Reusable UI components */
 @import './components/UI.css';
+@import './components/LLMLogViewer.css';
 
 /* 4. Screen-specific styles */
 @import './screens/HomeBase.css';

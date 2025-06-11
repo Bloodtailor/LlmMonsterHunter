@@ -1,9 +1,10 @@
 // Home Base Screen Component
 // The main hub where players manage monsters, inventory, and start adventures
-// Currently displays API data and provides foundation for future features
+// Now includes LLM debugging panel for monitoring AI generation
 
 import React, { useState } from 'react';
 import { testApiConnectivity } from '../../services/api';
+import LLMLogViewer from '../debug/LLMLogViewer';
 
 function HomeBase({ gameData, onRefresh }) {
   const [testing, setTesting] = useState(false);
@@ -152,17 +153,24 @@ function HomeBase({ gameData, onRefresh }) {
         </div>
       </section>
 
+      {/* LLM System Debug Panel */}
+      <section className="llm-debug-panel">
+        <LLMLogViewer />
+      </section>
+
       {/* Instructions Section */}
       <section className="instructions">
         <h3>📋 Next Development Steps</h3>
         <ol>
           <li>✅ <strong>Backend API</strong> - Working with health and status endpoints</li>
           <li>✅ <strong>React Frontend</strong> - Connecting to backend successfully</li>
-          <li>⏳ <strong>Player Model</strong> - Create player data structure and API</li>
-          <li>⏳ <strong>Monster System</strong> - Design monster models and generation</li>
+          <li>✅ <strong>LLM Infrastructure</strong> - Complete AI system with logging and monitoring</li>
+          <li>⏳ <strong>Monster Generation Debug</strong> - Use LLM panel above to see why generation failed</li>
+          <li>⏳ <strong>Monster Generation API</strong> - Create endpoints for AI monster creation</li>
+          <li>⏳ <strong>Monster Display UI</strong> - Show generated monsters in React</li>
           <li>⏳ <strong>Battle System</strong> - Implement turn-based combat</li>
-          <li>⏳ <strong>LLM Integration</strong> - Add AI monster generation and chat</li>
         </ol>
+        <p><strong>🔧 Debug Tool:</strong> The "LLM System Status" panel above shows all AI generation attempts. If monster generation failed, check the logs to see the exact error and LLM response.</p>
       </section>
     </div>
   );

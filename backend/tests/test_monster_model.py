@@ -5,13 +5,6 @@ Tests that the Monster model works with the database
 Run this to verify the database schema is correct
 """
 
-import sys
-import os
-
-# Add backend directory to path so we can import our modules
-backend_path = os.path.join(os.path.dirname(__file__), 'backend')
-sys.path.append(backend_path)
-
 from backend.app import create_app
 from backend.config.database import db
 from backend.models.monster import Monster
