@@ -52,38 +52,6 @@ def create_app(config_name='development'):
     
     return app
 
-def register_blueprints(app):
-    """
-    Register all API route blueprints with the Flask app
-    This keeps routes organized and modular
-    """
-    
-    # Health check route - simple test endpoint
-    @app.route('/api/health')
-    def health_check():
-        """Simple health check endpoint to verify API is working"""
-        return {
-            'status': 'healthy',
-            'message': 'Monster Hunter Game API is running',
-            'database': 'connected' if check_database_connection() else 'disconnected'
-        }
-    
-    # Game status route - basic game state info
-    @app.route('/api/game/status')
-    def game_status():
-        """Get basic game status information"""
-        return {
-            'game_name': 'Monster Hunter Game',
-            'version': '0.1.0-mvp',
-            'status': 'development',
-            'features': {
-                'monster_generation': False,
-                'battle_system': False,
-                'chat_system': False,
-                'save_system': False
-            }
-        }
-
 def check_database_connection():
     """
     Test database connection
@@ -110,6 +78,10 @@ def register_blueprints(app):
     from backend.routes.llm_routes import llm_bp
     app.register_blueprint(llm_bp)
     
+    # Register streaming routes blueprint
+    from backend.routes.streaming_routes import streaming_bp
+    app.register_blueprint(streaming_bp)
+    
     # Health check route - simple test endpoint
     @app.route('/api/health')
     def health_check():
@@ -130,6 +102,8 @@ def register_blueprints(app):
             'status': 'development',
             'features': {
                 'monster_generation': True,   # ✅ LLM system ready
+                'streaming_display': True,    # ✅ NEW: Real-time streaming
+                'prompt_queue': True,         # ✅ NEW: Queue system
                 'battle_system': False,
                 'chat_system': False,
                 'save_system': False

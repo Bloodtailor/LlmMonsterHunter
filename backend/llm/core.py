@@ -328,3 +328,75 @@ def warm_up_model():
     else:
         print(f"⚠️  Model warmup failed: {warm_up_result['error']}")
         return False
+
+# Queue integration functions
+
+def queue_generation(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
+                    prompt_type: str = "unknown", priority: int = 5) -> str:
+    """
+    Queue a generation request instead of executing immediately
+    
+    Args:
+        prompt (str): Text prompt to generate from
+        max_tokens (int): Maximum tokens to generate
+        temperature (float): Sampling temperature
+        prompt_type (str): Type of prompt for monitoring
+        priority (int): Priority (1=highest, 10=lowest)
+        
+    Returns:
+        str: Request ID for tracking
+    """
+    from backend.llm.queue import get_llm_queue
+    
+    queue = get_llm_queue()
+    return queue.add_request(
+        prompt=prompt,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        prompt_type=prompt_type,
+        priority=priority
+    )
+
+def get_generation_result(request_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Get the result of a queued generation request
+    
+    Args:
+        request_id (str): Request ID from queue_generation()
+        
+    Returns:
+        dict: Request status and result, or None if not found
+    """
+    from backend.llm.queue import get_llm_queue
+    
+    queue = get_llm_queue()
+    return queue.get_request_status(request_id)
+
+def wait_for_generation(request_id: str, timeout: int = 300) -> Optional[Dict[str, Any]]:
+    """
+    Wait for a queued generation to complete
+    
+    Args:
+        request_id (str): Request ID to wait for
+        timeout (int): Maximum seconds to wait
+        
+    Returns:
+        dict: Final result or None if timeout
+    """
+    from backend.llm.queue import get_llm_queue, QueueItemStatus
+    
+    queue = get_llm_queue()
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
+        status = queue.get_request_status(request_id)
+        
+        if not status:
+            return None
+        
+        if status['status'] in [QueueItemStatus.COMPLETED.value, QueueItemStatus.FAILED.value]:
+            return status
+        
+        time.sleep(0.5)  # Poll every 500ms
+    
+    return None  # Timeout

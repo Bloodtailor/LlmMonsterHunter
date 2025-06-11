@@ -9,6 +9,8 @@ import LLMLogViewer from '../debug/LLMLogViewer';
 function HomeBase({ gameData, onRefresh }) {
   const [testing, setTesting] = useState(false);
   const [apiTestResults, setApiTestResults] = useState(null);
+  const [queueTesting, setQueueTesting] = useState(false);
+  const [queueTestResults, setQueueTestResults] = useState(null);
 
   // Test API connectivity
   const handleApiTest = async () => {
@@ -24,6 +26,55 @@ function HomeBase({ gameData, onRefresh }) {
       });
     }
     setTesting(false);
+  };
+
+  // Test Queue System
+  const handleQueueTest = async () => {
+    setQueueTesting(true);
+    setQueueTestResults(null);
+    
+    try {
+      // Add a test request to the queue
+      const response = await fetch('http://localhost:5000/api/streaming/queue/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: 'Generate a test response about a friendly dragon named Spark.',
+          max_tokens: 100,
+          temperature: 0.8,
+          prompt_type: 'test_generation',
+          priority: 2
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setQueueTestResults({
+          success: true,
+          request_id: data.request_id,
+          message: 'Test request added to queue! Watch the streaming display above.',
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        setQueueTestResults({
+          success: false,
+          error: data.error,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+    } catch (error) {
+      setQueueTestResults({
+        success: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    setQueueTesting(false);
   };
 
   return (
@@ -144,6 +195,34 @@ function HomeBase({ gameData, onRefresh }) {
           </div>
           
           <div className="tool-card">
+            <h4>LLM Queue System Test</h4>
+            <p>Test the new prompt queue system with real-time streaming display</p>
+            <button 
+              onClick={handleQueueTest} 
+              disabled={queueTesting}
+              className="test-button"
+            >
+              {queueTesting ? '🔄 Adding to Queue...' : '🎲 Test Queue Generation'}
+            </button>
+            
+            {queueTestResults && (
+              <div className={`test-results ${queueTestResults.success ? 'success' : 'error'}`}>
+                <h5>{queueTestResults.success ? '✅ Queue Test Started' : '❌ Queue Test Failed'}</h5>
+                {queueTestResults.success ? (
+                  <div>
+                    <p>✅ Request ID: {queueTestResults.request_id}</p>
+                    <p>📺 Watch the streaming display in the top-right corner!</p>
+                    <p>🔄 The request is now being processed in the queue</p>
+                  </div>
+                ) : (
+                  <p>Error: {queueTestResults.error}</p>
+                )}
+                <small>Started at: {new Date(queueTestResults.timestamp).toLocaleTimeString()}</small>
+              </div>
+            )}
+          </div>
+          
+          <div className="tool-card">
             <h4>Refresh Game Data</h4>
             <p>Reload game status and backend connection information</p>
             <button onClick={onRefresh} className="refresh-button">
@@ -165,12 +244,14 @@ function HomeBase({ gameData, onRefresh }) {
           <li>✅ <strong>Backend API</strong> - Working with health and status endpoints</li>
           <li>✅ <strong>React Frontend</strong> - Connecting to backend successfully</li>
           <li>✅ <strong>LLM Infrastructure</strong> - Complete AI system with logging and monitoring</li>
-          <li>⏳ <strong>Monster Generation Debug</strong> - Use LLM panel above to see why generation failed</li>
+          <li>✅ <strong>Streaming Display</strong> - Real-time LLM generation progress overlay</li>
+          <li>✅ <strong>Queue System</strong> - Proper prompt queuing with priority management</li>
           <li>⏳ <strong>Monster Generation API</strong> - Create endpoints for AI monster creation</li>
           <li>⏳ <strong>Monster Display UI</strong> - Show generated monsters in React</li>
           <li>⏳ <strong>Battle System</strong> - Implement turn-based combat</li>
         </ol>
-        <p><strong>🔧 Debug Tool:</strong> The "LLM System Status" panel above shows all AI generation attempts. If monster generation failed, check the logs to see the exact error and LLM response.</p>
+        <p><strong>🔧 Debug Tools:</strong> Use the "Test Queue Generation" button above to see the streaming system in action. The streaming display in the top-right corner shows all AI activity in real-time!</p>
+        <p><strong>📺 Streaming Display:</strong> Watch the top-right corner for live LLM generation progress. It will auto-expand during generation and show queue status, timing, and generated text.</p>
       </section>
     </div>
   );
