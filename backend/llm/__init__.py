@@ -1,5 +1,5 @@
-# LLM Module Package - LEAN INTERFACE
-# No legacy code, no bloat, only what we need now
+# LLM Module Package - CLEAN INTERFACE
+# Exports core LLM functionality with new service architecture
 
 # Core model operations
 from .core import (
@@ -11,21 +11,15 @@ from .core import (
     warm_up_model
 )
 
-# Inference
+# Inference (direct inference - mostly for internal use)
 from .inference import (
     generate_streaming,
     is_generating
 )
 
-# Queue
+# Queue management
 from .queue import (
-    get_llm_queue,
-    shutdown_queue
-)
-
-# Generation service
-from .generation_service import (
-    generate_with_logging
+    get_llm_queue
 )
 
 # Prompt management
@@ -40,12 +34,6 @@ from .parser import (
     ParseResult
 )
 
-# Monster generation
-from .monster_generation import (
-    generate_monster,
-    get_available_prompts
-)
-
 # Combined status function
 def get_llm_status():
     """Get comprehensive LLM status"""
@@ -54,6 +42,7 @@ def get_llm_status():
     return status
 
 __all__ = [
+    # Core model operations
     'load_model',
     'unload_model', 
     'get_model_status',
@@ -61,15 +50,22 @@ __all__ = [
     'is_model_loaded',
     'ensure_model_loaded',
     'warm_up_model',
+    
+    # Inference (use services for high-level operations)
     'generate_streaming',
     'is_generating',
+    
+    # Queue (use services for adding requests)
     'get_llm_queue',
     'shutdown_queue',
-    'generate_with_logging',
+    
+    # Prompt and parsing utilities
     'get_template_config',
     'build_prompt',
     'parse_response',
     'ParseResult',
+    
+    # Legacy compatibility (delegates to services)
     'generate_monster',
     'get_available_prompts'
 ]
