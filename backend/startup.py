@@ -4,7 +4,7 @@
 
 import os
 import time
-from backend.llm.core import load_model, warm_up_model, get_llm_status
+from backend.llm.core import load_model, warm_up_model, get_model_status
 from backend.llm.queue import get_llm_queue
 
 def initialize_backend(app):
@@ -47,25 +47,15 @@ def initialize_backend(app):
     
     # 3. Verify Everything is Ready
     print("📋 Step 3: System Verification...")
-    status = get_llm_status()
+    status = get_model_status()
     
-    if status['model_loaded']:
+    if status['loaded']:
         print(f"✅ Model Status: Loaded ({status.get('model_path', 'Unknown').split('/')[-1]})")
         print(f"✅ GPU Layers: {status.get('gpu_layers', 'Unknown')}")
         print(f"✅ Load Time: {status.get('load_duration', 'Unknown')}s")
     else:
         print("❌ Model Status: Not loaded")
-    
-    if status['currently_generating']:
-        print("🔄 Generation Status: Busy")
-    else:
-        print("✅ Generation Status: Ready")
-    
-    print("=" * 60)
-    print("🎮 Backend initialization complete!")
-    print("💡 Model will stay loaded for the entire session")
-    print("🔗 All generation requests will be queued, logged, and streamed")
-    print("=" * 60)
+
 
 def get_system_status():
     """
@@ -76,7 +66,7 @@ def get_system_status():
     """
     
     # LLM Status
-    llm_status = get_llm_status()
+    llm_status = get_model_status()
     
     # Queue Status
     try:
@@ -103,5 +93,5 @@ def get_system_status():
         'llm': llm_status,
         'queue': queue_status,
         'database': db_status,
-        'startup_complete': llm_status.get('model_loaded', False)
+        'startup_complete': llm_status.get('loaded', False)
     }
