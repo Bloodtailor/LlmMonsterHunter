@@ -11,6 +11,10 @@ from queue import Queue, Empty
 from dataclasses import dataclass, asdict
 from enum import Enum
 
+# Global queue instance
+_global_queue = None
+_queue_lock = threading.Lock()
+
 class QueueItemStatus(Enum):
     """Status of items in the queue"""
     PENDING = "pending"
@@ -551,9 +555,7 @@ class LLMQueue:
                 'duration': time.time() - start_time if 'start_time' in locals() else 0
             }
 
-# Global queue instance
-_global_queue = None
-_queue_lock = threading.Lock()
+
 
 def get_llm_queue() -> LLMQueue:
     """Get the global LLM queue instance (singleton)"""

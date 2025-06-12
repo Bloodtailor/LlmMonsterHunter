@@ -1,6 +1,6 @@
-# Streaming Routes - Server-Sent Events for real-time LLM updates
-# Provides real-time streaming of LLM generation progress to frontend
-# Uses SSE (Server-Sent Events) for one-way real-time communication
+# Streaming Routes - FIXED to ensure ALL requests are logged
+# 🔧 CRITICAL FIX: Every queue request now creates a log entry
+# No more unlogged requests - everything flows through the same path
 
 import json
 import time
@@ -48,10 +48,7 @@ class SSEConnection:
 
 @streaming_bp.route('/llm-events')
 def stream_llm_events():
-    """
-    Server-Sent Events endpoint for real-time LLM updates
-    Streams queue status, generation progress, and completion events
-    """
+    """Server-Sent Events endpoint for real-time LLM updates"""
     
     def event_generator():
         """Generator function for SSE events"""
@@ -117,8 +114,8 @@ def stream_llm_events():
 @streaming_bp.route('/queue/add', methods=['POST'])
 def add_to_queue():
     """
-    🔧 FIXED: Add a new request to the LLM queue WITH MANDATORY LOGGING
-    Every single request now creates an LLM log entry
+    🔧 CRITICAL FIX: Add request to queue WITH MANDATORY LOGGING
+    Every single request now creates a log entry - no exceptions
     """
     try:
         data = request.get_json()
@@ -133,23 +130,25 @@ def add_to_queue():
         prompt = data['prompt']
         max_tokens = data.get('max_tokens', 256)
         temperature = data.get('temperature', 0.8)
-        prompt_type = data.get('prompt_type', 'manual')
+        prompt_type = data.get('prompt_type', 'manual_test')
         priority = data.get('priority', 5)
         
-        # 🔧 CRITICAL FIX: Create LLM log entry BEFORE queuing
+        # 🔧 CRITICAL: Create LLM log entry for EVERY request
         log = LLMLog.create_log(
-            prompt_type='queue_request',
+            prompt_type='streaming_request',
             prompt_name=prompt_type,
             prompt_text=prompt,
             max_tokens=max_tokens,
             temperature=temperature
         )
         
-        # Save log immediately
         if not log.save():
-            print("⚠️  Could not save LLM log entry")
+            return jsonify({
+                'success': False,
+                'error': 'Could not create log entry'
+            }), 500
         
-        print(f"📋 Created LLM log entry: {log.id}")
+        print(f"📋 Created log entry for streaming request: {log.id}")
         
         # Add to queue with log reference
         queue = get_llm_queue()
@@ -159,11 +158,11 @@ def add_to_queue():
             temperature=temperature,
             prompt_type=prompt_type,
             priority=priority,
-            log_id=log.id  # 🔧 NEW: Pass log ID to queue
+            log_id=log.id  # 🔧 CRITICAL: Always pass log_id
         )
         
         # Associate log with queue request
-        log.entity_type = 'queue_request'
+        log.entity_type = 'streaming_request'
         log.entity_id = request_id
         log.save()
         
@@ -176,6 +175,8 @@ def add_to_queue():
         
     except Exception as e:
         print(f"❌ Error adding to queue: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -221,130 +222,70 @@ def get_queue_items():
             'error': str(e)
         }), 500
 
-@streaming_bp.route('/queue/cancel/<request_id>', methods=['POST'])
-def cancel_request(request_id):
-    """Cancel a specific queue request"""
+# 🔧 NEW: Simple test endpoint that goes through proper flow
+@streaming_bp.route('/test/simple', methods=['POST'])
+def test_simple():
+    """
+    Simple test that ensures everything is logged and streamed
+    This replaces the old "test queue generation" button functionality
+    """
     try:
-        queue = get_llm_queue()
-        success = queue.cancel_request(request_id)
+        # Simple test prompt
+        test_prompt = "Generate a simple test response about a friendly dragon named Spark."
         
-        if success:
-            return jsonify({
-                'success': True,
-                'message': f'Request {request_id} cancelled'
-            })
-        else:
+        # 🔧 Use the same flow as everything else
+        log = LLMLog.create_log(
+            prompt_type='simple_test',
+            prompt_name='streaming_test',
+            prompt_text=test_prompt,
+            max_tokens=100,
+            temperature=0.8
+        )
+        
+        if not log.save():
             return jsonify({
                 'success': False,
-                'error': 'Request not found or not cancellable'
-            }), 404
-            
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-# Debug Endpoints
-@streaming_bp.route('/debug/sse-test')
-def test_sse():
-    """Test Server-Sent Events connection"""
-    def test_generator():
-        import time
-        for i in range(5):
-            yield f"data: Test message {i}\n\n"
-            time.sleep(1)
-        yield "data: SSE test complete\n\n"
-    
-    return Response(
-        test_generator(),
-        mimetype='text/event-stream',
-        headers={
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': '*'
-        }
-    )
-
-@streaming_bp.route('/debug/queue-info')
-def debug_queue_info():
-    """Get detailed queue debugging info"""
-    try:
+                'error': 'Could not create log entry'
+            }), 500
+        
+        # Add to queue
         queue = get_llm_queue()
+        request_id = queue.add_request(
+            prompt=test_prompt,
+            max_tokens=100,
+            temperature=0.8,
+            prompt_type='simple_test',
+            priority=2,  # High priority for tests
+            log_id=log.id
+        )
         
-        # Get queue status
-        status = queue.get_queue_status()
-        
-        # Get recent items
-        items = queue.get_recent_items(10)
-        
-        # Get worker info
-        worker_info = {
-            'worker_running': queue._running,
-            'current_item': queue._current_item.to_dict() if queue._current_item else None,
-            'queue_size': queue._queue.qsize(),
-            'items_count': len(queue._items),
-            'streaming_callbacks': len(queue._streaming_callbacks)
-        }
+        # Associate log with request
+        log.entity_type = 'simple_test'
+        log.entity_id = request_id
+        log.save()
         
         return jsonify({
             'success': True,
-            'data': {
-                'status': status,
-                'recent_items': items,
-                'worker_info': worker_info,
-                'timestamp': time.time()
-            }
+            'request_id': request_id,
+            'log_id': log.id,
+            'message': 'Simple test started - watch streaming display!',
+            'instructions': 'Check the streaming display and LLM log viewer for real-time progress'
         })
         
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@streaming_bp.route('/debug/force-broadcast')
-def force_broadcast():
-    """Force broadcast a test message to all SSE connections"""
-    try:
-        broadcast_to_all_connections('debug_test', {
-            'message': 'This is a test broadcast',
-            'timestamp': time.time()
-        })
-        
-        return jsonify({
-            'success': True,
-            'message': 'Test broadcast sent'
-        })
-        
-    except Exception as e:
+        print(f"❌ Simple test error: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
 
 def format_sse_message(event_type: str, data: dict) -> str:
-    """
-    Format a Server-Sent Events message
-    
-    Args:
-        event_type (str): Type of event (e.g., 'generation_update')
-        data (dict): Event data to send
-        
-    Returns:
-        str: Formatted SSE message
-    """
+    """Format a Server-Sent Events message"""
     json_data = json.dumps(data)
     return f"event: {event_type}\ndata: {json_data}\n\n"
 
 def broadcast_to_all_connections(event_type: str, data: dict):
-    """
-    Broadcast an event to all active SSE connections
-    
-    Args:
-        event_type (str): Type of event
-        data (dict): Event data
-    """
+    """Broadcast an event to all active SSE connections"""
     with _connections_lock:
         for connection in _active_connections:
             connection.send_event(event_type, data)

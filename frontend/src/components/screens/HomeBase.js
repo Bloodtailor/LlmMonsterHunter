@@ -1,6 +1,4 @@
 // Home Base Screen Component
-// The main hub where players manage monsters, inventory, and start adventures
-// Now includes LLM debugging panel for monitoring AI generation
 
 import React, { useState } from 'react';
 import { testApiConnectivity } from '../../services/api';
@@ -28,25 +26,19 @@ function HomeBase({ gameData, onRefresh }) {
     setTesting(false);
   };
 
-  // Test Queue System
+  // 🔧 FIXED: Test Queue System using proper logging flow
   const handleQueueTest = async () => {
     setQueueTesting(true);
     setQueueTestResults(null);
     
     try {
-      // Add a test request to the queue
-      const response = await fetch('http://localhost:5000/api/streaming/queue/add', {
+      // Use the NEW simple test endpoint that ensures proper logging
+      const response = await fetch('http://localhost:5000/api/streaming/test/simple', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt: 'Generate a test response about a friendly dragon named Spark.',
-          max_tokens: 100,
-          temperature: 0.8,
-          prompt_type: 'test_generation',
-          priority: 2
-        })
+        body: JSON.stringify({})  // Simple test, no parameters needed
       });
       
       const data = await response.json();
@@ -55,7 +47,9 @@ function HomeBase({ gameData, onRefresh }) {
         setQueueTestResults({
           success: true,
           request_id: data.request_id,
-          message: 'Test request added to queue! Watch the streaming display above.',
+          log_id: data.log_id,
+          message: 'Test started! Watch the streaming display and LLM log viewer.',
+          instructions: data.instructions,
           timestamp: new Date().toISOString()
         });
       } else {
@@ -97,6 +91,20 @@ function HomeBase({ gameData, onRefresh }) {
           </div>
           
           <div className="status-card">
+            <h4>System Status</h4>
+            {gameData?.system_status ? (
+              <div>
+                <p><strong>Model Loaded:</strong> {gameData.system_status.llm?.model_loaded ? '✅ Yes' : '❌ No'}</p>
+                <p><strong>GPU Layers:</strong> {gameData.system_status.llm?.gpu_layers || 'Unknown'}</p>
+                <p><strong>Queue Worker:</strong> {gameData.system_status.queue?.worker_running ? '✅ Running' : '❌ Stopped'}</p>
+                <p><strong>Database:</strong> {gameData.system_status.database?.connected ? '✅ Connected' : '❌ Disconnected'}</p>
+              </div>
+            ) : (
+              <p>Loading system status...</p>
+            )}
+          </div>
+          
+          <div className="status-card">
             <h4>Feature Development Status</h4>
             {gameData?.features ? (
               <div className="features-list">
@@ -114,6 +122,78 @@ function HomeBase({ gameData, onRefresh }) {
             ) : (
               <p>Loading features...</p>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* Developer Tools Section */}
+      <section className="developer-tools">
+        <h3>🔧 Developer Tools</h3>
+        <div className="tools-grid">
+          <div className="tool-card">
+            <h4>API Connectivity Test</h4>
+            <p>Test connection to Flask backend and verify all endpoints are working</p>
+            <button 
+              onClick={handleApiTest} 
+              disabled={testing}
+              className="test-button"
+            >
+              {testing ? '🔄 Testing...' : '🧪 Test API'}
+            </button>
+            
+            {apiTestResults && (
+              <div className={`test-results ${apiTestResults.success ? 'success' : 'error'}`}>
+                <h5>{apiTestResults.success ? '✅ API Test Passed' : '❌ API Test Failed'}</h5>
+                {apiTestResults.success ? (
+                  <div>
+                    <p>✅ Health check: {apiTestResults.health?.status}</p>
+                    <p>✅ Database: {apiTestResults.health?.database}</p>
+                    <p>✅ Game status: {apiTestResults.status?.status}</p>
+                  </div>
+                ) : (
+                  <p>Error: {apiTestResults.error}</p>
+                )}
+                <small>Tested at: {new Date(apiTestResults.timestamp).toLocaleTimeString()}</small>
+              </div>
+            )}
+          </div>
+          
+          <div className="tool-card">
+            <h4>🔧 FIXED: Queue + Logging + Streaming Test</h4>
+            <p>Test the complete flow: queue → LLM generation → logging → streaming display</p>
+            <button 
+              onClick={handleQueueTest} 
+              disabled={queueTesting}
+              className="test-button"
+            >
+              {queueTesting ? '🔄 Starting Test...' : '🎲 Test Complete Flow'}
+            </button>
+            
+            {queueTestResults && (
+              <div className={`test-results ${queueTestResults.success ? 'success' : 'error'}`}>
+                <h5>{queueTestResults.success ? '✅ Complete Flow Test Started' : '❌ Test Failed'}</h5>
+                {queueTestResults.success ? (
+                  <div>
+                    <p>✅ Request ID: {queueTestResults.request_id}</p>
+                    <p>✅ Log ID: {queueTestResults.log_id}</p>
+                    <p>📺 Watch the streaming display (top-right corner)!</p>
+                    <p>📋 Check the LLM Log Viewer below for detailed progress</p>
+                    <p>🔄 The request is now being processed through the complete flow</p>
+                  </div>
+                ) : (
+                  <p>Error: {queueTestResults.error}</p>
+                )}
+                <small>Started at: {new Date(queueTestResults.timestamp).toLocaleTimeString()}</small>
+              </div>
+            )}
+          </div>
+          
+          <div className="tool-card">
+            <h4>Refresh Game Data</h4>
+            <p>Reload game status and backend connection information</p>
+            <button onClick={onRefresh} className="refresh-button">
+              🔄 Refresh Data
+            </button>
           </div>
         </div>
       </section>
@@ -162,76 +242,6 @@ function HomeBase({ gameData, onRefresh }) {
         </div>
       </section>
 
-      {/* Developer Tools Section */}
-      <section className="developer-tools">
-        <h3>🔧 Developer Tools</h3>
-        <div className="tools-grid">
-          <div className="tool-card">
-            <h4>API Connectivity Test</h4>
-            <p>Test connection to Flask backend and verify all endpoints are working</p>
-            <button 
-              onClick={handleApiTest} 
-              disabled={testing}
-              className="test-button"
-            >
-              {testing ? '🔄 Testing...' : '🧪 Test API'}
-            </button>
-            
-            {apiTestResults && (
-              <div className={`test-results ${apiTestResults.success ? 'success' : 'error'}`}>
-                <h5>{apiTestResults.success ? '✅ API Test Passed' : '❌ API Test Failed'}</h5>
-                {apiTestResults.success ? (
-                  <div>
-                    <p>✅ Health check: {apiTestResults.health?.status}</p>
-                    <p>✅ Database: {apiTestResults.health?.database}</p>
-                    <p>✅ Game status: {apiTestResults.status?.status}</p>
-                  </div>
-                ) : (
-                  <p>Error: {apiTestResults.error}</p>
-                )}
-                <small>Tested at: {new Date(apiTestResults.timestamp).toLocaleTimeString()}</small>
-              </div>
-            )}
-          </div>
-          
-          <div className="tool-card">
-            <h4>LLM Queue System Test</h4>
-            <p>Test the new prompt queue system with real-time streaming display</p>
-            <button 
-              onClick={handleQueueTest} 
-              disabled={queueTesting}
-              className="test-button"
-            >
-              {queueTesting ? '🔄 Adding to Queue...' : '🎲 Test Queue Generation'}
-            </button>
-            
-            {queueTestResults && (
-              <div className={`test-results ${queueTestResults.success ? 'success' : 'error'}`}>
-                <h5>{queueTestResults.success ? '✅ Queue Test Started' : '❌ Queue Test Failed'}</h5>
-                {queueTestResults.success ? (
-                  <div>
-                    <p>✅ Request ID: {queueTestResults.request_id}</p>
-                    <p>📺 Watch the streaming display in the top-right corner!</p>
-                    <p>🔄 The request is now being processed in the queue</p>
-                  </div>
-                ) : (
-                  <p>Error: {queueTestResults.error}</p>
-                )}
-                <small>Started at: {new Date(queueTestResults.timestamp).toLocaleTimeString()}</small>
-              </div>
-            )}
-          </div>
-          
-          <div className="tool-card">
-            <h4>Refresh Game Data</h4>
-            <p>Reload game status and backend connection information</p>
-            <button onClick={onRefresh} className="refresh-button">
-              🔄 Refresh Data
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* LLM System Debug Panel */}
       <section className="llm-debug-panel">
         <LLMLogViewer />
@@ -239,19 +249,17 @@ function HomeBase({ gameData, onRefresh }) {
 
       {/* Instructions Section */}
       <section className="instructions">
-        <h3>📋 Next Development Steps</h3>
+        <h3>📋 System Testing Instructions</h3>
         <ol>
-          <li>✅ <strong>Backend API</strong> - Working with health and status endpoints</li>
-          <li>✅ <strong>React Frontend</strong> - Connecting to backend successfully</li>
-          <li>✅ <strong>LLM Infrastructure</strong> - Complete AI system with logging and monitoring</li>
-          <li>✅ <strong>Streaming Display</strong> - Real-time LLM generation progress overlay</li>
-          <li>✅ <strong>Queue System</strong> - Proper prompt queuing with priority management</li>
-          <li>⏳ <strong>Monster Generation API</strong> - Create endpoints for AI monster creation</li>
-          <li>⏳ <strong>Monster Display UI</strong> - Show generated monsters in React</li>
-          <li>⏳ <strong>Battle System</strong> - Implement turn-based combat</li>
+          <li>✅ <strong>Backend API</strong> - Test with "Test API" button</li>
+          <li>✅ <strong>Complete Flow</strong> - Test with "Test Complete Flow" button</li>
+          <li>🔍 <strong>Watch Streaming</strong> - Real-time progress in top-right corner</li>
+          <li>📋 <strong>Check Logs</strong> - Detailed info in LLM Log Viewer below</li>
+          <li>🎯 <strong>Verify GPU</strong> - Look for 30+ tokens/second generation speed</li>
         </ol>
-        <p><strong>🔧 Debug Tools:</strong> Use the "Test Queue Generation" button above to see the streaming system in action. The streaming display in the top-right corner shows all AI activity in real-time!</p>
-        <p><strong>📺 Streaming Display:</strong> Watch the top-right corner for live LLM generation progress. It will auto-expand during generation and show queue status, timing, and generated text.</p>
+        <p><strong>🔧 Testing Flow:</strong> The "Test Complete Flow" button now properly creates log entries, queues requests, processes through the LLM, and streams results in real-time.</p>
+        <p><strong>📺 Streaming Display:</strong> Watch for live generation progress, token counts, and completion status.</p>
+        <p><strong>⚡ GPU Check:</strong> Generation speed over 15 tok/s indicates GPU usage.</p>
       </section>
     </div>
   );

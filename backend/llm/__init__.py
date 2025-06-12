@@ -20,8 +20,7 @@ from .parser import (
 
 from .monster_generation import (
     generate_monster,
-    get_available_prompts,
-    test_monster_generation
+    get_available_prompts
 )
 
 __all__ = [
