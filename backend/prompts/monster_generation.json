@@ -5,7 +5,7 @@
     "temperature": 0.9,
     "parser": {
       "type": "json",
-      "parser_name": "basic_monster_parser",
+      "parser_name": "basic_parser",
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
@@ -18,7 +18,7 @@
     "temperature": 0.9,
     "parser": {
       "type": "json",
-      "parser_name": "detailed_monster_parser",
+      "parser_name": "basic_parser",
       "expected_fields": ["name", "species", "description", "backstory", "stats", "personality", "abilities"],
       "required_fields": ["name", "description"]
     },
@@ -31,7 +31,7 @@
     "temperature": 0.9,
     "parser": {
       "type": "json", 
-      "parser_name": "story_monster_parser",
+      "parser_name": "basic_parser",
       "expected_fields": ["name", "species", "description", "backstory", "wish", "personality", "abilities", "stats"],
       "required_fields": ["name", "description", "wish"]
     },
