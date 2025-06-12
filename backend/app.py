@@ -1,6 +1,6 @@
 # Flask Application Factory
 # Creates and configures the main Flask application
-# 🔧 FIXED: Proper queue integration with Flask context
+# 🔧 FIXED: Proper startup sequence with model auto-loading
 
 from flask import Flask
 from flask_cors import CORS
@@ -47,12 +47,9 @@ def create_app(config_name='development'):
     from backend.config.database import init_db
     init_db(app)
     
-    # 🔧 CRITICAL FIX: Set Flask app context for queue system
-    with app.app_context():
-        from backend.llm.queue import get_llm_queue
-        queue = get_llm_queue()
-        queue.set_flask_app(app)
-        print("✅ Queue system configured with Flask app context")
+    # 🔧 CRITICAL FIX: Initialize backend systems (load model, setup queue)
+    from backend.startup import initialize_backend
+    initialize_backend(app)
     
     # Register API routes (blueprints)
     register_blueprints(app)
@@ -89,6 +86,10 @@ def register_blueprints(app):
     from backend.routes.streaming_routes import streaming_bp
     app.register_blueprint(streaming_bp)
     
+    # 🔧 NEW: Monster generation routes
+    from backend.routes.monster_routes import monster_bp
+    app.register_blueprint(monster_bp)
+    
     # Health check route - simple test endpoint
     @app.route('/api/health')
     def health_check():
@@ -99,21 +100,30 @@ def register_blueprints(app):
             'database': 'connected' if check_database_connection() else 'disconnected'
         }
     
-    # Game status route - basic game state info
+    # Enhanced game status route with startup verification
     @app.route('/api/game/status')
     def game_status():
-        """Get basic game status information"""
+        """Get comprehensive game status information"""
+        
+        # Get system status from startup module
+        try:
+            from backend.startup import get_system_status
+            system_status = get_system_status()
+        except Exception as e:
+            system_status = {'error': str(e)}
+        
         return {
             'game_name': 'Monster Hunter Game',
             'version': '0.1.0-mvp',
             'status': 'development',
             'features': {
-                'monster_generation': True,   # ✅ LLM system ready
+                'monster_generation': system_status.get('startup_complete', False),  # ✅ Based on actual model status
                 'streaming_display': True,    # ✅ Real-time streaming
                 'prompt_queue': True,         # ✅ Queue system
-                'gpu_acceleration': True,     # ✅ NEW: GPU support
+                'gpu_acceleration': system_status.get('llm', {}).get('gpu_layers', 0) > 0,     # ✅ Based on actual GPU usage
                 'battle_system': False,
                 'chat_system': False,
                 'save_system': False
-            }
+            },
+            'system_status': system_status  # Full details for debugging
         }

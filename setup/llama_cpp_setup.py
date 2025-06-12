@@ -18,7 +18,7 @@ def check_llama_cpp_installed():
         return False
 
     try:
-        result = subprocess.run([str(pip_path), "show", "llama-cpp-python-cuda"], capture_output=True, text=True, check=True)
+        result = subprocess.run([str(pip_path), "show", "llama-cpp-python"], capture_output=True, text=True, check=True)
         version_line = [line for line in result.stdout.split('\n') if line.startswith('Version:')]
         if version_line:
             version = version_line[0].split(':', 1)[1].strip()
