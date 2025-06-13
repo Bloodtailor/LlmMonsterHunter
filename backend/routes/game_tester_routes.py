@@ -3,7 +3,7 @@ from backend.services.game_tester_service import run_test_file, get_test_files
 
 game_tester_bp = Blueprint('game_tester', __name__, url_prefix='/api/game_tester')
 
-@game_tester_bp.route('/run/<test_name>', methods=['POST'])
+@game_tester_bp.route('/run/<test_name>', methods=['GET'])
 def run_test(test_name):
     """Run a test file and capture its output"""
     
