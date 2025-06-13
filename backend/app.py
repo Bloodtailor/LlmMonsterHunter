@@ -89,6 +89,9 @@ def register_blueprints(app):
     # 🔧 NEW: Monster generation routes
     from backend.routes.monster_routes import monster_bp
     app.register_blueprint(monster_bp)
+
+    from backend.routes.game_tester_routes import game_tester_bp
+    app.register_blueprint(game_tester_bp)
     
     # Health check route - simple test endpoint
     @app.route('/api/health')
