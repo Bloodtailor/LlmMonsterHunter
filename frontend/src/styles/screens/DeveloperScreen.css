@@ -1,0 +1,104 @@
+/* Developer Screen Styles */
+/* Debugging interface and system monitoring tools */
+
+.developer-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.developer-header {
+  text-align: center;
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.developer-header h1 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.developer-header p {
+  color: var(--text-medium);
+  margin: 0;
+}
+
+.system-status-panel,
+.quick-testing,
+.backend-testing,
+.llm-debug-panel,
+.dev-instructions {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.system-status-panel h2,
+.quick-testing h2,
+.backend-testing h2,
+.llm-debug-panel h2,
+.dev-instructions h2 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+.backend-testing h2,
+.llm-debug-panel h2 {
+  text-align: center;
+}
+
+.dev-instructions {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.dev-instructions h2 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.instructions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.instruction-card {
+  background: var(--background-dark);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--secondary-color);
+}
+
+.instruction-card h4 {
+  color: var(--text-light);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.instruction-card ol,
+.instruction-card ul {
+  margin: 0 0 0 var(--spacing-lg);
+  color: var(--text-medium);
+}
+
+.instruction-card li {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.4;
+}
+
+.instruction-card strong {
+  color: var(--accent-color);
+}
+
+/* Responsive Design for Developer Screen */
+@media (max-width: 768px) {
+  .instructions-grid {
+    grid-template-columns: 1fr;
+  }
+}

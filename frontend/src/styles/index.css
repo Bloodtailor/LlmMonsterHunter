@@ -11,9 +11,12 @@
 @import './components/UI.css';
 @import './components/LLMLogViewer.css';
 @import './components/StreamingDisplay.css';
+@import './components/Navigation.css';
+@import './components/TestRunner.css';
 
 /* 4. Screen-specific styles */
-@import './screens/HomeBase.css';
+@import './screens/GameHomeBase.css';
+@import './screens/DeveloperScreen.css';
 
 /* Code highlighting for development */
 code {

@@ -1,9 +1,10 @@
-// Main React application component
-// Sets up routing and global state management
-// Provides app-level error handling and API integration
+// Main React application component - RESTRUCTURED
+// Separates game interface from developer tools
+// Provides navigation between game and debug modes
 
 import React, { useState, useEffect } from 'react';
-import HomeBase from './components/screens/HomeBase';
+import GameHomeBase from './components/screens/GameHomeBase';
+import DeveloperScreen from './components/screens/DeveloperScreen';
 import StreamingDisplay from './components/streaming/StreamingDisplay';
 import { healthCheck, getGameStatus } from './services/api';
 
@@ -16,6 +17,9 @@ function App() {
     loading: true,
     error: null
   });
+
+  // Navigation state
+  const [currentScreen, setCurrentScreen] = useState('game'); // 'game' or 'developer'
 
   // Check backend connection on app startup
   useEffect(() => {
@@ -96,34 +100,64 @@ function App() {
       {/* Always-visible LLM Streaming Display */}
       <StreamingDisplay />
       
-      {/* App Header */}
+      {/* App Header with Navigation */}
       <header className="app-header">
-        <h1>🎮 Monster Hunter Game</h1>
-        <div className="status-indicators">
-          <div className={`status-indicator ${appStatus.backendConnected ? 'connected' : 'disconnected'}`}>
-            Backend: {appStatus.backendConnected ? '✅ Connected' : '❌ Disconnected'}
+        <div className="header-left">
+          <h1>🎮 Monster Hunter Game</h1>
+          <div className="status-indicators">
+            <div className={`status-indicator ${appStatus.backendConnected ? 'connected' : 'disconnected'}`}>
+              Backend: {appStatus.backendConnected ? '✅ Connected' : '❌ Disconnected'}
+            </div>
+            <div className={`status-indicator ${appStatus.databaseConnected ? 'connected' : 'disconnected'}`}>
+              Database: {appStatus.databaseConnected ? '✅ Connected' : '❌ Disconnected'}
+            </div>
+            <div className="game-version">
+              v{appStatus.gameData?.version || '0.1.0'}
+            </div>
           </div>
-          <div className={`status-indicator ${appStatus.databaseConnected ? 'connected' : 'disconnected'}`}>
-            Database: {appStatus.databaseConnected ? '✅ Connected' : '❌ Disconnected'}
-          </div>
-          <div className="game-version">
-            v{appStatus.gameData?.version || '0.1.0'}
-          </div>
+        </div>
+        
+        <div className="header-right">
+          <nav className="screen-navigation">
+            <button 
+              className={`nav-button ${currentScreen === 'game' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('game')}
+            >
+              🏠 Game
+            </button>
+            <button 
+              className={`nav-button ${currentScreen === 'developer' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('developer')}
+            >
+              🔧 Developer
+            </button>
+          </nav>
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main Content - Switch between screens */}
       <main className="app-main">
-        <HomeBase 
-          gameData={appStatus.gameData}
-          onRefresh={checkBackendStatus}
-        />
+        {currentScreen === 'game' ? (
+          <GameHomeBase 
+            gameData={appStatus.gameData}
+            onRefresh={checkBackendStatus}
+          />
+        ) : (
+          <DeveloperScreen 
+            gameData={appStatus.gameData}
+            onRefresh={checkBackendStatus}
+          />
+        )}
       </main>
 
       {/* App Footer */}
       <footer className="app-footer">
         <p>Monster Hunter Game - MVP Development Phase</p>
-        <p>Status: {appStatus.gameData?.status || 'Unknown'}</p>
+        <div className="footer-info">
+          <span>Status: {appStatus.gameData?.status || 'Unknown'}</span>
+          <span>•</span>
+          <span>Current Screen: {currentScreen === 'game' ? 'Game Interface' : 'Developer Tools'}</span>
+        </div>
       </footer>
     </div>
   );
