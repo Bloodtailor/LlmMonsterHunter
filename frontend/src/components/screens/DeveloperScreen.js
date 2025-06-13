@@ -1,10 +1,12 @@
-// Home Base Screen Component
+// Developer Screen Component
+// Contains all debugging tools, system monitoring, and test runner
 
 import React, { useState } from 'react';
 import { testApiConnectivity } from '../../services/api';
 import LLMLogViewer from '../debug/LLMLogViewer';
+import TestRunner from '../debug/TestRunner';
 
-function HomeBase({ gameData, onRefresh }) {
+function DeveloperScreen({ gameData, onRefresh }) {
   const [testing, setTesting] = useState(false);
   const [apiTestResults, setApiTestResults] = useState(null);
   const [queueTesting, setQueueTesting] = useState(false);
@@ -26,19 +28,19 @@ function HomeBase({ gameData, onRefresh }) {
     setTesting(false);
   };
 
-  // 🔧 FIXED: Test Queue System using proper logging flow
+  // Test Complete Flow using proper logging flow
   const handleQueueTest = async () => {
     setQueueTesting(true);
     setQueueTestResults(null);
     
     try {
-      // Use the NEW simple test endpoint that ensures proper logging
+      // Use the simple test endpoint that ensures proper logging
       const response = await fetch('http://localhost:5000/api/streaming/test/simple', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({})  // Simple test, no parameters needed
+        body: JSON.stringify({})
       });
       
       const data = await response.json();
@@ -72,16 +74,16 @@ function HomeBase({ gameData, onRefresh }) {
   };
 
   return (
-    <div className="home-base">
-      {/* Welcome Section */}
-      <section className="welcome-section">
-        <h2>🏠 Welcome to Your Home Base</h2>
-        <p>This is where you'll manage your monsters, prepare for adventures, and plan your strategies.</p>
+    <div className="developer-screen">
+      {/* Developer Header */}
+      <section className="developer-header">
+        <h1>🔧 Developer & Debug Tools</h1>
+        <p>System monitoring, testing, and debugging interface for the Monster Hunter Game backend</p>
       </section>
 
-      {/* Game Status Panel */}
-      <section className="game-status-panel">
-        <h3>🎮 Game Status</h3>
+      {/* System Status Panel */}
+      <section className="system-status-panel">
+        <h2>🎮 System Status</h2>
         <div className="status-grid">
           <div className="status-card">
             <h4>Game Information</h4>
@@ -91,7 +93,7 @@ function HomeBase({ gameData, onRefresh }) {
           </div>
           
           <div className="status-card">
-            <h4>System Status</h4>
+            <h4>Backend Status</h4>
             {gameData?.system_status ? (
               <div>
                 <p><strong>Model Loaded:</strong> {gameData.system_status.llm?.model_loaded ? '✅ Yes' : '❌ No'}</p>
@@ -126,9 +128,9 @@ function HomeBase({ gameData, onRefresh }) {
         </div>
       </section>
 
-      {/* Developer Tools Section */}
-      <section className="developer-tools">
-        <h3>🔧 Developer Tools</h3>
+      {/* Quick Testing Tools */}
+      <section className="quick-testing">
+        <h2>🧪 Quick System Tests</h2>
         <div className="tools-grid">
           <div className="tool-card">
             <h4>API Connectivity Test</h4>
@@ -159,7 +161,7 @@ function HomeBase({ gameData, onRefresh }) {
           </div>
           
           <div className="tool-card">
-            <h4>🔧 FIXED: Queue + Logging + Streaming Test</h4>
+            <h4>Complete Flow Test</h4>
             <p>Test the complete flow: queue → LLM generation → logging → streaming display</p>
             <button 
               onClick={handleQueueTest} 
@@ -178,7 +180,6 @@ function HomeBase({ gameData, onRefresh }) {
                     <p>✅ Log ID: {queueTestResults.log_id}</p>
                     <p>📺 Watch the streaming display (top-right corner)!</p>
                     <p>📋 Check the LLM Log Viewer below for detailed progress</p>
-                    <p>🔄 The request is now being processed through the complete flow</p>
                   </div>
                 ) : (
                   <p>Error: {queueTestResults.error}</p>
@@ -189,7 +190,7 @@ function HomeBase({ gameData, onRefresh }) {
           </div>
           
           <div className="tool-card">
-            <h4>Refresh Game Data</h4>
+            <h4>Refresh System Data</h4>
             <p>Reload game status and backend connection information</p>
             <button onClick={onRefresh} className="refresh-button">
               🔄 Refresh Data
@@ -198,71 +199,56 @@ function HomeBase({ gameData, onRefresh }) {
         </div>
       </section>
 
-      {/* Future Features Preview */}
-      <section className="features-preview">
-        <h3>🚀 Coming Soon</h3>
-        <div className="preview-grid">
-          <div className="preview-card disabled">
-            <h4>🐉 Monster Roster</h4>
-            <p>View and manage your captured monsters</p>
-            <div className="placeholder-roster">
-              <div className="placeholder-monster">?</div>
-              <div className="placeholder-monster">?</div>
-              <div className="placeholder-monster">?</div>
-              <div className="placeholder-monster">?</div>
-            </div>
-          </div>
-          
-          <div className="preview-card disabled">
-            <h4>🎒 Inventory</h4>
-            <p>Manage items and equipment</p>
-            <div className="placeholder-inventory">
-              <div className="placeholder-item">📦</div>
-              <div className="placeholder-item">⚔️</div>
-              <div className="placeholder-item">🛡️</div>
-              <div className="placeholder-item">💊</div>
-            </div>
-          </div>
-          
-          <div className="preview-card disabled">
-            <h4>🗺️ Dungeon Explorer</h4>
-            <p>Enter dungeons to find new monsters</p>
-            <button className="preview-button" disabled>
-              Enter Dungeon
-            </button>
-          </div>
-          
-          <div className="preview-card disabled">
-            <h4>💬 Monster Chat</h4>
-            <p>Talk with your captured monsters</p>
-            <div className="placeholder-chat">
-              <div className="chat-bubble">Hello trainer!</div>
-            </div>
-          </div>
-        </div>
+      {/* Backend Test Runner */}
+      <section className="backend-testing">
+        <h2>🔬 Backend Test Runner</h2>
+        <TestRunner />
       </section>
 
       {/* LLM System Debug Panel */}
       <section className="llm-debug-panel">
+        <h2>🤖 LLM System Monitor</h2>
         <LLMLogViewer />
       </section>
 
-      {/* Instructions Section */}
-      <section className="instructions">
-        <h3>📋 System Testing Instructions</h3>
-        <ol>
-          <li>✅ <strong>Backend API</strong> - Test with "Test API" button</li>
-          <li>✅ <strong>Complete Flow</strong> - Test with "Test Complete Flow" button</li>
-          <li>🔍 <strong>Watch Streaming</strong> - Real-time progress in top-right corner</li>
-          <li>📋 <strong>Check Logs</strong> - Detailed info in LLM Log Viewer below</li>
-          <li>🎯 <strong>Verify GPU</strong> - Look for 30+ tokens/second generation speed</li>
-        </ol>
-        <p><strong>🔧 Testing Flow:</strong> The "Test Complete Flow" button now properly creates log entries, queues requests, processes through the LLM, and streams results in real-time.</p>
-        <p><strong>📺 Streaming Display:</strong> Watch for live generation progress, token counts, and completion status.</p>
-        <p><strong>⚡ GPU Check:</strong> Generation speed over 15 tok/s indicates GPU usage.</p>
+      {/* Development Instructions */}
+      <section className="dev-instructions">
+        <h2>📋 Development Testing Guide</h2>
+        <div className="instructions-grid">
+          <div className="instruction-card">
+            <h4>🎯 System Testing Flow</h4>
+            <ol>
+              <li>✅ <strong>API Test</strong> - Verify backend connectivity</li>
+              <li>✅ <strong>Complete Flow Test</strong> - Test LLM generation pipeline</li>
+              <li>🔍 <strong>Watch Streaming</strong> - Real-time progress in top-right corner</li>
+              <li>📋 <strong>Check Logs</strong> - Detailed info in LLM Log Viewer</li>
+              <li>🎯 <strong>Verify GPU</strong> - Look for 15+ tokens/second generation speed</li>
+            </ol>
+          </div>
+          
+          <div className="instruction-card">
+            <h4>🧪 Backend Testing</h4>
+            <ol>
+              <li>📝 <strong>Create Test Files</strong> - Add .py files to backend/tests/</li>
+              <li>🔄 <strong>Refresh Tests</strong> - Click refresh to see new tests</li>
+              <li>▶️ <strong>Run Tests</strong> - Click run and see output</li>
+              <li>📊 <strong>Check Results</strong> - View success/failure and stack traces</li>
+            </ol>
+          </div>
+          
+          <div className="instruction-card">
+            <h4>⚡ Performance Indicators</h4>
+            <ul>
+              <li><strong>GPU Usage:</strong> 15+ tokens/second indicates GPU acceleration</li>
+              <li><strong>Queue Health:</strong> Worker should be running</li>
+              <li><strong>Database:</strong> All connections should be green</li>
+              <li><strong>Streaming:</strong> Real-time updates should appear instantly</li>
+            </ul>
+          </div>
+        </div>
       </section>
     </div>
   );
 }
 
-export default HomeBase;
+export default DeveloperScreen;
