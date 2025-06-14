@@ -1,5 +1,5 @@
 # LLM Module Package - CLEAN INTERFACE
-# Exports core LLM functionality with new service architecture
+# Exports core LLM functionality with simplified architecture
 
 # Core model operations
 from .core import (
@@ -11,7 +11,7 @@ from .core import (
     warm_up_model
 )
 
-# Inference (direct inference - mostly for internal use)
+# Inference (direct inference - use services for high-level operations)
 from .inference import (
     generate_streaming,
     is_generating
@@ -55,17 +55,12 @@ __all__ = [
     'generate_streaming',
     'is_generating',
     
-    # Queue (use services for adding requests)
+    # Queue management
     'get_llm_queue',
-    'shutdown_queue',
     
     # Prompt and parsing utilities
     'get_template_config',
     'build_prompt',
     'parse_response',
-    'ParseResult',
-    
-    # Legacy compatibility (delegates to services)
-    'generate_monster',
-    'get_available_prompts'
+    'ParseResult'
 ]
