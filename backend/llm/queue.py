@@ -153,8 +153,12 @@ class LLMQueue:
                     "tokens_so_far": len(partial_text.split()) if partial_text else 0
                 })
             
-            # Delegate all processing to processor.py
-            result = process_request(item.log_id, callback=on_stream)
+            # 🔧 CRITICAL FIX: Ensure Flask app context for database operations
+            if self._app:
+                with self._app.app_context():
+                    result = process_request(item.log_id, callback=on_stream)
+            else:
+                result = {'success': False, 'error': 'No Flask app context available'}
             
             item.result = result
             item.completed_at = datetime.utcnow()
