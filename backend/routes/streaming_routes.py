@@ -36,7 +36,7 @@ def stream_events():
                 yield f"event: ping\ndata: {json.dumps({'timestamp': time.time()})}\n\n"
                 
                 # Brief pause to prevent excessive CPU usage
-                time.sleep(1)
+                time.sleep(0.05)
                 
         except GeneratorExit:
             # Client disconnected
