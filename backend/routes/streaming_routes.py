@@ -1,61 +1,58 @@
-# Streaming Routes - ACTUALLY THIN
-# Minimal routes for streaming functionality
+# Streaming Routes - SIMPLIFIED
+# Uses SSE service for connection management
+# Clean separation of concerns
 
 import json
 import time
-import threading
 from flask import Blueprint, Response, request, jsonify
 from backend.services import llm_service
+from backend.services.sse_service import get_sse_service
 
 streaming_bp = Blueprint('streaming', __name__, url_prefix='/api/streaming')
-
-# Simple SSE connection tracking
-_connections = set()
-_connections_lock = threading.Lock()
-
-class SSEConnection:
-    def __init__(self, connection_id):
-        self.id = connection_id
-        self.queue = []
-        self.active = True
-        self.lock = threading.Lock()
-    
-    def send_event(self, event_type, data):
-        with self.lock:
-            if self.active:
-                self.queue.append({'event': event_type, 'data': data})
-    
-    def get_events(self):
-        with self.lock:
-            events = self.queue[:]
-            self.queue.clear()
-            return events
 
 @streaming_bp.route('/llm-events')
 def stream_events():
     """SSE endpoint for real-time updates"""
+    
+    sse_service = get_sse_service()
+    connection = sse_service.create_connection()
+    
     def event_generator():
-        connection = SSEConnection(f"conn_{int(time.time() * 1000)}")
-        
-        with _connections_lock:
-            _connections.add(connection)
-        
         try:
-            yield f"event: connected\ndata: {json.dumps({'message': 'Connected'})}\n\n"
+            # Send initial ping
+            yield f"event: ping\ndata: {json.dumps({'timestamp': time.time()})}\n\n"
             
             while connection.active:
+                # Get events from connection queue
                 events = connection.get_events()
-                for event in events:
-                    yield f"event: {event['event']}\ndata: {json.dumps(event['data'])}\n\n"
                 
+                # Send each event
+                for event in events:
+                    event_type = event.get('event', 'message')
+                    event_data = json.dumps(event.get('data', {}))
+                    yield f"event: {event_type}\ndata: {event_data}\n\n"
+                
+                # Send periodic ping to keep connection alive
                 yield f"event: ping\ndata: {json.dumps({'timestamp': time.time()})}\n\n"
+                
+                # Brief pause to prevent excessive CPU usage
                 time.sleep(1)
                 
+        except GeneratorExit:
+            # Client disconnected
+            pass
+        except Exception as e:
+            print(f"❌ SSE stream error: {e}")
         finally:
-            with _connections_lock:
-                _connections.discard(connection)
+            # Clean up connection
+            sse_service.remove_connection(connection.id)
     
-    return Response(event_generator(), mimetype='text/event-stream')
+    response = Response(event_generator(), mimetype='text/event-stream')
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['Connection'] = 'keep-alive'
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    
+    return response
 
 @streaming_bp.route('/add', methods=['POST'])
 def add_request():
@@ -72,19 +69,12 @@ def test_simple():
     result = llm_service.inference_request("Say hi", wait_for_completion=True)
     return jsonify(result)
 
-# Setup queue broadcasting (simplified)
-def setup_broadcasting():
-    try:
-        from backend.llm.queue import get_llm_queue
-        
-        def callback(event):
-            with _connections_lock:
-                for conn in _connections:
-                    conn.send_event(event['type'], event['data'])
-        
-        queue = get_llm_queue()
-        queue.add_streaming_callback(callback)
-    except:
-        pass  # Ignore if queue not ready
-
-setup_broadcasting()
+@streaming_bp.route('/connections')
+def get_connections():
+    """Get SSE connection info for debugging"""
+    sse_service = get_sse_service()
+    
+    return jsonify({
+        'active_connections': sse_service.get_connection_count(),
+        'event_types': sse_service._event_service.get_all_event_types()
+    })

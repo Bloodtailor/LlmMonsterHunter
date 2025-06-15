@@ -1,10 +1,10 @@
-# LLM Queue - ULTRA-SIMPLIFIED
-# Just manages log_ids and delegates processing to processor.py
-# Single Responsibility: Queue management of database log entries
+# LLM Queue - SIMPLIFIED
+# Just manages queue of database log entries - streaming removed
+# Uses event_service for all event notifications
 
 import threading
 import time
-from typing import Dict, Any, Optional, Callable
+from typing import Dict, Any, Optional
 from datetime import datetime
 from queue import Queue, Empty
 from dataclasses import dataclass
@@ -50,7 +50,6 @@ class LLMQueue:
         self._worker_thread = None
         self._running = False
         self._current_item = None
-        self._callbacks = []
         self._app = None
         
     def set_flask_app(self, app):
@@ -96,7 +95,13 @@ class LLMQueue:
                 self._items[log_id] = item
                 self._queue.put((priority, log_id))
             
-            self._notify("queue_update", {"action": "added", "item": item.to_dict()})
+            # Emit event using event service
+            self._emit_event('llm.queue.update', {
+                "action": "added", 
+                "item": item.to_dict(),
+                "queue_size": self._queue.qsize()
+            })
+            
             print(f"📥 Added log {log_id} to queue (priority {priority})")
             return True
             
@@ -127,33 +132,28 @@ class LLMQueue:
                 "worker_running": self._running
             }
     
-    def add_streaming_callback(self, callback: Callable):
-        """Add callback for streaming events"""
-        self._callbacks.append(callback)
-    
-    def _notify(self, event_type: str, data: Dict[str, Any]):
-        """Notify all callbacks of events"""
-        event = {"type": event_type, "data": data, "timestamp": datetime.utcnow().isoformat()}
-        for callback in self._callbacks[:]:
-            try:
-                callback(event)
-            except:
-                pass  # Ignore callback errors
+    def _emit_event(self, event_type: str, data: Dict[str, Any]):
+        """Emit event using event service"""
+        try:
+            from backend.services.event_service import emit_event
+            emit_event(event_type, data)
+        except Exception as e:
+            print(f"⚠️ Failed to emit event {event_type}: {e}")
     
     def _process_item(self, item: QueueItem):
         """Process a queue item by delegating to processor.py"""
         from .processor import process_request
         
         try:
-            # Create streaming callback that notifies queue events
+            # Create streaming callback that emits events
             def on_stream(partial_text):
-                self._notify("generation_update", {
+                self._emit_event('llm.generation.update', {
                     "log_id": item.log_id,
                     "partial_text": partial_text,
                     "tokens_so_far": len(partial_text.split()) if partial_text else 0
                 })
             
-            # 🔧 CRITICAL FIX: Ensure Flask app context for database operations
+            # Ensure Flask app context for database operations
             if self._app:
                 with self._app.app_context():
                     result = process_request(item.log_id, callback=on_stream)
@@ -165,7 +165,7 @@ class LLMQueue:
             
             if result['success']:
                 item.status = QueueItemStatus.COMPLETED
-                self._notify("generation_completed", {
+                self._emit_event('llm.generation.completed', {
                     "item": item.to_dict(),
                     "log_id": item.log_id,
                     "final_text": result.get('text', ''),
@@ -177,7 +177,7 @@ class LLMQueue:
             else:
                 item.status = QueueItemStatus.FAILED
                 item.error = result.get('error', 'Unknown error')
-                self._notify("generation_failed", {
+                self._emit_event('llm.generation.failed', {
                     "item": item.to_dict(), 
                     "log_id": item.log_id,
                     "error": item.error
@@ -187,7 +187,7 @@ class LLMQueue:
             item.status = QueueItemStatus.FAILED
             item.error = str(e)
             item.completed_at = datetime.utcnow()
-            self._notify("generation_failed", {
+            self._emit_event('llm.generation.failed', {
                 "item": item.to_dict(),
                 "log_id": item.log_id, 
                 "error": item.error
@@ -212,7 +212,7 @@ class LLMQueue:
                 item.started_at = datetime.utcnow()
                 self._current_item = item
                 
-                self._notify("generation_started", {
+                self._emit_event('llm.generation.started', {
                     "item": item.to_dict(),
                     "log_id": log_id
                 })
