@@ -26,8 +26,6 @@ def process_request(log_id: int, callback: Optional[Callable[[str], None]] = Non
         dict: Final processing results
     """
     
-    print(f"🔄 Processing request for log {log_id}")
-    
     try:
         # Step 1: Load all data from log
         log_entry = llm_log.get_log(log_id)

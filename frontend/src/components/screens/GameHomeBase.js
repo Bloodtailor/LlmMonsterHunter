@@ -36,7 +36,7 @@ function GameHomeBase({ gameData }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt_name: 'basic_monster'
+          prompt_name: 'detailed_monster'
         })
       });
       
