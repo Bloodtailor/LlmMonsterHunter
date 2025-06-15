@@ -1,6 +1,6 @@
-// Streaming Display Component
+// Streaming Display Component - IMPROVED
 // Always-visible overlay showing real-time LLM generation progress
-// Connects to backend SSE stream and displays current generation
+// Now with token-level updates and auto-scroll functionality
 
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -11,11 +11,14 @@ function StreamingDisplay() {
   const [queueStatus, setQueueStatus] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [lastActivity, setLastActivity] = useState(null);
-  const [streamingText, setStreamingText] = useState(''); // 🔧 NEW: Track streaming text
+  const [streamingText, setStreamingText] = useState('');
   
+  // Refs for auto-scroll functionality
+  const outputRef = useRef(null);
   const eventSourceRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const autoHideTimeoutRef = useRef(null);
+  const lastTextLengthRef = useRef(0);
 
   // Connect to SSE stream
   useEffect(() => {
@@ -34,6 +37,28 @@ function StreamingDisplay() {
       }
     };
   }, []);
+
+  // Auto-scroll effect - triggers when streamingText changes
+  useEffect(() => {
+    if (outputRef.current && streamingText && currentGeneration?.status === 'generating') {
+      const outputElement = outputRef.current;
+      const newTextLength = streamingText.length;
+      
+      // Only auto-scroll if text has actually grown (new tokens)
+      if (newTextLength > lastTextLengthRef.current) {
+        // Check if user has manually scrolled up
+        const isScrolledToBottom = outputElement.scrollHeight - outputElement.clientHeight <= outputElement.scrollTop + 1;
+        const isNearBottom = outputElement.scrollHeight - outputElement.clientHeight <= outputElement.scrollTop + 50;
+        
+        // Auto-scroll if user hasn't manually scrolled up
+        if (isScrolledToBottom || isNearBottom) {
+          outputElement.scrollTop = outputElement.scrollHeight;
+        }
+        
+        lastTextLengthRef.current = newTextLength;
+      }
+    }
+  }, [streamingText, currentGeneration?.status]);
 
   const connectToStream = () => {
     try {
@@ -88,7 +113,8 @@ function StreamingDisplay() {
           status: 'generating',
           request_id: data.request_id
         });
-        setStreamingText(''); // 🔧 NEW: Reset streaming text
+        setStreamingText(''); // Reset streaming text
+        lastTextLengthRef.current = 0; // Reset length tracker
         setIsMinimized(false); // Auto-expand when generation starts
         setLastActivity(new Date());
         clearAutoHideTimeout();
@@ -96,14 +122,13 @@ function StreamingDisplay() {
 
       eventSource.addEventListener('generation_update', (event) => {
         const data = JSON.parse(event.data);
-        console.log('📝 Generation update:', {
-          request_id: data.request_id,
-          text_length: data.partial_text?.length || 0,
-          tokens_so_far: data.tokens_so_far
-        });
         
-        // 🔧 CRITICAL FIX: Update streaming text from partial_text
+        // More frequent logging for token-level updates
         if (data.partial_text !== undefined) {
+          const tokenCount = data.partial_text.split(' ').length;
+          console.log(`📝 Token update: ${tokenCount} tokens, ${data.partial_text.length} chars`);
+          
+          // Update streaming text immediately
           setStreamingText(data.partial_text);
         }
         
@@ -130,7 +155,7 @@ function StreamingDisplay() {
           tokens_generated: data.tokens_generated,
           duration: data.duration
         });
-        setStreamingText(data.final_text || ''); // 🔧 NEW: Set final text
+        setStreamingText(data.final_text || '');
         setLastActivity(new Date());
         startAutoHideTimer();
       });
@@ -157,12 +182,6 @@ function StreamingDisplay() {
       eventSource.addEventListener('ping', (event) => {
         // Keep-alive ping - just update last activity
         setLastActivity(new Date());
-      });
-
-      // 🔧 NEW: Debug event to see all events
-      eventSource.addEventListener('debug_test', (event) => {
-        const data = JSON.parse(event.data);
-        console.log('🐛 Debug event:', data);
       });
 
     } catch (error) {
@@ -292,8 +311,8 @@ function StreamingDisplay() {
                 </div>
               )}
 
-              <div className="generation-output">
-                {/* 🔧 CRITICAL FIX: Display streaming text properly */}
+              {/* IMPROVED: Auto-scrolling output with ref */}
+              <div className="generation-output" ref={outputRef}>
                 {streamingText ? (
                   <div className="partial-text">
                     {streamingText}
@@ -338,7 +357,7 @@ function StreamingDisplay() {
             </div>
           )}
 
-          {/* 🔧 NEW: Debug info when in development */}
+          {/* Debug info for development */}
           {process.env.NODE_ENV === 'development' && currentGeneration && (
             <div className="debug-info">
               <details>
@@ -349,7 +368,8 @@ function StreamingDisplay() {
                     request_id: currentGeneration.request_id,
                     streaming_text_length: streamingText?.length || 0,
                     tokens_so_far: currentGeneration.tokens_so_far,
-                    last_activity: lastActivity?.toISOString()
+                    last_activity: lastActivity?.toISOString(),
+                    auto_scroll_active: currentGeneration.status === 'generating'
                   }, null, 2)}
                 </pre>
               </details>
