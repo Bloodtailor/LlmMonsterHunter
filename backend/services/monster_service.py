@@ -1,6 +1,5 @@
-# Monster Service - NEW PIPELINE
-# Uses automatic parsing pipeline - much simpler!
-# Just builds prompt and passes parser config to LLM service
+# Monster Service - ENHANCED WITH TEMPLATE-SPECIFIC LOGIC
+# Handles basic_monster wrapping and maintains clean separation of concerns
 
 from typing import Dict, Any, Optional, List
 from backend.models.monster import Monster
@@ -11,6 +10,7 @@ def generate_monster(prompt_name: str = "basic_monster",
                     wait_for_completion: bool = True) -> Dict[str, Any]:
     """
     Generate a new monster using AI with automatic parsing pipeline
+    Now handles template-specific data transformation
     
     Args:
         prompt_name (str): Template name to use
@@ -43,7 +43,7 @@ def generate_monster(prompt_name: str = "basic_monster",
         
         print(f"✅ Built prompt: {len(prompt_text)} characters")
         
-        # Step 3: Use NEW pipeline with automatic parsing!
+        # Step 3: Use automatic parsing pipeline
         llm_result = llm_service.inference_request(
             prompt=prompt_text,
             prompt_type='monster_generation',
@@ -83,8 +83,12 @@ def generate_monster(prompt_name: str = "basic_monster",
         
         print(f"✅ Automatic parsing succeeded on attempt {llm_result.get('attempt', 1)}")
         
-        # Step 5: Create and save monster (parsing already done!)
-        monster = Monster.create_from_llm_data(llm_result['parsed_data'])
+        # Step 5: TEMPLATE-SPECIFIC DATA TRANSFORMATION
+        parsed_data = llm_result['parsed_data']
+        transformed_data = _transform_parsed_data(prompt_name, parsed_data)
+        
+        # Step 6: Create and save monster
+        monster = Monster.create_from_llm_data(transformed_data)
         
         if not monster or not monster.save():
             return {
@@ -92,12 +96,12 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'error': 'Failed to save monster to database',
                 'monster': None,
                 'log_id': llm_result['log_id'],
-                'parsed_data': llm_result['parsed_data']
+                'parsed_data': transformed_data
             }
         
         print(f"✅ Monster saved with ID: {monster.id}")
         
-        # Step 6: Return success
+        # Step 7: Return success
         return {
             'success': True,
             'monster': monster.to_dict(),
@@ -107,7 +111,8 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'duration': llm_result.get('duration', 0),
                 'template_used': prompt_name,
                 'attempts_needed': llm_result.get('attempt', 1),
-                'parsing_automatic': True
+                'parsing_automatic': True,
+                'data_transformed': prompt_name == 'basic_monster'
             }
         }
         
@@ -118,6 +123,42 @@ def generate_monster(prompt_name: str = "basic_monster",
             'error': f'Service error: {str(e)}',
             'monster': None
         }
+
+def _transform_parsed_data(prompt_name: str, parsed_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Transform parsed data based on template type
+    Handles differences between template output formats and Monster model expectations
+    
+    Args:
+        prompt_name (str): Template name that was used
+        parsed_data (dict): Raw parsed data from LLM
+        
+    Returns:
+        dict: Transformed data ready for Monster.create_from_llm_data()
+    """
+    
+    if prompt_name == 'basic_monster':
+        # Basic monster returns flat JSON: {"name": "...", "description": "..."}
+        # But Monster model expects: {"basic_info": {"name": "...", "description": "..."}}
+        print(f"🔄 Wrapping basic_monster data in basic_info structure")
+        
+        return {
+            'basic_info': {
+                'name': parsed_data.get('name', 'Unnamed Monster'),
+                'description': parsed_data.get('description', 'A mysterious creature.')
+            }
+        }
+    
+    elif prompt_name == 'detailed_monster':
+        # Detailed monster should already be in the correct nested format
+        # Just pass it through as-is
+        print(f"✅ Using detailed_monster data as-is (nested format)")
+        return parsed_data
+    
+    else:
+        # Unknown template - assume it's in correct format
+        print(f"⚠️ Unknown template '{prompt_name}', using data as-is")
+        return parsed_data
 
 def get_all_monsters(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
     """Get all monsters with pagination"""

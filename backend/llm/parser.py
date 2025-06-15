@@ -1,5 +1,5 @@
-# LLM Response Parser - ULTRA-SIMPLE
-# Just extracts JSON between first { and last }
+# LLM Response Parser - ENHANCED WITH MULTI-LAYER SUPPORT
+# Now supports both simple flat JSON and complex nested structures
 
 import json
 from typing import Dict, Any, List, Optional, Tuple
@@ -35,7 +35,7 @@ def extract_json(text: str) -> str:
 
 def basic_parser(response_text: str, parser_config: Dict[str, Any]) -> ParseResult:
     """
-    Simple JSON parser
+    Simple JSON parser for flat structures
     
     Args:
         response_text (str): Raw LLM response
@@ -72,9 +72,86 @@ def basic_parser(response_text: str, parser_config: Dict[str, Any]) -> ParseResu
     except Exception as e:
         return ParseResult(success=False, error=f"Parse error: {str(e)}")
 
+def nested_parser(response_text: str, parser_config: Dict[str, Any]) -> ParseResult:
+    """
+    Enhanced parser for nested JSON structures
+    Supports field paths like "basic_info.name" and "stats.health"
+    
+    Args:
+        response_text (str): Raw LLM response
+        parser_config (dict): Parser configuration with nested field support
+        
+    Returns:
+        ParseResult: Parsing results
+    """
+    try:
+        if not response_text:
+            return ParseResult(success=False, error="Empty response")
+        
+        # Extract JSON
+        json_text = extract_json(response_text)
+        if not json_text:
+            return ParseResult(success=False, error="No JSON found")
+        
+        # Parse JSON
+        data = json.loads(json_text)
+        
+        if not isinstance(data, dict):
+            return ParseResult(success=False, error="Response is not a JSON object")
+        
+        # Validate required fields (supports nested paths)
+        required_fields = parser_config.get('required_fields', [])
+        for field_path in required_fields:
+            if not _check_nested_field(data, field_path):
+                return ParseResult(success=False, error=f"Missing required field: {field_path}")
+        
+        # Validate expected fields (supports nested paths) 
+        expected_fields = parser_config.get('expected_fields', [])
+        missing_expected = []
+        for field_path in expected_fields:
+            if not _check_nested_field(data, field_path):
+                missing_expected.append(field_path)
+        
+        # For expected fields, warn but don't fail
+        if missing_expected:
+            print(f"⚠️ Missing expected fields: {missing_expected}")
+        
+        return ParseResult(success=True, data=data)
+        
+    except json.JSONDecodeError as e:
+        return ParseResult(success=False, error=f"Invalid JSON: {str(e)}")
+    except Exception as e:
+        return ParseResult(success=False, error=f"Parse error: {str(e)}")
+
+def _check_nested_field(data: Dict[str, Any], field_path: str) -> bool:
+    """
+    Check if a nested field path exists and has a value
+    
+    Args:
+        data (dict): JSON data to check
+        field_path (str): Dot-separated field path like "basic_info.name"
+        
+    Returns:
+        bool: True if field exists and has a truthy value
+    """
+    try:
+        current = data
+        parts = field_path.split('.')
+        
+        for part in parts:
+            if not isinstance(current, dict) or part not in current:
+                return False
+            current = current[part]
+        
+        # Check if the final value is truthy (not None, empty string, etc.)
+        return bool(current)
+        
+    except Exception:
+        return False
+
 def parse_response(response_text: str, parser_config: Dict[str, Any]) -> ParseResult:
     """
-    Main entry point for parsing - just uses basic_parser
+    Main entry point for parsing - chooses appropriate parser
     
     Args:
         response_text (str): Raw LLM response
@@ -83,4 +160,10 @@ def parse_response(response_text: str, parser_config: Dict[str, Any]) -> ParseRe
     Returns:
         ParseResult: Parsing results
     """
-    return basic_parser(response_text, parser_config)
+    parser_name = parser_config.get('parser_name', 'basic_parser')
+    
+    if parser_name == 'nested_parser':
+        return nested_parser(response_text, parser_config)
+    else:
+        # Default to basic parser
+        return basic_parser(response_text, parser_config)

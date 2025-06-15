@@ -1,5 +1,5 @@
-# Monster Database Model
-# Defines the structure for storing AI-generated monsters
+# Monster Database Model - CLEANED UP
+# Removed generation_prompt and abilities fields for simplicity
 # Focuses only on data storage and retrieval - NO game logic
 
 from backend.models.base import BaseModel
@@ -14,8 +14,8 @@ class Monster(BaseModel):
     Stores all monster data including:
     - Basic info (name, species, description)
     - Stats for future battle system
-    - Abilities as flexible JSON
-    - Personality and backstory
+    - Personality traits as flexible JSON
+    - Backstory for roleplay
     """
     
     # Table name in database
@@ -34,12 +34,8 @@ class Monster(BaseModel):
     defense = Column(Integer, default=15)
     speed = Column(Integer, default=10)
     
-    # Personality and Traits (JSON for flexibility)
+    # Personality traits (JSON for flexibility)
     personality_traits = Column(JSON, nullable=True)  # List of personality traits
-    abilities = Column(JSON, nullable=True)           # List of abilities
-    
-    # Generation metadata
-    generation_prompt = Column(Text, nullable=True)   # What prompt created this monster
     
     def to_dict(self):
         """
@@ -62,9 +58,7 @@ class Monster(BaseModel):
                 'defense': self.defense,
                 'speed': self.speed
             },
-            'personality_traits': self.personality_traits or [],
-            'abilities': self.abilities or [],
-            'generation_prompt': self.generation_prompt
+            'personality_traits': self.personality_traits or []
         })
         
         return result
@@ -73,6 +67,7 @@ class Monster(BaseModel):
     def create_from_llm_data(cls, llm_response_data):
         """
         Create a new Monster from LLM-generated data
+        Handles both basic and detailed monster formats
         
         Args:
             llm_response_data (dict): Parsed JSON from LLM containing monster data
@@ -101,11 +96,7 @@ class Monster(BaseModel):
             speed=stats.get('speed', 10),
             
             # JSON fields
-            personality_traits=personality.get('traits', []),
-            abilities=llm_response_data.get('abilities', []),
-            
-            # Store the raw prompt for debugging
-            generation_prompt=llm_response_data.get('_generation_prompt', None)
+            personality_traits=personality.get('traits', [])
         )
         
         return monster
