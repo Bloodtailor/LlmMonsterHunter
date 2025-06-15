@@ -1,5 +1,6 @@
 // Game Home Base Screen Component
-// This is the actual game interface where players manage monsters and prepare for adventures
+// ENHANCED WITH ABILITIES DISPLAY AND GENERATION
+// Now shows monster abilities and allows generating new ones
 
 import React, { useState, useEffect } from 'react';
 
@@ -7,6 +8,7 @@ function GameHomeBase({ gameData }) {
   const [monsters, setMonsters] = useState([]);
   const [generatingMonster, setGeneratingMonster] = useState(false);
   const [selectedMonster, setSelectedMonster] = useState(null);
+  const [generatingAbilityFor, setGeneratingAbilityFor] = useState(null);
 
   // Load player's monsters on component mount
   useEffect(() => {
@@ -46,6 +48,8 @@ function GameHomeBase({ gameData }) {
         // Add new monster to the list
         setMonsters(prev => [result.monster, ...prev]);
         setSelectedMonster(result.monster);
+        
+        console.log(`✅ Generated ${result.monster.name} with ${result.monster.ability_count} abilities!`);
       } else {
         console.error('Monster generation failed:', result.error);
       }
@@ -56,8 +60,59 @@ function GameHomeBase({ gameData }) {
     setGeneratingMonster(false);
   };
 
+  const generateNewAbility = async (monsterId) => {
+    setGeneratingAbilityFor(monsterId);
+    
+    try {
+      const response = await fetch(`http://localhost:5000/api/monsters/${monsterId}/abilities`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          wait_for_completion: true
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.ability) {
+        // Reload monsters to get updated abilities
+        await loadMonsters();
+        
+        // Update selected monster if it's the one we generated for
+        if (selectedMonster && selectedMonster.id === monsterId) {
+          const updatedMonster = monsters.find(m => m.id === monsterId);
+          if (updatedMonster) {
+            setSelectedMonster(updatedMonster);
+          }
+        }
+        
+        console.log(`✅ Generated new ability "${result.ability.name}" for monster ${monsterId}!`);
+      } else {
+        console.error('Ability generation failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Error generating ability:', error);
+    }
+    
+    setGeneratingAbilityFor(null);
+  };
+
   const formatMonsterStats = (stats) => {
     return `HP: ${stats.max_health} | ATK: ${stats.attack} | DEF: ${stats.defense} | SPD: ${stats.speed}`;
+  };
+
+  const getAbilityTypeIcon = (type) => {
+    const icons = {
+      attack: '⚔️',
+      defense: '🛡️',
+      support: '💚',
+      special: '✨',
+      movement: '💨',
+      utility: '🔧'
+    };
+    return icons[type] || '⚡';
   };
 
   return (
@@ -122,6 +177,26 @@ function GameHomeBase({ gameData }) {
                   <span className="stats-text">{formatMonsterStats(monster.stats)}</span>
                 </div>
                 
+                {/* 🔧 NEW: Abilities Preview */}
+                <div className="monster-abilities-preview">
+                  <div className="abilities-header">
+                    <span className="abilities-count">⚡ {monster.ability_count} abilities</span>
+                  </div>
+                  {monster.abilities && monster.abilities.length > 0 && (
+                    <div className="abilities-preview">
+                      {monster.abilities.slice(0, 2).map((ability, index) => (
+                        <span key={index} className="ability-preview-tag">
+                          {getAbilityTypeIcon(ability.ability_type)} {ability.name}
+                        </span>
+                      ))}
+                      {monster.abilities.length > 2 && (
+                        <span className="more-abilities">+{monster.abilities.length - 2} more</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {/* 🔧 NEW: Personality Traits */}
                 {monster.personality_traits && monster.personality_traits.length > 0 && (
                   <div className="monster-traits">
                     {monster.personality_traits.slice(0, 2).map((trait, index) => (
@@ -176,26 +251,47 @@ function GameHomeBase({ gameData }) {
               </div>
             </div>
             
+            {/* 🔧 NEW: Complete Abilities Section */}
+            <div className="detail-section">
+              <div className="abilities-section-header">
+                <h3>⚡ Abilities ({selectedMonster.ability_count})</h3>
+                <button 
+                  onClick={() => generateNewAbility(selectedMonster.id)}
+                  disabled={generatingAbilityFor === selectedMonster.id}
+                  className="generate-ability-button"
+                >
+                  {generatingAbilityFor === selectedMonster.id ? '🔄 Generating...' : '✨ Add New Ability'}
+                </button>
+              </div>
+              
+              {selectedMonster.abilities && selectedMonster.abilities.length > 0 ? (
+                <div className="abilities-list">
+                  {selectedMonster.abilities.map((ability, index) => (
+                    <div key={index} className="ability-detail-card">
+                      <div className="ability-header">
+                        <h4>
+                          {getAbilityTypeIcon(ability.ability_type)} {ability.name}
+                        </h4>
+                        <span className="ability-type-badge">{ability.ability_type}</span>
+                      </div>
+                      <p className="ability-description">{ability.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-abilities">
+                  <p>This monster hasn't developed any abilities yet.</p>
+                  <p>Generate their first ability to unlock their potential!</p>
+                </div>
+              )}
+            </div>
+            
             {selectedMonster.personality_traits && selectedMonster.personality_traits.length > 0 && (
               <div className="detail-section">
                 <h3>🎭 Personality Traits</h3>
                 <div className="traits-list">
                   {selectedMonster.personality_traits.map((trait, index) => (
                     <span key={index} className="trait-tag large">{trait}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {selectedMonster.abilities && selectedMonster.abilities.length > 0 && (
-              <div className="detail-section">
-                <h3>⚡ Abilities</h3>
-                <div className="abilities-list">
-                  {selectedMonster.abilities.map((ability, index) => (
-                    <div key={index} className="ability-item">
-                      <h4>{ability.name}</h4>
-                      <p>{ability.description}</p>
-                    </div>
                   ))}
                 </div>
               </div>

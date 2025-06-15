@@ -1,23 +1,25 @@
-# Monster Service - ENHANCED WITH TEMPLATE-SPECIFIC LOGIC
-# Handles basic_monster wrapping and maintains clean separation of concerns
+# Monster Service - ENHANCED WITH AUTOMATIC ABILITY GENERATION
+# Now generates 2 abilities for every new monster automatically
+# Maintains clean separation of concerns with ability_service
 
 from typing import Dict, Any, Optional, List
 from backend.models.monster import Monster
 from backend.llm.prompt_engine import get_template_config, build_prompt
 from . import llm_service
+from . import ability_service
 
 def generate_monster(prompt_name: str = "basic_monster", 
                     wait_for_completion: bool = True) -> Dict[str, Any]:
     """
     Generate a new monster using AI with automatic parsing pipeline
-    Now handles template-specific data transformation
+    NOW INCLUDES: Automatic generation of 2 starting abilities
     
     Args:
         prompt_name (str): Template name to use
         wait_for_completion (bool): Whether to wait for generation
         
     Returns:
-        dict: Complete monster generation results
+        dict: Complete monster generation results including abilities
     """
     
     try:
@@ -101,10 +103,26 @@ def generate_monster(prompt_name: str = "basic_monster",
         
         print(f"✅ Monster saved with ID: {monster.id}")
         
-        # Step 7: Return success
+        # Step 7: 🔧 NEW: Generate 2 starting abilities for the monster
+        abilities_result = ability_service.generate_initial_abilities(
+            monster_data=monster.get_context_for_ability_generation(),
+            monster_id=monster.id
+        )
+        
+        if abilities_result['success']:
+            abilities_created = abilities_result['abilities_created']
+            print(f"✅ Generated {abilities_created} starting abilities for {monster.name}")
+        else:
+            print(f"⚠️ Failed to generate starting abilities: {abilities_result['error']}")
+            # Don't fail the entire monster creation if abilities fail
+        
+        # Step 8: Reload monster to include the new abilities
+        monster = Monster.get_monster_by_id(monster.id)
+        
+        # Step 9: Return success with complete data
         return {
             'success': True,
-            'monster': monster.to_dict(),
+            'monster': monster.to_dict(),  # Now includes abilities!
             'log_id': llm_result['log_id'],
             'generation_stats': {
                 'tokens': llm_result.get('tokens', 0),
@@ -112,8 +130,11 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'template_used': prompt_name,
                 'attempts_needed': llm_result.get('attempt', 1),
                 'parsing_automatic': True,
-                'data_transformed': prompt_name == 'basic_monster'
-            }
+                'data_transformed': prompt_name == 'basic_monster',
+                'abilities_generated': abilities_result.get('abilities_created', 0),
+                'abilities_success': abilities_result['success']
+            },
+            'abilities_log_id': abilities_result.get('log_id')  # For debugging abilities generation
         }
         
     except Exception as e:
@@ -161,14 +182,14 @@ def _transform_parsed_data(prompt_name: str, parsed_data: Dict[str, Any]) -> Dic
         return parsed_data
 
 def get_all_monsters(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
-    """Get all monsters with pagination"""
+    """Get all monsters with pagination - NOW INCLUDES ABILITIES"""
     try:
         monsters = Monster.query.order_by(Monster.created_at.desc()).offset(offset).limit(limit).all()
         total_count = Monster.query.count()
         
         return {
             'success': True,
-            'monsters': [monster.to_dict() for monster in monsters],
+            'monsters': [monster.to_dict() for monster in monsters],  # Now includes abilities!
             'total': total_count,
             'count': len(monsters),
             'pagination': {
@@ -189,7 +210,7 @@ def get_all_monsters(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
         }
 
 def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
-    """Get specific monster by ID"""
+    """Get specific monster by ID - NOW INCLUDES ABILITIES"""
     try:
         monster = Monster.query.get(monster_id)
         
@@ -202,7 +223,7 @@ def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
         
         return {
             'success': True,
-            'monster': monster.to_dict(),
+            'monster': monster.to_dict(),  # Now includes abilities!
             'error': None
         }
         
@@ -234,14 +255,21 @@ def get_available_templates() -> Dict[str, str]:
         return {}
 
 def get_monster_stats() -> Dict[str, Any]:
-    """Get monster database statistics"""
+    """Get monster database statistics - NOW INCLUDES ABILITY STATS"""
     try:
         total_monsters = Monster.query.count()
         newest_monster = Monster.query.order_by(Monster.created_at.desc()).first()
         
+        # Get ability statistics
+        from backend.models.ability import Ability
+        total_abilities = Ability.query.count()
+        avg_abilities_per_monster = total_abilities / total_monsters if total_monsters > 0 else 0
+        
         return {
             'success': True,
             'total_monsters': total_monsters,
+            'total_abilities': total_abilities,
+            'avg_abilities_per_monster': round(avg_abilities_per_monster, 1),
             'newest_monster': newest_monster.to_dict() if newest_monster else None,
             'available_templates': list(get_available_templates().keys())
         }
@@ -251,5 +279,6 @@ def get_monster_stats() -> Dict[str, Any]:
         return {
             'success': False,
             'error': str(e),
-            'total_monsters': 0
+            'total_monsters': 0,
+            'total_abilities': 0
         }
