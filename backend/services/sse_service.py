@@ -1,16 +1,20 @@
 # SSE Service - Server-Sent Events Management
-# Manages SSE connections and forwards events from event_service
-# Clean separation from event bus
+# EVENT-DRIVEN: Uses blocking queues for maximum efficiency
+# Only wakes up when events actually occur (no constant polling!)
 
 import json
 import time
 import threading
 from typing import Dict, Any, Set, Optional
 from queue import Queue, Empty
+import threading
 from .event_service import get_event_service
 
 class SSEConnection:
-    """Represents a single SSE connection"""
+    """
+    Represents a single SSE connection with efficient event delivery
+    Uses blocking queue operations - only wakes up when events occur
+    """
     
     def __init__(self, connection_id: str):
         self.id = connection_id
@@ -27,16 +31,23 @@ class SSEConnection:
                 # Queue full, connection probably dead
                 self.active = False
     
-    def get_events(self):
-        """Get all pending events for this connection"""
-        events = []
+    def get_next_event(self, timeout=30):
+        """
+        Get next event, blocking until one arrives or timeout
+        
+        Args:
+            timeout (int): Seconds to wait before timeout
+            
+        Returns:
+            dict: Event data or None if timeout
+        """
+        if not self.active:
+            return None
+            
         try:
-            while True:
-                event = self.event_queue.get_nowait()
-                events.append(event)
+            return self.event_queue.get(timeout=timeout)
         except Empty:
-            pass
-        return events
+            return None  # Timeout occurred
     
     def close(self):
         """Mark connection as closed"""

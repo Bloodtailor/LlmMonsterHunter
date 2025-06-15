@@ -1,6 +1,6 @@
-# Streaming Routes - SIMPLIFIED
-# Uses SSE service for connection management
-# Clean separation of concerns
+# Streaming Routes - EVENT-DRIVEN (No polling!)
+# Uses blocking SSE service for maximum efficiency
+# Only sends data when events actually occur
 
 import json
 import time
@@ -23,20 +23,19 @@ def stream_events():
             yield f"event: ping\ndata: {json.dumps({'timestamp': time.time()})}\n\n"
             
             while connection.active:
-                # Get events from connection queue
-                events = connection.get_events()
+                # Block waiting for next event (30 second timeout)
+                event = connection.get_next_event(timeout=30)
                 
-                # Send each event
-                for event in events:
+                if event is not None:
+                    # We got a real event - send it immediately
                     event_type = event.get('event', 'message')
                     event_data = json.dumps(event.get('data', {}))
                     yield f"event: {event_type}\ndata: {event_data}\n\n"
+                else:
+                    # Timeout occurred (30 seconds) - send keep-alive ping
+                    yield f"event: ping\ndata: {json.dumps({'timestamp': time.time()})}\n\n"
                 
-                # Send periodic ping to keep connection alive
-                yield f"event: ping\ndata: {json.dumps({'timestamp': time.time()})}\n\n"
-                
-                # Brief pause to prevent excessive CPU usage
-                time.sleep(0.05)
+                # No sleep needed - we only wake up when there's work to do!  # 50ms instead of 1000ms for near real-time updates
                 
         except GeneratorExit:
             # Client disconnected
@@ -76,5 +75,7 @@ def get_connections():
     
     return jsonify({
         'active_connections': sse_service.get_connection_count(),
-        'event_types': sse_service._event_service.get_all_event_types()
+        'event_types': sse_service._event_service.get_all_event_types(),
+        'streaming_method': 'event_driven_blocking',
+        'efficiency': 'Only sends data when events occur (no polling!)'
     })
