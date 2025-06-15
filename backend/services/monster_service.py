@@ -1,43 +1,35 @@
-# Monster Service - Business logic for monster creation and management
-# Uses LLM service for generation, handles parsing and database operations
+# Monster Service - NEW PIPELINE
+# Uses automatic parsing pipeline - much simpler!
+# Just builds prompt and passes parser config to LLM service
 
 from typing import Dict, Any, Optional, List
 from backend.models.monster import Monster
 from backend.llm.prompt_engine import get_template_config, build_prompt
-from backend.llm.parser import parse_response
 from . import llm_service
 
 def generate_monster(prompt_name: str = "basic_monster", 
                     wait_for_completion: bool = True) -> Dict[str, Any]:
     """
-    Generate a new monster using AI
+    Generate a new monster using AI with automatic parsing pipeline
     
     Args:
-        prompt_name (str): Template name to use ('basic_monster', 'detailed_monster', etc.)
-        wait_for_completion (bool): Whether to wait for generation to complete
+        prompt_name (str): Template name to use
+        wait_for_completion (bool): Whether to wait for generation
         
     Returns:
-        dict: {
-            'success': bool,
-            'monster': dict or None,  # Monster data if successful
-            'request_id': str,
-            'log_id': int,
-            'error': str or None
-        }
+        dict: Complete monster generation results
     """
     
     try:
         print(f"🐉 Monster Service: Generating monster with template '{prompt_name}'")
         
-        # Step 1: Get and validate template
+        # Step 1: Get template configuration
         template_config = get_template_config(prompt_name)
         if not template_config:
             return {
                 'success': False,
                 'error': f'Template not found: {prompt_name}',
-                'monster': None,
-                'request_id': None,
-                'log_id': None
+                'monster': None
             }
         
         # Step 2: Build prompt from template
@@ -46,18 +38,17 @@ def generate_monster(prompt_name: str = "basic_monster",
             return {
                 'success': False,
                 'error': f'Failed to build prompt from template: {prompt_name}',
-                'monster': None,
-                'request_id': None,
-                'log_id': None
+                'monster': None
             }
         
-        print(f"✅ Built prompt from template: {len(prompt_text)} characters")
+        print(f"✅ Built prompt: {len(prompt_text)} characters")
         
-        # Step 3: Request LLM generation (ultra-simple now!)
+        # Step 3: Use NEW pipeline with automatic parsing!
         llm_result = llm_service.inference_request(
-            prompt_text,
+            prompt=prompt_text,
             prompt_type='monster_generation',
             prompt_name=prompt_name,
+            parser_config=template_config['parser'],  # Automatic parsing!
             max_tokens=template_config['max_tokens'],
             temperature=template_config['temperature'],
             wait_for_completion=wait_for_completion
@@ -68,108 +59,68 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'success': False,
                 'error': llm_result['error'],
                 'monster': None,
-                'request_id': llm_result.get('request_id'),
                 'log_id': llm_result.get('log_id')
             }
         
-        # If not waiting for completion, return early
+        # If not waiting, return early
         if not wait_for_completion:
             return {
                 'success': True,
                 'message': 'Monster generation started',
                 'monster': None,
-                'request_id': llm_result['request_id'],
-                'log_id': llm_result['log_id'],
-                'queue_position': llm_result.get('queue_position')
-            }
-        
-        # Step 4: Parse the generated response
-        if 'text' not in llm_result:
-            return {
-                'success': False,
-                'error': 'No text generated',
-                'monster': None,
-                'request_id': llm_result['request_id'],
                 'log_id': llm_result['log_id']
             }
         
-        print(f"✅ LLM generated {len(llm_result['text'])} characters")
-        
-        parse_result = parse_response(
-            response_text=llm_result['text'],
-            parser_config=template_config['parser']
-        )
-        
-        if not parse_result.success:
+        # Step 4: Check if parsing succeeded
+        if not llm_result.get('parsing_success'):
             return {
                 'success': False,
-                'error': f"Failed to parse monster data: {parse_result.error}",
+                'error': f"Automatic parsing failed after {llm_result.get('attempt', 1)} attempts",
                 'monster': None,
-                'request_id': llm_result['request_id'],
                 'log_id': llm_result['log_id'],
-                'raw_response': llm_result['text']  # For debugging
+                'raw_response': llm_result.get('text', '')
             }
         
-        print(f"✅ Successfully parsed monster data")
+        print(f"✅ Automatic parsing succeeded on attempt {llm_result.get('attempt', 1)}")
         
-        # Step 5: Create and save monster to database
-        monster = Monster.create_from_llm_data(parse_result.data)
+        # Step 5: Create and save monster (parsing already done!)
+        monster = Monster.create_from_llm_data(llm_result['parsed_data'])
         
         if not monster or not monster.save():
             return {
                 'success': False,
                 'error': 'Failed to save monster to database',
                 'monster': None,
-                'request_id': llm_result['request_id'],
                 'log_id': llm_result['log_id'],
-                'parsed_data': parse_result.data  # For debugging
+                'parsed_data': llm_result['parsed_data']
             }
         
-        print(f"✅ Monster saved to database with ID: {monster.id}")
+        print(f"✅ Monster saved with ID: {monster.id}")
         
-        # Step 6: Return success with monster data
+        # Step 6: Return success
         return {
             'success': True,
             'monster': monster.to_dict(),
-            'request_id': llm_result['request_id'],
             'log_id': llm_result['log_id'],
             'generation_stats': {
                 'tokens': llm_result.get('tokens', 0),
                 'duration': llm_result.get('duration', 0),
-                'template_used': prompt_name
+                'template_used': prompt_name,
+                'attempts_needed': llm_result.get('attempt', 1),
+                'parsing_automatic': True
             }
         }
         
     except Exception as e:
         print(f"❌ Monster Service error: {e}")
-        import traceback
-        traceback.print_exc()
-        
         return {
             'success': False,
             'error': f'Service error: {str(e)}',
-            'monster': None,
-            'request_id': None,
-            'log_id': None
+            'monster': None
         }
 
 def get_all_monsters(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
-    """
-    Get all monsters from database with pagination
-    
-    Args:
-        limit (int): Maximum number of monsters to return
-        offset (int): Number of monsters to skip
-        
-    Returns:
-        dict: {
-            'success': bool,
-            'monsters': list,
-            'total': int,
-            'count': int,
-            'pagination': dict
-        }
-    """
+    """Get all monsters with pagination"""
     try:
         monsters = Monster.query.order_by(Monster.created_at.desc()).offset(offset).limit(limit).all()
         total_count = Monster.query.count()
@@ -197,19 +148,7 @@ def get_all_monsters(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
         }
 
 def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
-    """
-    Get specific monster by ID
-    
-    Args:
-        monster_id (int): Monster ID
-        
-    Returns:
-        dict: {
-            'success': bool,
-            'monster': dict or None,
-            'error': str or None
-        }
-    """
+    """Get specific monster by ID"""
     try:
         monster = Monster.query.get(monster_id)
         
@@ -235,12 +174,7 @@ def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
         }
 
 def get_available_templates() -> Dict[str, str]:
-    """
-    Get available monster generation templates
-    
-    Returns:
-        dict: {template_name: description}
-    """
+    """Get available monster generation templates"""
     try:
         from backend.llm.prompt_engine import get_prompt_engine
         
@@ -259,12 +193,7 @@ def get_available_templates() -> Dict[str, str]:
         return {}
 
 def get_monster_stats() -> Dict[str, Any]:
-    """
-    Get monster database statistics
-    
-    Returns:
-        dict: Statistics about monsters in database
-    """
+    """Get monster database statistics"""
     try:
         total_monsters = Monster.query.count()
         newest_monster = Monster.query.order_by(Monster.created_at.desc()).first()

@@ -57,17 +57,18 @@ def create_tables():
     try:
         # Import all models so they're registered with SQLAlchemy
         from backend.models.base import BaseModel  # Base model class
-        from backend.models.monster import Monster  # ✨ NEW: Monster model
+        from backend.models.monster import Monster  # Monster model
+        from backend.models.llm_log import LLMLog   # 🔧 NEW: LLM Log model
         
         # Future imports will go here:
-        # from models.player import Player
-        # from models.chat import Chat
+        # from backend.models.player import Player
+        # from backend.models.chat import Chat
         # etc.
         
         # Create all tables
         db.create_all()
         print("✅ Database tables created successfully")
-        print("   Tables: monsters, (more coming in future sessions)")
+        print("   Tables: monsters, llm_logs")
         return True
         
     except SQLAlchemyError as e:

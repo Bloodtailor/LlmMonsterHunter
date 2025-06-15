@@ -1,6 +1,6 @@
-# LLM Log Database Model
-# Stores all prompt/response pairs for debugging and monitoring
-# Tracks model performance, parsing success/failure, and generation history
+# LLM Log Database Model - COMPLETE PARAMETER STORAGE
+# Stores ALL inference parameters, queue settings, and generation attempts
+# Single source of truth for all LLM operations
 
 from backend.models.base import BaseModel
 from backend.config.database import db
@@ -9,50 +9,64 @@ from datetime import datetime
 
 class LLMLog(BaseModel):
     """
-    LLM Log model for storing all AI interactions
+    Complete LLM Log model - stores everything needed for inference
     
-    Stores:
-    - Prompt and response data
-    - Model and generation settings
-    - Timing and performance metrics
-    - Parsing results and errors
-    - Associated game entities (monsters, etc.)
+    Philosophy: Store all parameters in database, pass only log_id between modules
+    This gives us complete audit trail and eliminates parameter passing
     """
     
     __tablename__ = 'llm_logs'
     
-    # Request Information
+    # === Request Information ===
     prompt_type = Column(String(100), nullable=False)  # 'monster_generation', 'chat', etc.
     prompt_name = Column(String(100), nullable=False)  # Specific prompt used
     prompt_text = Column(Text, nullable=False)         # Full prompt sent to model
     
-    # Model Configuration
+    # === All Inference Parameters (stored for audit and retry) ===
+    max_tokens = Column(Integer, nullable=False)
+    temperature = Column(Float, nullable=False)
+    top_p = Column(Float, nullable=False)
+    top_k = Column(Integer, nullable=False)
+    repeat_penalty = Column(Float, nullable=False)
+    frequency_penalty = Column(Float, nullable=False)
+    presence_penalty = Column(Float, nullable=False)
+    tfs_z = Column(Float, nullable=False)
+    typical_p = Column(Float, nullable=False)
+    mirostat_mode = Column(Integer, nullable=False)
+    mirostat_tau = Column(Float, nullable=False)
+    mirostat_eta = Column(Float, nullable=False)
+    seed = Column(Integer, nullable=False)
+    stop_sequences = Column(JSON, nullable=False)      # List of stop sequences
+    echo = Column(Boolean, nullable=False)
+    
+    # === Queue Parameters ===
+    priority = Column(Integer, nullable=False)
+    
+    # === Model Information ===
     model_name = Column(String(200), nullable=True)    # Model file name
-    max_tokens = Column(Integer, nullable=False)       # Token limit for generation
-    temperature = Column(Float, default=0.8)          # Sampling temperature
     
-    # Response Data
-    response_text = Column(Text, nullable=True)        # Raw model response
-    response_tokens = Column(Integer, nullable=True)   # Actual tokens generated
+    # === Generation Tracking ===
+    generation_attempt = Column(Integer, default=1)    # Current attempt (1, 2, or 3)
+    max_attempts = Column(Integer, default=3)          # Maximum attempts allowed
     
-    # Timing Metrics
+    # === Response Data (updated each attempt) ===
+    response_text = Column(Text, nullable=True)        # Raw model response (latest attempt)
+    response_tokens = Column(Integer, nullable=True)   # Tokens generated (latest attempt)
+    
+    # === Timing Metrics ===
     start_time = Column(db.DateTime, nullable=False)   # When generation started
     end_time = Column(db.DateTime, nullable=True)      # When generation completed
     duration_seconds = Column(Float, nullable=True)    # Total generation time
     
-    # Parsing Results
+    # === Parsing Results ===
     parse_success = Column(Boolean, default=False)     # Did parsing succeed?
     parsed_data = Column(JSON, nullable=True)          # Successfully parsed JSON
     parse_error = Column(Text, nullable=True)          # Parsing error message
-    parser_used = Column(String(100), nullable=True)   # Which parser was used
+    parser_config = Column(JSON, nullable=True)        # Parser configuration used
     
-    # Status and Error Handling
+    # === Status and Error Handling ===
     status = Column(String(50), default='pending')     # 'pending', 'generating', 'completed', 'failed'
     error_message = Column(Text, nullable=True)        # Any error that occurred
-    
-    # Game Entity Associations
-    entity_type = Column(String(50), nullable=True)    # 'monster', 'chat', etc.
-    entity_id = Column(Integer, nullable=True)         # ID of created entity
     
     def to_dict(self):
         """Convert to dictionary with additional computed fields"""
@@ -63,7 +77,8 @@ class LLMLog(BaseModel):
             'duration_seconds': self.duration_seconds,
             'tokens_per_second': self.get_tokens_per_second(),
             'is_completed': self.status == 'completed',
-            'is_successful': self.parse_success and self.status == 'completed'
+            'is_successful': self.parse_success and self.status == 'completed',
+            'attempts_remaining': max(0, self.max_attempts - self.generation_attempt)
         })
         
         return result
@@ -74,21 +89,53 @@ class LLMLog(BaseModel):
             return round(self.response_tokens / self.duration_seconds, 2)
         return None
     
+    def get_inference_params(self):
+        """
+        Get all inference parameters as a dictionary
+        Perfect for passing to inference functions
+        """
+        return {
+            'max_tokens': self.max_tokens,
+            'temperature': self.temperature,
+            'top_p': self.top_p,
+            'top_k': self.top_k,
+            'repeat_penalty': self.repeat_penalty,
+            'frequency_penalty': self.frequency_penalty,
+            'presence_penalty': self.presence_penalty,
+            'tfs_z': self.tfs_z,
+            'typical_p': self.typical_p,
+            'mirostat_mode': self.mirostat_mode,
+            'mirostat_tau': self.mirostat_tau,
+            'mirostat_eta': self.mirostat_eta,
+            'seed': self.seed,
+            'stop': self.stop_sequences,
+            'echo': self.echo
+        }
+    
     def mark_started(self):
         """Mark the generation as started"""
         self.start_time = datetime.utcnow()
         self.status = 'generating'
     
-    def mark_completed(self, response_text, response_tokens=None):
-        """Mark the generation as completed"""
-        self.end_time = datetime.utcnow()
+    def mark_attempt_completed(self, response_text, response_tokens=None):
+        """Mark current attempt as completed (may retry)"""
         self.response_text = response_text
         self.response_tokens = response_tokens
-        self.status = 'completed'
         
+        # Update timing for this attempt
         if self.start_time:
+            self.end_time = datetime.utcnow()
             duration = self.end_time - self.start_time
             self.duration_seconds = duration.total_seconds()
+    
+    def mark_generation_completed(self):
+        """Mark entire generation as completed (no more retries)"""
+        self.status = 'completed'
+        if not self.end_time:
+            self.end_time = datetime.utcnow()
+            if self.start_time:
+                duration = self.end_time - self.start_time
+                self.duration_seconds = duration.total_seconds()
     
     def mark_failed(self, error_message):
         """Mark the generation as failed"""
@@ -100,29 +147,40 @@ class LLMLog(BaseModel):
             duration = self.end_time - self.start_time
             self.duration_seconds = duration.total_seconds()
     
-    def mark_parsed(self, parsed_data, parser_name):
+    def mark_parsed(self, parsed_data):
         """Mark parsing as successful"""
         self.parse_success = True
         self.parsed_data = parsed_data
-        self.parser_used = parser_name
+        self.parse_error = None
     
-    def mark_parse_failed(self, error_message, parser_name):
+    def mark_parse_failed(self, error_message):
         """Mark parsing as failed"""
         self.parse_success = False
         self.parse_error = error_message
-        self.parser_used = parser_name
+    
+    def increment_attempt(self):
+        """Increment generation attempt counter"""
+        self.generation_attempt += 1
+        self.parse_success = False
+        self.parse_error = None
+    
+    def can_retry(self):
+        """Check if more attempts are allowed"""
+        return self.generation_attempt < self.max_attempts
     
     @classmethod
-    def create_log(cls, prompt_type, prompt_name, prompt_text, max_tokens, **kwargs):
+    def create_complete_log(cls, prompt_type, prompt_name, prompt_text, 
+                           inference_params, parser_config=None, **kwargs):
         """
-        Create a new LLM log entry
+        Create a new LLM log entry with ALL parameters
         
         Args:
-            prompt_type (str): Type of prompt ('monster_generation', etc.)
+            prompt_type (str): Type of prompt
             prompt_name (str): Specific prompt name
             prompt_text (str): Full prompt text
-            max_tokens (int): Maximum tokens to generate
-            **kwargs: Additional fields (temperature, model_name, etc.)
+            inference_params (dict): ALL inference parameters
+            parser_config (dict): Parser configuration
+            **kwargs: Additional fields
         
         Returns:
             LLMLog: New log instance (not yet saved)
@@ -131,9 +189,31 @@ class LLMLog(BaseModel):
             prompt_type=prompt_type,
             prompt_name=prompt_name,
             prompt_text=prompt_text,
-            max_tokens=max_tokens,
             start_time=datetime.utcnow(),
             status='pending',
+            generation_attempt=1,
+            
+            # Store all inference parameters
+            max_tokens=inference_params['max_tokens'],
+            temperature=inference_params['temperature'],
+            top_p=inference_params['top_p'],
+            top_k=inference_params['top_k'],
+            repeat_penalty=inference_params['repeat_penalty'],
+            frequency_penalty=inference_params['frequency_penalty'],
+            presence_penalty=inference_params['presence_penalty'],
+            tfs_z=inference_params['tfs_z'],
+            typical_p=inference_params['typical_p'],
+            mirostat_mode=inference_params['mirostat_mode'],
+            mirostat_tau=inference_params['mirostat_tau'],
+            mirostat_eta=inference_params['mirostat_eta'],
+            seed=inference_params['seed'],
+            stop_sequences=inference_params['stop'],
+            echo=inference_params['echo'],
+            priority=inference_params['priority'],
+            
+            # Store parser config
+            parser_config=parser_config,
+            
             **kwargs
         )
         
@@ -147,15 +227,6 @@ class LLMLog(BaseModel):
         except Exception as e:
             print(f"❌ Error fetching recent logs: {e}")
             return []
-    
-    @classmethod
-    def get_current_generation(cls):
-        """Get the currently running generation, if any"""
-        try:
-            return cls.query.filter_by(status='generating').first()
-        except Exception as e:
-            print(f"❌ Error fetching current generation: {e}")
-            return None
     
     @classmethod
     def get_stats(cls):
@@ -179,4 +250,4 @@ class LLMLog(BaseModel):
     
     def __repr__(self):
         """String representation for debugging"""
-        return f"<LLMLog(id={self.id}, type='{self.prompt_type}', status='{self.status}')>"
+        return f"<LLMLog(id={self.id}, type='{self.prompt_type}', attempt={self.generation_attempt}, status='{self.status}')>"

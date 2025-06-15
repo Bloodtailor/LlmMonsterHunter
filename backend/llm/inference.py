@@ -1,28 +1,23 @@
 # LLM Inference Module
-# ONLY handles actual text generation with streaming
-# No queue, no logging - pure inference operations
+# CLEAN INTERFACE: Just takes prompt and loads everything else from database
+# Single Responsibility: Pure model inference with streaming
 
 import time
 import threading
-from typing import Dict, Any, Callable, Optional, List
+from typing import Dict, Any, Callable, Optional
 
 # Generation lock to ensure only one generation at a time
 _generation_lock = threading.Lock()
 _current_generation = None
 
-def generate_streaming(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
-                      callback: Optional[Callable[[str], None]] = None,
-                      stop_sequences: Optional[List[str]] = None) -> Dict[str, Any]:
+def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = None, **params) -> Dict[str, Any]:
     """
     Generate text with real-time streaming using llama-cpp-python
-    This is the ONLY function that actually talks to the model
     
     Args:
-        prompt (str): Text prompt to generate from
-        max_tokens (int): Maximum tokens to generate
-        temperature (float): Sampling temperature (0.0-2.0)
+        prompt (str): Text to generate from
         callback (callable): Function to call with partial text updates
-        stop_sequences (list): Stop sequences to end generation
+        **params: All inference parameters (passed directly to model)
     
     Returns:
         dict: Generation results with text, timing, and metadata
@@ -67,17 +62,11 @@ def generate_streaming(prompt: str, max_tokens: int = 256, temperature: float = 
         _current_generation = {
             'start_time': time.time(),
             'prompt': prompt[:100] + "..." if len(prompt) > 100 else prompt,
-            'max_tokens': max_tokens
+            'max_tokens': params.get('max_tokens', 256)
         }
         
-        print(f"🌊 Starting streaming generation ({max_tokens} max tokens)")
+        print(f"🌊 Starting streaming generation ({params.get('max_tokens', 256)} max tokens, temp={params.get('temperature', 0.8)})")
         start_time = time.time()
-        
-        # Configure stop sequences
-        if stop_sequences is None:
-            stop = ["</s>"]
-        else:
-            stop = stop_sequences
         
         # Initialize streaming variables
         accumulated_text = ""
@@ -87,21 +76,11 @@ def generate_streaming(prompt: str, max_tokens: int = 256, temperature: float = 
         if callback:
             callback("")
         
-        # Create the streaming generator
+        # Create the streaming generator with all parameters
         stream = model(
             prompt,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            stop=stop,
-            echo=False,
             stream=True,  # Enable streaming!
-            # Performance optimizations
-            top_p=0.9,
-            repeat_penalty=1.1,
-            tfs_z=1.0,
-            typical_p=1.0,
-            mirostat_mode=0,
-            seed=-1
+            **params      # Pass all parameters
         )
         
         # Process the stream
@@ -121,7 +100,7 @@ def generate_streaming(prompt: str, max_tokens: int = 256, temperature: float = 
                             if callback:
                                 callback(accumulated_text)
                             
-                            # Small delay for visibility (optional)
+                            # Small delay for visibility
                             time.sleep(0.01)  # 10ms delay
                         
                         # Check if generation is finished
@@ -153,7 +132,8 @@ def generate_streaming(prompt: str, max_tokens: int = 256, temperature: float = 
             'text': accumulated_text,
             'tokens': token_count,
             'duration': duration,
-            'tokens_per_second': round(tokens_per_sec, 2)
+            'tokens_per_second': round(tokens_per_sec, 2),
+            'parameters_used': params  # For debugging
         }
         
     except Exception as e:
@@ -182,26 +162,3 @@ def is_generating() -> bool:
 def get_current_generation_info() -> Optional[Dict[str, Any]]:
     """Get information about current generation, if any"""
     return _current_generation.copy() if _current_generation else None
-
-def generate_simple(prompt: str, max_tokens: int = 256, temperature: float = 0.8,
-                   stop_sequences: Optional[List[str]] = None) -> Dict[str, Any]:
-    """
-    Simple non-streaming generation for cases where streaming isn't needed
-    Just calls generate_streaming with a no-op callback
-    
-    Args:
-        prompt (str): Text prompt
-        max_tokens (int): Maximum tokens
-        temperature (float): Sampling temperature
-        stop_sequences (list): Stop sequences
-    
-    Returns:
-        dict: Generation results
-    """
-    return generate_streaming(
-        prompt=prompt,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        callback=None,  # No streaming callback
-        stop_sequences=stop_sequences
-    )
