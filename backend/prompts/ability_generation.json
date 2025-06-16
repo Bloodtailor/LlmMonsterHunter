@@ -1,0 +1,27 @@
+{
+  "generate_ability": {
+    "description": "Generate a single unique ability for a specific monster based on its characteristics",
+    "max_tokens": 150,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["name", "description", "type"],
+      "required_fields": ["name", "description"]
+    },
+    "prompt_template": "You are creating a unique ability for a monster in a fantasy game.\n\nMONSTER INFORMATION:\nName: {monster_name}\nSpecies: {monster_species}\nDescription: {monster_description}\nBackstory: {monster_backstory}\nStats: Health {monster_health}, Attack {monster_attack}, Defense {monster_defense}, Speed {monster_speed}\nPersonality Traits: {monster_personality}\n\nEXISTING ABILITIES:\n{existing_abilities_text}\n\nCreate ONE new ability that:\n- Fits this monster's personality and stats\n- Is different from their existing abilities\n- Has a creative name and clear description\n- Includes an ability type (attack, defense, support, special, movement, or utility)\n\nRespond with valid JSON in this exact format:\n{{\"name\": \"Ability Name\", \"description\": \"Clear description of what this ability does and how it reflects the monster's nature\", \"type\": \"ability_type\"}}\n\nMake it unique and interesting! JSON:"
+  },
+  
+  "generate_initial_abilities": {
+    "description": "Generate 2 starting abilities for a newly created monster",
+    "max_tokens": 300,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "nested_parser",
+      "expected_fields": ["ability1.name", "ability1.description", "ability1.type", "ability2.name", "ability2.description", "ability2.type"],
+      "required_fields": ["ability1.name", "ability1.description", "ability2.name", "ability2.description"]
+    },
+    "prompt_template": "You are creating 2 starting abilities for a newly born monster in a fantasy game.\n\nMONSTER INFORMATION:\nName: {monster_name}\nSpecies: {monster_species}\nDescription: {monster_description}\nBackstory: {monster_backstory}\nStats: Health {monster_health}, Attack {monster_attack}, Defense {monster_defense}, Speed {monster_speed}\nPersonality Traits: {monster_personality}\n\nCreate TWO abilities that:\n- Complement each other but are different types\n- Reflect the monster's personality and natural abilities\n- Are appropriate for a creature just starting their journey\n- Have creative names and clear descriptions\n\nTypes available: attack, defense, support, special, movement, utility\n\nRespond with valid JSON in this exact format:\n{{\"ability1\": {{\"name\": \"First Ability Name\", \"description\": \"What this ability does\", \"type\": \"ability_type\"}}, \"ability2\": {{\"name\": \"Second Ability Name\", \"description\": \"What this ability does\", \"type\": \"ability_type\"}}}}\n\nMake them unique and fitting for this monster! JSON:"
+  }
+}

@@ -1,10 +1,11 @@
-# Monster Database Model - CLEANED UP
-# Removed generation_prompt and abilities fields for simplicity
+# Monster Database Model - UPDATED WITH ABILITIES
+# Enhanced with abilities relationship and methods
 # Focuses only on data storage and retrieval - NO game logic
 
 from backend.models.base import BaseModel
 from backend.config.database import db
 from sqlalchemy import Column, Integer, String, Text, JSON
+from sqlalchemy.orm import relationship
 import json
 
 class Monster(BaseModel):
@@ -16,6 +17,7 @@ class Monster(BaseModel):
     - Stats for future battle system
     - Personality traits as flexible JSON
     - Backstory for roleplay
+    - Relationship to abilities (one-to-many)
     """
     
     # Table name in database
@@ -37,10 +39,13 @@ class Monster(BaseModel):
     # Personality traits (JSON for flexibility)
     personality_traits = Column(JSON, nullable=True)  # List of personality traits
     
+    # Relationship to abilities (one monster -> many abilities)
+    abilities = relationship('Ability', backref='monster', lazy=True, cascade='all, delete-orphan')
+    
     def to_dict(self):
         """
         Convert monster to dictionary for JSON API responses
-        Includes all monster data in a clean format
+        Includes all monster data including abilities in a clean format
         """
         # Get base fields from BaseModel
         result = super().to_dict()
@@ -58,10 +63,59 @@ class Monster(BaseModel):
                 'defense': self.defense,
                 'speed': self.speed
             },
-            'personality_traits': self.personality_traits or []
+            'personality_traits': self.personality_traits or [],
+            'abilities': [ability.to_dict() for ability in self.abilities],
+            'ability_count': len(self.abilities)
         })
         
         return result
+    
+    def get_abilities_summary(self):
+        """
+        Get a summary of abilities for UI display
+        
+        Returns:
+            dict: Summary with count and preview of ability names
+        """
+        ability_names = [ability.name for ability in self.abilities]
+        return {
+            'count': len(self.abilities),
+            'names': ability_names,
+            'preview': ', '.join(ability_names[:2]) + ('...' if len(ability_names) > 2 else '')
+        }
+    
+    def get_context_for_ability_generation(self):
+        """
+        Get monster context for ability generation prompts
+        Includes all relevant information for the LLM to create appropriate abilities
+        
+        Returns:
+            dict: Complete monster context for LLM prompts
+        """
+        existing_abilities = [
+            {
+                'name': ability.name,
+                'description': ability.description,
+                'type': ability.ability_type
+            }
+            for ability in self.abilities
+        ]
+        
+        return {
+            'name': self.name,
+            'species': self.species,
+            'description': self.description,
+            'backstory': self.backstory,
+            'stats': {
+                'health': self.max_health,
+                'attack': self.attack,
+                'defense': self.defense,
+                'speed': self.speed
+            },
+            'personality_traits': self.personality_traits or [],
+            'existing_abilities': existing_abilities,
+            'ability_count': len(existing_abilities)
+        }
     
     @classmethod
     def create_from_llm_data(cls, llm_response_data):
@@ -104,13 +158,13 @@ class Monster(BaseModel):
     @classmethod
     def get_all_monsters(cls):
         """
-        Get all monsters from database
+        Get all monsters from database with their abilities loaded
         
         Returns:
-            list: List of all Monster instances
+            list: List of all Monster instances with abilities
         """
         try:
-            return cls.query.all()
+            return cls.query.options(db.joinedload(cls.abilities)).all()
         except Exception as e:
             print(f"❌ Error fetching monsters: {e}")
             return []
@@ -118,7 +172,7 @@ class Monster(BaseModel):
     @classmethod
     def get_monster_by_id(cls, monster_id):
         """
-        Get specific monster by ID
+        Get specific monster by ID with abilities loaded
         
         Args:
             monster_id (int): Monster ID
@@ -127,11 +181,11 @@ class Monster(BaseModel):
             Monster: Monster instance or None if not found
         """
         try:
-            return cls.query.get(monster_id)
+            return cls.query.options(db.joinedload(cls.abilities)).get(monster_id)
         except Exception as e:
             print(f"❌ Error fetching monster {monster_id}: {e}")
             return None
     
     def __repr__(self):
         """String representation for debugging"""
-        return f"<Monster(id={self.id}, name='{self.name}', species='{self.species}')>"
+        return f"<Monster(id={self.id}, name='{self.name}', species='{self.species}', abilities={len(self.abilities)})>"
