@@ -18,90 +18,38 @@ class ModelManager:
     def free_model_memory(self) -> Dict[str, Any]:
         """
         Free all GPU memory used by ComfyUI models
-        Critical for VRAM management when switching to LLM
+        Uses the correct /free API endpoint with unload_models=true
         
         Returns:
             dict: Results of memory freeing operation
         """
         try:
-            print("🧹 Freeing ComfyUI model memory...")
+            print("🧹 Unloading ComfyUI models...")
             
-            # Method 1: Use ComfyUI's free memory endpoint
-            memory_freed = self.client.free_memory()
+            # Use the correct API call that matches the "unload models" button
+            success = self.client.unload_models()
             
-            if memory_freed:
-                print("✅ ComfyUI memory freed successfully")
+            if success:
+                print("✅ ComfyUI models unloaded successfully")
                 return {
                     "success": True,
-                    "method": "api_free",
-                    "message": "Model memory freed via API"
+                    "method": "unload_models",
+                    "message": "Models unloaded successfully"
                 }
             else:
-                print("⚠️ API memory free failed, trying alternative method")
-                
-                # Method 2: Try interrupt + free (more aggressive)
-                interrupt_result = self.client.interrupt_generation()
-                if interrupt_result:
-                    # Wait a moment then try free again
-                    import time
-                    time.sleep(1)
-                    memory_freed = self.client.free_memory()
-                    
-                    if memory_freed:
-                        return {
-                            "success": True,
-                            "method": "interrupt_and_free",
-                            "message": "Memory freed after interrupting generation"
-                        }
-                
-                # Method 3: Manual garbage collection workflow (last resort)
-                return self._manual_memory_cleanup()
-                
-        except Exception as e:
-            print(f"❌ Error freeing model memory: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "message": "Failed to free model memory"
-            }
-    
-    def _manual_memory_cleanup(self) -> Dict[str, Any]:
-        """
-        Manual memory cleanup using a minimal workflow
-        This can help force ComfyUI to release VRAM
-        
-        Returns:
-            dict: Results of manual cleanup
-        """
-        try:
-            print("🔧 Attempting manual memory cleanup...")
-            
-            # Create a minimal workflow that forces model unloading
-            # This is a "dummy" workflow that loads nothing
-            cleanup_workflow = {
-                "1": {
-                    "inputs": {},
-                    "class_type": "CheckpointLoaderSimple",
-                    "_meta": {"title": "Cleanup Loader"}
+                print("❌ Failed to unload ComfyUI models")
+                return {
+                    "success": False,
+                    "method": "unload_models", 
+                    "message": "Failed to unload models"
                 }
-            }
-            
-            # Don't actually execute this, just the attempt can trigger cleanup
-            # In some versions of ComfyUI, even invalid workflows trigger memory cleanup
-            
-            return {
-                "success": True,
-                "method": "manual_cleanup",
-                "message": "Attempted manual memory cleanup",
-                "warning": "This is a fallback method - results may vary"
-            }
-            
+                
         except Exception as e:
+            print(f"❌ Error unloading models: {e}")
             return {
                 "success": False,
                 "error": str(e),
-                "method": "manual_cleanup",
-                "message": "Manual cleanup failed"
+                "message": "Failed to unload models"
             }
     
     def ensure_model_loaded(self, model_name: Optional[str] = None) -> Dict[str, Any]:
@@ -183,12 +131,12 @@ class ModelManager:
             if interrupt_result:
                 results.append("Interrupted existing generation")
             
-            # Step 2: Free memory to start fresh
-            memory_result = self.free_model_memory()
-            if memory_result["success"]:
-                results.append("Freed model memory")
+            # Step 2: Unload models to start fresh  
+            unload_result = self.client.unload_models()
+            if unload_result:
+                results.append("Unloaded models successfully")
             else:
-                results.append(f"Memory free failed: {memory_result.get('error', 'Unknown')}")
+                results.append("Model unload failed (continuing anyway)")
             
             return {
                 "success": True,
@@ -244,7 +192,7 @@ class ModelManager:
 
 # Convenience functions
 def free_comfyui_memory() -> Dict[str, Any]:
-    """Convenience function to free ComfyUI memory"""
+    """Convenience function to unload ComfyUI models"""
     manager = ModelManager()
     return manager.free_model_memory()
 

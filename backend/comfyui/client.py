@@ -137,15 +137,38 @@ class ComfyUIClient:
         
         return response.content
     
-    def free_memory(self) -> bool:
+    def unload_models(self) -> bool:
         """
-        Request ComfyUI to free GPU memory
+        Unload all models from GPU memory (matches "unload models" button)
         
         Returns:
             bool: True if request was successful
         """
         try:
-            response = requests.post(f"{self.base_url}/free", timeout=self.timeout)
+            payload = {"unload_models": True}
+            response = requests.post(
+                f"{self.base_url}/free", 
+                json=payload,
+                timeout=self.timeout
+            )
+            return response.status_code == 200
+        except requests.RequestException:
+            return False
+    
+    def free_memory(self) -> bool:
+        """
+        Request ComfyUI to free memory (matches "free memory" button)
+        
+        Returns:
+            bool: True if request was successful
+        """
+        try:
+            payload = {"free_memory": True}
+            response = requests.post(
+                f"{self.base_url}/free", 
+                json=payload,
+                timeout=self.timeout
+            )
             return response.status_code == 200
         except requests.RequestException:
             return False
