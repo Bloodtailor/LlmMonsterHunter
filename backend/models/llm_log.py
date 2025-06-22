@@ -1,28 +1,26 @@
-# LLM Log Database Model - COMPLETE PARAMETER STORAGE
-# Stores ALL inference parameters, queue settings, and generation attempts
-# Single source of truth for all LLM operations
+# LLM Log Child Table - LLM-Specific Data
+# Contains only LLM inference parameters, responses, and parsing data
+# Linked to GenerationLog parent table
 
 from backend.models.base import BaseModel
 from backend.config.database import db
-from sqlalchemy import Column, Integer, String, Text, JSON, Float, Boolean
-from datetime import datetime
+from sqlalchemy import Column, Integer, String, Text, JSON, Float, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
+from typing import Dict, Any, Optional
 
 class LLMLog(BaseModel):
     """
-    Complete LLM Log model - stores everything needed for inference
-    
-    Philosophy: Store all parameters in database, pass only log_id between modules
-    This gives us complete audit trail and eliminates parameter passing
+    LLM-specific generation data - child table of GenerationLog
+    Contains all inference parameters, parsing config, and LLM responses
     """
     
     __tablename__ = 'llm_logs'
     
-    # === Request Information ===
-    prompt_type = Column(String(100), nullable=False)  # 'monster_generation', 'chat', etc.
-    prompt_name = Column(String(100), nullable=False)  # Specific prompt used
-    prompt_text = Column(Text, nullable=False)         # Full prompt sent to model
+    # === Foreign Key to Parent ===
+    generation_id = Column(Integer, ForeignKey('generation_logs.id'), nullable=False, unique=True)
+    generation_log = relationship("GenerationLog", back_populates="llm_log")
     
-    # === All Inference Parameters (stored for audit and retry) ===
+    # === LLM Inference Parameters ===
     max_tokens = Column(Integer, nullable=False)
     temperature = Column(Float, nullable=False)
     top_p = Column(Float, nullable=False)
@@ -39,55 +37,37 @@ class LLMLog(BaseModel):
     stop_sequences = Column(JSON, nullable=False)      # List of stop sequences
     echo = Column(Boolean, nullable=False)
     
-    # === Queue Parameters ===
-    priority = Column(Integer, nullable=False)
-    
     # === Model Information ===
     model_name = Column(String(200), nullable=True)    # Model file name
     
-    # === Generation Tracking ===
-    generation_attempt = Column(Integer, default=1)    # Current attempt (1, 2, or 3)
-    max_attempts = Column(Integer, default=3)          # Maximum attempts allowed
-    
-    # === Response Data (updated each attempt) ===
+    # === LLM Response Data ===
     response_text = Column(Text, nullable=True)        # Raw model response (latest attempt)
     response_tokens = Column(Integer, nullable=True)   # Tokens generated (latest attempt)
+    tokens_per_second = Column(Float, nullable=True)   # Generation speed
     
-    # === Timing Metrics ===
-    start_time = Column(db.DateTime, nullable=False)   # When generation started
-    end_time = Column(db.DateTime, nullable=True)      # When generation completed
-    duration_seconds = Column(Float, nullable=True)    # Total generation time
-    
-    # === Parsing Results ===
+    # === Parsing Configuration and Results ===
+    parser_config = Column(JSON, nullable=True)        # Parser configuration used
     parse_success = Column(Boolean, default=False)     # Did parsing succeed?
     parsed_data = Column(JSON, nullable=True)          # Successfully parsed JSON
     parse_error = Column(Text, nullable=True)          # Parsing error message
-    parser_config = Column(JSON, nullable=True)        # Parser configuration used
-    
-    # === Status and Error Handling ===
-    status = Column(String(50), default='pending')     # 'pending', 'generating', 'completed', 'failed'
-    error_message = Column(Text, nullable=True)        # Any error that occurred
     
     def to_dict(self):
-        """Convert to dictionary with additional computed fields"""
+        """Convert to dictionary for API responses"""
         result = super().to_dict()
         
         # Add computed fields
         result.update({
-            'duration_seconds': self.duration_seconds,
-            'tokens_per_second': self.get_tokens_per_second(),
-            'is_completed': self.status == 'completed',
-            'is_successful': self.parse_success and self.status == 'completed',
-            'attempts_remaining': max(0, self.max_attempts - self.generation_attempt)
+            'generation_id': self.generation_id,
+            'model_name': self.model_name,
+            'response_tokens': self.response_tokens,
+            'tokens_per_second': self.tokens_per_second,
+            'parse_success': self.parse_success,
+            'inference_params': self.get_inference_params(),
+            'has_response': bool(self.response_text),
+            'has_parsed_data': bool(self.parsed_data)
         })
         
         return result
-    
-    def get_tokens_per_second(self):
-        """Calculate generation speed in tokens per second"""
-        if self.duration_seconds and self.response_tokens:
-            return round(self.response_tokens / self.duration_seconds, 2)
-        return None
     
     def get_inference_params(self):
         """
@@ -112,87 +92,43 @@ class LLMLog(BaseModel):
             'echo': self.echo
         }
     
-    def mark_started(self):
-        """Mark the generation as started"""
-        self.start_time = datetime.utcnow()
-        self.status = 'generating'
-    
-    def mark_attempt_completed(self, response_text, response_tokens=None):
-        """Mark current attempt as completed (may retry)"""
+    def mark_response_completed(self, response_text: str, response_tokens: int = None, tokens_per_second: float = None):
+        """Mark LLM response as completed"""
         self.response_text = response_text
         self.response_tokens = response_tokens
-        
-        # Update timing for this attempt
-        if self.start_time:
-            self.end_time = datetime.utcnow()
-            duration = self.end_time - self.start_time
-            self.duration_seconds = duration.total_seconds()
+        self.tokens_per_second = tokens_per_second
     
-    def mark_generation_completed(self):
-        """Mark entire generation as completed (no more retries)"""
-        self.status = 'completed'
-        if not self.end_time:
-            self.end_time = datetime.utcnow()
-            if self.start_time:
-                duration = self.end_time - self.start_time
-                self.duration_seconds = duration.total_seconds()
-    
-    def mark_failed(self, error_message):
-        """Mark the generation as failed"""
-        self.end_time = datetime.utcnow()
-        self.status = 'failed'
-        self.error_message = error_message
-        
-        if self.start_time:
-            duration = self.end_time - self.start_time
-            self.duration_seconds = duration.total_seconds()
-    
-    def mark_parsed(self, parsed_data):
+    def mark_parsed(self, parsed_data: Any):
         """Mark parsing as successful"""
         self.parse_success = True
         self.parsed_data = parsed_data
         self.parse_error = None
     
-    def mark_parse_failed(self, error_message):
+    def mark_parse_failed(self, error_message: str):
         """Mark parsing as failed"""
         self.parse_success = False
         self.parse_error = error_message
+        # Keep parsed_data as None
     
-    def increment_attempt(self):
-        """Increment generation attempt counter"""
-        self.generation_attempt += 1
+    def reset_parse_status(self):
+        """Reset parsing status for retry"""
         self.parse_success = False
         self.parse_error = None
-    
-    def can_retry(self):
-        """Check if more attempts are allowed"""
-        return self.generation_attempt < self.max_attempts
+        self.parsed_data = None
     
     @classmethod
-    def create_complete_log(cls, prompt_type, prompt_name, prompt_text, 
-                           inference_params, parser_config=None, **kwargs):
+    def create_from_params(cls, inference_params: Dict[str, Any], parser_config: Optional[Dict[str, Any]] = None):
         """
-        Create a new LLM log entry with ALL parameters
+        Create LLM log from inference parameters
         
         Args:
-            prompt_type (str): Type of prompt
-            prompt_name (str): Specific prompt name
-            prompt_text (str): Full prompt text
-            inference_params (dict): ALL inference parameters
+            inference_params (dict): All inference parameters
             parser_config (dict): Parser configuration
-            **kwargs: Additional fields
-        
-        Returns:
-            LLMLog: New log instance (not yet saved)
-        """
-        log = cls(
-            prompt_type=prompt_type,
-            prompt_name=prompt_name,
-            prompt_text=prompt_text,
-            start_time=datetime.utcnow(),
-            status='pending',
-            generation_attempt=1,
             
+        Returns:
+            LLMLog: New LLM log instance (not yet saved)
+        """
+        return cls(
             # Store all inference parameters
             max_tokens=inference_params['max_tokens'],
             temperature=inference_params['temperature'],
@@ -209,45 +145,43 @@ class LLMLog(BaseModel):
             seed=inference_params['seed'],
             stop_sequences=inference_params['stop'],
             echo=inference_params['echo'],
-            priority=inference_params['priority'],
             
-            # Store parser config
+            # Store parser configuration
             parser_config=parser_config,
             
-            **kwargs
+            # Initialize parsing state
+            parse_success=False,
+            parsed_data=None,
+            parse_error=None
         )
-        
-        return log
     
     @classmethod
-    def get_recent_logs(cls, limit=50):
-        """Get recent LLM logs for monitoring"""
-        try:
-            return cls.query.order_by(cls.created_at.desc()).limit(limit).all()
-        except Exception as e:
-            print(f"❌ Error fetching recent logs: {e}")
-            return []
+    def get_by_generation_id(cls, generation_id: int):
+        """Get LLM log by generation ID"""
+        return cls.query.filter_by(generation_id=generation_id).first()
     
     @classmethod
-    def get_stats(cls):
-        """Get generation statistics"""
+    def get_recent_with_responses(cls, limit: int = 20):
+        """Get recent LLM logs that have responses"""
+        return cls.query.filter(cls.response_text.isnot(None)).order_by(cls.created_at.desc()).limit(limit).all()
+    
+    @classmethod
+    def get_parsing_stats(cls):
+        """Get parsing success statistics"""
         try:
-            total = cls.query.count()
-            completed = cls.query.filter_by(status='completed').count()
-            failed = cls.query.filter_by(status='failed').count()
-            successful_parse = cls.query.filter_by(parse_success=True).count()
+            total_with_responses = cls.query.filter(cls.response_text.isnot(None)).count()
+            successful_parses = cls.query.filter_by(parse_success=True).count()
             
             return {
-                'total_generations': total,
-                'completed': completed,
-                'failed': failed,
-                'success_rate': round(completed / total * 100, 1) if total > 0 else 0,
-                'parse_success_rate': round(successful_parse / total * 100, 1) if total > 0 else 0
+                'total_with_responses': total_with_responses,
+                'successful_parses': successful_parses,
+                'parse_success_rate': round(successful_parses / total_with_responses * 100, 1) if total_with_responses > 0 else 0,
+                'failed_parses': total_with_responses - successful_parses
             }
         except Exception as e:
-            print(f"❌ Error getting stats: {e}")
+            print(f"❌ Error getting parsing stats: {e}")
             return {}
     
     def __repr__(self):
         """String representation for debugging"""
-        return f"<LLMLog(id={self.id}, type='{self.prompt_type}', attempt={self.generation_attempt}, status='{self.status}')>"
+        return f"<LLMLog(id={self.id}, generation_id={self.generation_id}, tokens={self.response_tokens}, parsed={self.parse_success})>"

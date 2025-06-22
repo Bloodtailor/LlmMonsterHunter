@@ -58,13 +58,12 @@ def create_tables():
         # Import all models so they're registered with SQLAlchemy
         from backend.models.base import BaseModel  # Base model class
         from backend.models.monster import Monster  # Monster model
-        from backend.models.ability import Ability  # 🔧 NEW: Ability model
-        from backend.models.llm_log import LLMLog   # LLM Log model
+        from backend.models.ability import Ability  # Ability model
         
-        # Future imports will go here:
-        # from backend.models.player import Player
-        # from backend.models.chat import Chat
-        # etc.
+        # 🔧 NEW: Normalized generation log models
+        from backend.models.generation_log import GenerationLog  # Parent table
+        from backend.models.llm_log import LLMLog              # LLM child table
+        from backend.models.image_log import ImageLog          # Image child table
         
         # Create all tables
         db.create_all()
