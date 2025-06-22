@@ -22,7 +22,7 @@ class PromptEngine:
     
     def __init__(self, templates_dir: Optional[Path] = None):
         if templates_dir is None:
-            templates_dir = Path(__file__).parent.parent / 'prompts'
+            templates_dir = Path(__file__).parent / 'prompts'
         
         self.templates_dir = Path(templates_dir)
         self._templates = {}  # name -> PromptTemplate

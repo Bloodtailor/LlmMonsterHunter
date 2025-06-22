@@ -5,7 +5,7 @@
 from typing import Dict, Any, List
 from backend.models.monster import Monster
 from backend.models.ability import Ability
-from backend.llm.prompt_engine import get_template_config, build_prompt
+from backend.ai.llm.prompt_engine import get_template_config, build_prompt
 from . import llm_service
 
 def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[str, Any]:

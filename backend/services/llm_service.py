@@ -48,7 +48,7 @@ def inference_request(prompt: str,
         print(f"✅ Prepared parameters (temp={inference_params['temperature']}, max_tokens={inference_params['max_tokens']})")
         
         # Step 2: Create complete log entry with ALL parameters
-        from backend.llm import log as llm_log
+        from backend.ai.llm import log as llm_log
         
         log_id = llm_log.create_log(
             prompt_type=prompt_type,
@@ -67,7 +67,7 @@ def inference_request(prompt: str,
         print(f"✅ Created log entry {log_id}")
         
         # Step 3: Add to queue (just pass log_id)
-        from backend.llm.queue import get_llm_queue
+        from backend.ai.queue import get_llm_queue
         queue = get_llm_queue()
         
         if not queue.add_request(log_id):

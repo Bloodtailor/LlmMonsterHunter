@@ -4,7 +4,7 @@
 
 from typing import Dict, Any, Optional, List
 from backend.models.monster import Monster
-from backend.llm.prompt_engine import get_template_config, build_prompt
+from backend.ai.llm.prompt_engine import get_template_config, build_prompt
 from . import llm_service
 from . import ability_service
 
@@ -238,7 +238,7 @@ def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
 def get_available_templates() -> Dict[str, str]:
     """Get available monster generation templates"""
     try:
-        from backend.llm.prompt_engine import get_prompt_engine
+        from backend.ai.llm.prompt_engine import get_prompt_engine
         
         engine = get_prompt_engine()
         templates = {}
