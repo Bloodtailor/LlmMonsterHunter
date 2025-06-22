@@ -49,7 +49,7 @@ def main():
         host='localhost',           # Only accept connections from localhost
         port=5000,                 # Standard Flask port
         debug=True,                # Enable debug mode for development
-        use_reloader=True          # Auto-reload when files change
+        use_reloader=False          # Auto-reload when files change
     )
 
 if __name__ == '__main__':
