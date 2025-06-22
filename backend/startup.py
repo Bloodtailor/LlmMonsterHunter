@@ -4,8 +4,8 @@
 
 import os
 import time
-from backend.llm.core import load_model, warm_up_model, get_model_status
-from backend.llm.queue import get_llm_queue
+from backend.ai.llm.core import load_model, warm_up_model, get_model_status
+from backend.ai.queue import get_llm_queue
 
 def initialize_backend(app):
     """
@@ -70,7 +70,7 @@ def get_system_status():
     
     # Queue Status
     try:
-        from backend.llm.queue import get_llm_queue
+        from backend.ai.queue import get_llm_queue
         queue = get_llm_queue()
         queue_status = queue.get_queue_status()
     except Exception as e:

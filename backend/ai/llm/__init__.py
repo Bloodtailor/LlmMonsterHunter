@@ -17,11 +17,6 @@ from .inference import (
     is_generating
 )
 
-# Queue management
-from .queue import (
-    get_llm_queue
-)
-
 # Prompt management
 from .prompt_engine import (
     get_template_config,

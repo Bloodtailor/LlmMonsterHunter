@@ -26,7 +26,7 @@ def is_comfyui_available() -> bool:
         return False
     
     try:
-        from backend.comfyui.client import ComfyUIClient
+        from backend.ai.comfyui.client import ComfyUIClient
         client = ComfyUIClient()
         return client.is_server_running()
     except ImportError:
@@ -63,7 +63,7 @@ def generate_monster_image(monster_description: str,
     
     # Try to import and use ComfyUI components
     try:
-        from backend.comfyui.generation import MonsterImageGenerator
+        from backend.ai.comfyui.generation import MonsterImageGenerator
         
         generator = MonsterImageGenerator()
         return generator.generate_monster_image(
@@ -126,8 +126,8 @@ def get_comfyui_status() -> Dict[str, Any]:
     
     try:
         # Try importing components
-        from backend.comfyui.client import ComfyUIClient
-        from backend.comfyui.generation import MonsterImageGenerator
+        from backend.ai.comfyui.client import ComfyUIClient
+        from backend.ai.comfyui.generation import MonsterImageGenerator
         status["components_loaded"] = True
         
         # Check server

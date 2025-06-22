@@ -75,7 +75,7 @@ class LLMQueue:
         
         try:
             # Get priority from log entry
-            from . import log as llm_log
+            from .llm import log as llm_log
             log_entry = llm_log.get_log(log_id)
             if not log_entry:
                 print(f"❌ Log {log_id} not found, cannot queue")
@@ -142,7 +142,7 @@ class LLMQueue:
     
     def _process_item(self, item: QueueItem):
         """Process a queue item by delegating to processor.py"""
-        from .processor import process_request
+        from .llm.processor import process_request
         
         try:
             # Create streaming callback that emits events
