@@ -1,6 +1,10 @@
 # 
 frontend/package-lock.json
 
+# comfyui image generation output
+backend\comfyui\outputs\*
+!backend\comfyui\outputs\.gitkeep
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
