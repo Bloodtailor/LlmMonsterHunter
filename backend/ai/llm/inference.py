@@ -24,17 +24,11 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
     """
     global _current_generation
     
-    from .core import get_model_instance, is_model_loaded
+    from .core import get_model_instance, is_model_loaded, load_model
     
     # Check if model is loaded
     if not is_model_loaded():
-        return {
-            'success': False,
-            'error': 'Model not loaded',
-            'text': None,
-            'tokens': 0,
-            'duration': 0
-        }
+        load_model()
     
     # Acquire generation lock (only one generation at a time)
     if not _generation_lock.acquire(blocking=False):
