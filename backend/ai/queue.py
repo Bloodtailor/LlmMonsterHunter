@@ -229,59 +229,8 @@ class AIGenerationQueue:
     
     def _process_image_item(self, item: QueueItem, callback) -> Dict[str, Any]:
         """Process image generation using ComfyUI processor"""
-        try:
-            # Get generation log and image log
-            from backend.models.generation_log import GenerationLog
-            from backend.models.image_log import ImageLog
-            
-            generation_log = GenerationLog.query.get(item.generation_id)
-            if not generation_log:
-                return {'success': False, 'error': 'Generation log not found'}
-            
-            image_log = generation_log.image_log
-            if not image_log:
-                return {'success': False, 'error': 'Image log not found'}
-            
-            # Mark as started
-            generation_log.mark_started()
-            generation_log.save()
-            
-            # Extract monster description from prompt text
-            monster_description = generation_log.prompt_text
-            
-            # Use ComfyUI to generate image
-            from backend.ai.comfyui.generation import generate_monster_image
-            
-            result = generate_monster_image(
-                monster_description=monster_description,
-                callback=callback
-            )
-            
-            if result['success']:
-                # Update image log with result
-                image_log.mark_image_generated(result['image_path'])
-                generation_log.mark_completed()
-                
-                # Save both logs
-                image_log.save()
-                generation_log.save()
-                
-                return {
-                    'success': True,
-                    'image_path': result['image_path'],
-                    'execution_time': result.get('execution_time', 0),
-                    'prompt_id': result.get('prompt_id'),
-                    'cleanup_success': result.get('cleanup_success', True)
-                }
-            else:
-                # Mark as failed
-                generation_log.mark_failed(result['error'])
-                generation_log.save()
-                
-                return result
-                
-        except Exception as e:
-            return {'success': False, 'error': f'Image processing error: {str(e)}'}
+        from backend.ai.comfyui.processor import process_request
+        return process_request(item.generation_id, callback=callback)
     
     def _worker_loop(self):
         """Main worker loop - processes queue items"""

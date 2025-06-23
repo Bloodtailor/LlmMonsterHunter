@@ -197,55 +197,6 @@ class WorkflowManager:
             print(f"❌ Error listing workflows: {e}")
             return []
     
-    def build_monster_prompt(self, monster_description: str,
-                           monster_name: str = "",
-                           monster_species: str = "",
-                           style_prompt: Optional[str] = None) -> str:
-        """
-        Build complete prompt for monster image generation
-        
-        Args:
-            monster_description (str): Monster description
-            monster_name (str): Monster name
-            monster_species (str): Monster species
-            style_prompt (str): Style prompt (uses default if None)
-            
-        Returns:
-            str: Complete formatted prompt
-        """
-        # Default style for monster cards
-        if style_prompt is None:
-            style_prompt = (
-                "16K resolution, Norse mythology art with quantum immortality visualizations, "
-                "digital art, concept art, magic fantasy, scenic, vibrant colors, high contrast, "
-                "highly detailed, trending on artstation, 8k, andreas rocha, sylvain sarrailh, "
-                "darek zabrocki, finnian macmanus, dylan cole, liang mark, albert bierstadt, "
-                "sung choi, peter mohrbacher, greg rutkowski, studio Ghibli"
-            )
-        
-        # Build monster information part
-        monster_parts = []
-        
-        if monster_name:
-            monster_parts.append(monster_name)
-        
-        if monster_species:
-            monster_parts.append(monster_species)
-        
-        monster_parts.append(monster_description)
-        
-        # Combine monster info
-        monster_info = ", ".join(monster_parts)
-        
-        # Build final prompt
-        full_prompt = f"{monster_info}, {style_prompt}"
-        
-        return full_prompt
-    
-    def clear_cache(self):
-        """Clear workflow cache"""
-        self._workflow_cache.clear()
-        print("✅ Workflow cache cleared")
 
 # Global instance
 _workflow_manager = None

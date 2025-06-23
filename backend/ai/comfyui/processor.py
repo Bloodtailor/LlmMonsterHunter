@@ -1,166 +1,159 @@
-# ComfyUI Processor - Image Generation Pipeline for Queue System
-# Handles complete image generation pipeline with GenerationLog integration
-# Similar to LLM processor but for ComfyUI image generation
+# ComfyUI Processor - GENERIC IMAGE GENERATION PIPELINE
+# Handles complete image generation pipeline with automatic workflow management
+# Takes generation_id, manages the entire process, updates logs automatically
+# ARCHITECTURE: Completely generic - knows nothing about monsters or game objects
 
-from typing import Dict, Any, Optional, Callable
-from .client import ComfyUIClient
-from .workflow import get_workflow_manager
-from .models import ModelManager
 import time
+import random
 from pathlib import Path
+from typing import Dict, Any, Optional, Callable
 
-def process_image_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
+def process_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
     """
-    Complete image generation pipeline for queue system
+    Complete image generation pipeline with automatic workflow management
     
-    Philosophy: Given a generation_id, do everything needed to generate an image
-    - Load parameters from GenerationLog/ImageLog
-    - Generate image using ComfyUI
+    Philosophy: Given a generation_id, do everything needed to get an image
+    - Load parameters from database (generation_log + image_log)
+    - Build complete prompt (base + unique text)
+    - Load and modify workflow with config
+    - Generate image via ComfyUI
+    - Save with organized file structure
     - Update logs automatically
     - Return final result
     
     Args:
-        generation_id (int): GenerationLog ID containing image parameters
+        generation_id (int): Database generation_logs.id
         callback (callable): Optional progress callback
         
     Returns:
-        dict: Final image generation results
+        dict: Final processing results
     """
     
-    generation_start = time.time()
-    
     try:
-        # Step 1: Load generation log and image parameters
+        # Step 1: Load generation log and verify it's an image generation
         from backend.models.generation_log import GenerationLog
-        from backend.models.image_log import ImageLog
         
         generation_log = GenerationLog.query.get(generation_id)
         if not generation_log:
             return {
                 'success': False,
-                'error': f'GenerationLog {generation_id} not found',
+                'error': f'Generation log {generation_id} not found',
                 'generation_id': generation_id
             }
         
         if generation_log.generation_type != 'image':
             return {
                 'success': False,
-                'error': f'GenerationLog {generation_id} is not an image generation type',
+                'error': f'Generation {generation_id} is not an image generation (type: {generation_log.generation_type})',
                 'generation_id': generation_id
             }
         
+        # Step 2: Get image-specific data
         image_log = generation_log.image_log
         if not image_log:
             return {
                 'success': False,
-                'error': f'ImageLog not found for GenerationLog {generation_id}',
+                'error': f'Image log not found for generation {generation_id}',
                 'generation_id': generation_id
             }
         
-        # Extract image parameters from the prompt_text and any stored metadata
-        # For now, we'll parse from the prompt_text format: "Monster: name (species) - description"
-        prompt_text = generation_log.prompt_text
+        # Step 3: Extract parameters
+        prompt_text = generation_log.prompt_text  # The unique part of the prompt
+        workflow_name = generation_log.prompt_name  # The workflow to use
         
-        # Simple parsing of the prompt text
-        if prompt_text.startswith("Monster: "):
-            try:
-                parts = prompt_text[9:].split(" - ", 1)  # Remove "Monster: " prefix
-                name_species_part = parts[0]
-                description = parts[1] if len(parts) > 1 else ""
-                
-                if " (" in name_species_part and name_species_part.endswith(")"):
-                    name = name_species_part.split(" (")[0]
-                    species = name_species_part.split(" (")[1][:-1]  # Remove closing )
-                else:
-                    name = name_species_part
-                    species = ""
-            except:
-                name = "Unknown Monster"
-                species = "Unknown Species"
-                description = prompt_text
-        else:
-            name = "Monster"
-            species = "Creature"
-            description = prompt_text
-        
-        workflow_name = generation_log.prompt_name or "monster_generation"
-        
-        print(f"✅ Loaded image parameters: {name} ({species}) - {description[:100]}...")
-        
-        # Step 2: Mark as started
-        generation_log.mark_started()
-        generation_log.save()
-        
-        # Step 3: Initialize ComfyUI components
-        if callback:
-            callback("🔍 Checking ComfyUI server...")
-        
-        client = ComfyUIClient()
-        workflow_manager = get_workflow_manager()
-        model_manager = ModelManager(client)
-        
-        # Check server availability
-        if not client.is_server_running():
-            generation_log.mark_failed("ComfyUI server is not running")
+        if not prompt_text or not workflow_name:
+            generation_log.mark_failed("Missing prompt text or workflow name")
             generation_log.save()
             return {
                 'success': False,
-                'error': '🎨 ComfyUI server is not running',
-                'reason': 'SERVER_NOT_RUNNING',
-                'help': 'Start ComfyUI with: python main.py --listen',
+                'error': 'Missing prompt text or workflow name',
                 'generation_id': generation_id
             }
         
-        # Step 4: Optimize for generation (free memory)
+        print(f"✅ Loaded image parameters: workflow='{workflow_name}', prompt_length={len(prompt_text)}")
+        
+        # Step 4: Mark as started
+        generation_log.mark_started()
+        generation_log.save()
+        
         if callback:
-            callback("🔧 Optimizing for image generation...")
+            callback("🔧 Initializing image generation...")
         
-        optimization = model_manager.optimize_for_generation()
-        if not optimization["success"]:
-            print(f"⚠️ Optimization warning: {optimization.get('error')}")
+        # Step 5: Check ComfyUI server availability
+        from .client import ComfyUIClient
+        from backend.config.comfyui_config import get_server_url, get_timeout
         
-        # Step 5: Load and prepare workflow
-        if callback:
-            callback("📋 Loading workflow...")
+        client = ComfyUIClient(base_url=get_server_url())
         
-        workflow = workflow_manager.load_workflow(workflow_name)
-        if not workflow:
-            error_msg = f"Failed to load {workflow_name} workflow"
+        if not client.is_server_running():
+            error_msg = "ComfyUI server is not running"
             generation_log.mark_failed(error_msg)
             generation_log.save()
             return {
                 'success': False,
                 'error': error_msg,
-                'help': f"Check that {workflow_name}.json exists in workflows directory",
+                'generation_id': generation_id,
+                'help': 'Start ComfyUI with: python main.py --listen'
+            }
+        
+        if callback:
+            callback("✅ ComfyUI server connected")
+        
+        # Step 6: Load and prepare workflow
+        from .workflow import get_workflow_manager
+        
+        workflow_manager = get_workflow_manager()
+        workflow = workflow_manager.load_workflow(workflow_name)
+        
+        if not workflow:
+            error_msg = f"Workflow '{workflow_name}' not found"
+            generation_log.mark_failed(error_msg)
+            generation_log.save()
+            return {
+                'success': False,
+                'error': error_msg,
                 'generation_id': generation_id
             }
         
-        # Step 6: Build prompt
         if callback:
-            callback("✏️ Building monster prompt...")
+            callback(f"📋 Loaded workflow: {workflow_name}")
         
-        full_prompt = workflow_manager.build_monster_prompt(
-            monster_description=description,
-            monster_name=name,
-            monster_species=species
-        )
+        # Step 7: Build complete positive prompt
+        from backend.config.comfyui_config import get_base_positive_prompt
         
-        # Step 7: Modify workflow with prompt
-        if callback:
-            callback("🎨 Preparing generation...")
+        base_prompt = get_base_positive_prompt()
+        complete_positive_prompt = f"{prompt_text}, {base_prompt}"
+        
+        print(f"✅ Built complete prompt: {len(complete_positive_prompt)} characters")
+        
+        # Step 8: Modify workflow with config and prompt
+        from backend.config.comfyui_config import get_all_generation_defaults
+        
+        config = get_all_generation_defaults()
         
         modified_workflow = workflow_manager.modify_workflow_prompt(
             workflow=workflow,
-            positive_prompt=full_prompt,
-            seed=int(time.time()) % 1000000  # Semi-random seed based on time
+            positive_prompt=complete_positive_prompt,
+            negative_prompt=config['negative_prompt'],
+            steps=config['steps'],
+            cfg=config['cfg'],
+            denoise=config['denoise'],
+            width=config['width'],
+            height=config['height'],
+            batch_size=config['batch_size'],
+            seed=random.randint(1, 1000000)  # Random seed for variety
         )
         
-        # Step 8: Queue generation
         if callback:
-            callback("📤 Queuing generation...")
+            callback("⚙️ Workflow configured with parameters")
         
+        # Step 9: Queue generation
         try:
+            if callback:
+                callback("📤 Queuing generation request...")
+            
             prompt_id = client.queue_prompt(modified_workflow)
+            
         except Exception as e:
             error_msg = f"Failed to queue generation: {str(e)}"
             generation_log.mark_failed(error_msg)
@@ -168,31 +161,20 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
             return {
                 'success': False,
                 'error': error_msg,
-                'help': "Check ComfyUI server logs for details",
                 'generation_id': generation_id
             }
         
-        # Step 9: Wait for completion with progress updates
+        # Step 10: Wait for completion with progress updates
         if callback:
             callback("⏳ Generation in progress...")
         
         try:
             result = client.wait_for_completion(
                 prompt_id=prompt_id,
-                timeout=300  # 5 minutes
+                timeout=config['timeout']
             )
-        except TimeoutError:
-            error_msg = "Image generation timed out after 5 minutes"
-            generation_log.mark_failed(error_msg)
-            generation_log.save()
-            return {
-                'success': False,
-                'error': error_msg,
-                'help': "Try generating again or check ComfyUI server performance",
-                'generation_id': generation_id
-            }
         except Exception as e:
-            error_msg = f"Generation monitoring failed: {str(e)}"
+            error_msg = f"Generation failed: {str(e)}"
             generation_log.mark_failed(error_msg)
             generation_log.save()
             return {
@@ -201,7 +183,7 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
                 'generation_id': generation_id
             }
         
-        # Step 10: Download and save image
+        # Step 11: Check if images were generated
         if not result.get("images"):
             error_msg = "Generation completed but no images were produced"
             generation_log.mark_failed(error_msg)
@@ -209,23 +191,23 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
             return {
                 'success': False,
                 'error': error_msg,
-                'help': "Check ComfyUI workflow configuration",
                 'generation_id': generation_id
             }
         
         if callback:
-            callback("💾 Downloading image...")
+            callback("💾 Downloading and organizing image...")
         
-        # Download the first image
-        image_info = result["images"][0]
-        image_path = _download_and_save_image(
-            client, 
-            image_info, 
-            name or "monster"
-        )
+        # Step 12: Download and save with organized structure
+        image_info = result["images"][0]  # Take first image
         
-        if not image_path:
-            error_msg = "Failed to download generated image"
+        try:
+            relative_path = _download_and_organize_image(
+                client=client,
+                image_info=image_info,
+                workflow_name=workflow_name
+            )
+        except Exception as e:
+            error_msg = f"Failed to download/save image: {str(e)}"
             generation_log.mark_failed(error_msg)
             generation_log.save()
             return {
@@ -234,108 +216,98 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
                 'generation_id': generation_id
             }
         
-        # Step 11: Update image log with results
-        image_log.mark_image_generated(str(image_path))
-        image_log.save()
-        
-        # Step 12: Post-generation cleanup
-        if callback:
-            callback("🧹 Cleaning up...")
-        
-        cleanup_result = model_manager.post_generation_cleanup()
-        if not cleanup_result["success"]:
-            print(f"⚠️ Cleanup warning: {cleanup_result.get('error')}")
-        
-        # Step 13: Mark as completed
+        # Step 13: Update logs with success
+        image_log.mark_image_generated(str(Path("outputs") / relative_path))  # Full path for database
         generation_log.mark_completed()
+        
+        image_log.save()
         generation_log.save()
         
-        # Step 14: Return success
-        total_time = time.time() - generation_start
-        
         if callback:
-            callback(f"✅ Image generated in {total_time:.1f}s!")
+            callback("✅ Image generation completed!")
+        
+        # Step 14: Return success
+        execution_time = generation_log.duration_seconds or 0
         
         return {
             'success': True,
-            'image_path': str(image_path),
-            'prompt_id': prompt_id,
-            'execution_time': total_time,
-            'full_prompt': full_prompt,
+            'image_path': str(Path("outputs") / relative_path),  # Full path for backwards compatibility
+            'relative_path': relative_path,  # Relative path from outputs folder
+            'execution_time': execution_time,
+            'generation_id': generation_id,
             'workflow_used': workflow_name,
-            'image_info': image_info,
-            'cleanup_success': cleanup_result["success"],
-            'generation_id': generation_id
+            'prompt_id': prompt_id,
+            'image_dimensions': f"{config['width']}x{config['height']}"
         }
         
     except Exception as e:
-        # Ensure cleanup even on failure
-        try:
-            model_manager = ModelManager()
-            model_manager.post_generation_cleanup()
-        except:
-            pass
+        print(f"❌ Image processing error for generation {generation_id}: {e}")
         
-        # Mark as failed in database
+        # Try to mark as failed in database
         try:
             from backend.models.generation_log import GenerationLog
-            generation_log = GenerationLog.query.get(generation_id)
-            if generation_log:
-                generation_log.mark_failed(str(e))
-                generation_log.save()
+            log = GenerationLog.query.get(generation_id)
+            if log:
+                log.mark_failed(str(e))
+                log.save()
         except:
-            pass
+            pass  # Don't fail on database update failure
         
         return {
             'success': False,
-            'error': f"Image generation pipeline failed: {str(e)}",
-            'execution_time': time.time() - generation_start,
+            'error': str(e),
             'generation_id': generation_id
         }
 
-def _download_and_save_image(client: ComfyUIClient, image_info: Dict[str, str], 
-                           monster_name: str) -> Optional[Path]:
+def _download_and_organize_image(client, image_info: Dict[str, str], workflow_name: str) -> str:
     """
-    Download image from ComfyUI and save with monster-specific filename
+    Download image from ComfyUI and save with organized file structure
     
     Args:
-        client (ComfyUIClient): ComfyUI client instance
+        client: ComfyUI client instance
         image_info (dict): Image info from ComfyUI result
-        monster_name (str): Monster name for filename
+        workflow_name (str): Name of workflow used (for folder organization)
         
     Returns:
-        Path: Path to saved image or None if failed
+        str: Relative path from outputs folder (e.g., "monster_generation/00000001.png")
     """
-    try:
-        # Download image data
-        image_data = client.download_image(
-            filename=image_info["filename"],
-            subfolder=image_info.get("subfolder", ""),
-            img_type=image_info.get("type", "output")
-        )
-        
-        # Generate unique filename
-        timestamp = int(time.time())
-        safe_name = "".join(c for c in monster_name if c.isalnum() or c in (' ', '-', '_')).strip()
-        safe_name = safe_name.replace(' ', '_').lower()
-        
-        if not safe_name:
-            safe_name = "monster"
-        
-        filename = f"{safe_name}_{timestamp}.png"
-        
-        # Save to ComfyUI outputs directory
-        outputs_dir = Path(__file__).parent / 'outputs'
-        outputs_dir.mkdir(exist_ok=True)
-        save_path = outputs_dir / filename
-        
-        # Save image
-        with open(save_path, 'wb') as f:
-            f.write(image_data)
-        
-        print(f"✅ Image saved: {save_path}")
-        return save_path
-        
-    except Exception as e:
-        print(f"❌ Failed to download/save image: {e}")
-        return None
+    
+    # Create workflow-specific output directory
+    outputs_dir = Path(__file__).parent / 'outputs' / workflow_name
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Find next available number
+    existing_files = list(outputs_dir.glob("*.png"))
+    if existing_files:
+        # Extract numbers and find the highest
+        numbers = []
+        for file in existing_files:
+            try:
+                number = int(file.stem)
+                numbers.append(number)
+            except ValueError:
+                continue
+        next_number = max(numbers) + 1 if numbers else 1
+    else:
+        next_number = 1
+    
+    # Format as 8-digit number with leading zeros
+    filename = f"{next_number:08d}.png"
+    save_path = outputs_dir / filename
+    
+    # Download image data
+    image_data = client.download_image(
+        filename=image_info["filename"],
+        subfolder=image_info.get("subfolder", ""),
+        img_type=image_info.get("type", "output")
+    )
+    
+    # Save image
+    with open(save_path, 'wb') as f:
+        f.write(image_data)
+    
+    # Return relative path from outputs folder
+    relative_path = f"{workflow_name}/{filename}"
+    
+    print(f"✅ Image saved: outputs/{relative_path}")
+    return relative_path

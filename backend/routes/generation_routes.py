@@ -202,8 +202,9 @@ def test_image():
     description = data.get('description', 'A majestic fire dragon with golden scales')
     
     result = generation_service.image_generation_request(
-        monster_description=description,
-        monster_name="API Test Dragon",
+        prompt_text="A goblin",
+        prompt_type="image_generation",
+        prompt_name="monster_generation",
         wait_for_completion=True
     )
     return jsonify(result)

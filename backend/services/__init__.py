@@ -10,7 +10,7 @@ from . import sse_service
 
 # Simple re-exports with new generation service
 from .game_tester_service import get_test_files, run_test_file
-from .generation_service import text_generation_request, image_generation_request, generate_monster_image, inference_request  # 🔧 NEW: unified generation
+from .generation_service import text_generation_request, image_generation_request  # 🔧 NEW: unified generation
 from .monster_service import generate_monster, get_all_monsters, get_monster_by_id
 from .ability_service import generate_ability, generate_initial_abilities, get_abilities_for_monster
 

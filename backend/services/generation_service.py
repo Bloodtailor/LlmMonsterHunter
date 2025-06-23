@@ -95,23 +95,19 @@ def text_generation_request(prompt: str,
             'error': str(e)
         }
 
-def image_generation_request(monster_description: str,
-                           monster_name: str = "",
-                           monster_species: str = "",
-                           prompt_type: str = "monster_image_generation",
+def image_generation_request(prompt_text: str,
+                           prompt_type: str = "image_generation",
                            prompt_name: str = "monster_generation",
                            wait_for_completion: bool = True,
                            **image_overrides) -> Dict[str, Any]:
     """
-    THE ONLY WAY to request image generation
+    THE ONLY WAY to request image generation - COMPLETELY GENERIC
     Creates complete generation_log entry and delegates to unified queue
     
     Args:
-        monster_description (str): Monster description for image generation
-        monster_name (str): Monster name (optional)
-        monster_species (str): Monster species (optional)
-        prompt_type (str): Type of prompt
-        prompt_name (str): Workflow name to use
+        prompt_text (str): The unique part of the prompt (ONLY REQUIRED parameter)
+        prompt_type (str): Type of prompt (for logging)
+        prompt_name (str): Workflow name to use 
         wait_for_completion (bool): Whether to wait for completion
         **image_overrides: Any image parameter overrides
         
@@ -120,7 +116,7 @@ def image_generation_request(monster_description: str,
     """
     
     try:
-        print(f"🎨 Generation Service: Creating image generation request")
+        print(f"🎨 Generation Service: Creating generic image generation request")
         
         # Check if image generation is enabled
         import os
@@ -132,26 +128,21 @@ def image_generation_request(monster_description: str,
                 'help': 'Set ENABLE_IMAGE_GENERATION=true in .env to enable image generation'
             }
         
-        # Step 1: Build complete prompt for image generation
-        full_prompt = _build_image_prompt(monster_description, monster_name, monster_species)
-        
-        # Step 2: Prepare image parameters (can be expanded later)
+        # Step 1: Prepare image parameters (generic)
         image_params = {
-            'monster_name': monster_name,
-            'monster_species': monster_species,
             'workflow_name': prompt_name,
             **image_overrides
         }
         
         print(f"✅ Prepared image parameters for workflow '{prompt_name}'")
         
-        # Step 3: Create complete generation_log entry with image child data
+        # Step 2: Create complete generation_log entry with image child data
         from backend.models.generation_log import GenerationLog
         
         generation_log = GenerationLog.create_image_log(
             prompt_type=prompt_type,
             prompt_name=prompt_name,
-            prompt_text=full_prompt,
+            prompt_text=prompt_text,  # Just store the unique prompt text directly
             image_params=image_params
         )
         
@@ -163,7 +154,7 @@ def image_generation_request(monster_description: str,
         
         print(f"✅ Created image generation log {generation_log.id}")
         
-        # Step 4: Add to unified queue
+        # Step 3: Add to unified queue
         from backend.ai.queue import get_ai_queue
         queue = get_ai_queue()
         
@@ -182,7 +173,7 @@ def image_generation_request(monster_description: str,
                 'message': 'Image generation request queued for processing'
             }
         
-        # Step 5: Wait for completion
+        # Step 4: Wait for completion
         return _wait_for_completion(queue, generation_log.id, 'image')
         
     except Exception as e:
@@ -192,32 +183,6 @@ def image_generation_request(monster_description: str,
             'error': str(e)
         }
 
-def _build_image_prompt(monster_description: str, monster_name: str = "", monster_species: str = "") -> str:
-    """
-    Build complete prompt for image generation
-    
-    Args:
-        monster_description (str): Monster description
-        monster_name (str): Monster name
-        monster_species (str): Monster species
-        
-    Returns:
-        str: Complete formatted prompt for image generation
-    """
-    try:
-        from backend.ai.comfyui.workflow import get_workflow_manager
-        
-        workflow_manager = get_workflow_manager()
-        return workflow_manager.build_monster_prompt(
-            monster_description=monster_description,
-            monster_name=monster_name,
-            monster_species=monster_species
-        )
-    except Exception as e:
-        print(f"⚠️ Error building image prompt, using basic format: {e}")
-        # Fallback to simple concatenation
-        parts = [part for part in [monster_name, monster_species, monster_description] if part]
-        return ", ".join(parts)
 
 def _wait_for_completion(queue, generation_id: int, generation_type: str, timeout: int = 600) -> Dict[str, Any]:
     """
@@ -283,22 +248,9 @@ def _wait_for_completion(queue, generation_id: int, generation_type: str, timeou
         'generation_type': generation_type
     }
 
-# Backwards compatibility aliases
-def inference_request(*args, **kwargs):
-    """Backwards compatibility - redirect to text_generation_request"""
-    return text_generation_request(*args, **kwargs)
-
-def generate_monster_image(monster_description: str, **kwargs):
-    """Convenience function for monster image generation"""
-    return image_generation_request(
-        monster_description=monster_description,
-        **kwargs
-    )
 
 # Export main functions
 __all__ = [
     'text_generation_request',
-    'image_generation_request', 
-    'generate_monster_image',
-    'inference_request'  # Backwards compatibility
+    'image_generation_request'
 ]

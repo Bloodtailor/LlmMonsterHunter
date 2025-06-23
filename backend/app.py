@@ -192,7 +192,9 @@ def register_blueprints(app):
                 from backend.services import generation_service
                 
                 image_result = generation_service.image_generation_request(
-                    monster_description="Test dragon",
+                    prompt_text="A goblin",
+                    prompt_type="image_generation",
+                    prompt_name="monster_generation",
                     wait_for_completion=False  # Don't wait for actual generation
                 )
                 
