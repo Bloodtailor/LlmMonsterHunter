@@ -229,6 +229,11 @@ class AIGenerationQueue:
     
     def _process_image_item(self, item: QueueItem, callback) -> Dict[str, Any]:
         """Process image generation using ComfyUI processor"""
+
+        # Unload the LLM Model
+        from backend.ai.llm.core import unload_model
+        unload_model()
+
         from backend.ai.comfyui.processor import process_request
         return process_request(item.generation_id, callback=callback)
     

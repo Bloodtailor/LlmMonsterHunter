@@ -225,7 +225,12 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
         
         if callback:
             callback("✅ Image generation completed!")
-        
+
+        print("unloading image model and freeing memory")
+        client.unload_models()
+        client.free_memory()
+
+
         # Step 14: Return success
         execution_time = generation_log.duration_seconds or 0
         
