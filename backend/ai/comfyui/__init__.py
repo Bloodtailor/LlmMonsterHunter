@@ -6,7 +6,6 @@ try:
     # Core components (generic)
     from .client import ComfyUIClient
     from .workflow import WorkflowManager, get_workflow_manager
-    from .models import ModelManager, free_comfyui_memory, optimize_for_image_generation, cleanup_after_image_generation
     from .processor import process_request, quick_image_generation
 
     # Main exports for external use
@@ -14,17 +13,11 @@ try:
         # Classes
         'ComfyUIClient',
         'WorkflowManager', 
-        'ModelManager',
         
         # Core functions (generic)
         'process_request',           # NEW: Generic image processing pipeline
         'quick_image_generation',    # NEW: Simple image generation
         'get_workflow_manager',
-        
-        # Memory management functions
-        'free_comfyui_memory',
-        'optimize_for_image_generation', 
-        'cleanup_after_image_generation'
     ]
 
     def validate_comfyui_setup() -> dict:
