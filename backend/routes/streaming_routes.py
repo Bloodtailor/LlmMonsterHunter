@@ -1,18 +1,18 @@
-# Streaming Routes - EVENT-DRIVEN (No polling!)
-# Uses blocking SSE service for maximum efficiency
-# Only sends data when events actually occur
+# Streaming Routes - UPDATED FOR UNIFIED GENERATION SERVICE
+# Uses event-driven SSE service for maximum efficiency
+# Now supports both LLM and image generation events
 
 import json
 import time
 from flask import Blueprint, Response, request, jsonify
-from backend.services import llm_service
+from backend.services import generation_service  # 🔧 UPDATED: was llm_service
 from backend.services.sse_service import get_sse_service
 
 streaming_bp = Blueprint('streaming', __name__, url_prefix='/api/streaming')
 
 @streaming_bp.route('/llm-events')
 def stream_events():
-    """SSE endpoint for real-time updates"""
+    """SSE endpoint for real-time updates - supports LLM and image events"""
     
     sse_service = get_sse_service()
     connection = sse_service.create_connection()
@@ -35,8 +35,6 @@ def stream_events():
                     # Timeout occurred (30 seconds) - send keep-alive ping
                     yield f"event: ping\ndata: {json.dumps({'timestamp': time.time()})}\n\n"
                 
-                # No sleep needed - we only wake up when there's work to do!  # 50ms instead of 1000ms for near real-time updates
-                
         except GeneratorExit:
             # Client disconnected
             pass
@@ -55,17 +53,53 @@ def stream_events():
 
 @streaming_bp.route('/add', methods=['POST'])
 def add_request():
-    """Add inference request - thin route"""
+    """Add LLM inference request - thin route"""
     data = request.get_json() or {}
     prompt = data.get('prompt', 'Hello')
     
-    result = llm_service.inference_request(prompt, wait_for_completion=False)
+    result = generation_service.text_generation_request(  # 🔧 UPDATED: new service
+        prompt=prompt, 
+        wait_for_completion=False
+    )
+    return jsonify(result)
+
+@streaming_bp.route('/add-image', methods=['POST'])
+def add_image_request():
+    """Add image generation request - NEW ENDPOINT"""
+    data = request.get_json() or {}
+    
+    monster_description = data.get('monster_description', 'A mysterious creature')
+    monster_name = data.get('monster_name', '')
+    monster_species = data.get('monster_species', '')
+    
+    result = generation_service.image_generation_request(  # 🔧 NEW: image generation
+        monster_description=monster_description,
+        monster_name=monster_name,
+        monster_species=monster_species,
+        wait_for_completion=False
+    )
     return jsonify(result)
 
 @streaming_bp.route('/test/simple', methods=['POST'])
 def test_simple():
-    """Simple test - thin route"""
-    result = llm_service.inference_request("Say hi", wait_for_completion=True)
+    """Simple LLM test - thin route"""
+    result = generation_service.text_generation_request(  # 🔧 UPDATED: new service
+        prompt="Say hi", 
+        wait_for_completion=True
+    )
+    return jsonify(result)
+
+@streaming_bp.route('/test/image', methods=['POST'])
+def test_image():
+    """Simple image generation test - NEW ENDPOINT"""
+    data = request.get_json() or {}
+    description = data.get('description', 'A majestic fire dragon with golden scales')
+    
+    result = generation_service.image_generation_request(  # 🔧 NEW: image generation test
+        monster_description=description,
+        monster_name="Test Dragon",
+        wait_for_completion=True
+    )
     return jsonify(result)
 
 @streaming_bp.route('/connections')
@@ -77,5 +111,6 @@ def get_connections():
         'active_connections': sse_service.get_connection_count(),
         'event_types': sse_service._event_service.get_all_event_types(),
         'streaming_method': 'event_driven_blocking',
-        'efficiency': 'Only sends data when events occur (no polling!)'
+        'efficiency': 'Only sends data when events occur (no polling!)',
+        'supported_generation_types': ['llm', 'image']  # 🔧 NEW: both types supported
     })
