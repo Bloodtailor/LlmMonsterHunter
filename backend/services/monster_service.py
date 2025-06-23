@@ -119,7 +119,59 @@ def generate_monster(prompt_name: str = "basic_monster",
         # Step 8: Reload monster to include the new abilities
         monster = Monster.get_monster_by_id(monster.id)
         
-        # Step 9: Return success with complete data
+        # Step 9: generate card art
+
+        print("🎨 Testing Monster Card Art Generation...")
+        print("=" * 60)
+
+            
+        print(f"✅ Selected random monster:")
+        print(f"   ID: {monster.id}")
+        print(f"   Name: {monster.name}")
+        print(f"   Species: {monster.species}")
+        print(f"   Description: {monster.description[:100]}...")
+        print(f"   Abilities: {len(monster.abilities)} abilities")
+            
+
+        # Build prompt text from monster data
+        print("\n✏️ Building prompt text from monster data...")
+
+        # Combine monster information into prompt text
+        prompt_parts = []
+        if monster.name:
+            prompt_parts.append(monster.name)
+        if monster.species:
+            prompt_parts.append(monster.species)
+        if monster.description:
+            prompt_parts.append(monster.description)
+
+        prompt_text = ", ".join(prompt_parts)
+
+        print(f"✅ Built prompt text:")
+        print(f"   Length: {len(prompt_text)} characters")
+        print(f"   Text: {prompt_text[:150]}...")
+
+        # Generate card art using generic image generation
+        print("\n🎨 Generating card art using generic system...")
+
+        try:
+            result = generation_service.image_generation_request(
+                prompt_text=prompt_text,
+                prompt_type="monster_card_art",
+                prompt_name="monster_generation",  # Use monster_generation workflow
+                wait_for_completion=True  # Wait for the actual generation
+            )
+            
+            print(f"\n📊 Generation Results:")
+            print(f"   Success: {result['success']}")
+            print(f"   Generation ID: {result.get('generation_id', 'N/A')}")
+            print(f"   Generation Type: {result.get('generation_type', 'N/A')}")
+            
+            
+        except Exception as e:
+            print(f"❌ Unexpected error during generation: {e}")
+
+        # Step 10: Return success with complete data
         return {
             'success': True,
             'monster': monster.to_dict(),  # Now includes abilities!

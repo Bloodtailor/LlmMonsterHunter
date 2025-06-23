@@ -28,11 +28,9 @@ DEFAULT_NEGATIVE_PROMPT = (
 
 # === Base Positive Prompt (Universal Styling) ===
 DEFAULT_BASE_POSITIVE_PROMPT = (
-    "16K resolution, Norse mythology art with quantum immortality visualizations, "
-    "digital art, concept art, magic fantasy, scenic, vibrant colors, high contrast, "
-    "highly detailed, trending on artstation, 8k, andreas rocha, sylvain sarrailh, "
-    "darek zabrocki, finnian macmanus, dylan cole, liang mark, albert bierstadt, "
-    "sung choi, peter mohrbacher, greg rutkowski, studio Ghibli"
+    "Norse mythology art"
+    "digital art, magic fantasy, vibrant colors, high contrast, "
+    "highly detailed, trending on artstation, 4k"
 )
 
 # === Server Settings ===
