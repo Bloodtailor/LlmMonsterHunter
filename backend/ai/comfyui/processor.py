@@ -1,4 +1,4 @@
-# ComfyUI Processor - GENERIC IMAGE GENERATION PIPELINE
+# ComfyUI Processor - FIXED: Uses prompt_type for folders and relative paths
 # Handles complete image generation pipeline with automatic workflow management
 # Takes generation_id, manages the entire process, updates logs automatically
 # ARCHITECTURE: Completely generic - knows nothing about monsters or game objects
@@ -17,8 +17,8 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
     - Build complete prompt (base + unique text)
     - Load and modify workflow with config
     - Generate image via ComfyUI
-    - Save with organized file structure
-    - Update logs automatically
+    - Save with organized file structure (using prompt_type for folders)
+    - Update logs automatically with relative paths only
     - Return final result
     
     Args:
@@ -57,20 +57,21 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                 'generation_id': generation_id
             }
         
-        # Step 3: Extract parameters
+        # Step 3: Extract parameters - USE PROMPT_TYPE FOR FOLDER ORGANIZATION
         prompt_text = generation_log.prompt_text  # The unique part of the prompt
         workflow_name = generation_log.prompt_name  # The workflow to use
+        prompt_type = generation_log.prompt_type  # For folder organization (e.g., "monster_card_art")
         
-        if not prompt_text or not workflow_name:
-            generation_log.mark_failed("Missing prompt text or workflow name")
+        if not prompt_text or not workflow_name or not prompt_type:
+            generation_log.mark_failed("Missing prompt text, workflow name, or prompt type")
             generation_log.save()
             return {
                 'success': False,
-                'error': 'Missing prompt text or workflow name',
+                'error': 'Missing prompt text, workflow name, or prompt type',
                 'generation_id': generation_id
             }
         
-        print(f"✅ Loaded image parameters: workflow='{workflow_name}', prompt_length={len(prompt_text)}")
+        print(f"✅ Loaded image parameters: workflow='{workflow_name}', prompt_type='{prompt_type}', prompt_length={len(prompt_text)}")
         
         # Step 4: Mark as started
         generation_log.mark_started()
@@ -197,14 +198,14 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
         if callback:
             callback("💾 Downloading and organizing image...")
         
-        # Step 12: Download and save with organized structure
+        # Step 12: Download and save with organized structure - FIXED: Use prompt_type for folder
         image_info = result["images"][0]  # Take first image
         
         try:
             relative_path = _download_and_organize_image(
                 client=client,
                 image_info=image_info,
-                workflow_name=workflow_name
+                folder_name=prompt_type  # FIXED: Use prompt_type instead of workflow_name
             )
         except Exception as e:
             error_msg = f"Failed to download/save image: {str(e)}"
@@ -216,8 +217,8 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                 'generation_id': generation_id
             }
         
-        # Step 13: Update logs with success
-        image_log.mark_image_generated(str(Path("outputs") / relative_path))  # Full path for database
+        # Step 13: Update logs with success - FIXED: Store only relative path
+        image_log.mark_image_generated(relative_path)  # FIXED: Store relative path only
         generation_log.mark_completed()
         
         image_log.save()
@@ -226,21 +227,21 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
         if callback:
             callback("✅ Image generation completed!")
 
-        print("unloading image model and freeing memory")
+        print("🧹 Unloading image model and freeing memory")
         client.unload_models()
         client.free_memory()
-
 
         # Step 14: Return success
         execution_time = generation_log.duration_seconds or 0
         
         return {
             'success': True,
-            'image_path': str(Path("outputs") / relative_path),  # Full path for backwards compatibility
-            'relative_path': relative_path,  # Relative path from outputs folder
+            'image_path': relative_path,  # FIXED: Return relative path only
+            'relative_path': relative_path,  # Same as image_path now
             'execution_time': execution_time,
             'generation_id': generation_id,
             'workflow_used': workflow_name,
+            'prompt_type_used': prompt_type,  # NEW: Include prompt_type used
             'prompt_id': prompt_id,
             'image_dimensions': f"{config['width']}x{config['height']}"
         }
@@ -264,21 +265,22 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
             'generation_id': generation_id
         }
 
-def _download_and_organize_image(client, image_info: Dict[str, str], workflow_name: str) -> str:
+def _download_and_organize_image(client, image_info: Dict[str, str], folder_name: str) -> str:
     """
     Download image from ComfyUI and save with organized file structure
+    FIXED: Uses prompt_type for folder organization and returns relative path only
     
     Args:
         client: ComfyUI client instance
         image_info (dict): Image info from ComfyUI result
-        workflow_name (str): Name of workflow used (for folder organization)
+        folder_name (str): Name of folder to organize into (prompt_type, e.g., "monster_card_art")
         
     Returns:
-        str: Relative path from outputs folder (e.g., "monster_generation/00000001.png")
+        str: Relative path from outputs folder (e.g., "monster_card_art/00000001.png")
     """
     
-    # Create workflow-specific output directory
-    outputs_dir = Path(__file__).parent / 'outputs' / workflow_name
+    # Create folder-specific output directory (using prompt_type)
+    outputs_dir = Path(__file__).parent / 'outputs' / folder_name
     outputs_dir.mkdir(parents=True, exist_ok=True)
     
     # Find next available number
@@ -311,8 +313,8 @@ def _download_and_organize_image(client, image_info: Dict[str, str], workflow_na
     with open(save_path, 'wb') as f:
         f.write(image_data)
     
-    # Return relative path from outputs folder
-    relative_path = f"{workflow_name}/{filename}"
+    # Return relative path from outputs folder (FIXED: relative path only)
+    relative_path = f"{folder_name}/{filename}"
     
     print(f"✅ Image saved: outputs/{relative_path}")
     return relative_path
