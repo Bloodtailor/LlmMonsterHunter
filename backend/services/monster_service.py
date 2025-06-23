@@ -1,11 +1,11 @@
-# Monster Service - ENHANCED WITH AUTOMATIC ABILITY GENERATION
-# Now generates 2 abilities for every new monster automatically
+# Monster Service - UPDATED FOR UNIFIED GENERATION SERVICE
+# Now uses generation_service instead of llm_service
 # Maintains clean separation of concerns with ability_service
 
 from typing import Dict, Any, Optional, List
 from backend.models.monster import Monster
 from backend.ai.llm.prompt_engine import get_template_config, build_prompt
-from . import llm_service
+from . import generation_service  # 🔧 UPDATED: was llm_service
 from . import ability_service
 
 def generate_monster(prompt_name: str = "basic_monster", 
@@ -45,8 +45,8 @@ def generate_monster(prompt_name: str = "basic_monster",
         
         print(f"✅ Built prompt: {len(prompt_text)} characters")
         
-        # Step 3: Use automatic parsing pipeline
-        llm_result = llm_service.inference_request(
+        # Step 3: Use unified generation service for LLM inference
+        llm_result = generation_service.text_generation_request(  # 🔧 UPDATED: new service
             prompt=prompt_text,
             prompt_type='monster_generation',
             prompt_name=prompt_name,
@@ -61,7 +61,7 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'success': False,
                 'error': llm_result['error'],
                 'monster': None,
-                'log_id': llm_result.get('log_id')
+                'generation_id': llm_result.get('generation_id')  # 🔧 UPDATED: was log_id
             }
         
         # If not waiting, return early
@@ -70,7 +70,7 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'success': True,
                 'message': 'Monster generation started',
                 'monster': None,
-                'log_id': llm_result['log_id']
+                'generation_id': llm_result['generation_id']  # 🔧 UPDATED: was log_id
             }
         
         # Step 4: Check if parsing succeeded
@@ -79,7 +79,7 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'success': False,
                 'error': f"Automatic parsing failed after {llm_result.get('attempt', 1)} attempts",
                 'monster': None,
-                'log_id': llm_result['log_id'],
+                'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
                 'raw_response': llm_result.get('text', '')
             }
         
@@ -97,7 +97,7 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'success': False,
                 'error': 'Failed to save monster to database',
                 'monster': None,
-                'log_id': llm_result['log_id'],
+                'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
                 'parsed_data': transformed_data
             }
         
@@ -123,7 +123,7 @@ def generate_monster(prompt_name: str = "basic_monster",
         return {
             'success': True,
             'monster': monster.to_dict(),  # Now includes abilities!
-            'log_id': llm_result['log_id'],
+            'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
             'generation_stats': {
                 'tokens': llm_result.get('tokens', 0),
                 'duration': llm_result.get('duration', 0),
@@ -134,7 +134,7 @@ def generate_monster(prompt_name: str = "basic_monster",
                 'abilities_generated': abilities_result.get('abilities_created', 0),
                 'abilities_success': abilities_result['success']
             },
-            'abilities_log_id': abilities_result.get('log_id')  # For debugging abilities generation
+            'abilities_generation_id': abilities_result.get('generation_id')  # 🔧 UPDATED: was log_id
         }
         
     except Exception as e:
@@ -238,7 +238,7 @@ def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
 def get_available_templates() -> Dict[str, str]:
     """Get available monster generation templates"""
     try:
-        from backend.ai.llm.prompt_engine import get_prompt_engine
+        from backend.ai.llm.prompt_engine import get_prompt_engine  # 🔧 UPDATED: ai folder path
         
         engine = get_prompt_engine()
         templates = {}
