@@ -1,0 +1,439 @@
+/* Monster Sanctuary Screen Styles */
+/* Beautiful sanctuary layout with flippable monster cards */
+
+.monster-sanctuary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+/* ===== SANCTUARY HEADER ===== */
+.sanctuary-header {
+  text-align: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  color: white;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.sanctuary-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: shine 3s infinite;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.header-content h1 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.header-content p {
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: 1.1rem;
+  opacity: 0.95;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.quick-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+}
+
+.primary-action-button {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 1;
+}
+
+.primary-action-button:hover:not(:disabled) {
+  background: #e67e22;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.primary-action-button:disabled {
+  background: var(--text-dim);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.feature-notice {
+  background: rgba(255, 255, 255, 0.2);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-md);
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== LOADING STATE ===== */
+.sanctuary-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: var(--background-medium);
+  border-radius: var(--radius-lg);
+  color: var(--text-light);
+}
+
+.sanctuary-loading .loading-spinner {
+  width: 60px;
+  height: 60px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.sanctuary-loading p {
+  font-size: 18px;
+  color: var(--text-medium);
+}
+
+/* ===== ERROR SECTION ===== */
+.error-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.error-message {
+  background: rgba(231, 76, 60, 0.1);
+  border: 2px solid var(--error-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  text-align: center;
+}
+
+.error-message h3 {
+  color: var(--error-color);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.error-message p {
+  color: var(--text-light);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+.retry-button {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: var(--transition-normal);
+}
+
+.retry-button:hover {
+  background: #e67e22;
+}
+
+/* ===== SANCTUARY CONTROLS ===== */
+.sanctuary-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--background-medium);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.monster-count {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.count-badge {
+  background: var(--primary-color);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.filter-info {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.controls-group {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: center;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.control-group label {
+  color: var(--text-medium);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sanctuary-select {
+  background: var(--background-dark);
+  color: var(--text-light);
+  border: 1px solid var(--background-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.sanctuary-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.2);
+}
+
+.sanctuary-select:hover {
+  border-color: var(--primary-color);
+}
+
+/* ===== MONSTER GALLERY ===== */
+.monster-gallery {
+  min-height: 500px;
+}
+
+.empty-sanctuary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+  background: var(--background-medium);
+  border-radius: var(--radius-lg);
+  border: 3px dashed var(--background-light);
+}
+
+.empty-content {
+  text-align: center;
+  max-width: 500px;
+  padding: var(--spacing-xl);
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.6;
+}
+
+.empty-content h3 {
+  color: var(--text-light);
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 24px;
+}
+
+.empty-content p {
+  color: var(--text-medium);
+  margin: var(--spacing-sm) 0;
+  line-height: 1.5;
+}
+
+/* Monster Cards Grid */
+.monster-cards-grid {
+  display: grid;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-md);
+}
+
+/* Grid layouts for different card sizes */
+.monster-cards-grid.small-cards {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.monster-cards-grid.normal-cards {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.monster-cards-grid.large-cards {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+/* ===== SANCTUARY STATS ===== */
+.sanctuary-stats {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.sanctuary-stats h3 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.stat-card {
+  background: var(--background-dark);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  text-align: center;
+  border: 2px solid var(--background-light);
+  transition: var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.stat-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-color);
+  font-family: var(--font-family-mono);
+}
+
+.stat-label {
+  color: var(--text-medium);
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1200px) {
+  .monster-cards-grid.small-cards {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  
+  .monster-cards-grid.normal-cards {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  .monster-cards-grid.large-cards {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .monster-sanctuary {
+    padding: var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .sanctuary-controls {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .controls-group {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .monster-cards-grid.small-cards,
+  .monster-cards-grid.normal-cards,
+  .monster-cards-grid.large-cards {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    padding: 0;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content h1 {
+    font-size: 1.8rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .empty-icon {
+    font-size: 60px;
+  }
+  
+  .empty-content h3 {
+    font-size: 20px;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  .sanctuary-header::before {
+    animation: none;
+  }
+  
+  .primary-action-button:hover:not(:disabled),
+  .stat-card:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .sanctuary-header,
+  .sanctuary-controls,
+  .sanctuary-stats {
+    border: 2px solid var(--text-light);
+  }
+  
+  .stat-card {
+    border-width: 3px;
+  }
+}

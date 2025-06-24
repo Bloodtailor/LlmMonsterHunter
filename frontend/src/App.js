@@ -1,9 +1,9 @@
-// Main React application component - RESTRUCTURED
+// Main React application component - UPDATED WITH MONSTER SANCTUARY
 // Separates game interface from developer tools
-// Provides navigation between game and debug modes
+// Now uses the new MonsterSanctuary screen with flippable cards
 
 import React, { useState, useEffect } from 'react';
-import GameHomeBase from './components/screens/GameHomeBase';
+import MonsterSanctuary from './components/screens/MonsterSanctuary';
 import DeveloperScreen from './components/screens/DeveloperScreen';
 import StreamingDisplay from './components/streaming/StreamingDisplay';
 import { healthCheck, getGameStatus } from './services/api';
@@ -123,7 +123,7 @@ function App() {
               className={`nav-button ${currentScreen === 'game' ? 'active' : ''}`}
               onClick={() => setCurrentScreen('game')}
             >
-              🏠 Game
+              🏛️ Sanctuary
             </button>
             <button 
               className={`nav-button ${currentScreen === 'developer' ? 'active' : ''}`}
@@ -138,7 +138,7 @@ function App() {
       {/* Main Content - Switch between screens */}
       <main className="app-main">
         {currentScreen === 'game' ? (
-          <GameHomeBase 
+          <MonsterSanctuary 
             gameData={appStatus.gameData}
             onRefresh={checkBackendStatus}
           />
@@ -156,7 +156,7 @@ function App() {
         <div className="footer-info">
           <span>Status: {appStatus.gameData?.status || 'Unknown'}</span>
           <span>•</span>
-          <span>Current Screen: {currentScreen === 'game' ? 'Game Interface' : 'Developer Tools'}</span>
+          <span>Current Screen: {currentScreen === 'game' ? 'Monster Sanctuary' : 'Developer Tools'}</span>
         </div>
       </footer>
     </div>

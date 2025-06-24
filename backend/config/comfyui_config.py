@@ -21,16 +21,17 @@ DEFAULT_BATCH_SIZE = 1
 
 # === Negative Prompt (Universal) ===
 DEFAULT_NEGATIVE_PROMPT = (
-    "worst quality, normal quality, anatomical nonsense, bad anatomy, "
-    "interlocked fingers, extra fingers, watermark, simple background, "
-    "transparent, low quality, logo, text, signature"
+    "worst quality, low quality, "
+    "watermark, logo, text, signature, "
+    "anime, woman, man, girl, lady, human"
 )
 
 # === Base Positive Prompt (Universal Styling) ===
 DEFAULT_BASE_POSITIVE_PROMPT = (
-    "Norse mythology art"
-    "digital art, magic fantasy, vibrant colors, high contrast, "
-    "highly detailed, trending on artstation, 4k"
+    "cute"
+#    "Norse mythology art"
+#    "digital art, magic fantasy, vibrant colors, high contrast, "
+#    "highly detailed, trending on artstation, 4k"
 )
 
 # === Server Settings ===

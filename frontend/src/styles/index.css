@@ -9,13 +9,15 @@
 
 /* 3. Reusable UI components */
 @import './components/UI.css';
+@import './components/FlippableCard.css';
+@import './components/MonsterCard.css';
 @import './components/LLMLogViewer.css';
 @import './components/StreamingDisplay.css';
 @import './components/Navigation.css';
 @import './components/TestRunner.css';
 
 /* 4. Screen-specific styles */
-@import './screens/GameHomeBase.css';
+@import './screens/MonsterSanctuary.css';
 @import './screens/DeveloperScreen.css';
 
 /* Code highlighting for development */
