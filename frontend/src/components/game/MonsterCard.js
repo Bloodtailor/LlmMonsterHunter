@@ -5,15 +5,14 @@
 import React, { useState } from 'react';
 import FlippableCard from '../ui/FlippableCard';
 
-function MonsterCard({ monster, onAbilityGenerate = null }) {
+function MonsterCard({ monster, size = 'normal', onAbilityGenerate = null }) {
   const [generatingAbility, setGeneratingAbility] = useState(false);
 
-  // Handle card art - use placeholder if missing
+  // Handle card art - use actual backend URL if available
   const getCardArtUrl = () => {
     if (monster.card_art?.exists && monster.card_art?.relative_path) {
-      // In a real app, this would be served by the backend
-      // For now, we'll use a placeholder since we can't serve the actual images
-      return null; // Will use placeholder
+      // Use the backend API endpoint to serve the image
+      return `http://localhost:5000/api/monsters/card-art/${monster.card_art.relative_path}`;
     }
     return null; // Use placeholder
   };
@@ -68,25 +67,6 @@ function MonsterCard({ monster, onAbilityGenerate = null }) {
           <h3 className="monster-name">{monster.name}</h3>
           <span className="monster-species">{monster.species}</span>
         </div>
-        
-        <div className="monster-quick-stats">
-          <div className="stat-chip">
-            <span className="stat-label">HP</span>
-            <span className="stat-value">{monster.stats.current_health}/{monster.stats.max_health}</span>
-          </div>
-          <div className="stat-chip">
-            <span className="stat-label">ATK</span>
-            <span className="stat-value">{monster.stats.attack}</span>
-          </div>
-          <div className="stat-chip">
-            <span className="stat-label">DEF</span>
-            <span className="stat-value">{monster.stats.defense}</span>
-          </div>
-          <div className="stat-chip">
-            <span className="stat-label">SPD</span>
-            <span className="stat-value">{monster.stats.speed}</span>
-          </div>
-        </div>
 
         {/* Ability Preview */}
         <div className="abilities-preview">
@@ -121,6 +101,14 @@ function MonsterCard({ monster, onAbilityGenerate = null }) {
       <div className="description-section">
         <p className="monster-description">{monster.description}</p>
       </div>
+
+      {/* Backstory */}
+      {monster.backstory && (
+        <div className="backstory-section">
+          <h4>📖 Backstory</h4>
+          <p className="monster-backstory">{monster.backstory}</p>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="stats-section">
@@ -202,7 +190,7 @@ function MonsterCard({ monster, onAbilityGenerate = null }) {
       backContent={backContent}
       cardId={monster.id}
       className="monster-card-container"
-      size="normal"
+      size={size}
       onFlip={(isFlipped, cardId) => {
         // Optional: Track analytics or perform actions on flip
         if (isFlipped) {

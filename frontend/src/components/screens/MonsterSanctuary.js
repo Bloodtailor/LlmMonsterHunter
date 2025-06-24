@@ -12,6 +12,7 @@ function MonsterSanctuary({ gameData }) {
   const [generatingMonster, setGeneratingMonster] = useState(false);
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', 'name', 'species'
   const [filterBy, setFilterBy] = useState('all'); // 'all', 'with_art', 'without_art'
+  const [cardSize, setCardSize] = useState('normal'); // 'small', 'normal', 'large'
 
   // Load monsters on component mount
   useEffect(() => {
@@ -222,6 +223,20 @@ function MonsterSanctuary({ gameData }) {
               <option value="without_art">Without Card Art</option>
             </select>
           </div>
+          
+          <div className="control-group">
+            <label htmlFor="size-select">Card Size:</label>
+            <select 
+              id="size-select"
+              value={cardSize} 
+              onChange={(e) => setCardSize(e.target.value)}
+              className="sanctuary-select"
+            >
+              <option value="small">Small</option>
+              <option value="normal">Normal</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
         </div>
       </section>
 
@@ -246,11 +261,12 @@ function MonsterSanctuary({ gameData }) {
             </div>
           </div>
         ) : (
-          <div className="monster-cards-grid">
+          <div className={`monster-cards-grid ${cardSize}-cards`}>
             {filteredMonsters.map(monster => (
               <MonsterCard
                 key={monster.id}
                 monster={monster}
+                size={cardSize}
                 onAbilityGenerate={handleAbilityGenerate}
               />
             ))}

@@ -274,9 +274,24 @@
 /* Monster Cards Grid */
 .monster-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--spacing-xl);
   padding: var(--spacing-md);
+}
+
+/* Grid layouts for different card sizes */
+.monster-cards-grid.small-cards {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.monster-cards-grid.normal-cards {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.monster-cards-grid.large-cards {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: var(--spacing-xl);
 }
 
 /* ===== SANCTUARY STATS ===== */
@@ -334,9 +349,16 @@
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
-  .monster-cards-grid {
+  .monster-cards-grid.small-cards {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  
+  .monster-cards-grid.normal-cards {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--spacing-lg);
+  }
+  
+  .monster-cards-grid.large-cards {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   }
 }
 
@@ -361,7 +383,9 @@
     gap: var(--spacing-md);
   }
   
-  .monster-cards-grid {
+  .monster-cards-grid.small-cards,
+  .monster-cards-grid.normal-cards,
+  .monster-cards-grid.large-cards {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
     padding: 0;
