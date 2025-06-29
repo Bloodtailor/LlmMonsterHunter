@@ -1,148 +1,127 @@
-# Startup Module - Updated for AI folder structure
-# Loads LLM model on startup and initializes unified AI generation queue
-# Ensures everything is ready before accepting requests
+# AI Systems Initialization - CLEANED UP
+# Loads LLM model and initializes unified AI generation queue
 
 import os
-import time
-from backend.ai.llm.core import load_model, warm_up_model, get_model_status
-from backend.ai.queue import get_ai_queue  # 🔧 UPDATED: new queue location
+from backend.utils.console import print_section, print_success, print_error, print_warning, print_info
 
-def initialize_backend(app):
+def initialize_ai_systems(app):
     """
-    Initialize all backend systems in the correct order
+    Initialize AI systems in the correct order
     Call this from create_app() to ensure everything is ready
     
     Args:
         app: Flask application instance
     """
     
-    print("🚀 Initializing Monster Hunter Game Backend...")
-    print("=" * 60)
+    print_section("Initializing AI Systems")
     
-    # 1. Load LLM Model (CRITICAL - do this first)
-    print("📋 Step 1: Loading LLM Model...")
-    model_success = load_model()
-    
-    if not model_success:
-        print("❌ CRITICAL: Failed to load LLM model!")
-        print("   The backend will start but LLM features won't work")
-        print("   Check your .env LLM_MODEL_PATH setting")
+    # Load LLM Model
+    if _load_llm_model():
+        print_success("LLM model loaded and ready")
     else:
-        print("✅ LLM Model loaded successfully")
-        
-        # Warm up the model for consistent performance
-        print("🔥 Warming up model...")
-        warmup_success = warm_up_model()
-        if warmup_success:
-            print("✅ Model warmed up and ready for generation")
-        else:
-            print("⚠️  Model warmup had issues - generation may be slower initially")
+        print_error("LLM model failed to load - text generation disabled")
     
-    # 2. Initialize Unified AI Queue System with Flask Context
-    print("📋 Step 2: Initializing Unified AI Queue System...")
+    # Initialize AI Queue
     with app.app_context():
-        queue = get_ai_queue()  # 🔧 UPDATED: unified queue for both LLM and image
-        queue.set_flask_app(app)  # CRITICAL for database operations
-        print("✅ Unified AI generation queue initialized with Flask context")
-        print("   Supports: LLM text generation + ComfyUI image generation")
+        if _initialize_ai_queue(app):
+            print_success("AI generation queue ready")
+        else:
+            print_error("AI queue initialization failed")
     
-    # 3. Verify Everything is Ready
-    print("📋 Step 3: System Verification...")
-    status = get_model_status()
-    
-    if status['loaded']:
-        print(f"✅ Model Status: Loaded ({status.get('model_path', 'Unknown').split('/')[-1]})")
-        print(f"✅ GPU Layers: {status.get('gpu_layers', 'Unknown')}")
-        print(f"✅ Load Time: {status.get('load_duration', 'Unknown')}s")
-    else:
-        print("❌ Model Status: Not loaded")
+    # Check image generation capability
+    _check_image_generation()
 
-    # 4. Check Image Generation Capability
-    print("📋 Step 4: Checking Image Generation...")
+def _load_llm_model():
+    """Load LLM model"""
+    try:
+        from backend.ai.llm.core import load_model, warm_up_model
+        
+        if load_model():
+            warm_up_model()  # Quick warmup for consistent performance
+            return True
+        return False
+        
+    except Exception as e:
+        print_error(f"LLM initialization error: {e}")
+        return False
+
+def _initialize_ai_queue(app):
+    """Initialize unified AI queue with Flask context"""
+    try:
+        from backend.ai.queue import get_ai_queue
+        
+        queue = get_ai_queue()
+        queue.set_flask_app(app)
+        return True
+        
+    except Exception as e:
+        print_error(f"Queue initialization error: {e}")
+        return False
+
+def _check_image_generation():
+    """Check image generation capability"""
     image_enabled = os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true'
-    if image_enabled:
-        print("✅ Image generation is ENABLED")
-        try:
-            from backend.ai.comfyui.client import ComfyUIClient
-            client = ComfyUIClient()
-            if client.is_server_running():
-                print("✅ ComfyUI server is running and ready")
-            else:
-                print("⚠️  ComfyUI server not running - image generation will fail")
-                print("   Start ComfyUI with: python main.py --listen")
-        except ImportError:
-            print("⚠️  ComfyUI components not available")
-        except Exception as e:
-            print(f"⚠️  ComfyUI check failed: {e}")
-    else:
-        print("ℹ️  Image generation is DISABLED (this is fine)")
-        print("   Set ENABLE_IMAGE_GENERATION=true to enable")
+    
+    if not image_enabled:
+        print_info("Image generation disabled")
+        return
+    
+    try:
+        from backend.ai.comfyui.client import ComfyUIClient
+        client = ComfyUIClient()
+        
+        if client.is_server_running():
+            print_success("Image generation ready")
+        else:
+            print_warning("ComfyUI server not running - start with: python main.py --listen")
+            
+    except Exception as e:
+        print_warning(f"Image generation check failed: {e}")
 
-def get_system_status():
+def get_ai_status():
     """
-    Get comprehensive system status for debugging
-    Updated for unified queue system
+    Get AI systems status for API endpoints
     
     Returns:
-        dict: Complete system status
+        dict: Current AI systems status
     """
     
-    # LLM Status
-    llm_status = get_model_status()
-    
-    # Unified Queue Status
     try:
+        # LLM Status
+        from backend.ai.llm.core import get_model_status
+        llm_status = get_model_status()
+        llm_ready = llm_status.get('loaded', False)
+        
+        # Queue Status
         from backend.ai.queue import get_ai_queue
         queue = get_ai_queue()
         queue_status = queue.get_queue_status()
-    except Exception as e:
-        queue_status = {'error': str(e)}
-    
-    # Database Status
-    try:
-        from backend.models.generation_log import GenerationLog
-        total_logs = GenerationLog.query.count()
-        recent_logs = GenerationLog.query.order_by(GenerationLog.created_at.desc()).limit(5).count()
         
-        # Get counts by generation type
-        llm_count = GenerationLog.query.filter_by(generation_type='llm').count()
-        image_count = GenerationLog.query.filter_by(generation_type='image').count()
-        
-        db_status = {
-            'connected': True,
-            'total_logs': total_logs,
-            'recent_logs': recent_logs,
-            'llm_generations': llm_count,
-            'image_generations': image_count
-        }
-    except Exception as e:
-        db_status = {'connected': False, 'error': str(e)}
-    
-    # Image Generation Status
-    try:
+        # Image Generation Status
         image_enabled = os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true'
+        image_ready = False
+        
         if image_enabled:
-            from backend.ai.comfyui.client import ComfyUIClient
-            client = ComfyUIClient()
-            image_status = {
-                'enabled': True,
-                'server_running': client.is_server_running(),
-                'available': client.is_server_running()
-            }
-        else:
-            image_status = {
-                'enabled': False,
-                'server_running': False,
-                'available': False
-            }
+            try:
+                from backend.ai.comfyui.client import ComfyUIClient
+                client = ComfyUIClient()
+                image_ready = client.is_server_running()
+            except Exception:
+                pass
+        
+        return {
+            'llm_ready': llm_ready,
+            'image_ready': image_ready,
+            'gpu_enabled': llm_status.get('gpu_layers', 0) > 0,
+            'queue_running': queue_status.get('worker_running', False),
+            'queue_size': queue_status.get('queue_size', 0),
+            'generation_types_supported': ['llm'] + (['image'] if image_ready else [])
+        }
+        
     except Exception as e:
-        image_status = {'enabled': image_enabled, 'error': str(e), 'available': False}
-    
-    return {
-        'llm': llm_status,
-        'queue': queue_status,
-        'database': db_status,
-        'image_generation': image_status,
-        'startup_complete': llm_status.get('loaded', False),
-        'generation_types_supported': ['llm'] + (['image'] if image_status.get('available') else [])
-    }
+        return {
+            'error': str(e),
+            'llm_ready': False,
+            'image_ready': False,
+            'gpu_enabled': False
+        }
