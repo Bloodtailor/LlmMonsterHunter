@@ -1,10 +1,31 @@
-// Developer Screen Component
+// Developer Screen Component - CLEANED UP
 // Contains all debugging tools, system monitoring, and test runner
 
 import React, { useState } from 'react';
 import { testApiConnectivity } from '../../services/api';
 import LLMLogViewer from '../debug/LLMLogViewer';
 import TestRunner from '../debug/TestRunner';
+
+// Reusable Test Result Component
+function TestResult({ result, testName }) {
+  if (!result) return null;
+  
+  return (
+    <div className={`alert ${result.success ? 'alert-success' : 'alert-error'} mt-md`}>
+      <h5>{result.success ? '✅' : '❌'} {testName} {result.success ? 'Passed' : 'Failed'}</h5>
+      {result.success ? (
+        <div>
+          <p>✅ Health check: {result.health?.status}</p>
+          <p>✅ Database: {result.health?.database}</p>
+          <p>✅ Game status: {result.status?.status}</p>
+        </div>
+      ) : (
+        <p>Error: {result.error}</p>
+      )}
+      <small>Tested at: {new Date(result.timestamp).toLocaleTimeString()}</small>
+    </div>
+  );
+}
 
 function DeveloperScreen({ gameData, onRefresh }) {
   const [testing, setTesting] = useState(false);
@@ -28,39 +49,28 @@ function DeveloperScreen({ gameData, onRefresh }) {
     setTesting(false);
   };
 
-  // Test Complete Flow using proper logging flow
+  // Test Complete Flow
   const handleQueueTest = async () => {
     setQueueTesting(true);
     setQueueTestResults(null);
     
     try {
-      // Use the simple test endpoint that ensures proper logging
       const response = await fetch('http://localhost:5000/api/streaming/test/simple', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
       });
       
       const data = await response.json();
       
-      if (data.success) {
-        setQueueTestResults({
-          success: true,
-          request_id: data.request_id,
-          log_id: data.log_id,
-          message: 'Test started! Watch the streaming display and LLM log viewer.',
-          instructions: data.instructions,
-          timestamp: new Date().toISOString()
-        });
-      } else {
-        setQueueTestResults({
-          success: false,
-          error: data.error,
-          timestamp: new Date().toISOString()
-        });
-      }
+      setQueueTestResults({
+        success: data.success,
+        request_id: data.request_id,
+        log_id: data.log_id,
+        message: data.success ? 'Test started! Watch the streaming display and LLM log viewer.' : null,
+        error: data.error,
+        timestamp: new Date().toISOString()
+      });
       
     } catch (error) {
       setQueueTestResults({
@@ -84,15 +94,15 @@ function DeveloperScreen({ gameData, onRefresh }) {
       {/* System Status Panel */}
       <section className="system-status-panel">
         <h2>🎮 System Status</h2>
-        <div className="status-grid">
-          <div className="status-card">
+        <div className="grid-auto-fit grid-auto-fit-md">
+          <div className="card">
             <h4>Game Information</h4>
             <p><strong>Name:</strong> {gameData?.game_name || 'Loading...'}</p>
             <p><strong>Version:</strong> {gameData?.version || 'Unknown'}</p>
             <p><strong>Phase:</strong> {gameData?.status || 'Unknown'}</p>
           </div>
           
-          <div className="status-card">
+          <div className="card">
             <h4>Backend Status</h4>
             {gameData?.system_status ? (
               <div>
@@ -106,7 +116,7 @@ function DeveloperScreen({ gameData, onRefresh }) {
             )}
           </div>
           
-          <div className="status-card">
+          <div className="card">
             <h4>Feature Development Status</h4>
             {gameData?.features ? (
               <div className="features-list">
@@ -131,48 +141,34 @@ function DeveloperScreen({ gameData, onRefresh }) {
       {/* Quick Testing Tools */}
       <section className="quick-testing">
         <h2>🧪 Quick System Tests</h2>
-        <div className="tools-grid">
-          <div className="tool-card">
+        <div className="grid-auto-fit grid-auto-fit-md">
+          <div className="card">
             <h4>API Connectivity Test</h4>
             <p>Test connection to Flask backend and verify all endpoints are working</p>
             <button 
               onClick={handleApiTest} 
               disabled={testing}
-              className="test-button"
+              className="btn btn-primary"
             >
               {testing ? '🔄 Testing...' : '🧪 Test API'}
             </button>
             
-            {apiTestResults && (
-              <div className={`test-results ${apiTestResults.success ? 'success' : 'error'}`}>
-                <h5>{apiTestResults.success ? '✅ API Test Passed' : '❌ API Test Failed'}</h5>
-                {apiTestResults.success ? (
-                  <div>
-                    <p>✅ Health check: {apiTestResults.health?.status}</p>
-                    <p>✅ Database: {apiTestResults.health?.database}</p>
-                    <p>✅ Game status: {apiTestResults.status?.status}</p>
-                  </div>
-                ) : (
-                  <p>Error: {apiTestResults.error}</p>
-                )}
-                <small>Tested at: {new Date(apiTestResults.timestamp).toLocaleTimeString()}</small>
-              </div>
-            )}
+            <TestResult result={apiTestResults} testName="API Test" />
           </div>
           
-          <div className="tool-card">
+          <div className="card">
             <h4>Complete Flow Test</h4>
             <p>Test the complete flow: queue → LLM generation → logging → streaming display</p>
             <button 
               onClick={handleQueueTest} 
               disabled={queueTesting}
-              className="test-button"
+              className="btn btn-primary"
             >
               {queueTesting ? '🔄 Starting Test...' : '🎲 Test Complete Flow'}
             </button>
             
             {queueTestResults && (
-              <div className={`test-results ${queueTestResults.success ? 'success' : 'error'}`}>
+              <div className={`alert ${queueTestResults.success ? 'alert-success' : 'alert-error'} mt-md`}>
                 <h5>{queueTestResults.success ? '✅ Complete Flow Test Started' : '❌ Test Failed'}</h5>
                 {queueTestResults.success ? (
                   <div>
@@ -189,10 +185,10 @@ function DeveloperScreen({ gameData, onRefresh }) {
             )}
           </div>
           
-          <div className="tool-card">
+          <div className="card">
             <h4>Refresh System Data</h4>
             <p>Reload game status and backend connection information</p>
-            <button onClick={onRefresh} className="refresh-button">
+            <button onClick={onRefresh} className="btn btn-secondary">
               🔄 Refresh Data
             </button>
           </div>
