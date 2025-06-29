@@ -188,7 +188,7 @@ function DeveloperScreen({ gameData, onRefresh }) {
           <div className="card">
             <h4>Refresh System Data</h4>
             <p>Reload game status and backend connection information</p>
-            <button onClick={onRefresh} className="btn btn-secondary">
+            <button onClick={onRefresh} className="btn btn-primary">
               🔄 Refresh Data
             </button>
           </div>

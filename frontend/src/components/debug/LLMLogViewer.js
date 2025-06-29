@@ -1,9 +1,135 @@
-// LLM Log Viewer Component
+// LLM Log Viewer Component - CLEANED UP
 // Displays LLM generation logs for debugging and monitoring
 // Shows prompts, responses, timing, and parsing results
 
 import React, { useState, useEffect } from 'react';
 import { getLLMLogs, getLLMLogDetail, getLLMStatus, getLLMStats } from '../../services/api';
+
+// Helper function for API calls
+async function loadAllLLMData(filter) {
+  const [logsResponse, statusResponse, statsResponse] = await Promise.all([
+    getLLMLogs(filter),
+    getLLMStatus(),
+    getLLMStats()
+  ]);
+  
+  return {
+    logs: logsResponse.success ? logsResponse.data.logs : [],
+    status: statusResponse.success ? statusResponse.data : null,
+    stats: statsResponse.success ? statsResponse.data : null
+  };
+}
+
+// Status Badge Component
+function StatusBadge({ status }) {
+  const badges = {
+    'pending': 'status-pending',
+    'generating': 'status-generating', 
+    'completed': 'status-completed',
+    'failed': 'status-failed'
+  };
+  
+  return (
+    <span className={`status-badge ${badges[status] || 'status-unknown'}`}>
+      {status}
+    </span>
+  );
+}
+
+// Log Detail Component
+function LogDetailSection({ selectedLog, onClose }) {
+  if (!selectedLog) return null;
+  
+  return (
+    <div className="log-detail">
+      <h4>🔍 Log Detail - ID: {selectedLog.id}</h4>
+      
+      <div className="detail-sections">
+        <div className="detail-section">
+          <h5>📝 Prompt</h5>
+          <div className="code-block">
+            <pre>{selectedLog.prompt_text}</pre>
+          </div>
+        </div>
+        
+        {selectedLog.response_text && (
+          <div className="detail-section">
+            <h5>🤖 Response</h5>
+            <div className="code-block">
+              <pre>{selectedLog.response_text}</pre>
+            </div>
+          </div>
+        )}
+        
+        {selectedLog.parsed_data && (
+          <div className="detail-section">
+            <h5>✅ Parsed Data</h5>
+            <div className="code-block">
+              <pre>{JSON.stringify(selectedLog.parsed_data, null, 2)}</pre>
+            </div>
+          </div>
+        )}
+        
+        {selectedLog.parse_error && (
+          <div className="detail-section error">
+            <h5>❌ Parse Error</h5>
+            <div className="error-block">
+              <pre>{selectedLog.parse_error}</pre>
+            </div>
+          </div>
+        )}
+        
+        {selectedLog.error_message && (
+          <div className="detail-section error">
+            <h5>❌ Generation Error</h5>
+            <div className="error-block">
+              <pre>{selectedLog.error_message}</pre>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <button onClick={onClose} className="btn btn-secondary mt-md">
+        ✖️ Close Detail
+      </button>
+    </div>
+  );
+}
+
+// Status Cards Component
+function StatusCards({ llmStatus, stats }) {
+  return (
+    <div className="grid-auto-fit grid-auto-fit-md">
+      {llmStatus && (
+        <div className="card">
+          <h4>Model Status</h4>
+          <p><strong>Loaded:</strong> {llmStatus.model_loaded ? '✅ Yes' : '❌ No'}</p>
+          {llmStatus.model_path && (
+            <p><strong>Model:</strong> {llmStatus.model_path.split('/').pop()}</p>
+          )}
+          <p><strong>Generating:</strong> {llmStatus.currently_generating ? '🔄 Yes' : '⏹️ No'}</p>
+          {llmStatus.error && (
+            <p className="text-error"><strong>Error:</strong> {llmStatus.error}</p>
+          )}
+        </div>
+      )}
+      
+      {stats && (
+        <div className="card">
+          <h4>Generation Stats</h4>
+          <p><strong>Total:</strong> {stats.total_generations}</p>
+          <p><strong>Success Rate:</strong> {stats.success_rate}%</p>
+          <p><strong>Parse Success:</strong> {stats.parse_success_rate}%</p>
+          <p><strong>Failed:</strong> {stats.failed}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Utility functions
+const formatDate = (dateString) => new Date(dateString).toLocaleString();
+const formatDuration = (seconds) => seconds ? `${seconds.toFixed(1)}s` : 'N/A';
 
 function LLMLogViewer() {
   const [logs, setLogs] = useState([]);
@@ -18,7 +144,7 @@ function LLMLogViewer() {
     prompt_type: ''
   });
 
-  // Load data on component mount
+  // Load data on component mount and filter changes
   useEffect(() => {
     loadAllData();
   }, [filter]);
@@ -28,24 +154,10 @@ function LLMLogViewer() {
     setError(null);
     
     try {
-      const [logsResponse, statusResponse, statsResponse] = await Promise.all([
-        getLLMLogs(filter),
-        getLLMStatus(),
-        getLLMStats()
-      ]);
-      
-      if (logsResponse.success) {
-        setLogs(logsResponse.data.logs);
-      }
-      
-      if (statusResponse.success) {
-        setLLMStatus(statusResponse.data);
-      }
-      
-      if (statsResponse.success) {
-        setStats(statsResponse.data);
-      }
-      
+      const { logs, status, stats } = await loadAllLLMData(filter);
+      setLogs(logs);
+      setLLMStatus(status);
+      setStats(stats);
     } catch (err) {
       setError(err.message);
     }
@@ -64,31 +176,12 @@ function LLMLogViewer() {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
-  };
-
-  const formatDuration = (seconds) => {
-    return seconds ? `${seconds.toFixed(1)}s` : 'N/A';
-  };
-
-  const getStatusBadge = (status) => {
-    const badges = {
-      'pending': 'status-pending',
-      'generating': 'status-generating', 
-      'completed': 'status-completed',
-      'failed': 'status-failed'
-    };
-    
-    return badges[status] || 'status-unknown';
-  };
-
   if (loading) {
     return (
       <div className="llm-log-viewer">
-        <div className="loading">
+        <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading LLM logs...</p>
+          <p className="loading-text">Loading LLM logs...</p>
         </div>
       </div>
     );
@@ -99,32 +192,7 @@ function LLMLogViewer() {
       {/* Header with Status and Stats */}
       <div className="llm-overview">
         <h3>🤖 LLM System Status</h3>
-        
-        <div className="status-cards">
-          {llmStatus && (
-            <div className="status-card">
-              <h4>Model Status</h4>
-              <p><strong>Loaded:</strong> {llmStatus.model_loaded ? '✅ Yes' : '❌ No'}</p>
-              {llmStatus.model_path && (
-                <p><strong>Model:</strong> {llmStatus.model_path.split('/').pop()}</p>
-              )}
-              <p><strong>Generating:</strong> {llmStatus.currently_generating ? '🔄 Yes' : '⏹️ No'}</p>
-              {llmStatus.error && (
-                <p className="error-text"><strong>Error:</strong> {llmStatus.error}</p>
-              )}
-            </div>
-          )}
-          
-          {stats && (
-            <div className="status-card">
-              <h4>Generation Stats</h4>
-              <p><strong>Total:</strong> {stats.total_generations}</p>
-              <p><strong>Success Rate:</strong> {stats.success_rate}%</p>
-              <p><strong>Parse Success:</strong> {stats.parse_success_rate}%</p>
-              <p><strong>Failed:</strong> {stats.failed}</p>
-            </div>
-          )}
-        </div>
+        <StatusCards llmStatus={llmStatus} stats={stats} />
       </div>
 
       {/* Filters */}
@@ -160,14 +228,14 @@ function LLMLogViewer() {
             <option value="100">100 logs</option>
           </select>
           
-          <button onClick={loadAllData} className="refresh-button">
+          <button onClick={loadAllData} className="btn btn-secondary">
             🔄 Refresh
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="error-message">
+        <div className="alert alert-error">
           <h4>❌ Error</h4>
           <p>{error}</p>
         </div>
@@ -196,22 +264,18 @@ function LLMLogViewer() {
               </thead>
               <tbody>
                 {logs.map(log => (
-                  <tr key={log.id} className={getStatusBadge(log.status)}>
+                  <tr key={log.id}>
                     <td>{log.id}</td>
                     <td>{formatDate(log.created_at)}</td>
                     <td>{log.prompt_name}</td>
-                    <td>
-                      <span className={`status-badge ${getStatusBadge(log.status)}`}>
-                        {log.status}
-                      </span>
-                    </td>
+                    <td><StatusBadge status={log.status} /></td>
                     <td>{formatDuration(log.duration_seconds)}</td>
                     <td>{log.response_tokens || 'N/A'}</td>
                     <td>{log.parse_success ? '✅' : '❌'}</td>
                     <td>
                       <button 
                         onClick={() => handleLogClick(log.id)}
-                        className="view-button"
+                        className="btn btn-primary btn-sm"
                       >
                         👁️ View
                       </button>
@@ -225,63 +289,10 @@ function LLMLogViewer() {
       </div>
 
       {/* Selected Log Detail */}
-      {selectedLog && (
-        <div className="log-detail">
-          <h4>🔍 Log Detail - ID: {selectedLog.id}</h4>
-          
-          <div className="detail-sections">
-            <div className="detail-section">
-              <h5>📝 Prompt</h5>
-              <div className="code-block">
-                <pre>{selectedLog.prompt_text}</pre>
-              </div>
-            </div>
-            
-            {selectedLog.response_text && (
-              <div className="detail-section">
-                <h5>🤖 Response</h5>
-                <div className="code-block">
-                  <pre>{selectedLog.response_text}</pre>
-                </div>
-              </div>
-            )}
-            
-            {selectedLog.parsed_data && (
-              <div className="detail-section">
-                <h5>✅ Parsed Data</h5>
-                <div className="code-block">
-                  <pre>{JSON.stringify(selectedLog.parsed_data, null, 2)}</pre>
-                </div>
-              </div>
-            )}
-            
-            {selectedLog.parse_error && (
-              <div className="detail-section error">
-                <h5>❌ Parse Error</h5>
-                <div className="error-block">
-                  <pre>{selectedLog.parse_error}</pre>
-                </div>
-              </div>
-            )}
-            
-            {selectedLog.error_message && (
-              <div className="detail-section error">
-                <h5>❌ Generation Error</h5>
-                <div className="error-block">
-                  <pre>{selectedLog.error_message}</pre>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <button 
-            onClick={() => setSelectedLog(null)}
-            className="close-button"
-          >
-            ✖️ Close Detail
-          </button>
-        </div>
-      )}
+      <LogDetailSection 
+        selectedLog={selectedLog} 
+        onClose={() => setSelectedLog(null)} 
+      />
     </div>
   );
 }
