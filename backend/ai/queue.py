@@ -1,4 +1,4 @@
-# AI Generation Queue - UNIFIED FOR ALL GENERATION TYPES
+# AI Generation Queue - CLEANED UP
 # Handles both LLM text generation and ComfyUI image generation
 # Uses normalized generation_log database structure
 
@@ -71,7 +71,7 @@ class AIGenerationQueue:
         self._running = True
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
         self._worker_thread.start()
-        print("🔄 AI Generation Queue worker started")
+        # Removed verbose worker start message
     
     def add_request(self, generation_id: int) -> bool:
         """
@@ -90,7 +90,7 @@ class AIGenerationQueue:
             log_entry = GenerationLog.query.get(generation_id)
             
             if not log_entry:
-                print(f"❌ Generation log {generation_id} not found, cannot queue")
+                # Removed verbose error message
                 return False
             
             # Create queue item
@@ -114,11 +114,11 @@ class AIGenerationQueue:
                 "queue_size": self._queue.qsize()
             })
             
-            print(f"📥 Added {log_entry.generation_type} generation {generation_id} to queue (priority {log_entry.priority})")
+            # Removed verbose queue addition message
             return True
             
         except Exception as e:
-            print(f"❌ Error adding generation {generation_id} to queue: {e}")
+            # Removed verbose error message
             return False
     
     def get_request_status(self, generation_id: int) -> Optional[Dict[str, Any]]:
@@ -159,7 +159,8 @@ class AIGenerationQueue:
             from backend.services.event_service import emit_event
             emit_event(event_type, data)
         except Exception as e:
-            print(f"⚠️ Failed to emit event {event_type}: {e}")
+            # Removed verbose event emission error
+            pass
     
     def _process_item(self, item: QueueItem):
         """Process a queue item by delegating to appropriate processor"""
@@ -261,12 +262,12 @@ class AIGenerationQueue:
                     "generation_id": generation_id
                 })
                 
-                print(f"🔄 Processing {item.generation_type} generation {generation_id}")
+                # Removed verbose processing message
                 self._process_item(item)
                 self._current_item = None
                 
             except Exception as e:
-                print(f"❌ Worker error: {e}")
+                # Removed verbose worker error message
                 if self._current_item:
                     self._current_item.status = QueueItemStatus.FAILED
                     self._current_item.error = str(e)

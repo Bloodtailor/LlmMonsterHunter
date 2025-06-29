@@ -1,4 +1,4 @@
-# LLM Core Module - REFACTORED
+# LLM Core Module - CLEANED UP
 # ONLY handles model loading, unloading, and status
 # No queue, no streaming, no logging - pure model operations
 
@@ -120,7 +120,6 @@ def unload_model():
     
     with _model_lock:
         if _model is not None:
-            print("🗑️  Unloading model...")
             _model = None
             _model_info.update({
                 'loaded': False,
@@ -130,9 +129,10 @@ def unload_model():
                 'gpu_layers': None,
                 'error': None
             })
-            print("✅ Model unloaded")
+            # Removed verbose unloading messages
         else:
-            print("⚠️  No model to unload")
+            # Removed "No model to unload" message
+            pass
 
 def is_model_loaded() -> bool:
     """Check if model is currently loaded"""

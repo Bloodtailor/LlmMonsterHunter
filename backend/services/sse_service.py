@@ -1,6 +1,6 @@
-# SSE Service - Server-Sent Events Management
+# SSE Service - CLEANED UP
+# Server-Sent Events Management with minimal output
 # EVENT-DRIVEN: Uses blocking queues for maximum efficiency
-# Only wakes up when events actually occur (no constant polling!)
 
 import json
 import time
@@ -84,7 +84,7 @@ class SSEService:
         with self._lock:
             self._connections[connection_id] = connection
         
-        print(f"📡 SSE connection created: {connection_id}")
+        # Removed verbose connection creation message
         
         # Send initial connection event
         connection.send_event({
@@ -101,7 +101,7 @@ class SSEService:
             if connection_id in self._connections:
                 self._connections[connection_id].close()
                 del self._connections[connection_id]
-                print(f"📡 SSE connection removed: {connection_id}")
+                # Removed verbose connection removal message
     
     def broadcast_event(self, event: Dict[str, Any]):
         """
@@ -140,7 +140,7 @@ class SSEService:
             
             for conn_id in dead_connections:
                 del self._connections[conn_id]
-                print(f"🧹 Cleaned up dead SSE connection: {conn_id}")
+                # Removed verbose cleanup message
     
     def _setup_event_subscriptions(self):
         """Subscribe to relevant events from event_service"""
@@ -156,7 +156,7 @@ class SSEService:
         
         for event_type in llm_events:
             self._event_service.subscribe(event_type, self.broadcast_event)
-            print(f"📡 SSE subscribed to: {event_type}")
+            # Removed verbose subscription messages
     
     def _convert_to_sse_format(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """
