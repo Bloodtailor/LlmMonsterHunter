@@ -1,518 +1,156 @@
-/* Game HomeBase Screen Styles */
-/* ENHANCED WITH ABILITIES STYLING */
-/* The actual game interface where players manage monsters and their abilities */
+/* Developer Screen Styles */
+/* Debug tools, system monitoring, and test runner interface */
 
-.game-homebase {
+.developer-screen {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
-  max-width: 1200px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+/* Developer Header */
+.developer-header {
+  text-align: center;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  color: white;
+  box-shadow: var(--shadow-lg);
+}
+
+.developer-header h1 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 2.2rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.developer-header p {
+  margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+  max-width: 800px;
   margin: 0 auto;
 }
 
-/* Welcome Header */
-.welcome-header {
-  text-align: center;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-lg);
-  color: white;
-  box-shadow: var(--shadow-lg);
-}
-
-.welcome-content h1 {
-  margin: 0 0 var(--spacing-md) 0;
-  font-size: 2.5rem;
-}
-
-.welcome-content p {
-  margin: 0 0 var(--spacing-lg) 0;
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
-.quick-actions {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-md);
-}
-
-.primary-action-button {
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  padding: var(--spacing-md) var(--spacing-xl);
-  border-radius: var(--radius-md);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-normal);
-  box-shadow: var(--shadow-md);
-}
-
-.primary-action-button:hover:not(:disabled) {
-  background: #e67e22;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.primary-action-button:disabled {
-  background: var(--text-dim);
-  cursor: not-allowed;
-  transform: none;
-}
-
-.feature-notice {
-  background: rgba(255, 255, 255, 0.2);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  margin-top: var(--spacing-md);
-}
-
-/* Monster Roster */
-.monster-roster {
+/* System Status Panel */
+.system-status-panel {
   background: var(--background-medium);
   padding: var(--spacing-xl);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
-}
-
-.section-header h2 {
+.system-status-panel h2 {
   color: var(--accent-color);
-  margin: 0;
+  margin: 0 0 var(--spacing-lg) 0;
 }
 
-.monster-count {
-  background: var(--primary-color);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.empty-roster {
-  text-align: center;
+/* Quick Testing Section */
+.quick-testing {
+  background: var(--background-medium);
   padding: var(--spacing-xl);
-  background: var(--background-dark);
-  border-radius: var(--radius-md);
-  border: 2px dashed var(--background-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
-.empty-content h3 {
-  color: var(--text-light);
-  margin: 0 0 var(--spacing-md) 0;
+.quick-testing h2 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
 }
 
-.empty-content p {
-  color: var(--text-medium);
-  margin: var(--spacing-sm) 0;
+/* Backend Testing Section */
+.backend-testing {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
-/* Monster Grid */
-.monster-grid {
+.backend-testing h2 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+/* LLM Debug Panel */
+.llm-debug-panel {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.llm-debug-panel h2 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+/* Development Instructions */
+.dev-instructions {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.dev-instructions h2 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.instructions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--spacing-lg);
 }
 
-.monster-card {
+.instruction-card {
   background: var(--background-dark);
-  border: 2px solid var(--background-light);
-  border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  cursor: pointer;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--background-light);
   transition: var(--transition-normal);
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
 }
 
-.monster-card:hover {
+.instruction-card:hover {
   border-color: var(--primary-color);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
 }
 
-.monster-card.selected {
-  border-color: var(--accent-color);
-  background: var(--background-light);
-  box-shadow: var(--shadow-lg);
-}
-
-.monster-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.monster-card-header h3 {
-  color: var(--text-light);
-  margin: 0;
-  font-size: 1.25rem;
-}
-
-.monster-species {
-  background: var(--secondary-color);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.monster-description p {
-  color: var(--text-medium);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.monster-stats-summary {
-  margin: 0;
-}
-
-.stats-text {
-  color: var(--text-dim);
-  font-family: var(--font-family-mono);
-  font-size: 14px;
-}
-
-/* 🔧 NEW: Abilities Preview Styling */
-.monster-abilities-preview {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.abilities-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.abilities-count {
-  color: var(--accent-color);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.abilities-preview {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.ability-preview-tag {
-  background: var(--primary-color);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.more-abilities {
-  color: var(--text-dim);
-  font-size: 11px;
-  font-style: italic;
-  padding: var(--spacing-xs) 0;
-}
-
-.monster-traits {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.trait-tag {
-  background: var(--success-color);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.trait-tag.large {
-  font-size: 14px;
-  padding: var(--spacing-sm) var(--spacing-md);
-}
-
-/* Monster Detail Panel */
-.monster-detail {
-  background: var(--background-medium);
-  border: 2px solid var(--accent-color);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-lg);
-}
-
-.detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
-}
-
-.detail-header h2 {
-  color: var(--accent-color);
-  margin: 0;
-}
-
-.close-detail-button {
-  background: var(--error-color);
-  color: white;
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 14px;
-  transition: var(--transition-normal);
-}
-
-.close-detail-button:hover {
-  background: #c0392b;
-}
-
-.detail-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.detail-section h3 {
+.instruction-card h4 {
   color: var(--secondary-color);
   margin: 0 0 var(--spacing-md) 0;
 }
 
-.detail-section p {
+.instruction-card ol,
+.instruction-card ul {
+  margin: 0 0 0 var(--spacing-lg);
   color: var(--text-medium);
-  margin: 0;
-  line-height: 1.6;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.stat-item {
-  background: var(--background-dark);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stat-label {
-  color: var(--text-medium);
-  font-weight: 500;
-}
-
-.stat-value {
-  color: var(--accent-color);
-  font-family: var(--font-family-mono);
-  font-weight: 600;
-}
-
-/* 🔧 NEW: Abilities Detail Section Styling */
-.abilities-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
-}
-
-.generate-ability-button {
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: var(--transition-normal);
-}
-
-.generate-ability-button:hover:not(:disabled) {
-  background: #e67e22;
-  transform: translateY(-1px);
-}
-
-.generate-ability-button:disabled {
-  background: var(--text-dim);
-  cursor: not-allowed;
-  transform: none;
-}
-
-.abilities-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.ability-detail-card {
-  background: var(--background-dark);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  border-left: 4px solid var(--accent-color);
-}
-
-.ability-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-sm);
-}
-
-.ability-header h4 {
-  color: var(--text-light);
-  margin: 0;
-  font-size: 16px;
-}
-
-.ability-type-badge {
-  background: var(--secondary-color);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.ability-description {
-  color: var(--text-medium);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.no-abilities {
-  text-align: center;
-  padding: var(--spacing-lg);
-  background: var(--background-dark);
-  border-radius: var(--radius-md);
-  border: 2px dashed var(--background-light);
-}
-
-.no-abilities p {
-  color: var(--text-medium);
-  margin: var(--spacing-sm) 0;
-}
-
-.traits-list {
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-}
-
-/* Game Actions */
-.game-actions {
-  background: var(--background-medium);
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.game-actions h2 {
-  color: var(--accent-color);
-  margin: 0 0 var(--spacing-lg) 0;
-  text-align: center;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-lg);
-}
-
-.action-card {
-  background: var(--background-dark);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  text-align: center;
-  border: 2px solid var(--background-light);
-  transition: var(--transition-normal);
-}
-
-.action-card.disabled {
-  opacity: 0.6;
-}
-
-.action-card:not(.disabled):hover {
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
-
-.action-card h3 {
-  color: var(--text-light);
-  margin: 0 0 var(--spacing-md) 0;
-}
-
-.action-card p {
-  color: var(--text-medium);
-  margin: 0 0 var(--spacing-lg) 0;
+.instruction-card li {
+  margin-bottom: var(--spacing-xs);
   line-height: 1.4;
 }
 
-.action-button {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: var(--transition-normal);
-}
-
-.action-button:hover:not(:disabled) {
-  background: var(--secondary-color);
-}
-
-.action-button:disabled {
-  background: var(--text-dim);
-  cursor: not-allowed;
+.instruction-card strong {
+  color: var(--text-light);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .monster-grid {
+  .developer-screen {
+    padding: var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+  
+  .developer-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .instructions-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .actions-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .welcome-content h1 {
-    font-size: 2rem;
-  }
-  
-  .abilities-section-header {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    align-items: stretch;
-  }
-  
-  .generate-ability-button {
-    width: 100%;
   }
 }
