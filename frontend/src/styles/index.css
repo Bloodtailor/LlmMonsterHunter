@@ -7,7 +7,10 @@
 /* 2. Global styles, reset, and layout */
 @import './globals.css';
 
-/* 3. Reusable UI components */
+/* 3. Utility classes - Consolidated reusable styles */
+@import './utilities.css';
+
+/* 4. Reusable UI components */
 @import './components/UI.css';
 @import './components/FlippableCard.css';
 @import './components/MonsterCard.css';
@@ -16,7 +19,7 @@
 @import './components/Navigation.css';
 @import './components/TestRunner.css';
 
-/* 4. Screen-specific styles */
+/* 5. Screen-specific styles */
 @import './screens/MonsterSanctuary.css';
 @import './screens/DeveloperScreen.css';
 

@@ -1,6 +1,6 @@
-// Main React application component - UPDATED WITH MONSTER SANCTUARY
+// Main React application component - UPDATED WITH CLEAN HEADER
 // Separates game interface from developer tools
-// Now uses the new MonsterSanctuary screen with flippable cards
+// Now uses centered navigation with minimal header
 
 import React, { useState, useEffect } from 'react';
 import MonsterSanctuary from './components/screens/MonsterSanctuary';
@@ -100,39 +100,23 @@ function App() {
       {/* Always-visible LLM Streaming Display */}
       <StreamingDisplay />
       
-      {/* App Header with Navigation */}
+      {/* App Header with Title Left, Navigation Centered */}
       <header className="app-header">
-        <div className="header-left">
-          <h1>🎮 Monster Hunter Game</h1>
-          <div className="status-indicators">
-            <div className={`status-indicator ${appStatus.backendConnected ? 'connected' : 'disconnected'}`}>
-              Backend: {appStatus.backendConnected ? '✅ Connected' : '❌ Disconnected'}
-            </div>
-            <div className={`status-indicator ${appStatus.databaseConnected ? 'connected' : 'disconnected'}`}>
-              Database: {appStatus.databaseConnected ? '✅ Connected' : '❌ Disconnected'}
-            </div>
-            <div className="game-version">
-              v{appStatus.gameData?.version || '0.1.0'}
-            </div>
-          </div>
-        </div>
-        
-        <div className="header-right">
-          <nav className="screen-navigation">
-            <button 
-              className={`nav-button ${currentScreen === 'game' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('game')}
-            >
-              🏛️ Sanctuary
-            </button>
-            <button 
-              className={`nav-button ${currentScreen === 'developer' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('developer')}
-            >
-              🔧 Developer
-            </button>
-          </nav>
-        </div>
+        <h1>🎮 Monster Hunter Game</h1>
+        <nav className="screen-navigation">
+          <button 
+            className={`nav-button ${currentScreen === 'game' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('game')}
+          >
+            🏛️ Sanctuary
+          </button>
+          <button 
+            className={`nav-button ${currentScreen === 'developer' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('developer')}
+          >
+            🔧 Developer
+          </button>
+        </nav>
       </header>
 
       {/* Main Content - Switch between screens */}
