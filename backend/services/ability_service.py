@@ -1,12 +1,12 @@
-# Ability Service - UPDATED FOR UNIFIED GENERATION SERVICE
+# Ability Service - CLEANED UP
 # Handles generating unique abilities for monsters using LLM pipeline
-# Now uses generation_service instead of llm_service
+# Uses generation_service for text generation
 
 from typing import Dict, Any, List
 from backend.models.monster import Monster
 from backend.models.ability import Ability
 from backend.ai.llm.prompt_engine import get_template_config, build_prompt
-from . import generation_service  # 🔧 UPDATED: was llm_service
+from . import generation_service
 
 def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[str, Any]:
     """
@@ -21,9 +21,7 @@ def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[
     """
     
     try:
-        print(f"⚡ Ability Service: Generating ability for monster {monster_id}")
-        
-        # Step 1: Get monster with existing abilities
+        # Get monster with existing abilities
         monster = Monster.get_monster_by_id(monster_id)
         if not monster:
             return {
@@ -32,10 +30,10 @@ def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[
                 'ability': None
             }
         
-        # Step 2: Get monster context for LLM prompt
-        monster_context = monster.get_context_for_ability_generation()
+        print(f"⚡ Ability Service: Single ability request for {monster.name} (ID: {monster_id})")
         
-        # Step 3: Build prompt with monster context
+        # Get monster context and build prompt
+        monster_context = monster.get_context_for_ability_generation()
         prompt_variables = _build_prompt_variables(monster_context)
         prompt_text = build_prompt('generate_ability', prompt_variables)
         
@@ -46,9 +44,7 @@ def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[
                 'ability': None
             }
         
-        print(f"✅ Built ability prompt with {len(monster_context['existing_abilities'])} existing abilities context")
-        
-        # Step 4: Get template configuration for automatic parsing
+        # Get template configuration
         template_config = get_template_config('generate_ability')
         if not template_config:
             return {
@@ -57,8 +53,8 @@ def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[
                 'ability': None
             }
         
-        # Step 5: Use unified generation service for LLM inference
-        llm_result = generation_service.text_generation_request(  # 🔧 UPDATED: new service
+        # Generate via LLM
+        llm_result = generation_service.text_generation_request(
             prompt=prompt_text,
             prompt_type='ability_generation',
             prompt_name='generate_ability',
@@ -73,34 +69,30 @@ def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[
                 'success': False,
                 'error': llm_result['error'],
                 'ability': None,
-                'generation_id': llm_result.get('generation_id'),  # 🔧 UPDATED: was log_id
+                'generation_id': llm_result.get('generation_id'),
                 'monster_id': monster_id
             }
         
-        # If not waiting, return early
         if not wait_for_completion:
             return {
                 'success': True,
                 'message': 'Ability generation started',
                 'ability': None,
-                'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
+                'generation_id': llm_result['generation_id'],
                 'monster_id': monster_id
             }
         
-        # Step 6: Check if parsing succeeded
+        # Check parsing success
         if not llm_result.get('parsing_success'):
             return {
                 'success': False,
                 'error': f"Automatic parsing failed after {llm_result.get('attempt', 1)} attempts",
                 'ability': None,
-                'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
-                'monster_id': monster_id,
-                'raw_response': llm_result.get('text', '')
+                'generation_id': llm_result['generation_id'],
+                'monster_id': monster_id
             }
         
-        print(f"✅ Ability parsing succeeded on attempt {llm_result.get('attempt', 1)}")
-        
-        # Step 7: Create and save ability
+        # Create and save ability
         ability = Ability.create_from_llm_data(monster_id, llm_result['parsed_data'])
         
         if not ability or not ability.save():
@@ -108,31 +100,25 @@ def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[
                 'success': False,
                 'error': 'Failed to save ability to database',
                 'ability': None,
-                'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
-                'monster_id': monster_id,
-                'parsed_data': llm_result['parsed_data']
+                'generation_id': llm_result['generation_id'],
+                'monster_id': monster_id
             }
         
-        print(f"✅ Ability '{ability.name}' saved with ID: {ability.id}")
+        print(f"✅ Ability '{ability.name}' saved for {monster.name}")
         
-        # Step 8: Return success
         return {
             'success': True,
             'ability': ability.to_dict(),
             'monster_id': monster_id,
-            'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
+            'generation_id': llm_result['generation_id'],
             'generation_stats': {
                 'tokens': llm_result.get('tokens', 0),
                 'duration': llm_result.get('duration', 0),
-                'template_used': 'generate_ability',
-                'attempts_needed': llm_result.get('attempt', 1),
-                'parsing_automatic': True,
-                'existing_abilities_count': len(monster_context['existing_abilities'])
+                'attempts_needed': llm_result.get('attempt', 1)
             }
         }
         
     except Exception as e:
-        print(f"❌ Ability Service error: {e}")
         return {
             'success': False,
             'error': f'Service error: {str(e)}',
@@ -146,7 +132,7 @@ def generate_initial_abilities(monster_data: Dict[str, Any], monster_id: int) ->
     Called automatically during monster creation
     
     Args:
-        monster_data (dict): Monster data for context (from monster.get_context_for_ability_generation())
+        monster_data (dict): Monster data for context
         monster_id (int): ID of the newly created monster
         
     Returns:
@@ -154,9 +140,10 @@ def generate_initial_abilities(monster_data: Dict[str, Any], monster_id: int) ->
     """
     
     try:
-        print(f"⚡ Ability Service: Generating 2 initial abilities for new monster {monster_id}")
+        monster_name = monster_data.get('name', f'Monster {monster_id}')
+        print(f"⚡ Ability Service: Initial abilities request for {monster_name} (ID: {monster_id})")
         
-        # Step 1: Build prompt with monster context (no existing abilities)
+        # Build prompt
         prompt_variables = _build_prompt_variables(monster_data)
         prompt_text = build_prompt('generate_initial_abilities', prompt_variables)
         
@@ -167,9 +154,7 @@ def generate_initial_abilities(monster_data: Dict[str, Any], monster_id: int) ->
                 'abilities': []
             }
         
-        print(f"✅ Built initial abilities prompt for new monster")
-        
-        # Step 2: Get template configuration
+        # Get template configuration
         template_config = get_template_config('generate_initial_abilities')
         if not template_config:
             return {
@@ -178,8 +163,8 @@ def generate_initial_abilities(monster_data: Dict[str, Any], monster_id: int) ->
                 'abilities': []
             }
         
-        # Step 3: Use unified generation service for LLM inference
-        llm_result = generation_service.text_generation_request(  # 🔧 UPDATED: new service
+        # Generate via LLM
+        llm_result = generation_service.text_generation_request(
             prompt=prompt_text,
             prompt_type='ability_generation',
             prompt_name='generate_initial_abilities',
@@ -194,23 +179,21 @@ def generate_initial_abilities(monster_data: Dict[str, Any], monster_id: int) ->
                 'success': False,
                 'error': llm_result['error'],
                 'abilities': [],
-                'generation_id': llm_result.get('generation_id')  # 🔧 UPDATED: was log_id
+                'generation_id': llm_result.get('generation_id')
             }
         
-        # Step 4: Check parsing success
+        # Check parsing success
         if not llm_result.get('parsing_success'):
             return {
                 'success': False,
                 'error': f"Initial abilities parsing failed after {llm_result.get('attempt', 1)} attempts",
                 'abilities': [],
-                'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
-                'raw_response': llm_result.get('text', '')
+                'generation_id': llm_result['generation_id']
             }
         
         parsed_data = llm_result['parsed_data']
-        print(f"✅ Initial abilities parsing succeeded")
         
-        # Step 5: Create and save both abilities
+        # Create and save both abilities
         abilities = []
         
         for ability_key in ['ability1', 'ability2']:
@@ -220,24 +203,20 @@ def generate_initial_abilities(monster_data: Dict[str, Any], monster_id: int) ->
                 if ability and ability.save():
                     abilities.append(ability.to_dict())
                     print(f"✅ Initial ability '{ability.name}' saved")
-                else:
-                    print(f"❌ Failed to save initial ability {ability_key}")
         
         return {
             'success': True,
             'abilities': abilities,
             'abilities_created': len(abilities),
-            'generation_id': llm_result['generation_id'],  # 🔧 UPDATED: was log_id
+            'generation_id': llm_result['generation_id'],
             'generation_stats': {
                 'tokens': llm_result.get('tokens', 0),
                 'duration': llm_result.get('duration', 0),
-                'template_used': 'generate_initial_abilities',
                 'attempts_needed': llm_result.get('attempt', 1)
             }
         }
         
     except Exception as e:
-        print(f"❌ Initial abilities generation error: {e}")
         return {
             'success': False,
             'error': f'Initial abilities error: {str(e)}',
@@ -245,15 +224,7 @@ def generate_initial_abilities(monster_data: Dict[str, Any], monster_id: int) ->
         }
 
 def _build_prompt_variables(monster_context: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Build variables for ability generation prompts
-    
-    Args:
-        monster_context (dict): Monster context from get_context_for_ability_generation()
-        
-    Returns:
-        dict: Variables for prompt template formatting
-    """
+    """Build variables for ability generation prompts"""
     
     # Format existing abilities for prompt
     existing_abilities = monster_context.get('existing_abilities', [])
@@ -285,15 +256,7 @@ def _build_prompt_variables(monster_context: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 def get_abilities_for_monster(monster_id: int) -> Dict[str, Any]:
-    """
-    Get all abilities for a specific monster
-    
-    Args:
-        monster_id (int): Monster ID
-        
-    Returns:
-        dict: All abilities for the monster
-    """
+    """Get all abilities for a specific monster"""
     
     try:
         abilities = Ability.get_abilities_for_monster(monster_id)
@@ -306,7 +269,6 @@ def get_abilities_for_monster(monster_id: int) -> Dict[str, Any]:
         }
         
     except Exception as e:
-        print(f"❌ Error getting abilities for monster {monster_id}: {e}")
         return {
             'success': False,
             'error': str(e),

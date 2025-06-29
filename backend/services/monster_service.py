@@ -79,6 +79,8 @@ def generate_monster(prompt_name: str = "detailed_monster",
                 'generation_id': llm_result['generation_id']
             }
         
+        print(f"🐉 Monster '{monster.name}' created with ID: {monster.id}")
+        
         # Generate starting abilities
         abilities_result = ability_service.generate_initial_abilities(
             monster_data=monster.get_context_for_ability_generation(),

@@ -1,4 +1,4 @@
-# Generation Service - UNIFIED FOR ALL AI GENERATION
+# Generation Service - CLEANED UP
 # THE ONLY WAY to request any AI generation (LLM or Image)
 # Creates normalized generation_log entries and delegates to unified queue
 
@@ -28,26 +28,24 @@ def text_generation_request(prompt: str,
     """
     
     try:
-        print(f"🎯 Generation Service: Creating LLM text generation request")
-        
-        # Step 1: Get all inference defaults and apply overrides
+        # Get inference defaults and apply overrides
         from backend.config.llm_config import get_all_inference_defaults
         inference_params = get_all_inference_defaults()
         
-        # Apply any user overrides
         for key, value in inference_overrides.items():
             if value is not None and key in inference_params:
                 inference_params[key] = value
         
-        # Apply prompt metadata defaults
         if prompt_type is None:
             prompt_type = inference_params['prompt_type']
         if prompt_name is None:
             prompt_name = inference_params['prompt_name']
         
-        print(f"✅ Prepared LLM parameters (temp={inference_params['temperature']}, max_tokens={inference_params['max_tokens']})")
+        # Show simplified request info
+        truncated_prompt = prompt[:50] + "..." if len(prompt) > 50 else prompt
+        print(f"🎯 Generation Service: Text request for {prompt_type}/{prompt_name} - \"{truncated_prompt}\"")
         
-        # Step 2: Create complete generation_log entry with LLM child data
+        # Create generation log entry
         from backend.models.generation_log import GenerationLog
         
         generation_log = GenerationLog.create_llm_log(
@@ -64,9 +62,7 @@ def text_generation_request(prompt: str,
                 'error': 'Failed to create generation log entry'
             }
         
-        print(f"✅ Created LLM generation log {generation_log.id}")
-        
-        # Step 3: Add to unified queue
+        # Add to unified queue
         from backend.ai.queue import get_ai_queue
         queue = get_ai_queue()
         
@@ -85,11 +81,10 @@ def text_generation_request(prompt: str,
                 'message': 'LLM generation request queued for processing'
             }
         
-        # Step 4: Wait for completion
+        # Wait for completion
         return _wait_for_completion(queue, generation_log.id, 'llm')
         
     except Exception as e:
-        print(f"❌ LLM Generation Service error: {e}")
         return {
             'success': False,
             'error': str(e)
@@ -116,33 +111,32 @@ def image_generation_request(prompt_text: str,
     """
     
     try:
-        print(f"🎨 Generation Service: Creating generic image generation request")
-        
         # Check if image generation is enabled
         import os
         if not os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true':
             return {
                 'success': False,
                 'error': 'Image generation is disabled',
-                'reason': 'DISABLED',
-                'help': 'Set ENABLE_IMAGE_GENERATION=true in .env to enable image generation'
+                'reason': 'DISABLED'
             }
         
-        # Step 1: Prepare image parameters (generic)
+        # Show simplified request info
+        truncated_prompt = prompt_text[:50] + "..." if len(prompt_text) > 50 else prompt_text
+        print(f"🎨 Generation Service: Image request for workflow '{prompt_name}' - \"{truncated_prompt}\"")
+        
+        # Prepare image parameters
         image_params = {
             'workflow_name': prompt_name,
             **image_overrides
         }
         
-        print(f"✅ Prepared image parameters for workflow '{prompt_name}'")
-        
-        # Step 2: Create complete generation_log entry with image child data
+        # Create generation log entry
         from backend.models.generation_log import GenerationLog
         
         generation_log = GenerationLog.create_image_log(
             prompt_type=prompt_type,
             prompt_name=prompt_name,
-            prompt_text=prompt_text,  # Just store the unique prompt text directly
+            prompt_text=prompt_text,
             image_params=image_params
         )
         
@@ -152,9 +146,7 @@ def image_generation_request(prompt_text: str,
                 'error': 'Failed to create image generation log entry'
             }
         
-        print(f"✅ Created image generation log {generation_log.id}")
-        
-        # Step 3: Add to unified queue
+        # Add to unified queue
         from backend.ai.queue import get_ai_queue
         queue = get_ai_queue()
         
@@ -173,16 +165,14 @@ def image_generation_request(prompt_text: str,
                 'message': 'Image generation request queued for processing'
             }
         
-        # Step 4: Wait for completion
+        # Wait for completion
         return _wait_for_completion(queue, generation_log.id, 'image')
         
     except Exception as e:
-        print(f"❌ Image Generation Service error: {e}")
         return {
             'success': False,
             'error': str(e)
         }
-
 
 def _wait_for_completion(queue, generation_id: int, generation_type: str, timeout: int = 600) -> Dict[str, Any]:
     """
@@ -247,7 +237,6 @@ def _wait_for_completion(queue, generation_id: int, generation_type: str, timeou
         'generation_id': generation_id,
         'generation_type': generation_type
     }
-
 
 # Export main functions
 __all__ = [
