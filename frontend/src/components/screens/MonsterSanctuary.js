@@ -1,18 +1,58 @@
-// Monster Sanctuary Screen - ENHANCED WITH FLIPPABLE CARDS
+// Monster Sanctuary Screen - CLEANED UP
 // Displays all monsters as flippable cards in a beautiful sanctuary layout
-// Replaces the old GameHomeBase screen
 
 import React, { useState, useEffect } from 'react';
 import MonsterCard from '../game/MonsterCard';
+
+// Helper function for filtering and sorting monsters
+function getFilteredAndSortedMonsters(monsters, sortBy, filterBy) {
+  let filtered = [...monsters];
+  
+  // Apply filters
+  if (filterBy === 'with_art') {
+    filtered = filtered.filter(monster => monster.card_art?.exists);
+  } else if (filterBy === 'without_art') {
+    filtered = filtered.filter(monster => !monster.card_art?.exists);
+  }
+  
+  // Apply sorting
+  const sortFunctions = {
+    oldest: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+    name: (a, b) => a.name.localeCompare(b.name),
+    species: (a, b) => a.species.localeCompare(b.species),
+    newest: (a, b) => new Date(b.created_at) - new Date(a.created_at)
+  };
+  
+  return filtered.sort(sortFunctions[sortBy] || sortFunctions.newest);
+}
+
+// Helper function to calculate sanctuary stats
+function calculateSanctuaryStats(monsters) {
+  return {
+    total: monsters.length,
+    totalAbilities: monsters.reduce((sum, monster) => sum + monster.ability_count, 0),
+    withArt: monsters.filter(monster => monster.card_art?.exists).length,
+    uniqueSpecies: new Set(monsters.map(monster => monster.species)).size
+  };
+}
+
+// API call helper
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  return await response.json();
+}
 
 function MonsterSanctuary({ gameData }) {
   const [monsters, setMonsters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [generatingMonster, setGeneratingMonster] = useState(false);
-  const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', 'name', 'species'
-  const [filterBy, setFilterBy] = useState('all'); // 'all', 'with_art', 'without_art'
-  const [cardSize, setCardSize] = useState('normal'); // 'small', 'normal', 'large'
+  const [sortBy, setSortBy] = useState('newest');
+  const [filterBy, setFilterBy] = useState('all');
+  const [cardSize, setCardSize] = useState('normal');
 
   // Load monsters on component mount
   useEffect(() => {
@@ -24,8 +64,7 @@ function MonsterSanctuary({ gameData }) {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:5000/api/monsters');
-      const data = await response.json();
+      const data = await apiRequest('http://localhost:5000/api/monsters');
       
       if (data.success) {
         setMonsters(data.monsters);
@@ -44,23 +83,16 @@ function MonsterSanctuary({ gameData }) {
     setGeneratingMonster(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/monsters/generate', {
+      const result = await apiRequest('http://localhost:5000/api/monsters/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           prompt_name: 'detailed_monster',
           generate_card_art: true
         })
       });
       
-      const result = await response.json();
-      
       if (result.success && result.monster) {
-        // Add new monster to the beginning of the list
         setMonsters(prev => [result.monster, ...prev]);
-        
         console.log(`✅ Generated ${result.monster.name} with ${result.monster.ability_count} abilities!`);
         if (result.monster.card_art?.exists) {
           console.log(`🎨 Card art generated: ${result.monster.card_art.relative_path}`);
@@ -78,21 +110,13 @@ function MonsterSanctuary({ gameData }) {
 
   const handleAbilityGenerate = async (monsterId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/monsters/${monsterId}/abilities`, {
+      const result = await apiRequest(`http://localhost:5000/api/monsters/${monsterId}/abilities`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          wait_for_completion: true
-        })
+        body: JSON.stringify({ wait_for_completion: true })
       });
       
-      const result = await response.json();
-      
       if (result.success && result.ability) {
-        // Reload monsters to get updated abilities
-        await loadMonsters();
+        await loadMonsters(); // Reload to get updated abilities
         console.log(`✅ Generated ability "${result.ability.name}" for monster ${monsterId}!`);
       } else {
         console.error('Ability generation failed:', result.error);
@@ -102,45 +126,16 @@ function MonsterSanctuary({ gameData }) {
     }
   };
 
-  // Filter and sort monsters
-  const getFilteredAndSortedMonsters = () => {
-    let filtered = [...monsters];
-    
-    // Apply filters
-    if (filterBy === 'with_art') {
-      filtered = filtered.filter(monster => monster.card_art?.exists);
-    } else if (filterBy === 'without_art') {
-      filtered = filtered.filter(monster => !monster.card_art?.exists);
-    }
-    
-    // Apply sorting
-    switch (sortBy) {
-      case 'oldest':
-        filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        break;
-      case 'name':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'species':
-        filtered.sort((a, b) => a.species.localeCompare(b.species));
-        break;
-      case 'newest':
-      default:
-        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        break;
-    }
-    
-    return filtered;
-  };
-
-  const filteredMonsters = getFilteredAndSortedMonsters();
+  // Get filtered and sorted monsters
+  const filteredMonsters = getFilteredAndSortedMonsters(monsters, sortBy, filterBy);
+  const stats = calculateSanctuaryStats(monsters);
 
   if (loading) {
     return (
       <div className="monster-sanctuary">
-        <div className="sanctuary-loading">
+        <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading your Monster Sanctuary...</p>
+          <p className="loading-text">Loading your Monster Sanctuary...</p>
         </div>
       </div>
     );
@@ -159,7 +154,7 @@ function MonsterSanctuary({ gameData }) {
               <button 
                 onClick={generateNewMonster}
                 disabled={generatingMonster}
-                className="primary-action-button"
+                className="btn btn-secondary btn-lg btn-hover-lift"
               >
                 {generatingMonster ? '🔄 Summoning Monster...' : '✨ Summon New Monster'}
               </button>
@@ -174,15 +169,13 @@ function MonsterSanctuary({ gameData }) {
 
       {/* Error Display */}
       {error && (
-        <section className="error-section">
-          <div className="error-message">
-            <h3>❌ Error</h3>
-            <p>{error}</p>
-            <button onClick={loadMonsters} className="retry-button">
-              🔄 Retry
-            </button>
-          </div>
-        </section>
+        <div className="alert alert-error">
+          <h3>❌ Error</h3>
+          <p>{error}</p>
+          <button onClick={loadMonsters} className="btn btn-secondary mt-md">
+            🔄 Retry
+          </button>
+        </div>
       )}
 
       {/* Sanctuary Controls */}
@@ -278,27 +271,21 @@ function MonsterSanctuary({ gameData }) {
       {monsters.length > 0 && (
         <section className="sanctuary-stats">
           <h3>📊 Sanctuary Statistics</h3>
-          <div className="stats-grid">
+          <div className="grid-auto-fit grid-auto-fit-sm">
             <div className="stat-card">
-              <span className="stat-number">{monsters.length}</span>
+              <span className="stat-number">{stats.total}</span>
               <span className="stat-label">Total Monsters</span>
             </div>
             <div className="stat-card">
-              <span className="stat-number">
-                {monsters.reduce((sum, monster) => sum + monster.ability_count, 0)}
-              </span>
+              <span className="stat-number">{stats.totalAbilities}</span>
               <span className="stat-label">Total Abilities</span>
             </div>
             <div className="stat-card">
-              <span className="stat-number">
-                {monsters.filter(monster => monster.card_art?.exists).length}
-              </span>
+              <span className="stat-number">{stats.withArt}</span>
               <span className="stat-label">With Card Art</span>
             </div>
             <div className="stat-card">
-              <span className="stat-number">
-                {new Set(monsters.map(monster => monster.species)).size}
-              </span>
+              <span className="stat-number">{stats.uniqueSpecies}</span>
               <span className="stat-label">Unique Species</span>
             </div>
           </div>
