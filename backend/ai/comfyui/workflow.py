@@ -1,6 +1,6 @@
-# ComfyUI Workflow Management
+# ComfyUI Workflow Management - CLEANED UP
 # Handles loading, modifying, and validating workflows
-# Pure workflow operations with no API calls
+# Pure workflow operations with minimal output
 
 import json
 from pathlib import Path
@@ -48,7 +48,7 @@ class WorkflowManager:
             # Cache the workflow
             self._workflow_cache[workflow_name] = workflow
             
-            print(f"✅ Loaded workflow: {workflow_name}")
+            # Removed verbose loading message
             return copy.deepcopy(workflow)
             
         except json.JSONDecodeError as e:
@@ -80,14 +80,14 @@ class WorkflowManager:
         # Update positive prompt (node 5 in monster_generation workflow)
         if "5" in modified and "inputs" in modified["5"]:
             modified["5"]["inputs"]["text"] = positive_prompt
-            print(f"✅ Updated positive prompt: {positive_prompt[:100]}...")
+            # Removed verbose update message
         else:
             print("⚠️ No positive prompt node found (node 5)")
         
         # Update negative prompt if provided (node 6)
         if negative_prompt and "6" in modified and "inputs" in modified["6"]:
             modified["6"]["inputs"]["text"] = negative_prompt
-            print(f"✅ Updated negative prompt")
+            # Removed verbose update message
         
         # Update KSampler parameters (node 2)
         if "2" in modified and "inputs" in modified["2"]:
@@ -96,22 +96,22 @@ class WorkflowManager:
             # Update seed
             if "seed" in kwargs:
                 sampler_inputs["seed"] = kwargs["seed"]
-                print(f"✅ Updated seed: {kwargs['seed']}")
+                # Removed verbose update message
             
             # Update steps
             if "steps" in kwargs:
                 sampler_inputs["steps"] = kwargs["steps"]
-                print(f"✅ Updated steps: {kwargs['steps']}")
+                # Removed verbose update message
             
             # Update CFG scale
             if "cfg" in kwargs:
                 sampler_inputs["cfg"] = kwargs["cfg"]
-                print(f"✅ Updated CFG: {kwargs['cfg']}")
+                # Removed verbose update message
             
             # Update denoise
             if "denoise" in kwargs:
                 sampler_inputs["denoise"] = kwargs["denoise"]
-                print(f"✅ Updated denoise: {kwargs['denoise']}")
+                # Removed verbose update message
         
         # Update image dimensions (node 7)
         if "7" in modified and "inputs" in modified["7"]:
@@ -119,15 +119,15 @@ class WorkflowManager:
             
             if "width" in kwargs:
                 latent_inputs["width"] = kwargs["width"]
-                print(f"✅ Updated width: {kwargs['width']}")
+                # Removed verbose update message
             
             if "height" in kwargs:
                 latent_inputs["height"] = kwargs["height"]
-                print(f"✅ Updated height: {kwargs['height']}")
+                # Removed verbose update message
             
             if "batch_size" in kwargs:
                 latent_inputs["batch_size"] = kwargs["batch_size"]
-                print(f"✅ Updated batch size: {kwargs['batch_size']}")
+                # Removed verbose update message
         
         return modified
     

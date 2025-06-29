@@ -1,6 +1,6 @@
-# LLM Processor - UPDATED FOR NORMALIZED DATABASE
+# LLM Processor - CLEANED UP
 # Handles complete inference pipeline with automatic retries and parsing
-# Works with new generation_log + llm_log structure
+# Works with normalized generation_log structure
 
 from typing import Dict, Any, Optional, Callable
 from .inference import generate_streaming
@@ -9,14 +9,6 @@ from .parser import parse_response
 def process_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
     """
     Complete LLM inference + parsing pipeline with automatic retries
-    UPDATED: Works with normalized generation_log structure
-    
-    Philosophy: Given a generation_id, do everything needed to get a parsed result
-    - Load parameters from database (generation_log + llm_log)
-    - Generate with retries (up to 3 attempts)
-    - Parse each attempt
-    - Update logs automatically
-    - Return final result
     
     Args:
         generation_id (int): Database generation_logs.id
@@ -27,7 +19,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
     """
     
     try:
-        # Step 1: Load generation log and verify it's an LLM generation
+        # Load generation log and verify it's an LLM generation
         from backend.models.generation_log import GenerationLog
         
         generation_log = GenerationLog.query.get(generation_id)
@@ -45,7 +37,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                 'generation_id': generation_id
             }
         
-        # Step 2: Get LLM-specific data
+        # Get LLM-specific data
         llm_log = generation_log.llm_log
         if not llm_log:
             return {
@@ -54,7 +46,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                 'generation_id': generation_id
             }
         
-        # Step 3: Extract parameters
+        # Extract parameters
         prompt_text = generation_log.prompt_text
         inference_params = llm_log.get_inference_params()
         parser_config = llm_log.parser_config
@@ -68,13 +60,11 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                 'generation_id': generation_id
             }
         
-        print(f"✅ Loaded LLM parameters for {generation_log.prompt_type}")
-        
-        # Step 4: Mark as started
+        # Mark as started
         generation_log.mark_started()
         generation_log.save()
         
-        # Step 5: Attempt generation + parsing loop
+        # Attempt generation + parsing loop
         while True:
             current_attempt = generation_log.generation_attempt
             print(f"🎯 LLM Generation attempt {current_attempt}/{generation_log.max_attempts}")
@@ -103,8 +93,6 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                 tokens_per_second=generation_result.get('tokens_per_second', 0)
             )
             llm_log.save()
-            
-            print(f"✅ Generated {generation_result.get('tokens', 0)} tokens")
             
             # Attempt parsing (if parser config provided)
             if parser_config:
@@ -136,7 +124,6 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                     # Parsing failed
                     llm_log.mark_parse_failed(parse_result.error)
                     llm_log.save()
-                    print(f"❌ LLM parsing failed on attempt {current_attempt}: {parse_result.error}")
                     
                     # Check if we can retry
                     if generation_log.can_retry():
@@ -144,13 +131,11 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                         llm_log.reset_parse_status()  # Reset for next attempt
                         generation_log.save()
                         llm_log.save()
-                        print(f"🔄 Retrying LLM generation... (attempt {generation_log.generation_attempt})")
                         continue
                     else:
                         # No more retries
                         generation_log.mark_completed()
                         generation_log.save()
-                        print(f"⚠️ Max LLM attempts reached, returning last result")
                         
                         return {
                             'success': True,  # Generation succeeded, parsing failed
@@ -181,8 +166,6 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                 }
         
     except Exception as e:
-        print(f"❌ LLM processing error for generation {generation_id}: {e}")
-        
         # Try to mark as failed in database
         try:
             from backend.models.generation_log import GenerationLog
@@ -202,7 +185,6 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
 def quick_inference(prompt: str, **inference_overrides) -> Dict[str, Any]:
     """
     Quick LLM inference without parsing - for simple text generation
-    UPDATED: Uses new generation_log structure
     
     Args:
         prompt (str): Text to generate

@@ -1,6 +1,5 @@
-# LLM Inference Module
-# CLEAN INTERFACE: Just takes prompt and loads everything else from database
-# Single Responsibility: Pure model inference with streaming
+# LLM Inference Module - CLEANED UP
+# Pure model inference with streaming, minimal output
 
 import time
 import threading
@@ -59,7 +58,6 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
             'max_tokens': params.get('max_tokens', 256)
         }
         
-        print(f"🌊 Starting streaming generation ({params.get('max_tokens', 256)} max tokens, temp={params.get('temperature', 0.8)})")
         start_time = time.time()
         
         # Initialize streaming variables
@@ -99,22 +97,18 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
                         
                         # Check if generation is finished
                         if choice.get('finish_reason') is not None:
-                            print(f"🏁 Generation finished: {choice.get('finish_reason')}")
                             break
                             
                 except Exception as e:
-                    print(f"⚠️ Error processing stream token: {e}")
                     continue
                     
         except Exception as e:
-            print(f"❌ Error in streaming loop: {e}")
             # Continue with whatever we have so far
+            pass
         
         end_time = time.time()
         duration = end_time - start_time
         tokens_per_sec = token_count / duration if duration > 0 else 0
-        
-        print(f"✅ Streaming completed: {token_count} tokens in {duration:.1f}s ({tokens_per_sec:.1f} tok/s)")
         
         # Send final callback update
         if callback:
@@ -132,7 +126,6 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
         
     except Exception as e:
         error_msg = f"Streaming generation failed: {str(e)}"
-        print(f"❌ {error_msg}")
         
         return {
             'success': False,

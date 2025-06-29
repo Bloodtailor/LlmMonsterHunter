@@ -1,55 +1,28 @@
-# Application Runner
-# Starts the Flask development server
-# Entry point for running the Monster Hunter Game backend
+# Application Runner - CLEANED UP
+# Simply creates and runs the Flask app
 
 from backend.app import create_app
-from backend.config.database import create_tables, get_db_info
-import os
+from backend.utils.console import print_header, print_startup_complete
 
 def main():
-    """
-    Main function to start the Flask application
-    """
+    """Main function to start the Flask application"""
     
-    print("🎮 Starting Monster Hunter Game Backend...")
-    print("=" * 50)
+    print_header("Monster Hunter Game Backend")
     
-    # Create Flask app using application factory
+    # Create and run Flask app
     app = create_app()
     
-    # Print configuration info
-    print(f"🔧 Environment: {os.getenv('FLASK_ENV', 'development')}")
-    print(f"🔧 Debug mode: {app.config['DEBUG']}")
-    
-    # Print database info (within app context)
-    with app.app_context():
-        db_info = get_db_info()
-        print(f"🗄️  Database: {db_info.get('database_url', 'Not configured')}")
-        
-        if db_info.get('connected'):
-            print("✅ Database connection verified")
-            
-            # Create tables if they don't exist
-            create_tables()
-        else:
-            print("❌ Database connection failed - check configuration")
-            print("💡 The API will still start but database features won't work")
-    
-    # Print available endpoints
-    print("\n📡 Available API endpoints:")
-    print("   GET  /api/health      - Health check")
-    print("   GET  /api/game/status - Game status")
-    
-    print(f"\n🚀 Starting server on http://localhost:5000")
-    print("   Press Ctrl+C to stop the server")
-    print("=" * 50)
+    print_startup_complete()
+    print(f"   Server: http://localhost:5000")
+    print(f"   Press Ctrl+C to stop")
+    print()
     
     # Start the Flask development server
     app.run(
-        host='localhost',           # Only accept connections from localhost
-        port=5000,                 # Standard Flask port
-        debug=True,                # Enable debug mode for development
-        use_reloader=False          # Auto-reload when files change
+        host='localhost',
+        port=5000,
+        debug=True,
+        use_reloader=False
     )
 
 if __name__ == '__main__':
