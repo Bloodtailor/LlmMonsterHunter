@@ -29,8 +29,12 @@ def create_app(config_name='development'):
     CORS(app, origins=['http://localhost:3000'])
     
     # Initialize database
-    from backend.config.database import init_db
+    from backend.config.database import init_db, create_tables
     init_db(app)
+    
+    # Register all models and create tables
+    with app.app_context():
+        create_tables()
     
     # Initialize AI systems
     from backend.startup import initialize_ai_systems
