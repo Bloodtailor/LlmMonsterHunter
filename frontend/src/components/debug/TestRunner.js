@@ -1,7 +1,98 @@
-// Test Runner Component
+// Test Runner Component - CLEANED UP
 // Displays available tests and runs them with output display
 
 import React, { useState, useEffect } from 'react';
+
+// Helper function for API calls
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  return await response.json();
+}
+
+// Helper function to get test status
+function getTestStatus(testResults, testName) {
+  const result = testResults[testName];
+  if (!result) return 'not-run';
+  return result.success ? 'success' : 'error';
+}
+
+// Helper function to format output
+const formatOutput = (output) => output ? output.trim() : 'No output';
+
+// Test Output Section Component
+function TestOutputSection({ result }) {
+  if (!result) return null;
+  
+  return (
+    <div className="test-output-section">
+      <details>
+        <summary>
+          📋 Output ({result.output?.length || 0} chars)
+        </summary>
+        
+        <div className="test-output">
+          <pre>{formatOutput(result.output)}</pre>
+        </div>
+        
+        {result.error && (
+          <div className="test-error">
+            <h6>❌ Error Details:</h6>
+            <pre>{result.error}</pre>
+          </div>
+        )}
+        
+        {result.traceback && (
+          <div className="test-traceback">
+            <h6>🔍 Stack Trace:</h6>
+            <pre>{result.traceback}</pre>
+          </div>
+        )}
+      </details>
+    </div>
+  );
+}
+
+// Individual Test Item Component
+function TestItem({ testName, testResults, onRunTest, runningTest }) {
+  const result = testResults[testName];
+  const status = getTestStatus(testResults, testName);
+  const isRunning = runningTest === testName;
+  
+  return (
+    <div className={`test-item ${status}`}>
+      <div className="test-info">
+        <h5>{testName}</h5>
+        <p className="test-file">backend/tests/{testName}.py</p>
+        
+        {result && (
+          <div className="test-status">
+            <span className={`status-badge ${status === 'success' ? 'status-completed' : 'status-failed'}`}>
+              {result.success ? '✅ Passed' : '❌ Failed'}
+            </span>
+            <span className="test-time">
+              {result.timestamp}
+            </span>
+          </div>
+        )}
+      </div>
+      
+      <div className="test-actions">
+        <button 
+          onClick={() => onRunTest(testName)}
+          disabled={isRunning}
+          className="btn btn-primary"
+        >
+          {isRunning ? '🔄 Running...' : '▶️ Run Test'}
+        </button>
+      </div>
+      
+      <TestOutputSection result={result} />
+    </div>
+  );
+}
 
 function TestRunner() {
   const [availableTests, setAvailableTests] = useState([]);
@@ -20,8 +111,7 @@ function TestRunner() {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:5000/api/game_tester/tests');
-      const tests = await response.json();
+      const tests = await apiRequest('http://localhost:5000/api/game_tester/tests');
       
       if (Array.isArray(tests)) {
         setAvailableTests(tests);
@@ -40,8 +130,7 @@ function TestRunner() {
     setError(null);
     
     try {
-      const response = await fetch(`http://localhost:5000/api/game_tester/run/${testName}`);
-      const result = await response.json();
+      const result = await apiRequest(`http://localhost:5000/api/game_tester/run/${testName}`);
       
       setTestResults(prev => ({
         ...prev,
@@ -65,27 +154,14 @@ function TestRunner() {
     setRunningTest(null);
   };
 
-  const clearResults = () => {
-    setTestResults({});
-  };
-
-  const getTestStatus = (testName) => {
-    const result = testResults[testName];
-    if (!result) return 'not-run';
-    return result.success ? 'success' : 'error';
-  };
-
-  const formatOutput = (output) => {
-    if (!output) return 'No output';
-    return output.trim();
-  };
+  const clearResults = () => setTestResults({});
 
   if (loading) {
     return (
       <div className="test-runner">
-        <div className="loading">
+        <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading available tests...</p>
+          <p className="loading-text">Loading available tests...</p>
         </div>
       </div>
     );
@@ -98,17 +174,17 @@ function TestRunner() {
         <p>Run backend tests in the Flask environment and see their output</p>
         
         <div className="test-runner-controls">
-          <button onClick={loadAvailableTests} className="refresh-button">
+          <button onClick={loadAvailableTests} className="btn btn-secondary">
             🔄 Refresh Tests
           </button>
-          <button onClick={clearResults} className="clear-button">
+          <button onClick={clearResults} className="btn btn-danger btn-sm">
             🗑️ Clear Results
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="test-runner-error">
+        <div className="alert alert-error">
           <h4>❌ Error</h4>
           <p>{error}</p>
         </div>
@@ -123,66 +199,15 @@ function TestRunner() {
         <div className="test-list">
           <h4>📋 Available Tests ({availableTests.length})</h4>
           
-          <div className="test-grid">
+          <div className="flex flex-col gap-md">
             {availableTests.map(testName => (
-              <div 
-                key={testName} 
-                className={`test-item ${getTestStatus(testName)}`}
-              >
-                <div className="test-info">
-                  <h5>{testName}</h5>
-                  <p className="test-file">backend/tests/{testName}.py</p>
-                  
-                  {testResults[testName] && (
-                    <div className="test-status">
-                      <span className={`status-badge ${getTestStatus(testName)}`}>
-                        {testResults[testName].success ? '✅ Passed' : '❌ Failed'}
-                      </span>
-                      <span className="test-time">
-                        {testResults[testName].timestamp}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="test-actions">
-                  <button 
-                    onClick={() => runTest(testName)}
-                    disabled={runningTest === testName}
-                    className="run-test-button"
-                  >
-                    {runningTest === testName ? '🔄 Running...' : '▶️ Run Test'}
-                  </button>
-                </div>
-                
-                {testResults[testName] && (
-                  <div className="test-output-section">
-                    <details>
-                      <summary>
-                        📋 Output ({testResults[testName].output?.length || 0} chars)
-                      </summary>
-                      
-                      <div className="test-output">
-                        <pre>{formatOutput(testResults[testName].output)}</pre>
-                      </div>
-                      
-                      {testResults[testName].error && (
-                        <div className="test-error">
-                          <h6>❌ Error Details:</h6>
-                          <pre>{testResults[testName].error}</pre>
-                        </div>
-                      )}
-                      
-                      {testResults[testName].traceback && (
-                        <div className="test-traceback">
-                          <h6>🔍 Stack Trace:</h6>
-                          <pre>{testResults[testName].traceback}</pre>
-                        </div>
-                      )}
-                    </details>
-                  </div>
-                )}
-              </div>
+              <TestItem
+                key={testName}
+                testName={testName}
+                testResults={testResults}
+                onRunTest={runTest}
+                runningTest={runningTest}
+              />
             ))}
           </div>
         </div>
