@@ -77,8 +77,6 @@ function GenerationTypeBadge({ type }) {
       <span>{badge.icon}</span>
       <span>{type.toUpperCase()}</span>
     </span>
-
-
   );
 }
 
@@ -91,7 +89,7 @@ function LogDetailRow({ log, isExpanded, onToggle }) {
   
   return (
     <tr className="log-detail-row">
-      <td colSpan="10">
+      <td colSpan="9">
         <div className="log-detail-expanded">
           {/* Prompt Text */}
           <div className="detail-section">
@@ -198,11 +196,6 @@ function LogTableRow({ log, isExpanded, onToggleExpand }) {
         <td>{formatDuration(log.duration_seconds)}</td>
         <td>{log.attempts_used}/{log.max_attempts}</td>
         <td>{log.is_completed ? '✅' : '⏳'}</td>
-        <td>
-          <button className="expand-button">
-            {isExpanded ? '▼' : '▶'}
-          </button>
-        </td>
       </tr>
       <LogDetailRow 
         log={log} 
@@ -390,7 +383,6 @@ function LLMLogViewer() {
                   <th>Duration</th>
                   <th>Attempts</th>
                   <th>Completed</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
