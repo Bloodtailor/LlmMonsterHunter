@@ -1,5 +1,5 @@
-/* LLM Log Viewer Styles */
-/* Debugging interface for viewing LLM generation logs */
+/* LLM Log Viewer Styles - UPDATED FOR GENERATION LOGS */
+/* Enhanced styles for expandable rows, generation types, and detailed views */
 
 .llm-log-viewer {
   display: flex;
@@ -70,54 +70,110 @@
   text-align: left;
   font-weight: 600;
   border-bottom: 2px solid var(--secondary-color);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .logs-table td {
   padding: var(--spacing-sm) var(--spacing-md);
   border-bottom: 1px solid var(--background-light);
+  vertical-align: top;
 }
 
-.logs-table tr:hover {
+/* Table Row States */
+.log-table-row {
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.log-table-row:hover {
   background: var(--background-light);
 }
 
-/* Log Detail Section */
-.log-detail {
-  background: var(--background-dark);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-md);
-  border: 2px solid var(--accent-color);
-  margin-top: var(--spacing-lg);
+.log-table-row.expanded {
+  background: var(--background-light);
+  border-left: 4px solid var(--accent-color);
 }
 
-.log-detail h4 {
-  color: var(--accent-color);
-  margin-bottom: var(--spacing-lg);
-}
-
-.detail-sections {
+/* Expand Button */
+.expand-button {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-normal);
+}
+
+.expand-button:hover {
+  background: #e67e22;
+  transform: scale(1.1);
+}
+
+/* Expanded Row Detail */
+.log-detail-row {
+  background: var(--background-medium) !important;
+}
+
+.log-detail-expanded {
+  padding: var(--spacing-lg);
+  border: 2px solid var(--accent-color);
+  border-radius: var(--radius-md);
+  margin: var(--spacing-md);
+}
+
+/* Detail Sections */
+.detail-section {
+  margin-bottom: var(--spacing-lg);
 }
 
 .detail-section h5 {
   color: var(--secondary-color);
   margin-bottom: var(--spacing-sm);
+  font-size: 16px;
 }
 
 .detail-section.error h5 {
   color: var(--error-color);
 }
 
+/* Detail Grid for Key-Value Pairs */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+  background: var(--background-dark);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--background-light);
+}
+
+.detail-grid div {
+  color: var(--text-medium);
+  font-size: 13px;
+}
+
+.detail-grid strong {
+  color: var(--text-light);
+}
+
+/* Code Blocks */
 .code-block,
 .error-block {
-  background: var(--background-medium);
+  background: var(--background-dark);
   border: 1px solid var(--background-light);
   border-radius: var(--radius-sm);
   padding: var(--spacing-md);
   max-height: 300px;
   overflow-y: auto;
+  margin-top: var(--spacing-sm);
 }
 
 .error-block {
@@ -140,6 +196,96 @@
   color: #ff6b6b;
 }
 
+/* Raw Data Section */
+.raw-data-section {
+  margin-top: var(--spacing-lg);
+  border-top: 1px solid var(--background-light);
+  padding-top: var(--spacing-md);
+}
+
+.raw-data-section summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-dim);
+  padding: var(--spacing-sm) 0;
+  list-style: none;
+  user-select: none;
+}
+
+.raw-data-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.raw-data-section summary:before {
+  content: '▶';
+  margin-right: var(--spacing-sm);
+  transition: var(--transition-fast);
+}
+
+.raw-data-section[open] summary:before {
+  content: '▼';
+}
+
+/* Generation Type Badges */
+.generation-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* No Logs State */
+.no-logs {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background: var(--background-dark);
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--background-light);
+  color: var(--text-medium);
+}
+
+/* Pagination Info */
+.pagination-info {
+  background: var(--background-dark);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--background-light);
+  color: var(--text-medium);
+  font-size: 14px;
+}
+
+.pagination-info p {
+  margin: var(--spacing-xs) 0;
+}
+
+.pagination-info strong {
+  color: var(--accent-color);
+}
+
+/* Scrollbar Styling */
+.code-block::-webkit-scrollbar,
+.error-block::-webkit-scrollbar {
+  width: 6px;
+}
+
+.code-block::-webkit-scrollbar-track,
+.error-block::-webkit-scrollbar-track {
+  background: var(--background-medium);
+  border-radius: 3px;
+}
+
+.code-block::-webkit-scrollbar-thumb,
+.error-block::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.code-block::-webkit-scrollbar-thumb:hover,
+.error-block::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-color);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .filter-controls {
@@ -159,5 +305,57 @@
   .logs-table th,
   .logs-table td {
     padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .log-detail-expanded {
+    margin: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .llm-log-viewer {
+    padding: var(--spacing-md);
+  }
+  
+  .logs-table th,
+  .logs-table td {
+    padding: var(--spacing-xs);
+    font-size: 11px;
+  }
+  
+  .expand-button {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .log-table-row.expanded {
+    border-left-width: 6px;
+  }
+  
+  .logs-table {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .log-table-row {
+    transition: none;
+  }
+  
+  .expand-button {
+    transition: none;
+  }
+  
+  .expand-button:hover {
+    transform: none;
   }
 }
