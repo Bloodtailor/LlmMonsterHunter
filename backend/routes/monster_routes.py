@@ -1,5 +1,5 @@
-# Monster Routes - ENHANCED WITH CARD ART ENDPOINTS
-# Now includes ability generation, management, and card art generation
+# Monster Routes - ENHANCED WITH ADVANCED PAGINATION
+# Now includes server-side filtering, sorting, and improved statistics
 # Maintains thin route architecture - just delegates to services
 
 from flask import Blueprint, jsonify, request
@@ -22,8 +22,42 @@ def generate_monster():
 
 @monster_bp.route('', methods=['GET'])
 def get_monsters():
-    """Get all monsters - now includes abilities and card art in response"""
-    result = monster_service.get_all_monsters()
+    """Get all monsters - ENHANCED with server-side filtering, sorting, and pagination"""
+    
+    # Parse query parameters with validation
+    try:
+        limit = min(int(request.args.get('limit', 50)), 1000)  # Max 1000 monsters per request
+        offset = max(int(request.args.get('offset', 0)), 0)
+    except ValueError:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid limit or offset parameter - must be integers'
+        }), 400
+    
+    # Parse filtering options
+    filter_type = request.args.get('filter', 'all')  # all, with_art, without_art
+    if filter_type not in ['all', 'with_art', 'without_art']:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid filter parameter - must be: all, with_art, or without_art'
+        }), 400
+    
+    # Parse sorting options  
+    sort_by = request.args.get('sort', 'newest')  # newest, oldest, name, species
+    if sort_by not in ['newest', 'oldest', 'name', 'species']:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid sort parameter - must be: newest, oldest, name, or species'
+        }), 400
+    
+    # Call enhanced service method
+    result = monster_service.get_all_monsters_enhanced(
+        limit=limit,
+        offset=offset,
+        filter_type=filter_type,
+        sort_by=sort_by
+    )
+    
     return jsonify(result)
 
 @monster_bp.route('/<int:monster_id>')
@@ -40,8 +74,17 @@ def get_templates():
 
 @monster_bp.route('/stats')
 def get_stats():
-    """Get stats - now includes ability and card art statistics"""
-    result = monster_service.get_monster_stats()
+    """Get enhanced monster statistics with optional filtering"""
+    
+    # Parse optional filter parameter
+    filter_type = request.args.get('filter', 'all')  # all, with_art, without_art
+    if filter_type not in ['all', 'with_art', 'without_art']:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid filter parameter - must be: all, with_art, or without_art'
+        }), 400
+    
+    result = monster_service.get_enhanced_monster_stats(filter_type=filter_type)
     return jsonify(result)
 
 # 🔧 ABILITY ENDPOINTS (existing)
@@ -89,7 +132,7 @@ def get_monster_abilities(monster_id):
             'abilities': []
         }), 500
 
-# 🔧 NEW: CARD ART ENDPOINTS
+# 🔧 CARD ART ENDPOINTS (existing)
 
 @monster_bp.route('/<int:monster_id>/card-art', methods=['POST'])
 def generate_card_art_for_monster(monster_id):
@@ -147,12 +190,12 @@ def get_monster_card_art_info(monster_id):
             'monster_id': monster_id
         }), 500
 
-# 🔧 NEW: CARD ART FILE SERVING (Future endpoint for serving images)
+# 🔧 CARD ART FILE SERVING
 @monster_bp.route('/card-art/<path:image_path>')
 def serve_card_art(image_path):
     """
     Serve card art images
-    Future endpoint for serving images directly from the API
+    Direct file serving from the API
     """
     try:
         from flask import send_from_directory

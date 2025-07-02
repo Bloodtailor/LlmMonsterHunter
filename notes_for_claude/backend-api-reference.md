@@ -1,4 +1,4 @@
-# Backend API Reference for Frontend
+# Backend API Reference for Frontend - ENHANCED PAGINATION
 
 ## API Base URL
 - Development: `http://localhost:5000/api`
@@ -16,9 +16,40 @@
 **Success:** `{success: true, monster: MonsterObject, generation_stats: {tokens, duration, abilities_generated, card_art_generated}}`  
 **Error:** `{success: false, error: string, monster: null}`
 
-#### GET /monsters
-**Request:** Query params: `limit?, offset?`  
-**Success:** `{success: true, monsters: [MonsterObject], total: number, pagination: {limit, offset, has_more}}`
+#### GET /monsters - ENHANCED WITH SERVER-SIDE FILTERING & SORTING
+**Request:** Query params:
+- `limit=12` (1-1000, default: 50) - Number of monsters per page
+- `offset=24` (0+, default: 0) - Number of monsters to skip  
+- `filter=with_art` (`all|with_art|without_art`, default: `all`) - Card art filter
+- `sort=name` (`newest|oldest|name|species`, default: `newest`) - Sort order
+
+**Examples:**
+- `/monsters?limit=12&offset=0&filter=with_art&sort=name` - First 12 monsters with art, sorted by name
+- `/monsters?limit=24&offset=48&sort=species` - Third page of 24 monsters, sorted by species
+- `/monsters?filter=without_art&sort=oldest` - All monsters without art, oldest first
+
+**Success Response:** 
+```json
+{
+  "success": true,
+  "monsters": [MonsterObject],
+  "total": 101,
+  "count": 12,
+  "pagination": {
+    "limit": 12,
+    "offset": 24,
+    "has_more": true,
+    "next_offset": 36,
+    "prev_offset": 12
+  },
+  "filters_applied": {
+    "filter_type": "with_art",
+    "sort_by": "name"
+  }
+}
+```
+
+**Error Response (400):** `{success: false, error: "Invalid filter parameter - must be: all, with_art, or without_art"}`
 
 #### GET /monsters/:id
 **Success:** `{success: true, monster: MonsterObject}`  
@@ -35,6 +66,48 @@
 
 #### GET /monsters/card-art/:path
 Serves image files directly.
+
+### Monster Statistics - ENHANCED
+
+#### GET /monsters/stats - ENHANCED WITH FILTERING
+**Request:** Query params:
+- `filter=with_art` (`all|with_art|without_art`, default: `all`) - Apply same filtering as monsters list
+
+**Examples:**
+- `/monsters/stats` - All monsters statistics
+- `/monsters/stats?filter=with_art` - Statistics for only monsters with card art
+- `/monsters/stats?filter=without_art` - Statistics for only monsters without card art
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "filter_applied": "with_art",
+  "stats": {
+    "total_monsters": 67,
+    "total_abilities": 134,
+    "avg_abilities_per_monster": 2.0,
+    "with_card_art": 67,
+    "without_card_art": 0,
+    "card_art_percentage": 100.0,
+    "unique_species": 18,
+    "species_breakdown": {
+      "Fire Dragon": 5,
+      "Forest Guardian": 3,
+      "Ice Sprite": 2
+    },
+    "newest_monster": MonsterObject,
+    "oldest_monster": MonsterObject
+  },
+  "context": {
+    "all_monsters_count": 101,
+    "all_monsters_with_art": 67,
+    "overall_card_art_percentage": 66.3
+  }
+}
+```
+
+**Note:** When `filter != 'all'`, response includes `context` object showing overall database statistics for comparison.
 
 ### Generation System
 
@@ -177,6 +250,88 @@ Debug endpoint showing active connections and event types.
 }
 ```
 
+## Enhanced Pagination Features
+
+### Server-Side Benefits
+- **Performance:** Only requested monsters loaded from database
+- **Scalability:** Supports thousands of monsters efficiently  
+- **Filtering:** Card art filtering done at database level
+- **Sorting:** All sorting done server-side for consistency
+
+### Query Parameter Validation
+- **limit:** 1-1000 (defaults to 50, max enforced)
+- **offset:** 0+ (negative values reset to 0)
+- **filter:** Enum validation with clear error messages
+- **sort:** Enum validation with clear error messages
+
+### Pagination Response Fields
+- **total:** Total monsters matching filter (important for UI)
+- **count:** Monsters returned in this request
+- **has_more:** Boolean for "Load More" buttons
+- **next_offset:** Ready-to-use offset for next page (null if no more)
+- **prev_offset:** Ready-to-use offset for previous page (null if first page)
+
+### Frontend Implementation Patterns
+
+#### Basic Pagination
+```javascript
+// Get first page of 12 monsters
+const response = await fetch('/api/monsters?limit=12&offset=0');
+
+// Get next page using returned next_offset
+const nextResponse = await fetch(`/api/monsters?limit=12&offset=${response.pagination.next_offset}`);
+```
+
+#### With Filtering and Sorting
+```javascript
+// Monsters with card art, sorted by name, 24 per page
+const response = await fetch('/api/monsters?limit=24&filter=with_art&sort=name');
+
+// Count just monsters with card art
+const stats = await fetch('/api/monsters/stats?filter=with_art');
+```
+
+#### Infinite Scroll Pattern
+```javascript
+let offset = 0;
+const limit = 12;
+
+async function loadMoreMonsters() {
+  const response = await fetch(`/api/monsters?limit=${limit}&offset=${offset}`);
+  
+  // Add monsters to UI
+  monsters.push(...response.monsters);
+  
+  // Update offset for next request
+  if (response.pagination.has_more) {
+    offset = response.pagination.next_offset;
+  }
+  
+  return response.pagination.has_more;
+}
+```
+
+## Error Patterns
+
+**Enhanced Error Responses:**
+- `"Invalid limit or offset parameter - must be integers"` (400)
+- `"Invalid filter parameter - must be: all, with_art, or without_art"` (400) 
+- `"Invalid sort parameter - must be: newest, oldest, name, or species"` (400)
+
+**Common Errors:**
+- `"Monster not found"` (404)
+- `"Template not found: template_name"` 
+- `"Failed to save to database"`
+- `"Image generation is disabled"` (when ENABLE_IMAGE_GENERATION=false)
+- `"ComfyUI server not running"`
+- `"Parsing failed after N attempts"`
+- `"Generation timed out after N seconds"`
+
+**Error Response Variations:**
+- Sometimes includes `generation_id` for tracking
+- Sometimes includes `help` field with setup instructions
+- Image errors may include `reason: "DISABLED"|"SERVER_DOWN"|"TIMEOUT"`
+
 ## Configuration Affecting Frontend
 
 ### Environment Variables
@@ -198,22 +353,6 @@ Debug endpoint showing active connections and event types.
 }
 ```
 
-## Error Patterns
-
-**Common Errors:**
-- `"Monster not found"` (404)
-- `"Template not found: template_name"` 
-- `"Failed to save to database"`
-- `"Image generation is disabled"` (when ENABLE_IMAGE_GENERATION=false)
-- `"ComfyUI server not running"`
-- `"Parsing failed after N attempts"`
-- `"Generation timed out after N seconds"`
-
-**Error Response Variations:**
-- Sometimes includes `generation_id` for tracking
-- Sometimes includes `help` field with setup instructions
-- Image errors may include `reason: "DISABLED"|"SERVER_DOWN"|"TIMEOUT"`
-
 ## Development Notes
 
 **Image Generation:**
@@ -226,6 +365,8 @@ Debug endpoint showing active connections and event types.
 - Use SSE events to track progress when `wait_for_completion=false`
 - Queue processes both LLM and image requests in priority order
 
-**Pagination:**
-- Standard format: `{limit, offset, has_more}`
-- Default limit: 50, max limit: 100
+**Enhanced Pagination:**
+- Standard format: `{limit, offset, total, has_more, next_offset, prev_offset}`
+- Server-side filtering and sorting for performance
+- Query parameter validation with descriptive error messages
+- Supports up to 1000 monsters per request for bulk operations
