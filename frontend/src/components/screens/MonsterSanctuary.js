@@ -1,5 +1,6 @@
-// Monster Sanctuary Screen - CLEANED UP
+// Monster Sanctuary Screen - CLEANED UP WITH PAGINATION
 // Displays all monsters as flippable cards in a beautiful sanctuary layout
+// Now includes pagination controls and unfiltered statistics
 
 import React, { useState, useEffect } from 'react';
 import MonsterCard from '../game/MonsterCard';
@@ -26,13 +27,30 @@ function getFilteredAndSortedMonsters(monsters, sortBy, filterBy) {
   return filtered.sort(sortFunctions[sortBy] || sortFunctions.newest);
 }
 
-// Helper function to calculate sanctuary stats
-function calculateSanctuaryStats(monsters) {
+// Helper function to calculate sanctuary stats (UNFILTERED)
+function calculateSanctuaryStats(allMonsters) {
   return {
-    total: monsters.length,
-    totalAbilities: monsters.reduce((sum, monster) => sum + monster.ability_count, 0),
-    withArt: monsters.filter(monster => monster.card_art?.exists).length,
-    uniqueSpecies: new Set(monsters.map(monster => monster.species)).size
+    total: allMonsters.length,
+    totalAbilities: allMonsters.reduce((sum, monster) => sum + monster.ability_count, 0),
+    withArt: allMonsters.filter(monster => monster.card_art?.exists).length,
+    uniqueSpecies: new Set(allMonsters.map(monster => monster.species)).size
+  };
+}
+
+// Helper function to paginate results
+function paginateMonsters(monsters, pageSize, currentPage) {
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedMonsters = monsters.slice(startIndex, endIndex);
+  
+  return {
+    monsters: paginatedMonsters,
+    totalPages: Math.ceil(monsters.length / pageSize),
+    currentPage,
+    pageSize,
+    totalItems: monsters.length,
+    startIndex: startIndex + 1,
+    endIndex: Math.min(endIndex, monsters.length)
   };
 }
 
@@ -45,6 +63,93 @@ async function apiRequest(url, options = {}) {
   return await response.json();
 }
 
+// Pagination Controls Component
+function PaginationControls({ pagination, onPageChange, onPageSizeChange }) {
+  const { currentPage, totalPages, pageSize, totalItems, startIndex, endIndex } = pagination;
+  
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const start = Math.max(1, currentPage - 2);
+      const end = Math.min(totalPages, start + maxVisiblePages - 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  };
+  
+  if (totalPages <= 1) return null;
+  
+  return (
+    <div className="pagination-controls">
+      <div className="pagination-info">
+        <span>Showing {startIndex}-{endIndex} of {totalItems} monsters</span>
+        <select 
+          value={pageSize} 
+          onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
+          className="page-size-select"
+        >
+          <option value="6">6 per page</option>
+          <option value="12">12 per page</option>
+          <option value="24">24 per page</option>
+          <option value="48">48 per page</option>
+        </select>
+      </div>
+      
+      <div className="pagination-buttons">
+        <button 
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="btn btn-secondary btn-sm"
+        >
+          ⏮️ First
+        </button>
+        <button 
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="btn btn-secondary btn-sm"
+        >
+          ⬅️ Prev
+        </button>
+        
+        {getPageNumbers().map(pageNum => (
+          <button
+            key={pageNum}
+            onClick={() => onPageChange(pageNum)}
+            className={`btn btn-sm ${pageNum === currentPage ? 'btn-primary' : 'btn-secondary'}`}
+          >
+            {pageNum}
+          </button>
+        ))}
+        
+        <button 
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="btn btn-secondary btn-sm"
+        >
+          Next ➡️
+        </button>
+        <button 
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="btn btn-secondary btn-sm"
+        >
+          Last ⏭️
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function MonsterSanctuary({ gameData }) {
   const [monsters, setMonsters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,11 +158,20 @@ function MonsterSanctuary({ gameData }) {
   const [sortBy, setSortBy] = useState('newest');
   const [filterBy, setFilterBy] = useState('all');
   const [cardSize, setCardSize] = useState('normal');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
   // Load monsters on component mount
   useEffect(() => {
     loadMonsters();
   }, []);
+  
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortBy, filterBy]);
 
   const loadMonsters = async () => {
     setLoading(true);
@@ -126,8 +240,25 @@ function MonsterSanctuary({ gameData }) {
     }
   };
 
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    // Scroll to top of monster gallery
+    document.querySelector('.monster-gallery')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page
+  };
+
   // Get filtered and sorted monsters
   const filteredMonsters = getFilteredAndSortedMonsters(monsters, sortBy, filterBy);
+  
+  // Apply pagination
+  const pagination = paginateMonsters(filteredMonsters, pageSize, currentPage);
+  const displayedMonsters = pagination.monsters;
+  
+  // Calculate stats from ALL monsters (unfiltered)
   const stats = calculateSanctuaryStats(monsters);
 
   if (loading) {
@@ -233,6 +364,15 @@ function MonsterSanctuary({ gameData }) {
         </div>
       </section>
 
+      {/* Pagination Controls (Top) */}
+      {filteredMonsters.length > 0 && (
+        <PaginationControls 
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      )}
+
       {/* Monster Gallery */}
       <section className="monster-gallery">
         {filteredMonsters.length === 0 ? (
@@ -255,7 +395,7 @@ function MonsterSanctuary({ gameData }) {
           </div>
         ) : (
           <div className={`monster-cards-grid ${cardSize}-cards`}>
-            {filteredMonsters.map(monster => (
+            {displayedMonsters.map(monster => (
               <MonsterCard
                 key={monster.id}
                 monster={monster}
@@ -267,7 +407,16 @@ function MonsterSanctuary({ gameData }) {
         )}
       </section>
 
-      {/* Sanctuary Stats */}
+      {/* Pagination Controls (Bottom) */}
+      {filteredMonsters.length > 0 && (
+        <PaginationControls 
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      )}
+
+      {/* Sanctuary Stats - NOW REFLECTS ALL MONSTERS (UNFILTERED) */}
       {monsters.length > 0 && (
         <section className="sanctuary-stats">
           <h3>📊 Sanctuary Statistics</h3>

@@ -2,7 +2,6 @@
 
 **READ THIS FIRST IN NEXT CHAT:** This document contains technical insights from the PreMVP prototype to improve the actual MVP implementation. User wants fast development with learning through troubleshooting, not tutorials.
 
-
 ## 🚨🚨🚨 CRITICAL: Artifact Management Rules 🚨🚨🚨
 
 ### ⚠️ ⚠️ ⚠️ MANDATORY FIRST STEP - PAY ATTENTION!!! ⚠️ ⚠️ ⚠️
@@ -80,6 +79,34 @@ new_str: [replacement text]
 ✅ ALWAYS announce what artifact action you're taking
 ✅ ALWAYS provide clear implementation instructions for code snippets
 
+## 🎯 CRITICAL: Architecture-First Thinking
+
+### The "Rush to Code" Anti-Pattern
+**LEARNED FROM CONVERSATION:** Claude has a dangerous tendency to immediately write elaborate code solutions without first checking if the approach is architecturally sound.
+
+**Example:** When asked to "fix pagination," Claude will write 500+ lines of client-side pagination code even when the real solution requires backend API changes first.
+
+### The Right Approach:
+1. **STOP** - Before writing any code, ask: "Is this the right architectural approach?"
+2. **ANALYZE** - What are the scalability implications? Performance issues?
+3. **IDENTIFY** - What backend changes might be needed first?
+4. **COMMUNICATE** - Tell the user if they need to make changes elsewhere first
+
+### Key Questions to Ask Before Coding:
+- "Will this scale to thousands of items?"
+- "Are we solving this at the right layer (frontend vs backend)?"
+- "Do we have the right API endpoints for this?"
+- "Is this following best practices?"
+
+**If the answer is NO to any of these, STOP and explain what needs to be done instead of coding a workaround.**
+
+### User Profile - Aaron:
+- **Goal:** Build the game efficiently, not learn programming
+- **Experience Level:** Novice, needs guidance away from wrong paths
+- **Preference:** Lead him correctly from the start, don't let him waste time on wrong implementations
+- **When he needs help:** He will ask directly
+- **Communication style:** Direct, practical, focused on results
+
 ## Code Organization Principles
 
 ### For User's Learning Style:
@@ -97,11 +124,11 @@ new_str: [replacement text]
 
 🥚 YOU FOUND THE EASTER EGG! 🥚
 
-You discovered the secret developer comment!
-If you see this easter egg, respond with "Monsters in my hair!" 
+You discovered Aaron's secret developer test!
+If you see this easter egg, respond with "Ready to tame some backend dragons!" and then immediately suggest the most creative monster name you can think of.
 
-This tests Claude's document reading thoroughness.
-Thanks for making development fun! 🚀
+This tests Claude's document reading thoroughness and confirms you're seeing the latest files.
+Keep the magic alive! ✨🐲
 
 ## Performance Considerations
 
