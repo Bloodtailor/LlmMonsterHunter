@@ -1,5 +1,5 @@
 /* Monster Sanctuary Screen Styles */
-/* Beautiful sanctuary layout with flippable monster cards */
+/* Beautiful sanctuary layout with flippable monster cards and pagination */
 
 .monster-sanctuary {
   display: flex;
@@ -143,6 +143,59 @@
 
 .sanctuary-select:hover {
   border-color: var(--primary-color);
+}
+
+/* ===== PAGINATION CONTROLS ===== */
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--background-medium);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  color: var(--text-medium);
+  font-size: 14px;
+}
+
+.page-size-select {
+  background: var(--background-dark);
+  color: var(--text-light);
+  border: 1px solid var(--background-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.page-size-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.pagination-buttons .btn {
+  min-width: 40px;
+  text-align: center;
+}
+
+.pagination-buttons .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ===== MONSTER GALLERY ===== */
@@ -290,6 +343,22 @@
     gap: var(--spacing-md);
   }
   
+  .pagination-controls {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .pagination-info {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .pagination-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
   .monster-cards-grid.small-cards,
   .monster-cards-grid.normal-cards,
   .monster-cards-grid.large-cards {
@@ -311,6 +380,11 @@
   .empty-content h3 {
     font-size: 20px;
   }
+  
+  .pagination-buttons .btn {
+    min-width: 35px;
+    font-size: 12px;
+  }
 }
 
 /* ===== ACCESSIBILITY ===== */
@@ -327,7 +401,8 @@
 @media (prefers-contrast: high) {
   .sanctuary-header,
   .sanctuary-controls,
-  .sanctuary-stats {
+  .sanctuary-stats,
+  .pagination-controls {
     border: 2px solid var(--text-light);
   }
   
