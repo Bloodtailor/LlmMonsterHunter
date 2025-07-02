@@ -1,8 +1,9 @@
-# Monster Service - CLEANED UP
+# Monster Service - ENHANCED WITH ADVANCED PAGINATION
 # Handles monster generation with automatic abilities and card art
-# Uses generation_service for both text and image generation
+# Now includes server-side filtering, sorting, and enhanced statistics
 
 from typing import Dict, Any, Optional, List
+from sqlalchemy import and_, func, distinct
 from backend.models.monster import Monster
 from backend.ai.llm.prompt_engine import get_template_config, build_prompt
 from . import generation_service
@@ -110,6 +111,243 @@ def generate_monster(prompt_name: str = "detailed_monster",
     except Exception as e:
         return {'success': False, 'error': str(e), 'monster': None}
 
+def get_all_monsters_enhanced(limit: int = 50, 
+                            offset: int = 0,
+                            filter_type: str = 'all',
+                            sort_by: str = 'newest') -> Dict[str, Any]:
+    """
+    Get all monsters with enhanced server-side filtering, sorting, and pagination
+    
+    Args:
+        limit (int): Number of monsters to return (max 1000)
+        offset (int): Number of monsters to skip
+        filter_type (str): 'all', 'with_art', 'without_art'
+        sort_by (str): 'newest', 'oldest', 'name', 'species'
+        
+    Returns:
+        dict: Monsters with pagination info and filtering applied
+    """
+    
+    try:
+        from backend.config.database import db
+        
+        # Start with base query
+        query = Monster.query
+        
+        # Apply filtering
+        if filter_type == 'with_art':
+            query = query.filter(Monster.card_art_path.isnot(None))
+        elif filter_type == 'without_art':
+            query = query.filter(Monster.card_art_path.is_(None))
+        # 'all' requires no additional filtering
+        
+        # Apply sorting
+        if sort_by == 'newest':
+            query = query.order_by(Monster.created_at.desc())
+        elif sort_by == 'oldest':
+            query = query.order_by(Monster.created_at.asc())
+        elif sort_by == 'name':
+            query = query.order_by(Monster.name.asc())
+        elif sort_by == 'species':
+            query = query.order_by(Monster.species.asc(), Monster.name.asc())  # Secondary sort by name
+        
+        # Get total count with same filters (before pagination)
+        total_count = query.count()
+        
+        # Apply pagination and load abilities in one query (performance optimization)
+        monsters = query.options(db.joinedload(Monster.abilities)).offset(offset).limit(limit).all()
+        
+        # Calculate pagination info
+        has_more = offset + len(monsters) < total_count
+        
+        return {
+            'success': True,
+            'monsters': [monster.to_dict() for monster in monsters],
+            'total': total_count,
+            'count': len(monsters),
+            'pagination': {
+                'limit': limit,
+                'offset': offset,
+                'has_more': has_more,
+                'next_offset': offset + limit if has_more else None,
+                'prev_offset': max(0, offset - limit) if offset > 0 else None
+            },
+            'filters_applied': {
+                'filter_type': filter_type,
+                'sort_by': sort_by
+            }
+        }
+        
+    except Exception as e:
+        return {
+            'success': False, 
+            'error': str(e), 
+            'monsters': [], 
+            'total': 0, 
+            'count': 0,
+            'pagination': {
+                'limit': limit,
+                'offset': offset,
+                'has_more': False,
+                'next_offset': None,
+                'prev_offset': None
+            },
+            'filters_applied': {
+                'filter_type': filter_type,
+                'sort_by': sort_by
+            }
+        }
+
+def get_enhanced_monster_stats(filter_type: str = 'all') -> Dict[str, Any]:
+    """
+    Get comprehensive monster statistics with optional filtering
+    
+    Args:
+        filter_type (str): 'all', 'with_art', 'without_art'
+        
+    Returns:
+        dict: Enhanced statistics about monsters and abilities
+    """
+    
+    try:
+        from backend.config.database import db
+        from backend.models.ability import Ability
+        
+        # Base query for monsters
+        monster_query = Monster.query
+        
+        # Apply filtering
+        if filter_type == 'with_art':
+            monster_query = monster_query.filter(Monster.card_art_path.isnot(None))
+        elif filter_type == 'without_art':
+            monster_query = monster_query.filter(Monster.card_art_path.is_(None))
+        
+        # Get filtered monster statistics
+        total_monsters = monster_query.count()
+        
+        if total_monsters == 0:
+            return {
+                'success': True,
+                'filter_applied': filter_type,
+                'stats': {
+                    'total_monsters': 0,
+                    'total_abilities': 0,
+                    'avg_abilities_per_monster': 0,
+                    'with_card_art': 0,
+                    'without_card_art': 0,
+                    'card_art_percentage': 0,
+                    'unique_species': 0,
+                    'species_breakdown': {},
+                    'newest_monster': None,
+                    'oldest_monster': None
+                }
+            }
+        
+        # Get monster IDs for filtered results (for ability counting)
+        monster_ids = [monster.id for monster in monster_query.with_entities(Monster.id).all()]
+        
+        # Count abilities for filtered monsters only
+        total_abilities = Ability.query.filter(Ability.monster_id.in_(monster_ids)).count() if monster_ids else 0
+        avg_abilities_per_monster = total_abilities / total_monsters if total_monsters > 0 else 0
+        
+        # Card art statistics (always calculate from all monsters for context)
+        all_monsters_count = Monster.query.count()
+        with_card_art = Monster.query.filter(Monster.card_art_path.isnot(None)).count()
+        without_card_art = all_monsters_count - with_card_art
+        card_art_percentage = (with_card_art / all_monsters_count * 100) if all_monsters_count > 0 else 0
+        
+        # If filtering by art status, adjust the card art stats to reflect only filtered results
+        if filter_type == 'with_art':
+            filtered_with_art = total_monsters
+            filtered_without_art = 0
+            filtered_card_art_percentage = 100
+        elif filter_type == 'without_art':
+            filtered_with_art = 0
+            filtered_without_art = total_monsters
+            filtered_card_art_percentage = 0
+        else:
+            filtered_with_art = with_card_art
+            filtered_without_art = without_card_art
+            filtered_card_art_percentage = card_art_percentage
+        
+        # Species analysis on filtered results
+        species_data = db.session.query(
+            Monster.species, 
+            func.count(Monster.id).label('count')
+        ).filter(Monster.id.in_(monster_ids) if monster_ids else Monster.id.isnot(None)).group_by(Monster.species).all()
+        
+        unique_species = len(species_data)
+        species_breakdown = {species: count for species, count in species_data}
+        
+        # Get newest and oldest from filtered results
+        newest_monster = monster_query.order_by(Monster.created_at.desc()).first()
+        oldest_monster = monster_query.order_by(Monster.created_at.asc()).first()
+        
+        return {
+            'success': True,
+            'filter_applied': filter_type,
+            'stats': {
+                'total_monsters': total_monsters,
+                'total_abilities': total_abilities,
+                'avg_abilities_per_monster': round(avg_abilities_per_monster, 1),
+                'with_card_art': filtered_with_art,
+                'without_card_art': filtered_without_art,
+                'card_art_percentage': round(filtered_card_art_percentage, 1),
+                'unique_species': unique_species,
+                'species_breakdown': species_breakdown,
+                'newest_monster': newest_monster.to_dict() if newest_monster else None,
+                'oldest_monster': oldest_monster.to_dict() if oldest_monster else None
+            },
+            'context': {
+                'all_monsters_count': all_monsters_count,
+                'all_monsters_with_art': with_card_art,
+                'overall_card_art_percentage': round(card_art_percentage, 1)
+            } if filter_type != 'all' else None
+        }
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e),
+            'filter_applied': filter_type,
+            'stats': {
+                'total_monsters': 0,
+                'total_abilities': 0,
+                'with_card_art': 0,
+                'unique_species': 0
+            }
+        }
+
+# LEGACY COMPATIBILITY: Keep existing methods for backward compatibility
+def get_all_monsters(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+    """
+    LEGACY: Get all monsters with basic pagination
+    Maintained for backward compatibility - new code should use get_all_monsters_enhanced
+    """
+    return get_all_monsters_enhanced(limit=limit, offset=offset, filter_type='all', sort_by='newest')
+
+def get_monster_stats() -> Dict[str, Any]:
+    """
+    LEGACY: Get basic monster statistics
+    Maintained for backward compatibility - new code should use get_enhanced_monster_stats
+    """
+    enhanced_stats = get_enhanced_monster_stats(filter_type='all')
+    if not enhanced_stats['success']:
+        return enhanced_stats
+    
+    # Convert to legacy format
+    stats = enhanced_stats['stats']
+    return {
+        'success': True,
+        'total_monsters': stats['total_monsters'],
+        'total_abilities': stats['total_abilities'],
+        'avg_abilities_per_monster': stats['avg_abilities_per_monster'],
+        'monsters_with_card_art': stats['with_card_art'],
+        'card_art_percentage': stats['card_art_percentage'],
+        'newest_monster': stats['newest_monster'],
+        'available_templates': list(get_available_templates().keys())
+    }
+
 def _generate_and_connect_card_art(monster: Monster) -> Dict[str, Any]:
     """Generate and connect card art to monster"""
     
@@ -152,27 +390,6 @@ def generate_card_art_for_existing_monster(monster_id: int, wait_for_completion:
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
-def get_all_monsters(limit: int = 50, offset: int = 0) -> Dict[str, Any]:
-    """Get all monsters with pagination"""
-    try:
-        monsters = Monster.query.order_by(Monster.created_at.desc()).offset(offset).limit(limit).all()
-        total_count = Monster.query.count()
-        
-        return {
-            'success': True,
-            'monsters': [monster.to_dict() for monster in monsters],
-            'total': total_count,
-            'count': len(monsters),
-            'pagination': {
-                'limit': limit,
-                'offset': offset,
-                'has_more': offset + len(monsters) < total_count
-            }
-        }
-        
-    except Exception as e:
-        return {'success': False, 'error': str(e), 'monsters': [], 'total': 0, 'count': 0}
-
 def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
     """Get specific monster by ID"""
     try:
@@ -203,36 +420,3 @@ def get_available_templates() -> Dict[str, str]:
         
     except Exception as e:
         return {}
-
-def get_monster_stats() -> Dict[str, Any]:
-    """Get monster database statistics"""
-    try:
-        total_monsters = Monster.query.count()
-        newest_monster = Monster.query.order_by(Monster.created_at.desc()).first()
-        
-        from backend.models.ability import Ability
-        total_abilities = Ability.query.count()
-        avg_abilities_per_monster = total_abilities / total_monsters if total_monsters > 0 else 0
-        
-        monsters_with_art = Monster.query.filter(Monster.card_art_path.isnot(None)).count()
-        card_art_percentage = (monsters_with_art / total_monsters * 100) if total_monsters > 0 else 0
-        
-        return {
-            'success': True,
-            'total_monsters': total_monsters,
-            'total_abilities': total_abilities,
-            'avg_abilities_per_monster': round(avg_abilities_per_monster, 1),
-            'monsters_with_card_art': monsters_with_art,
-            'card_art_percentage': round(card_art_percentage, 1),
-            'newest_monster': newest_monster.to_dict() if newest_monster else None,
-            'available_templates': list(get_available_templates().keys())
-        }
-        
-    except Exception as e:
-        return {
-            'success': False,
-            'error': str(e),
-            'total_monsters': 0,
-            'total_abilities': 0,
-            'monsters_with_card_art': 0
-        }
