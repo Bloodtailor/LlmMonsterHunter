@@ -1,60 +1,11 @@
-// Monster Sanctuary Screen - CLEANED UP WITH PAGINATION
-// Displays all monsters as flippable cards in a beautiful sanctuary layout
-// Now includes pagination controls and unfiltered statistics
+// Monster Sanctuary Screen - ENHANCED WITH SERVER-SIDE PAGINATION
+// Now uses the enhanced backend API with server-side filtering, sorting, and pagination
+// Removed client-side processing for better performance and scalability
 
 import React, { useState, useEffect } from 'react';
 import MonsterCard from '../game/MonsterCard';
 
-// Helper function for filtering and sorting monsters
-function getFilteredAndSortedMonsters(monsters, sortBy, filterBy) {
-  let filtered = [...monsters];
-  
-  // Apply filters
-  if (filterBy === 'with_art') {
-    filtered = filtered.filter(monster => monster.card_art?.exists);
-  } else if (filterBy === 'without_art') {
-    filtered = filtered.filter(monster => !monster.card_art?.exists);
-  }
-  
-  // Apply sorting
-  const sortFunctions = {
-    oldest: (a, b) => new Date(a.created_at) - new Date(b.created_at),
-    name: (a, b) => a.name.localeCompare(b.name),
-    species: (a, b) => a.species.localeCompare(b.species),
-    newest: (a, b) => new Date(b.created_at) - new Date(a.created_at)
-  };
-  
-  return filtered.sort(sortFunctions[sortBy] || sortFunctions.newest);
-}
-
-// Helper function to calculate sanctuary stats (UNFILTERED)
-function calculateSanctuaryStats(allMonsters) {
-  return {
-    total: allMonsters.length,
-    totalAbilities: allMonsters.reduce((sum, monster) => sum + monster.ability_count, 0),
-    withArt: allMonsters.filter(monster => monster.card_art?.exists).length,
-    uniqueSpecies: new Set(allMonsters.map(monster => monster.species)).size
-  };
-}
-
-// Helper function to paginate results
-function paginateMonsters(monsters, pageSize, currentPage) {
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedMonsters = monsters.slice(startIndex, endIndex);
-  
-  return {
-    monsters: paginatedMonsters,
-    totalPages: Math.ceil(monsters.length / pageSize),
-    currentPage,
-    pageSize,
-    totalItems: monsters.length,
-    startIndex: startIndex + 1,
-    endIndex: Math.min(endIndex, monsters.length)
-  };
-}
-
-// API call helper
+// API call helper with enhanced error handling
 async function apiRequest(url, options = {}) {
   const response = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
@@ -63,9 +14,73 @@ async function apiRequest(url, options = {}) {
   return await response.json();
 }
 
-// Pagination Controls Component
-function PaginationControls({ pagination, onPageChange, onPageSizeChange }) {
-  const { currentPage, totalPages, pageSize, totalItems, startIndex, endIndex } = pagination;
+// Load monsters using the enhanced API with server-side pagination
+async function loadMonsters({ limit, offset, filter, sort }) {
+  try {
+    // Build query parameters for the enhanced API
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit);
+    if (offset) params.append('offset', offset);
+    if (filter && filter !== 'all') params.append('filter', filter);
+    if (sort) params.append('sort', sort);
+    
+    const url = `http://localhost:5000/api/monsters?${params.toString()}`;
+    const response = await apiRequest(url);
+    
+    if (response.success) {
+      return {
+        monsters: response.monsters || [],
+        total: response.total || 0,
+        count: response.count || 0,
+        pagination: response.pagination || {},
+        filtersApplied: response.filters_applied || {}
+      };
+    } else {
+      throw new Error(response.error || 'Failed to load monsters');
+    }
+  } catch (error) {
+    console.error('Error loading monsters:', error);
+    throw error;
+  }
+}
+
+// Load sanctuary statistics using the enhanced stats API
+async function loadSanctuaryStats(filter = 'all') {
+  try {
+    const params = new URLSearchParams();
+    if (filter && filter !== 'all') params.append('filter', filter);
+    
+    const url = `http://localhost:5000/api/monsters/stats?${params.toString()}`;
+    const response = await apiRequest(url);
+    
+    if (response.success) {
+      return {
+        stats: response.stats,
+        filterApplied: response.filter_applied,
+        context: response.context // Overall stats when filtering is applied
+      };
+    } else {
+      throw new Error(response.error || 'Failed to load stats');
+    }
+  } catch (error) {
+    console.error('Error loading stats:', error);
+    throw error;
+  }
+}
+
+// Pagination Controls Component - Enhanced for server-side pagination
+function PaginationControls({ 
+  monsters, 
+  total, 
+  currentPage, 
+  pageSize, 
+  onPageChange, 
+  onPageSizeChange,
+  loading 
+}) {
+  const totalPages = Math.ceil(total / pageSize);
+  const startIndex = (currentPage - 1) * pageSize + 1;
+  const endIndex = Math.min(currentPage * pageSize, total);
   
   const getPageNumbers = () => {
     const pages = [];
@@ -87,16 +102,19 @@ function PaginationControls({ pagination, onPageChange, onPageSizeChange }) {
     return pages;
   };
   
-  if (totalPages <= 1) return null;
+  if (total <= pageSize) return null;
   
   return (
     <div className="pagination-controls">
       <div className="pagination-info">
-        <span>Showing {startIndex}-{endIndex} of {totalItems} monsters</span>
+        <span>
+          {loading ? 'Loading...' : `Showing ${startIndex}-${endIndex} of ${total} monsters`}
+        </span>
         <select 
           value={pageSize} 
           onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
           className="page-size-select"
+          disabled={loading}
         >
           <option value="6">6 per page</option>
           <option value="12">12 per page</option>
@@ -108,14 +126,14 @@ function PaginationControls({ pagination, onPageChange, onPageSizeChange }) {
       <div className="pagination-buttons">
         <button 
           onClick={() => onPageChange(1)}
-          disabled={currentPage === 1}
+          disabled={currentPage === 1 || loading}
           className="btn btn-secondary btn-sm"
         >
           ⏮️ First
         </button>
         <button 
           onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+          disabled={currentPage === 1 || loading}
           className="btn btn-secondary btn-sm"
         >
           ⬅️ Prev
@@ -125,6 +143,7 @@ function PaginationControls({ pagination, onPageChange, onPageSizeChange }) {
           <button
             key={pageNum}
             onClick={() => onPageChange(pageNum)}
+            disabled={loading}
             className={`btn btn-sm ${pageNum === currentPage ? 'btn-primary' : 'btn-secondary'}`}
           >
             {pageNum}
@@ -133,14 +152,14 @@ function PaginationControls({ pagination, onPageChange, onPageSizeChange }) {
         
         <button 
           onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || loading}
           className="btn btn-secondary btn-sm"
         >
           Next ➡️
         </button>
         <button 
           onClick={() => onPageChange(totalPages)}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || loading}
           className="btn btn-secondary btn-sm"
         >
           Last ⏭️
@@ -150,47 +169,156 @@ function PaginationControls({ pagination, onPageChange, onPageSizeChange }) {
   );
 }
 
+// Sanctuary Stats Component - Enhanced to show filtered vs overall stats
+function SanctuaryStats({ stats, filterApplied, context, loading }) {
+  if (loading) {
+    return (
+      <section className="sanctuary-stats">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading sanctuary statistics...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!stats) return null;
+
+  return (
+    <section className="sanctuary-stats">
+      <h3>📊 Sanctuary Statistics</h3>
+      
+      {/* Show filter context if filtering is applied */}
+      {filterApplied && filterApplied !== 'all' && context && (
+        <div className="alert alert-info mb-lg">
+          <p>
+            <strong>📋 Current View:</strong> Showing stats for monsters {filterApplied.replace('_', ' ')}.
+          </p>
+          <p>
+            <strong>🏛️ Total Sanctuary:</strong> {context.all_monsters_count} total monsters, 
+            {context.all_monsters_with_art} with card art 
+            ({context.overall_card_art_percentage}% overall).
+          </p>
+        </div>
+      )}
+      
+      <div className="grid-auto-fit grid-auto-fit-sm">
+        <div className="stat-card">
+          <span className="stat-number">{stats.total_monsters}</span>
+          <span className="stat-label">
+            {filterApplied && filterApplied !== 'all' ? 
+              `${filterApplied.replace('_', ' ')}` : 
+              'Total Monsters'
+            }
+          </span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-number">{stats.total_abilities}</span>
+          <span className="stat-label">Total Abilities</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-number">{stats.with_card_art}</span>
+          <span className="stat-label">With Card Art</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-number">{stats.unique_species}</span>
+          <span className="stat-label">Unique Species</span>
+        </div>
+      </div>
+      
+      {/* Show additional stats */}
+      {stats.avg_abilities_per_monster && (
+        <div className="mt-lg">
+          <p className="text-center text-medium">
+            <strong>Average Abilities per Monster:</strong> {stats.avg_abilities_per_monster.toFixed(1)} | 
+            <strong> Card Art Coverage:</strong> {stats.card_art_percentage?.toFixed(1)}%
+          </p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// Main Monster Sanctuary Component
 function MonsterSanctuary({ gameData }) {
+  // Core data state
   const [monsters, setMonsters] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState(null);
+  const [statsContext, setStatsContext] = useState(null);
+  
+  // Loading and error states
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [generatingMonster, setGeneratingMonster] = useState(false);
+  
+  // Filter and pagination state
   const [sortBy, setSortBy] = useState('newest');
   const [filterBy, setFilterBy] = useState('all');
   const [cardSize, setCardSize] = useState('normal');
-  
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
 
-  // Load monsters on component mount
+  // Load monsters whenever pagination or filter parameters change
   useEffect(() => {
-    loadMonsters();
-  }, []);
-  
+    loadMonstersData();
+  }, [currentPage, pageSize, sortBy, filterBy]);
+
+  // Load stats whenever filter changes
+  useEffect(() => {
+    loadStatsData();
+  }, [filterBy]);
+
   // Reset to page 1 when filters change
   useEffect(() => {
-    setCurrentPage(1);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
   }, [sortBy, filterBy]);
 
-  const loadMonsters = async () => {
+  const loadMonstersData = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const data = await apiRequest('http://localhost:5000/api/monsters');
+      const offset = (currentPage - 1) * pageSize;
+      const data = await loadMonsters({
+        limit: pageSize,
+        offset: offset,
+        filter: filterBy,
+        sort: sortBy
+      });
       
-      if (data.success) {
-        setMonsters(data.monsters);
-      } else {
-        setError(data.error || 'Failed to load monsters');
-      }
+      setMonsters(data.monsters);
+      setTotal(data.total);
+      
+      console.log(`✅ Loaded ${data.count} monsters (${data.total} total) with filters:`, data.filtersApplied);
+      
     } catch (err) {
-      setError('Cannot connect to backend server');
+      setError('Cannot connect to backend server or failed to load monsters');
       console.error('Failed to load monsters:', err);
     }
     
     setLoading(false);
+  };
+
+  const loadStatsData = async () => {
+    setStatsLoading(true);
+    
+    try {
+      const data = await loadSanctuaryStats(filterBy);
+      setStats(data.stats);
+      setStatsContext(data.context);
+      
+      console.log(`📊 Loaded stats for filter '${data.filterApplied}':`, data.stats);
+      
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+      // Don't set error for stats - just log it
+    }
+    
+    setStatsLoading(false);
   };
 
   const generateNewMonster = async () => {
@@ -206,7 +334,11 @@ function MonsterSanctuary({ gameData }) {
       });
       
       if (result.success && result.monster) {
-        setMonsters(prev => [result.monster, ...prev]);
+        // Reload the first page to see the new monster
+        setCurrentPage(1);
+        await loadMonstersData();
+        await loadStatsData();
+        
         console.log(`✅ Generated ${result.monster.name} with ${result.monster.ability_count} abilities!`);
         if (result.monster.card_art?.exists) {
           console.log(`🎨 Card art generated: ${result.monster.card_art.relative_path}`);
@@ -230,7 +362,9 @@ function MonsterSanctuary({ gameData }) {
       });
       
       if (result.success && result.ability) {
-        await loadMonsters(); // Reload to get updated abilities
+        // Reload current page to get updated abilities
+        await loadMonstersData();
+        await loadStatsData();
         console.log(`✅ Generated ability "${result.ability.name}" for monster ${monsterId}!`);
       } else {
         console.error('Ability generation failed:', result.error);
@@ -251,17 +385,18 @@ function MonsterSanctuary({ gameData }) {
     setCurrentPage(1); // Reset to first page
   };
 
-  // Get filtered and sorted monsters
-  const filteredMonsters = getFilteredAndSortedMonsters(monsters, sortBy, filterBy);
-  
-  // Apply pagination
-  const pagination = paginateMonsters(filteredMonsters, pageSize, currentPage);
-  const displayedMonsters = pagination.monsters;
-  
-  // Calculate stats from ALL monsters (unfiltered)
-  const stats = calculateSanctuaryStats(monsters);
+  const handleSortChange = (newSort) => {
+    setSortBy(newSort);
+    // currentPage will reset to 1 via useEffect
+  };
 
-  if (loading) {
+  const handleFilterChange = (newFilter) => {
+    setFilterBy(newFilter);
+    // currentPage will reset to 1 via useEffect
+  };
+
+  // Initial loading state
+  if (loading && monsters.length === 0) {
     return (
       <div className="monster-sanctuary">
         <div className="loading-container">
@@ -303,7 +438,7 @@ function MonsterSanctuary({ gameData }) {
         <div className="alert alert-error">
           <h3>❌ Error</h3>
           <p>{error}</p>
-          <button onClick={loadMonsters} className="btn btn-secondary mt-md">
+          <button onClick={loadMonstersData} className="btn btn-secondary mt-md">
             🔄 Retry
           </button>
         </div>
@@ -312,9 +447,13 @@ function MonsterSanctuary({ gameData }) {
       {/* Sanctuary Controls */}
       <section className="sanctuary-controls">
         <div className="monster-count">
-          <span className="count-badge">{filteredMonsters.length} monsters</span>
-          {filteredMonsters.length !== monsters.length && (
-            <span className="filter-info">({monsters.length} total)</span>
+          <span className="count-badge">
+            {loading ? '...' : `${total} monsters`}
+          </span>
+          {filterBy !== 'all' && (
+            <span className="filter-info">
+              (filtered: {filterBy.replace('_', ' ')})
+            </span>
           )}
         </div>
         
@@ -324,8 +463,9 @@ function MonsterSanctuary({ gameData }) {
             <select 
               id="sort-select"
               value={sortBy} 
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) => handleSortChange(e.target.value)}
               className="sanctuary-select"
+              disabled={loading}
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -339,8 +479,9 @@ function MonsterSanctuary({ gameData }) {
             <select 
               id="filter-select"
               value={filterBy} 
-              onChange={(e) => setFilterBy(e.target.value)}
+              onChange={(e) => handleFilterChange(e.target.value)}
               className="sanctuary-select"
+              disabled={loading}
             >
               <option value="all">All Monsters</option>
               <option value="with_art">With Card Art</option>
@@ -365,81 +506,82 @@ function MonsterSanctuary({ gameData }) {
       </section>
 
       {/* Pagination Controls (Top) */}
-      {filteredMonsters.length > 0 && (
-        <PaginationControls 
-          pagination={pagination}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-        />
-      )}
+      <PaginationControls 
+        monsters={monsters}
+        total={total}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        loading={loading}
+      />
 
       {/* Monster Gallery */}
       <section className="monster-gallery">
-        {filteredMonsters.length === 0 ? (
+        {total === 0 && !loading ? (
           <div className="empty-sanctuary">
             <div className="empty-content">
               <div className="empty-icon">🏛️</div>
               <h3>Your Sanctuary Awaits</h3>
-              {monsters.length === 0 ? (
+              {filterBy === 'all' ? (
                 <>
                   <p>No monsters have been summoned yet.</p>
                   <p>Create your first monster to begin building your legendary collection!</p>
                 </>
               ) : (
                 <>
-                  <p>No monsters match your current filters.</p>
-                  <p>Try adjusting the sort and filter options above.</p>
+                  <p>No monsters match your current filter: "{filterBy.replace('_', ' ')}"</p>
+                  <p>Try changing the filter or summon more monsters!</p>
                 </>
               )}
             </div>
           </div>
         ) : (
           <div className={`monster-cards-grid ${cardSize}-cards`}>
-            {displayedMonsters.map(monster => (
-              <MonsterCard
-                key={monster.id}
-                monster={monster}
-                size={cardSize}
-                onAbilityGenerate={handleAbilityGenerate}
-              />
-            ))}
+            {loading ? (
+              // Show loading placeholders
+              Array.from({ length: Math.min(pageSize, 6) }).map((_, index) => (
+                <div key={index} className="card">
+                  <div className="loading-container">
+                    <div className="loading-spinner"></div>
+                    <p className="loading-text">Loading monster...</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              monsters.map(monster => (
+                <MonsterCard
+                  key={monster.id}
+                  monster={monster}
+                  size={cardSize}
+                  onAbilityGenerate={handleAbilityGenerate}
+                />
+              ))
+            )}
           </div>
         )}
       </section>
 
       {/* Pagination Controls (Bottom) */}
-      {filteredMonsters.length > 0 && (
+      {total > pageSize && (
         <PaginationControls 
-          pagination={pagination}
+          monsters={monsters}
+          total={total}
+          currentPage={currentPage}
+          pageSize={pageSize}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
+          loading={loading}
         />
       )}
 
-      {/* Sanctuary Stats - NOW REFLECTS ALL MONSTERS (UNFILTERED) */}
-      {monsters.length > 0 && (
-        <section className="sanctuary-stats">
-          <h3>📊 Sanctuary Statistics</h3>
-          <div className="grid-auto-fit grid-auto-fit-sm">
-            <div className="stat-card">
-              <span className="stat-number">{stats.total}</span>
-              <span className="stat-label">Total Monsters</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">{stats.totalAbilities}</span>
-              <span className="stat-label">Total Abilities</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">{stats.withArt}</span>
-              <span className="stat-label">With Card Art</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">{stats.uniqueSpecies}</span>
-              <span className="stat-label">Unique Species</span>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Sanctuary Stats - Shows filtered or overall stats */}
+      <SanctuaryStats 
+        stats={stats}
+        filterApplied={filterBy}
+        context={statsContext}
+        loading={statsLoading}
+      />
     </div>
   );
 }
