@@ -28,7 +28,7 @@ DEFAULT_NEGATIVE_PROMPT = (
 
 # === Base Positive Prompt (Universal Styling) ===
 DEFAULT_BASE_POSITIVE_PROMPT = (
-    "cute"
+    "card art, fantasy, whimsical, cute, creative, fun, hearthstone, "
 #    "Norse mythology art"
 #    "digital art, magic fantasy, vibrant colors, high contrast, "
 #    "highly detailed, trending on artstation, 4k"

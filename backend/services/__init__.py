@@ -7,12 +7,23 @@ from . import monster_service
 from . import ability_service
 from . import event_service
 from . import sse_service
+from . import game_state_service
+from . import dungeon_service
 
 # Simple re-exports with new generation service
 from .game_tester_service import get_test_files, run_test_file
 from .generation_service import text_generation_request, image_generation_request  # 🔧 NEW: unified generation
 from .monster_service import generate_monster, get_all_monsters, get_monster_by_id
 from .ability_service import generate_ability, generate_initial_abilities, get_abilities_for_monster
+from .dungeon_service import enter_dungeon, choose_door, get_dungeon_state
+
+from .game_state_service import (
+    get_game_state, 
+    add_following_monster, 
+    set_active_party, 
+    get_active_party,
+    is_party_ready_for_dungeon
+)
 
 # Event system exports
 from .event_service import get_event_service, emit_event, subscribe_to_event

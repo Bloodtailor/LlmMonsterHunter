@@ -148,7 +148,7 @@ def _check_nested_field(data: Dict[str, Any], field_path: str) -> bool:
         
     except Exception:
         return False
-
+    
 def parse_response(response_text: str, parser_config: Dict[str, Any]) -> ParseResult:
     """
     Main entry point for parsing - chooses appropriate parser
@@ -162,7 +162,9 @@ def parse_response(response_text: str, parser_config: Dict[str, Any]) -> ParseRe
     """
     parser_name = parser_config.get('parser_name', 'basic_parser')
     
-    if parser_name == 'nested_parser':
+    if parser_name == 'none':
+        return ParseResult(success=True, data=response_text)
+    elif parser_name == 'nested_parser':
         return nested_parser(response_text, parser_config)
     else:
         # Default to basic parser
