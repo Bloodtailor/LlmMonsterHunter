@@ -68,11 +68,15 @@ def _register_routes(app):
     from backend.routes.streaming_routes import streaming_bp
     from backend.routes.monster_routes import monster_bp
     from backend.routes.game_tester_routes import game_tester_bp
+    from backend.routes.game_state_routes import game_state_bp
+    from backend.routes.dungeon_routes import dungeon_bp
     
     app.register_blueprint(generation_bp)
     app.register_blueprint(streaming_bp)
     app.register_blueprint(monster_bp)
     app.register_blueprint(game_tester_bp)
+    app.register_blueprint(game_state_bp)
+    app.register_blueprint(dungeon_bp)
     
     # Simple health check
     @app.route('/api/health')

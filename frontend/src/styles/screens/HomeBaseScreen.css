@@ -1,0 +1,368 @@
+/* Home Base Screen Styles */
+/* Clean layout with active party on top, following monsters below */
+
+.homebase-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.homebase-header {
+  text-align: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  color: white;
+  box-shadow: var(--shadow-lg);
+}
+
+.homebase-header h1 {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 2.2rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.homebase-header p {
+  margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* ===== SECTION HEADERS ===== */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.section-header h2 {
+  color: var(--accent-color);
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.party-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.pagination-info {
+  color: var(--text-medium);
+  font-size: 14px;
+  background: var(--background-dark);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-md);
+}
+
+/* ===== ACTIVE PARTY SECTION ===== */
+.active-party-section {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--primary-color);
+}
+
+.active-party-container {
+  margin-bottom: var(--spacing-lg);
+}
+
+.empty-party {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background: var(--background-dark);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--background-light);
+}
+
+.empty-party-content {
+  text-align: center;
+  max-width: 400px;
+  padding: var(--spacing-xl);
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.6;
+}
+
+.empty-party-content h3 {
+  color: var(--text-light);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 1.3rem;
+}
+
+.empty-party-content p {
+  color: var(--text-medium);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.party-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ===== DUNGEON ACTIONS ===== */
+.dungeon-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--background-light);
+}
+
+.dungeon-actions .btn {
+  min-width: 200px;
+  transition: var(--transition-normal);
+}
+
+.dungeon-actions .btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== FOLLOWING MONSTERS SECTION ===== */
+.following-monsters-section {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.empty-following {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background: var(--background-dark);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--background-light);
+}
+
+.empty-following-content {
+  text-align: center;
+  max-width: 500px;
+  padding: var(--spacing-xl);
+}
+
+.empty-following-content h3 {
+  color: var(--text-light);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 1.3rem;
+}
+
+.empty-following-content p {
+  color: var(--text-medium);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.following-monsters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ===== PAGINATION CONTROLS ===== */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: var(--background-dark);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--background-light);
+}
+
+.page-indicator {
+  color: var(--text-light);
+  font-weight: 600;
+  font-family: var(--font-family-mono);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--background-medium);
+  border-radius: var(--radius-sm);
+}
+
+/* ===== LOADING AND ERROR STATES ===== */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+.error-container h2 {
+  color: var(--error-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.error-container p {
+  color: var(--text-medium);
+  margin-bottom: var(--spacing-lg);
+  max-width: 500px;
+}
+
+/* ===== PARTY TOGGLE BUTTONS ===== */
+.party-monster-wrapper,
+.following-monster-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.party-toggle-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+.party-toggle-add {
+  background: var(--success-color);
+  color: white;
+}
+
+.party-toggle-add:hover:not(:disabled) {
+  background: #229954;
+  transform: scale(1.1);
+}
+
+.party-toggle-remove {
+  background: var(--accent-color);
+  color: white;
+}
+
+.party-toggle-remove:hover:not(:disabled) {
+  background: #e67e22;
+  transform: scale(1.1);
+}
+
+.party-toggle-full {
+  background: var(--text-dim);
+  color: white;
+  cursor: not-allowed;
+}
+
+.party-toggle-disabled {
+  background: var(--background-light);
+  color: var(--text-dim);
+  cursor: not-allowed;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Monster wrapper positioning */
+.party-monster-wrapper {
+  max-width: 250px;
+}
+
+.following-monster-wrapper {
+  transition: var(--transition-normal);
+}
+
+.following-monster-wrapper:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .homebase-screen {
+    padding: var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+  
+  .homebase-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .party-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--spacing-md);
+  }
+  
+  .following-monsters-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .pagination-controls {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+  
+  .dungeon-actions .btn {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .party-toggle-button {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .homebase-header {
+    padding: var(--spacing-lg);
+  }
+  
+  .homebase-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .active-party-section,
+  .following-monsters-section {
+    padding: var(--spacing-lg);
+  }
+  
+  .empty-icon {
+    font-size: 48px;
+  }
+}

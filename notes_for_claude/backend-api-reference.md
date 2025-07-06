@@ -1,4 +1,4 @@
-# Backend API Reference for Frontend - ENHANCED PAGINATION
+# Backend API Reference for Frontend - ENHANCED WITH DUNGEON SYSTEM
 
 ## API Base URL
 - Development: `http://localhost:5000/api`
@@ -107,7 +107,136 @@ Serves image files directly.
 }
 ```
 
-**Note:** When `filter != 'all'`, response includes `context` object showing overall database statistics for comparison.
+### 🎮 Game State Management - NEW
+
+#### GET /game-state
+**Success:** `{success: true, game_state: GameStateObject}`  
+**Error:** `{success: false, error: string}`
+
+#### POST /game-state/reset
+**Success:** `{success: true, message: "Game state reset to initial values", game_state: GameStateObject}`
+
+#### POST /game-state/following/add
+**Request:** `{monster_id: number}`  
+**Success:** `{success: true, message: "Monster name is now following you", monster: MonsterObject, following_count: number}`  
+**Error:** `{success: false, error: "Monster 123 not found", following_count: number}`
+
+#### POST /game-state/following/remove  
+**Request:** `{monster_id: number}`  
+**Success:** `{success: true, message: "Monster name is no longer following you", following_count: number, party_count: number}`
+
+#### GET /game-state/following
+**Success:** `{success: true, following_monsters: {ids: [number], count: number, details: [MonsterObject]}}`
+
+#### POST /game-state/party/set
+**Request:** `{monster_ids: [number, number, number]}`  
+**Success:** `{success: true, message: "Active party set: Monster1, Monster2, Monster3", active_party: PartyObject}`  
+**Error:** `{success: false, error: "Active party cannot exceed 4 monsters", party_count: number}`
+
+#### GET /game-state/party
+**Success:** `{success: true, active_party: PartyObject}`
+
+#### GET /game-state/party/ready
+**Success:** `{success: true, ready_for_dungeon: boolean, party_summary: string, message: string}`
+
+### 🏰 Dungeon System - NEW
+
+#### POST /dungeon/enter
+**Description:** Enter dungeon with current active party. Generates atmospheric entry text, initial location, and 3 door choices.  
+**Requirements:** Must have active party set (at least 1 monster)  
+**Success:** 
+```json
+{
+  "success": true,
+  "dungeon_entered": true,
+  "entry_text": "Generated atmospheric text about entering the dungeon...",
+  "location": {
+    "name": "Crystal Cavern", 
+    "description": "Glowing crystals illuminate the chamber..."
+  },
+  "doors": [
+    {
+      "id": "location_1",
+      "type": "location", 
+      "name": "Ancient Library",
+      "description": "Dusty tomes line the walls of this forgotten archive..."
+    },
+    {
+      "id": "location_2",
+      "type": "location",
+      "name": "Echoing Chamber", 
+      "description": "Your footsteps echo endlessly in this vast space..."
+    },
+    {
+      "id": "exit",
+      "type": "exit",
+      "name": "Exit the Dungeon",
+      "description": "A familiar stone stairway leading back to the surface..."
+    }
+  ],
+  "party_summary": "Tanner, Luna, and Sparkles",
+  "message": "Welcome to the dungeon! Choose your path wisely."
+}
+```
+**Error:** `{success: false, error: "No active party set. Add monsters to your party before entering the dungeon.", ready_for_dungeon: false}`
+
+#### POST /dungeon/choose-door
+**Request:** `{door_choice: "location_1" | "location_2" | "exit"}`  
+**Description:** Choose a door in the dungeon. Location doors generate event text and new location. Exit door generates exit text and returns to home base.
+
+**Location Door Success:**
+```json
+{
+  "success": true,
+  "choice_made": "Ancient Library",
+  "event_text": "Generated text about exploring the Ancient Library...",
+  "new_location": {
+    "name": "Forgotten Shrine",
+    "description": "Candles flicker mysteriously in this sacred space..."
+  },
+  "new_doors": [DoorObject, DoorObject, ExitDoor],
+  "continue_button": true,
+  "in_dungeon": true
+}
+```
+
+**Exit Door Success:**
+```json
+{
+  "success": true,
+  "choice_made": "Exit the Dungeon",
+  "exit_text": "Generated text about successfully leaving the dungeon...",
+  "dungeon_completed": true,
+  "in_dungeon": false,
+  "return_to_home_button": true,
+  "message": "You have successfully exited the dungeon!"
+}
+```
+
+**Error:** `{success: false, error: "Invalid door choice. Available: ['location_1', 'location_2', 'exit']", in_dungeon: true}`
+
+#### GET /dungeon/state
+**Success (In Dungeon):** 
+```json
+{
+  "success": true,
+  "in_dungeon": true,
+  "state": {
+    "current_location": LocationObject,
+    "available_doors": [DoorObject],
+    "last_event_text": "Text from last door choice...",
+    "party_summary": "Tanner, Luna, and Sparkles"
+  },
+  "party_summary": "Tanner, Luna, and Sparkles"
+}
+```
+
+**Success (Not In Dungeon):** `{success: true, in_dungeon: false, state: null, message: "Not currently in a dungeon"}`
+
+#### GET /dungeon/status
+**Description:** Quick status check for UI  
+**Success (In Dungeon):** `{success: true, in_dungeon: true, location_name: "Crystal Cavern", party_summary: "Tanner, Luna, and Sparkles", door_count: 3, message: "Currently in Crystal Cavern with Tanner, Luna, and Sparkles"}`  
+**Success (Home Base):** `{success: true, in_dungeon: false, message: "Currently at home base"}`
 
 ### Generation System
 
@@ -197,13 +326,61 @@ Debug endpoint showing active connections and event types.
 }
 ```
 
+### GameStateObject - NEW
+```json
+{
+  "following_monsters": {
+    "ids": [1, 2, 3, 4, 5],
+    "count": 5,
+    "details": [MonsterObject]
+  },
+  "active_party": {
+    "ids": [1, 2, 3],
+    "count": 3, 
+    "details": [MonsterObject]
+  },
+  "dungeon_state": {
+    "in_dungeon": false,
+    "current_state": null
+  },
+  "game_status": "home_base"
+}
+```
+
+### PartyObject - NEW
+```json
+{
+  "ids": [1, 2, 3],
+  "count": 3,
+  "details": [MonsterObject]
+}
+```
+
+### LocationObject - NEW
+```json
+{
+  "name": "Crystal Cavern",
+  "description": "Luminescent crystals cast dancing shadows across the chamber walls, creating an otherworldly atmosphere."
+}
+```
+
+### DoorObject - NEW
+```json
+{
+  "id": "location_1",
+  "type": "location",
+  "name": "Ancient Library", 
+  "description": "Dusty tomes and scrolls line the walls of this forgotten archive, promising secrets of ages past."
+}
+```
+
 ### GenerationLogObject
 ```json
 {
   "id": 1,
   "generation_type": "llm|image",
-  "prompt_type": "monster_generation|ability_generation|image_generation",
-  "prompt_name": "detailed_monster|generate_ability|monster_generation",
+  "prompt_type": "monster_generation|ability_generation|image_generation|dungeon_generation",
+  "prompt_name": "detailed_monster|generate_ability|monster_generation|entry_atmosphere|random_location",
   "status": "pending|generating|completed|failed",
   "priority": 5,
   "duration_seconds": 2.5,
@@ -250,92 +427,51 @@ Debug endpoint showing active connections and event types.
 }
 ```
 
-## Enhanced Pagination Features
+## 🎮 Complete Game Flow Implementation Guide
 
-### Server-Side Benefits
-- **Performance:** Only requested monsters loaded from database
-- **Scalability:** Supports thousands of monsters efficiently  
-- **Filtering:** Card art filtering done at database level
-- **Sorting:** All sorting done server-side for consistency
+### Home Base Screen Implementation
+1. **Load Following Monsters:** `GET /game-state/following` 
+2. **Display Monster Cards:** Show monster card art, names, species for selection
+3. **Party Selection:** Allow clicking up to 4 monsters for party
+4. **Set Active Party:** `POST /game-state/party/set` with selected monster IDs
+5. **Check Readiness:** `GET /game-state/party/ready` before showing "Enter Dungeon" button
+6. **Enter Dungeon Button:** `POST /dungeon/enter` when clicked
 
-### Query Parameter Validation
-- **limit:** 1-1000 (defaults to 50, max enforced)
-- **offset:** 0+ (negative values reset to 0)
-- **filter:** Enum validation with clear error messages
-- **sort:** Enum validation with clear error messages
+### Dungeon Screen Implementation
+1. **Show Entry Text:** Display `entry_text` from dungeon enter response
+2. **Show Current Location:** Display location name and description
+3. **Show Party:** Display active party monster cards/names
+4. **Show Door Choices:** Render 3 buttons for door choices
+5. **Handle Door Click:** `POST /dungeon/choose-door` with selected door ID
+6. **Show Event Text:** Display event text or exit text based on choice
+7. **Update Location:** Show new location and doors (if not exiting)
+8. **Handle Exit:** Return to home base screen when exit is chosen
 
-### Pagination Response Fields
-- **total:** Total monsters matching filter (important for UI)
-- **count:** Monsters returned in this request
-- **has_more:** Boolean for "Load More" buttons
-- **next_offset:** Ready-to-use offset for next page (null if no more)
-- **prev_offset:** Ready-to-use offset for previous page (null if first page)
+### Game State Management
+- **Reset Game:** `POST /game-state/reset` for testing/debugging
+- **Add Test Monsters:** `POST /game-state/following/add` for development
+- **Check Dungeon Status:** `GET /dungeon/status` to know which screen to show
+- **Persistent State:** Game state persists until server restart (no save files)
 
-### Frontend Implementation Patterns
-
-#### Basic Pagination
-```javascript
-// Get first page of 12 monsters
-const response = await fetch('/api/monsters?limit=12&offset=0');
-
-// Get next page using returned next_offset
-const nextResponse = await fetch(`/api/monsters?limit=12&offset=${response.pagination.next_offset}`);
-```
-
-#### With Filtering and Sorting
-```javascript
-// Monsters with card art, sorted by name, 24 per page
-const response = await fetch('/api/monsters?limit=24&filter=with_art&sort=name');
-
-// Count just monsters with card art
-const stats = await fetch('/api/monsters/stats?filter=with_art');
-```
-
-#### Infinite Scroll Pattern
-```javascript
-let offset = 0;
-const limit = 12;
-
-async function loadMoreMonsters() {
-  const response = await fetch(`/api/monsters?limit=${limit}&offset=${offset}`);
-  
-  // Add monsters to UI
-  monsters.push(...response.monsters);
-  
-  // Update offset for next request
-  if (response.pagination.has_more) {
-    offset = response.pagination.next_offset;
-  }
-  
-  return response.pagination.has_more;
-}
-```
-
-## Error Patterns
+### Error Patterns
 
 **Enhanced Error Responses:**
-- `"Invalid limit or offset parameter - must be integers"` (400)
-- `"Invalid filter parameter - must be: all, with_art, or without_art"` (400) 
-- `"Invalid sort parameter - must be: newest, oldest, name, or species"` (400)
+- `"No active party set. Add monsters to your party before entering the dungeon."` - Show party setup UI
+- `"Active party cannot exceed 4 monsters"` - Limit party selection UI
+- `"Invalid door choice. Available: ['location_1', 'location_2', 'exit']"` - Re-render door choices
+- `"Not currently in a dungeon"` - Redirect to home base screen
+- `"Monster 123 not found"` - Remove from UI selection
 
 **Common Errors:**
-- `"Monster not found"` (404)
-- `"Template not found: template_name"` 
-- `"Failed to save to database"`
-- `"Image generation is disabled"` (when ENABLE_IMAGE_GENERATION=false)
-- `"ComfyUI server not running"`
-- `"Parsing failed after N attempts"`
-- `"Generation timed out after N seconds"`
+- `"Monster not found"` (404) - When monster was deleted
+- `"Failed to generate entry text: LLM generation failed"` - Show generic entry text
+- `"Template not found: template_name"` - Backend configuration issue
+- `"ComfyUI server not running"` - Image generation unavailable
 
-**Error Response Variations:**
-- Sometimes includes `generation_id` for tracking
-- Sometimes includes `help` field with setup instructions
-- Image errors may include `reason: "DISABLED"|"SERVER_DOWN"|"TIMEOUT"`
-
-## Configuration Affecting Frontend
+### Configuration Affecting Frontend
 
 ### Environment Variables
-- `ENABLE_IMAGE_GENERATION`: `"true"|"false"` - Controls card art generation
+- `ENABLE_IMAGE_GENERATION`: `"true"|"false"` - Controls card art generation and display
 - `FLASK_DEBUG`: `"true"|"false"` - Affects error verbosity
 
 ### Feature Flags (from /game/status)
@@ -343,30 +479,12 @@ async function loadMoreMonsters() {
 {
   "monster_generation": true,
   "ability_generation": true, 
-  "image_generation": false,  // depends on ENABLE_IMAGE_GENERATION + ComfyUI
+  "image_generation": true,  // depends on ENABLE_IMAGE_GENERATION + ComfyUI
   "streaming_display": true,
   "unified_queue": true,
   "gpu_acceleration": true,  // depends on LLM config
-  "battle_system": false,
-  "chat_system": false,
-  "save_system": true
+  "battle_system": false,     // not implemented yet
+  "chat_system": false,       // not implemented yet
+  "save_system": true         // via game state management
 }
 ```
-
-## Development Notes
-
-**Image Generation:**
-- Requires `ENABLE_IMAGE_GENERATION=true` + ComfyUI server running
-- Images saved to organized folders based on `prompt_type`
-- Card art endpoint `/monsters/card-art/:path` serves files directly
-
-**Async Behavior:**
-- Most generation endpoints support `wait_for_completion` parameter
-- Use SSE events to track progress when `wait_for_completion=false`
-- Queue processes both LLM and image requests in priority order
-
-**Enhanced Pagination:**
-- Standard format: `{limit, offset, total, has_more, next_offset, prev_offset}`
-- Server-side filtering and sorting for performance
-- Query parameter validation with descriptive error messages
-- Supports up to 1000 monsters per request for bulk operations

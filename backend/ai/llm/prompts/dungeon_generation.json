@@ -1,0 +1,60 @@
+{
+  "entry_atmosphere": {
+    "description": "Generate atmospheric text for entering a dungeon with your party",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You and your adventuring party ({party_summary}) are standing at the entrance to a mysterious dungeon. Write 1-2 sentences of atmospheric text describing the entrance and setting the mood for adventure. Make it immersive and exciting, but not overly dramatic.\n\nResponse:"
+  },
+  
+  "random_location": {
+    "description": "Generate a random dungeon location with name and description",
+    "max_tokens": 400,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["name", "description"],
+      "required_fields": ["name", "description"]
+    },
+    "prompt_template": "Generate a mysterious dungeon location for exploration. \n\nRespond with valid JSON in this exact format:\n{{\"name\": \"Location Name\", \"description\": \" 1-2 sentence description of what you see, hear, and feel in this location. Make it atmospheric and immersive.\"}}\n\nMake the location interesting and unique. Avoid generic names. JSON:"
+  },
+  
+  "door_choices": {
+    "description": "Generate 2 mysterious door choices for dungeon exploration",
+    "max_tokens": 400,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "nested_parser",
+      "expected_fields": ["door1.name", "door1.description", "door2.name", "door2.description"],
+      "required_fields": ["door1.name", "door1.description", "door2.name", "door2.description"]
+    },
+    "prompt_template": "Generate 2 mysterious locations for exploration. \n\nRespond with valid JSON in this exact format:\n{{\"door1\": {{\"name\": \"Door Name\", \"description\": \"1-2 sentence description of the location that this door leads to.\"}}, \"door2\": {{\"name\": \"Door Name\", \"description\": \"1-2 sentence description of the location that this door leads to.\"}}}}\n\nAvoid generic names and descriptions. JSON:"
+  },
+  
+  "location_event": {
+    "description": "Generate event text for exploring a specific location",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You and your party have entered {location_name} in a dungeon. Write 1-2 sentences describing what happens when you explore this area. Make it atmospheric and interesting, focusing on discovery and exploration rather than danger. Describe what you find, see, or experience.\n\nResponse:"
+  },
+  
+  "exit_narrative": {
+    "description": "Generate satisfying exit text for completing a dungeon adventure",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You and your adventuring party ({party_summary}) are successfully exiting a dungeon adventure and returning to safety. Write 1-2 sentences describing your emergence from the depths and return to the outside world. Make it satisfying and conclusive, celebrating the completion of your underground exploration.\n\nResponse:"
+  }
+}

@@ -1,0 +1,393 @@
+/* Dungeon Screen Styles */
+/* Atmospheric dungeon exploration interface with immersive design */
+
+.dungeon-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: var(--text-light);
+  display: flex;
+  flex-direction: column;
+}
+
+.dungeon-content {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* ===== DUNGEON HEADER ===== */
+.dungeon-header {
+  background: linear-gradient(135deg, var(--background-dark), var(--background-medium));
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--primary-color);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.dungeon-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--accent-color);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.party-display {
+  background: var(--background-light);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--secondary-color);
+}
+
+.party-label {
+  color: var(--text-light);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ===== ENTRY TEXT SECTION ===== */
+.entry-text-section {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--accent-color);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.entry-text-section h2 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: 1.5rem;
+}
+
+.entry-text {
+  color: var(--text-medium);
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+  font-style: italic;
+}
+
+/* ===== LOCATION SECTION ===== */
+.location-section {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--secondary-color);
+  box-shadow: var(--shadow-md);
+}
+
+.location-section h2 {
+  color: var(--secondary-color);
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.location-description {
+  color: var(--text-medium);
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* ===== DOORS SECTION ===== */
+.doors-section {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--primary-color);
+  box-shadow: var(--shadow-md);
+}
+
+.doors-section h3 {
+  color: var(--primary-color);
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.doors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* ===== DOOR BUTTONS ===== */
+.door-button {
+  background: var(--background-dark);
+  border: 2px solid var(--background-light);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-height: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.door-button:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.door-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.door-location {
+  border-color: var(--success-color);
+}
+
+.door-location:hover:not(:disabled) {
+  border-color: var(--success-color);
+  background: rgba(39, 174, 96, 0.1);
+}
+
+.door-exit {
+  border-color: var(--warning-color);
+}
+
+.door-exit:hover:not(:disabled) {
+  border-color: var(--warning-color);
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.door-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: var(--spacing-sm);
+}
+
+.door-description {
+  font-size: 14px;
+  color: var(--text-medium);
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* ===== EVENT TEXT CONTAINER ===== */
+.event-text-container,
+.exit-text-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: var(--spacing-xl);
+}
+
+.event-text-content,
+.exit-text-content {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--accent-color);
+  box-shadow: var(--shadow-lg);
+  max-width: 800px;
+  text-align: center;
+}
+
+.event-text-content h2,
+.exit-text-content h2 {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: 1.5rem;
+}
+
+.event-text,
+.exit-text {
+  color: var(--text-medium);
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: var(--spacing-xl);
+  font-style: italic;
+}
+
+.event-actions,
+.exit-actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== PROCESSING OVERLAY ===== */
+.processing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.processing-content {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--primary-color);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.processing-content p {
+  margin-top: var(--spacing-md);
+  color: var(--text-medium);
+  font-size: 16px;
+}
+
+/* ===== NO DOORS STATE ===== */
+.no-doors {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--spacing-xl);
+  background: var(--background-dark);
+  border: 2px dashed var(--error-color);
+  border-radius: var(--radius-lg);
+}
+
+.no-doors p {
+  color: var(--error-color);
+  margin-bottom: var(--spacing-md);
+  font-size: 16px;
+}
+
+/* ===== LOADING AND ERROR STATES ===== */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+.error-container h2 {
+  color: var(--error-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.error-container p {
+  color: var(--text-medium);
+  margin-bottom: var(--spacing-lg);
+  max-width: 500px;
+}
+
+.error-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .dungeon-content {
+    padding: var(--spacing-md);
+    gap: var(--spacing-lg);
+  }
+  
+  .dungeon-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .dungeon-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .doors-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .door-button {
+    padding: var(--spacing-lg);
+    min-height: 100px;
+  }
+  
+  .door-name {
+    font-size: 16px;
+  }
+  
+  .door-description {
+    font-size: 13px;
+  }
+  
+  .event-text-content,
+  .exit-text-content {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .dungeon-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  .party-label {
+    font-size: 12px;
+  }
+  
+  .entry-text,
+  .location-description,
+  .event-text,
+  .exit-text {
+    font-size: 14px;
+  }
+  
+  .door-button {
+    padding: var(--spacing-md);
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  .door-button:hover:not(:disabled) {
+    transform: none;
+  }
+  
+  .processing-content .loading-spinner {
+    animation: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .door-button,
+  .dungeon-header,
+  .location-section,
+  .doors-section {
+    border-width: 3px;
+  }
+}

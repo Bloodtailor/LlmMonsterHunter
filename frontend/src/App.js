@@ -1,9 +1,11 @@
-// Main React application component - UPDATED WITH CLEAN HEADER
-// Separates game interface from developer tools
-// Now uses centered navigation with minimal header
+// Main React application component - UPDATED WITH HOME BASE SCREEN
+// Now includes screen switching between Sanctuary, Home Base, Developer, and Dungeon
+// Clean navigation with Home Base as the new game preparation hub
 
 import React, { useState, useEffect } from 'react';
 import MonsterSanctuary from './components/screens/MonsterSanctuary';
+import HomeBaseScreen from './components/screens/HomeBaseScreen';
+import DungeonScreen from './components/screens/DungeonScreen';
 import DeveloperScreen from './components/screens/DeveloperScreen';
 import StreamingDisplay from './components/streaming/StreamingDisplay';
 import { healthCheck, getGameStatus } from './services/api';
@@ -18,8 +20,8 @@ function App() {
     error: null
   });
 
-  // Navigation state
-  const [currentScreen, setCurrentScreen] = useState('game'); // 'game' or 'developer'
+  // Navigation state - Home Base is the main game screen
+  const [currentScreen, setCurrentScreen] = useState('homebase'); // 'homebase', 'sanctuary', 'developer', 'dungeon'
 
   // Check backend connection on app startup
   useEffect(() => {
@@ -52,6 +54,18 @@ function App() {
         error: error.message
       });
     }
+  };
+
+  // Handle entering dungeon from Home Base
+  const handleEnterDungeon = () => {
+    console.log('🏰 Entering dungeon...');
+    setCurrentScreen('dungeon');
+  };
+
+  // Handle returning to home base from dungeon
+  const handleReturnToHomeBase = () => {
+    console.log('🏠 Returning to home base...');
+    setCurrentScreen('homebase');
   };
 
   // Loading screen
@@ -105,8 +119,14 @@ function App() {
         <h1>🎮 Monster Hunter Game</h1>
         <nav className="screen-navigation">
           <button 
-            className={`nav-button ${currentScreen === 'game' ? 'active' : ''}`}
-            onClick={() => setCurrentScreen('game')}
+            className={`nav-button ${currentScreen === 'homebase' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('homebase')}
+          >
+            🏠 Home Base
+          </button>
+          <button 
+            className={`nav-button ${currentScreen === 'sanctuary' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('sanctuary')}
           >
             🏛️ Sanctuary
           </button>
@@ -116,20 +136,40 @@ function App() {
           >
             🔧 Developer
           </button>
+          {/* Dungeon button only shows when in dungeon */}
+          {currentScreen === 'dungeon' && (
+            <button className="nav-button active">
+              🏰 In Dungeon
+            </button>
+          )}
         </nav>
       </header>
 
       {/* Main Content - Switch between screens */}
       <main className="app-main">
-        {currentScreen === 'game' ? (
+        {currentScreen === 'homebase' && (
+          <HomeBaseScreen 
+            onEnterDungeon={handleEnterDungeon}
+          />
+        )}
+        
+        {currentScreen === 'sanctuary' && (
           <MonsterSanctuary 
             gameData={appStatus.gameData}
             onRefresh={checkBackendStatus}
           />
-        ) : (
+        )}
+        
+        {currentScreen === 'developer' && (
           <DeveloperScreen 
             gameData={appStatus.gameData}
             onRefresh={checkBackendStatus}
+          />
+        )}
+
+        {currentScreen === 'dungeon' && (
+          <DungeonScreen 
+            onReturnToHomeBase={handleReturnToHomeBase}
           />
         )}
       </main>
@@ -140,7 +180,12 @@ function App() {
         <div className="footer-info">
           <span>Status: {appStatus.gameData?.status || 'Unknown'}</span>
           <span>•</span>
-          <span>Current Screen: {currentScreen === 'game' ? 'Monster Sanctuary' : 'Developer Tools'}</span>
+          <span>Current Screen: {
+            currentScreen === 'homebase' ? 'Home Base' :
+            currentScreen === 'sanctuary' ? 'Monster Sanctuary' :
+            currentScreen === 'developer' ? 'Developer Tools' :
+            currentScreen === 'dungeon' ? 'Dungeon Adventure' : 'Unknown'
+          }</span>
         </div>
       </footer>
     </div>
