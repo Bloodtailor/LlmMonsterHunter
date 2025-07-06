@@ -23,6 +23,7 @@
 @import './screens/MonsterSanctuary.css';
 @import './screens/DeveloperScreen.css';
 @import './screens/HomeBaseScreen.css';
+@import './screens/DungeonScreen.css';
 
 /* Code highlighting for development */
 code {

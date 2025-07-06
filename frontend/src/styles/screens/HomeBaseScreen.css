@@ -224,6 +224,84 @@
   max-width: 500px;
 }
 
+/* ===== PARTY TOGGLE BUTTONS ===== */
+.party-monster-wrapper,
+.following-monster-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.party-toggle-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+.party-toggle-add {
+  background: var(--success-color);
+  color: white;
+}
+
+.party-toggle-add:hover:not(:disabled) {
+  background: #229954;
+  transform: scale(1.1);
+}
+
+.party-toggle-remove {
+  background: var(--accent-color);
+  color: white;
+}
+
+.party-toggle-remove:hover:not(:disabled) {
+  background: #e67e22;
+  transform: scale(1.1);
+}
+
+.party-toggle-full {
+  background: var(--text-dim);
+  color: white;
+  cursor: not-allowed;
+}
+
+.party-toggle-disabled {
+  background: var(--background-light);
+  color: var(--text-dim);
+  cursor: not-allowed;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Monster wrapper positioning */
+.party-monster-wrapper {
+  max-width: 250px;
+}
+
+.following-monster-wrapper {
+  transition: var(--transition-normal);
+}
+
+.following-monster-wrapper:hover {
+  transform: translateY(-2px);
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
   .homebase-screen {
@@ -259,6 +337,14 @@
   .dungeon-actions .btn {
     min-width: auto;
     width: 100%;
+  }
+  
+  .party-toggle-button {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    top: 8px;
+    right: 8px;
   }
 }
 

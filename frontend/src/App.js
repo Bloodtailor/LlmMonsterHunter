@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import MonsterSanctuary from './components/screens/MonsterSanctuary';
 import HomeBaseScreen from './components/screens/HomeBaseScreen';
+import DungeonScreen from './components/screens/DungeonScreen';
 import DeveloperScreen from './components/screens/DeveloperScreen';
 import StreamingDisplay from './components/streaming/StreamingDisplay';
 import { healthCheck, getGameStatus } from './services/api';
@@ -167,16 +168,9 @@ function App() {
         )}
 
         {currentScreen === 'dungeon' && (
-          <div className="dungeon-placeholder">
-            <h2>🏰 Dungeon Screen</h2>
-            <p>Coming in Batch 4!</p>
-            <button 
-              onClick={handleReturnToHomeBase}
-              className="btn btn-primary"
-            >
-              🏠 Return to Home Base
-            </button>
-          </div>
+          <DungeonScreen 
+            onReturnToHomeBase={handleReturnToHomeBase}
+          />
         )}
       </main>
 

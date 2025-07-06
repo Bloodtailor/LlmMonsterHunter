@@ -1,9 +1,10 @@
-// Home Base Screen - Foundation
-// Displays following monsters and active party with basic layout
-// Handles loading game state and monster data
+// Home Base Screen - WITH PARTY MANAGEMENT
+// Displays following monsters and active party with click-to-toggle functionality
+// Handles party management without interfering with card flip functionality
 
 import React, { useState, useEffect } from 'react';
 import MonsterCard from '../game/MonsterCard';
+import { PartyToggleButton, usePartyManager } from '../game/PartyManager';
 import { getGameState, getFollowingMonsters, getActiveParty, isPartyReady } from '../../services/gameStateApi';
 
 function HomeBaseScreen({ onEnterDungeon }) {
@@ -18,6 +19,12 @@ function HomeBaseScreen({ onEnterDungeon }) {
   // Pagination state for following monsters
   const [currentPage, setCurrentPage] = useState(1);
   const monstersPerPage = 12;
+
+  // Party management hook
+  const { addToParty, removeFromParty, updating } = usePartyManager(({ party, ready }) => {
+    setActiveParty(party);
+    setPartyReady(ready);
+  });
 
   // Load data on component mount
   useEffect(() => {
@@ -68,6 +75,24 @@ function HomeBaseScreen({ onEnterDungeon }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Handle party toggle (add/remove monster)
+   */
+  const handlePartyToggle = async (monster, isInParty) => {
+    if (isInParty) {
+      await removeFromParty(monster, activeParty);
+    } else {
+      await addToParty(monster, activeParty);
+    }
+  };
+
+  /**
+   * Check if monster is in active party
+   */
+  const isMonsterInParty = (monster) => {
+    return activeParty.some(partyMonster => partyMonster.id === monster.id);
   };
 
   /**
@@ -153,18 +178,26 @@ function HomeBaseScreen({ onEnterDungeon }) {
               <div className="empty-party-content">
                 <div className="empty-icon">👥</div>
                 <h3>No Active Party</h3>
-                <p>Select monsters from your collection below to form your party</p>
+                <p>Click the <strong>+</strong> button on monsters below to add them to your party</p>
               </div>
             </div>
           ) : (
             <div className="party-grid">
               {activeParty.map(monster => (
-                <MonsterCard
-                  key={monster.id}
-                  monster={monster}
-                  size="small"
-                  showPartyBadge={true}
-                />
+                <div key={monster.id} className="party-monster-wrapper">
+                  <MonsterCard
+                    monster={monster}
+                    size="small"
+                    showPartyBadge={true}
+                  />
+                  <PartyToggleButton
+                    monster={monster}
+                    isInParty={true}
+                    isPartyFull={false}
+                    onToggle={handlePartyToggle}
+                    disabled={updating}
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -174,10 +207,11 @@ function HomeBaseScreen({ onEnterDungeon }) {
         <div className="dungeon-actions">
           <button 
             onClick={handleEnterDungeon}
-            disabled={!partyReady}
+            disabled={!partyReady || updating}
             className={`btn btn-lg ${partyReady ? 'btn-primary' : 'btn-secondary'}`}
           >
-            {partyReady ? '🏰 Enter Dungeon' : '⏳ Form Party First'}
+            {updating ? '⏳ Updating Party...' : 
+             partyReady ? '🏰 Enter Dungeon' : '⏳ Form Party First'}
           </button>
         </div>
       </section>
@@ -206,13 +240,19 @@ function HomeBaseScreen({ onEnterDungeon }) {
             {/* Monsters Grid */}
             <div className="following-monsters-grid">
               {paginatedMonsters.map(monster => (
-                <MonsterCard
-                  key={monster.id}
-                  monster={monster}
-                  size="normal"
-                  clickable={true}
-                  onClick={() => console.log('TODO: Add to party:', monster.name)}
-                />
+                <div key={monster.id} className="following-monster-wrapper">
+                  <MonsterCard
+                    monster={monster}
+                    size="normal"
+                  />
+                  <PartyToggleButton
+                    monster={monster}
+                    isInParty={isMonsterInParty(monster)}
+                    isPartyFull={activeParty.length >= 4}
+                    onToggle={handlePartyToggle}
+                    disabled={updating}
+                  />
+                </div>
               ))}
             </div>
 
