@@ -22,6 +22,7 @@
 /* 5. Screen-specific styles */
 @import './screens/MonsterSanctuary.css';
 @import './screens/DeveloperScreen.css';
+@import './screens/HomeBaseScreen.css';
 
 /* Code highlighting for development */
 code {
