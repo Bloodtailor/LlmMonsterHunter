@@ -1,11 +1,17 @@
-// Home Base Screen - WITH INTEGRATED PARTY BUTTONS
-// Displays following monsters and active party with integrated party toggle buttons
-// Party buttons are now positioned consistently relative to the cards themselves
+// Home Base Screen - WITH PARTY/POOL SEPARATION
+// Displays following monsters and active party with exclusive visibility
+// Monsters in party are hidden from the pool automatically
 
 import React, { useState, useEffect } from 'react';
 import MonsterCard from '../game/MonsterCard';
 import { usePartyManager } from '../game/PartyManager';
 import { getGameState, getFollowingMonsters, getActiveParty, isPartyReady } from '../../services/gameStateApi';
+import { 
+  getAvailablePoolMonsters, 
+  isMonsterInParty, 
+  getPaginatedMonsters, 
+  validatePartySize 
+} from '../../utils/helpers';
 
 function HomeBaseScreen({ onEnterDungeon }) {
   // State management
@@ -16,7 +22,7 @@ function HomeBaseScreen({ onEnterDungeon }) {
   const [error, setError] = useState(null);
   const [partyReady, setPartyReady] = useState(false);
 
-  // Pagination state for following monsters
+  // Pagination state for pool monsters
   const [currentPage, setCurrentPage] = useState(1);
   const monstersPerPage = 12;
 
@@ -31,6 +37,11 @@ function HomeBaseScreen({ onEnterDungeon }) {
     loadHomeBaseData();
   }, []);
 
+  // Reset to first page when party changes (affects available pool)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeParty.length]);
+
   /**
    * Load all home base data from APIs
    */
@@ -39,7 +50,6 @@ function HomeBaseScreen({ onEnterDungeon }) {
     setError(null);
 
     try {
-      // Load game state and following monsters
       const [gameStateResponse, followingResponse, partyResponse, readyResponse] = await Promise.all([
         getGameState(),
         getFollowingMonsters(),
@@ -47,7 +57,6 @@ function HomeBaseScreen({ onEnterDungeon }) {
         isPartyReady()
       ]);
 
-      // Check for API errors
       if (!gameStateResponse.success) {
         throw new Error(gameStateResponse.error || 'Failed to load game state');
       }
@@ -56,14 +65,12 @@ function HomeBaseScreen({ onEnterDungeon }) {
         throw new Error(followingResponse.error || 'Failed to load following monsters');
       }
 
-      // Update state with API responses
       setGameState(gameStateResponse.game_state);
       setFollowingMonsters(followingResponse.following_monsters.details || []);
       setActiveParty(partyResponse.active_party?.details || []);
       setPartyReady(readyResponse.ready_for_dungeon || false);
 
       console.log('✅ Home Base Data Loaded:', {
-        gameStatus: gameStateResponse.game_state.game_status,
         followingCount: followingResponse.following_monsters.count,
         partyCount: partyResponse.active_party?.count || 0,
         readyForDungeon: readyResponse.ready_for_dungeon
@@ -80,19 +87,12 @@ function HomeBaseScreen({ onEnterDungeon }) {
   /**
    * Handle party toggle (add/remove monster)
    */
-  const handlePartyToggle = async (monster, isInParty) => {
-    if (isInParty) {
+  const handlePartyToggle = async (monster, isInPartyBool) => {
+    if (isInPartyBool) {
       await removeFromParty(monster, activeParty);
     } else {
       await addToParty(monster, activeParty);
     }
-  };
-
-  /**
-   * Check if monster is in active party
-   */
-  const isMonsterInParty = (monster) => {
-    return activeParty.some(partyMonster => partyMonster.id === monster.id);
   };
 
   /**
@@ -109,20 +109,10 @@ function HomeBaseScreen({ onEnterDungeon }) {
     }
   };
 
-  /**
-   * Get paginated following monsters
-   */
-  const getPaginatedMonsters = () => {
-    const startIndex = (currentPage - 1) * monstersPerPage;
-    const endIndex = startIndex + monstersPerPage;
-    return followingMonsters.slice(startIndex, endIndex);
-  };
-
-  /**
-   * Calculate pagination info
-   */
-  const totalPages = Math.ceil(followingMonsters.length / monstersPerPage);
-  const paginatedMonsters = getPaginatedMonsters();
+  // Calculate filtered and paginated data using utilities
+  const availablePoolMonsters = getAvailablePoolMonsters(followingMonsters, activeParty);
+  const paginationInfo = getPaginatedMonsters(availablePoolMonsters, currentPage, monstersPerPage);
+  const partyValidation = validatePartySize(activeParty);
 
   // Loading state
   if (loading) {
@@ -159,10 +149,10 @@ function HomeBaseScreen({ onEnterDungeon }) {
         <p>Prepare your party and venture into the unknown dungeons</p>
       </header>
 
-      {/* Active Party Section - Top */}
+      {/* Active Party Section */}
       <section className="active-party-section">
         <div className="section-header">
-          <h2>⚔️ Active Party ({activeParty.length}/4)</h2>
+          <h2>⚔️ Active Party ({partyValidation.currentSize}/{partyValidation.maxSize})</h2>
           <div className="party-status">
             {partyReady ? (
               <span className="status-badge status-success">✅ Ready for Dungeon</span>
@@ -188,7 +178,6 @@ function HomeBaseScreen({ onEnterDungeon }) {
                   <MonsterCard
                     monster={monster}
                     size="small"
-                    showPartyBadge={true}
                     showPartyToggle={true}
                     isInParty={true}
                     isPartyFull={false}
@@ -214,37 +203,46 @@ function HomeBaseScreen({ onEnterDungeon }) {
         </div>
       </section>
 
-      {/* Following Monsters Section - Bottom */}
+      {/* Available Pool Section */}
       <section className="following-monsters-section">
         <div className="section-header">
-          <h2>📚 Your Monster Collection ({followingMonsters.length})</h2>
-          {followingMonsters.length > monstersPerPage && (
+          <h2>📚 Available Monsters ({availablePoolMonsters.length} available of {followingMonsters.length} total)</h2>
+          {paginationInfo.totalPages > 1 && (
             <div className="pagination-info">
-              Page {currentPage} of {totalPages}
+              Showing {paginationInfo.startIndex}-{paginationInfo.endIndex} of {paginationInfo.totalItems}
             </div>
           )}
         </div>
 
-        {followingMonsters.length === 0 ? (
+        {availablePoolMonsters.length === 0 ? (
           <div className="empty-following">
             <div className="empty-following-content">
-              <div className="empty-icon">🏛️</div>
-              <h3>No Monsters in Collection</h3>
-              <p>Visit the Monster Sanctuary to generate monsters and add them to your collection</p>
+              <div className="empty-icon">
+                {followingMonsters.length === 0 ? '🏛️' : '✅'}
+              </div>
+              <h3>
+                {followingMonsters.length === 0 ? 'No Monsters in Collection' : 'All Monsters in Party!'}
+              </h3>
+              <p>
+                {followingMonsters.length === 0 
+                  ? 'Visit the Monster Sanctuary to generate monsters and add them to your collection'
+                  : 'All your monsters are currently in your active party. Remove some to see them here.'
+                }
+              </p>
             </div>
           </div>
         ) : (
           <>
-            {/* Monsters Grid */}
+            {/* Available Monsters Grid */}
             <div className="following-monsters-grid">
-              {paginatedMonsters.map(monster => (
+              {paginationInfo.items.map(monster => (
                 <div key={monster.id} className="following-monster-wrapper">
                   <MonsterCard
                     monster={monster}
                     size="normal"
                     showPartyToggle={true}
-                    isInParty={isMonsterInParty(monster)}
-                    isPartyFull={activeParty.length >= 4}
+                    isInParty={false} // These are filtered to NOT be in party
+                    isPartyFull={partyValidation.isFull}
                     onPartyToggle={handlePartyToggle}
                     partyDisabled={updating}
                   />
@@ -253,37 +251,37 @@ function HomeBaseScreen({ onEnterDungeon }) {
             </div>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
+            {paginationInfo.totalPages > 1 && (
               <div className="pagination-controls">
                 <button 
                   onClick={() => setCurrentPage(1)}
-                  disabled={currentPage === 1}
+                  disabled={!paginationInfo.hasPrevious}
                   className="btn btn-secondary btn-sm"
                 >
                   ⏮️ First
                 </button>
                 <button 
                   onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
+                  disabled={!paginationInfo.hasPrevious}
                   className="btn btn-secondary btn-sm"
                 >
                   ⬅️ Previous
                 </button>
                 
                 <span className="page-indicator">
-                  {currentPage} / {totalPages}
+                  {paginationInfo.currentPage} / {paginationInfo.totalPages}
                 </span>
                 
                 <button 
                   onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  disabled={!paginationInfo.hasNext}
                   className="btn btn-secondary btn-sm"
                 >
                   Next ➡️
                 </button>
                 <button 
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(paginationInfo.totalPages)}
+                  disabled={!paginationInfo.hasNext}
                   className="btn btn-secondary btn-sm"
                 >
                   Last ⏭️
