@@ -25,6 +25,11 @@
   height: 560px;
 }
 
+.flippable-card-fullscreen {
+  width: min(600px, 90vw);
+  height: min(840px, 85vh); /* Changed to maintain 5:7 aspect ratio (600/840 = 0.714) */
+}
+
 /* Main Card - contains both front and back */
 .flippable-card {
   position: relative;
@@ -98,6 +103,11 @@
   color: var(--accent-color);
 }
 
+/* Hide flip indicator for fullscreen cards */
+.flippable-card-fullscreen .flip-indicator {
+  display: none;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .flippable-card-normal {
@@ -108,6 +118,11 @@
   .flippable-card-large {
     width: 320px;
     height: 450px;
+  }
+  
+  .flippable-card-fullscreen {
+    width: min(500px, 95vw);
+    height: min(700px, 80vh); /* Maintains 5:7 aspect ratio */
   }
 }
 
@@ -125,6 +140,11 @@
   .flippable-card-large {
     width: 280px;
     height: 390px;
+  }
+  
+  .flippable-card-fullscreen {
+    width: min(400px, 98vw);
+    height: min(560px, 75vh); /* Maintains 5:7 aspect ratio */
   }
 }
 

@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import FlippableCard from '../ui/FlippableCard';
-import CardArtViewer from '../ui/CardArtViewer';
+import MonsterCardViewer from '../ui/MonsterCardViewer';
 
 function MonsterCard({ 
   monster, 
@@ -18,7 +18,7 @@ function MonsterCard({
   partyDisabled = false
 }) {
   const [generatingAbility, setGeneratingAbility] = useState(false);
-  const [showArtViewer, setShowArtViewer] = useState(false);
+  const [showCardViewer, setShowCardViewer] = useState(false);
 
   // Handle card art - use actual backend URL if available
   const getCardArtUrl = () => {
@@ -94,11 +94,9 @@ function MonsterCard({
   };
 
   // Handle expand button click
-  const handleExpandArt = (e) => {
+  const handleExpandCard = (e) => {
     e.stopPropagation(); // Prevent card flip
-    if (getCardArtUrl()) {
-      setShowArtViewer(true);
-    }
+    setShowCardViewer(true);
   };
 
   // Front of card - Art + Basic Info
@@ -128,8 +126,8 @@ function MonsterCard({
             {/* Expand Button */}
             <button 
               className="expand-art-button"
-              onClick={handleExpandArt}
-              title="View full-size card art"
+              onClick={handleExpandCard}
+              title="View full-size monster card"
             >
               🔍
             </button>
@@ -285,13 +283,11 @@ function MonsterCard({
         }}
       />
       
-      {/* Card Art Viewer Modal */}
-      <CardArtViewer
-        isOpen={showArtViewer}
-        onClose={() => setShowArtViewer(false)}
-        artUrl={getCardArtUrl()}
-        monsterName={monster.name}
-        monsterSpecies={monster.species}
+      {/* Monster Card Viewer Modal */}
+      <MonsterCardViewer
+        isOpen={showCardViewer}
+        onClose={() => setShowCardViewer(false)}
+        monster={monster}
       />
     </>
   );
