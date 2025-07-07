@@ -4,10 +4,9 @@ from typing import List, Dict, Any, Optional
 from backend.models.monster import Monster
 from backend.game.utils import (
     validate_party_size, validate_monster_exists, validate_monsters_are_following,
-    validate_following_monster_addition, validate_and_continue
+    validate_following_monster_addition, validate_and_continue,
+    error_response, success_response, print_success
 )
-from backend.utils.responses import error_response, success_response
-from backend.utils.console import print_success
 
 class GameStateManager:
     """Clean game state management - handles all session state logic"""

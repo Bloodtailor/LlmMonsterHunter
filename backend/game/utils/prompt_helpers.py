@@ -5,8 +5,7 @@
 from typing import Dict, Any, Optional
 from backend.ai.llm.prompt_engine import get_template_config, build_prompt
 from backend.services import generation_service
-from backend.utils.responses import success_response, error_response
-from backend.utils.console import print_error
+from backend.game.utils import success_response, error_response, print_error
 
 def build_game_prompt(template_name: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """

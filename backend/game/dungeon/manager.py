@@ -1,9 +1,10 @@
 # Dungeon Manager - Clean Dungeon Flow Logic
 
 from typing import Dict, Any, Optional
-from backend.game.utils import validate_door_choice, validate_and_continue
-from backend.utils.responses import error_response, success_response
-from backend.utils.console import print_success
+from backend.game.utils import (
+    validate_door_choice, validate_and_continue,
+    error_response, success_response, print_success
+)
 from .generator import DungeonGenerator
 
 class DungeonManager:

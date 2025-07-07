@@ -3,10 +3,9 @@
 from typing import Dict, Any
 from backend.models.ability import Ability
 from backend.game.utils import (
-    build_and_generate, validate_monster_exists, validate_and_continue
+    build_and_generate, validate_monster_exists, validate_and_continue,
+    error_response, success_response, print_success
 )
-from backend.utils.responses import error_response, success_response
-from backend.utils.console import print_success
 
 class AbilityGenerator:
     """Clean ability generation - utils handle everything"""

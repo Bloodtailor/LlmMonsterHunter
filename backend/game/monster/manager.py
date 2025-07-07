@@ -5,7 +5,7 @@ from sqlalchemy import func
 from backend.models.monster import Monster
 from backend.models.ability import Ability
 from backend.config.database import db
-from backend.utils.responses import error_response, success_response
+from backend.game.utils import error_response, success_response
 
 class MonsterManager:
     """Clean monster management - handles retrieval, pagination, filtering, statistics"""
