@@ -266,13 +266,6 @@ Serves image files directly.
 #### GET /streaming/llm-events
 Server-Sent Events endpoint. Returns event stream.
 
-#### POST /streaming/add
-**Request:** `{prompt: string}`  
-**Success:** `{success: true, generation_id, message}`
-
-#### POST /streaming/add-image
-**Request:** `{monster_description, monster_name?, monster_species?}`  
-**Success:** `{success: true, generation_id, message}`
 
 #### GET /streaming/connections
 Debug endpoint showing active connections and event types.

@@ -51,56 +51,6 @@ def stream_events():
     
     return response
 
-@streaming_bp.route('/add', methods=['POST'])
-def add_request():
-    """Add LLM inference request - thin route"""
-    data = request.get_json() or {}
-    prompt = data.get('prompt', 'Hello')
-    
-    result = generation_service.text_generation_request(  # 🔧 UPDATED: new service
-        prompt=prompt, 
-        wait_for_completion=False
-    )
-    return jsonify(result)
-
-@streaming_bp.route('/add-image', methods=['POST'])
-def add_image_request():
-    """Add image generation request - NEW ENDPOINT"""
-    data = request.get_json() or {}
-    
-    monster_description = data.get('monster_description', 'A mysterious creature')
-    monster_name = data.get('monster_name', '')
-    monster_species = data.get('monster_species', '')
-    
-    result = generation_service.image_generation_request(  # 🔧 NEW: image generation
-        monster_description=monster_description,
-        monster_name=monster_name,
-        monster_species=monster_species,
-        wait_for_completion=False
-    )
-    return jsonify(result)
-
-@streaming_bp.route('/test/simple', methods=['POST'])
-def test_simple():
-    """Simple LLM test - thin route"""
-    result = generation_service.text_generation_request(  # 🔧 UPDATED: new service
-        prompt="Say hi", 
-        wait_for_completion=True
-    )
-    return jsonify(result)
-
-@streaming_bp.route('/test/image', methods=['POST'])
-def test_image():
-    """Simple image generation test - NEW ENDPOINT"""
-    data = request.get_json() or {}
-    description = data.get('description', 'A majestic fire dragon with golden scales')
-    
-    result = generation_service.image_generation_request(  # 🔧 NEW: image generation test
-        monster_description=description,
-        monster_name="Test Dragon",
-        wait_for_completion=True
-    )
-    return jsonify(result)
 
 @streaming_bp.route('/connections')
 def get_connections():

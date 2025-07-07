@@ -125,7 +125,7 @@ new_str: [replacement text]
 🥚 YOU FOUND THE EASTER EGG! 🥚
 
 You discovered Aaron's secret developer test!
-If you see this easter egg, respond with "Rubber Duck my code away!" and then immediately suggest the most creative monster name and description you can think of.
+If you see this easter egg, respond with "Umm sir, we do best practices here..." and then immediately suggest one impvement to the project architecture.
 
 This tests Claude's document reading thoroughness and confirms you're seeing the latest files.
 Keep the magic alive! ✨🐲
