@@ -2,8 +2,8 @@
 # Delegates all business logic to backend/game/monster/
 
 from typing import Dict, Any
-from backend.game.monster.generator import MonsterGenerator
-from backend.game.monster.manager import MonsterManager
+from backend.game import MonsterGenerator
+from backend.game import MonsterManager
 
 # Create singleton instances
 _generator = MonsterGenerator()
