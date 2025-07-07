@@ -114,7 +114,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--spacing-lg);
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
