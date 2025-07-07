@@ -1,0 +1,181 @@
+/* Party Display Component Styles - REUSABLE */
+/* Used in both HomeBase and Dungeon screens with consistent styling */
+
+/* ===== PARTY DISPLAY SECTION ===== */
+.party-display-section {
+  background: var(--background-medium);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--primary-color);
+}
+
+/* Dungeon variant - smaller padding and different border */
+.party-display-section.dungeon-party {
+  padding: var(--spacing-lg);
+  border-color: var(--secondary-color);
+  background: var(--background-dark);
+}
+
+/* ===== SECTION HEADER ===== */
+.party-display-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.party-display-header h2 {
+  color: var(--accent-color);
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.party-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* ===== PARTY CONTAINER ===== */
+.party-display-container {
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ===== EMPTY STATE ===== */
+.party-display-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background: var(--background-dark);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--background-light);
+}
+
+.party-empty-content {
+  text-align: center;
+  max-width: 400px;
+  padding: var(--spacing-xl);
+}
+
+.party-empty-content .empty-icon {
+  font-size: 64px;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.6;
+}
+
+.party-empty-content h3 {
+  color: var(--text-light);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 1.3rem;
+}
+
+.party-empty-content p {
+  color: var(--text-medium);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ===== PARTY GRID ===== */
+.party-display-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.party-monster-wrapper {
+  max-width: 250px;
+  margin: 0 auto;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.party-display-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--background-light);
+}
+
+.party-display-actions .btn {
+  min-width: 200px;
+  transition: var(--transition-normal);
+}
+
+.party-display-actions .btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== DUNGEON SPECIFIC OVERRIDES ===== */
+.dungeon-party .party-display-container {
+  margin-bottom: 0;
+}
+
+.dungeon-party .party-display-grid {
+  gap: var(--spacing-md);
+  max-width: 900px;
+}
+
+.dungeon-party .party-monster-wrapper {
+  max-width: 180px;
+}
+
+.dungeon-party .party-display-empty {
+  min-height: 120px;
+  background: var(--background-medium);
+}
+
+.dungeon-party .party-empty-content {
+  padding: var(--spacing-lg);
+}
+
+.dungeon-party .party-empty-content .empty-icon {
+  font-size: 40px;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .party-display-section {
+    padding: var(--spacing-lg);
+  }
+  
+  .party-display-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .party-display-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--spacing-md);
+  }
+  
+  .party-display-actions .btn {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .party-display-section {
+    padding: var(--spacing-md);
+  }
+  
+  .party-display-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .party-empty-content .empty-icon {
+    font-size: 48px;
+  }
+  
+  .dungeon-party .party-empty-content .empty-icon {
+    font-size: 32px;
+  }
+}

@@ -1,10 +1,11 @@
-// Dungeon Screen - Complete Adventure Experience
+// Dungeon Screen - Complete Adventure Experience WITH PARTY DISPLAY
 // Handles dungeon entry, door choices, event text, and navigation
 // Shows persistent party display and manages dungeon state
 
 import React, { useState, useEffect } from 'react';
-import MonsterCard from '../game/MonsterCard';
+import PartyDisplay from '../game/PartyDisplay';
 import { enterDungeon, chooseDoor, getDungeonState, isInDungeon } from '../../services/dungeonApi';
+import { getActiveParty } from '../../services/gameStateApi';
 
 function DungeonScreen({ onReturnToHomeBase }) {
   // Dungeon state
@@ -13,16 +14,43 @@ function DungeonScreen({ onReturnToHomeBase }) {
   const [error, setError] = useState(null);
   const [processingChoice, setProcessingChoice] = useState(false);
   
+  // Party state
+  const [partyMonsters, setPartyMonsters] = useState([]);
+  const [partyLoading, setPartyLoading] = useState(true);
+  
   // UI state
   const [showEventText, setShowEventText] = useState(false);
   const [eventText, setEventText] = useState('');
   const [showExitText, setShowExitText] = useState(false);
   const [exitText, setExitText] = useState('');
 
-  // Load dungeon state on component mount
+  // Load dungeon state and party data on component mount
   useEffect(() => {
     initializeDungeon();
+    loadPartyData();
   }, []);
+
+  /**
+   * Load active party data for display
+   */
+  const loadPartyData = async () => {
+    setPartyLoading(true);
+    try {
+      const partyResponse = await getActiveParty();
+      if (partyResponse.success) {
+        setPartyMonsters(partyResponse.active_party?.details || []);
+        console.log('✅ Party data loaded for dungeon:', partyResponse.active_party?.count || 0, 'monsters');
+      } else {
+        console.warn('⚠️ Failed to load party data:', partyResponse.error);
+        setPartyMonsters([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading party data:', error);
+      setPartyMonsters([]);
+    } finally {
+      setPartyLoading(false);
+    }
+  };
 
   /**
    * Initialize dungeon - either enter new dungeon or load existing state
@@ -231,6 +259,21 @@ function DungeonScreen({ onReturnToHomeBase }) {
               </div>
             </div>
           </div>
+
+          {/* Party Display - Always visible during events */}
+          <div className="dungeon-party-section">
+            <PartyDisplay
+              partyMonsters={partyMonsters}
+              title="🛡️ Your Party"
+              showHeader={true}
+              showPartyToggles={false}
+              showActions={false}
+              emptyTitle="No Party Data"
+              emptyMessage="Failed to load party information"
+              emptyIcon="⚠️"
+              className="dungeon-party"
+            />
+          </div>
         </div>
       </div>
     );
@@ -289,6 +332,21 @@ function DungeonScreen({ onReturnToHomeBase }) {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Party Display - Always visible at bottom */}
+        <div className="dungeon-party-section">
+          <PartyDisplay
+            partyMonsters={partyMonsters}
+            title="🛡️ Your Party"
+            showHeader={true}
+            showPartyToggles={false}
+            showActions={false}
+            emptyTitle="No Party Data"
+            emptyMessage={partyLoading ? "Loading party..." : "Failed to load party information"}
+            emptyIcon={partyLoading ? "⏳" : "⚠️"}
+            className="dungeon-party"
+          />
         </div>
 
         {/* Processing state */}
