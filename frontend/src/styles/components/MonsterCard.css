@@ -457,3 +457,100 @@
 .abilities-list::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-color);
 }
+
+/* ===== FULLSCREEN SIZE OVERRIDES ===== */
+.flippable-card-fullscreen .monster-name {
+  font-size: 28px; /* Up from 18px */
+}
+
+.flippable-card-fullscreen .monster-species {
+  font-size: 14px; /* Up from 11px */
+  padding: var(--spacing-sm) var(--spacing-md); /* Larger padding */
+}
+
+.flippable-card-fullscreen .abilities-count {
+  font-size: 16px; /* Up from 12px */
+}
+
+.flippable-card-fullscreen .ability-chip {
+  font-size: 13px; /* Up from 10px */
+  padding: var(--spacing-xs) var(--spacing-sm); /* Larger padding */
+}
+
+.flippable-card-fullscreen .more-abilities {
+  font-size: 12px; /* Up from 10px */
+}
+
+/* Back side text sizing */
+.flippable-card-fullscreen .detail-header h3 {
+  font-size: 24px; /* Up from 16px */
+}
+
+.flippable-card-fullscreen .species-badge {
+  font-size: 14px; /* Up from 11px */
+  padding: var(--spacing-sm) var(--spacing-md); /* Larger padding */
+}
+
+.flippable-card-fullscreen .monster-description {
+  font-size: 16px; /* Up from 13px */
+  line-height: 1.5; /* Better readability */
+}
+
+.flippable-card-fullscreen .backstory-section h4,
+.flippable-card-fullscreen .stats-section h4,
+.flippable-card-fullscreen .abilities-section h4,
+.flippable-card-fullscreen .traits-section h4 {
+  font-size: 18px; /* Up from 14px */
+}
+
+.flippable-card-fullscreen .monster-backstory {
+  font-size: 15px; /* Up from 12px */
+  line-height: 1.5;
+}
+
+.flippable-card-fullscreen .stat-name {
+  font-size: 15px; /* Up from 12px */
+}
+
+.flippable-card-fullscreen .stat-number {
+  font-size: 16px; /* Up from 13px */
+}
+
+.flippable-card-fullscreen .stat-text {
+  font-size: 12px; /* Up from 10px */
+}
+
+.flippable-card-fullscreen .ability-name {
+  font-size: 15px; /* Up from 12px */
+}
+
+.flippable-card-fullscreen .ability-description {
+  font-size: 14px; /* Up from 11px */
+  line-height: 1.4;
+}
+
+.flippable-card-fullscreen .trait-tag {
+  font-size: 14px; /* Up from 11px */
+  padding: var(--spacing-sm) var(--spacing-md); /* Larger padding */
+}
+
+.flippable-card-fullscreen .no-abilities p {
+  font-size: 15px; /* Up from 12px */
+}
+
+/* Expand button sizing for fullscreen */
+.flippable-card-fullscreen .expand-art-button {
+  width: 48px; /* Up from 32px */
+  height: 48px; /* Up from 32px */
+  font-size: 24px; /* Up from 16px */
+}
+
+/* Info overlay spacing for fullscreen */
+.flippable-card-fullscreen .monster-info-overlay {
+  padding: var(--spacing-xl); /* More padding for larger card */
+}
+
+.flippable-card-fullscreen .monster-card-back {
+  padding: var(--spacing-xl); /* More padding for back side */
+  gap: var(--spacing-lg); /* Larger gaps between sections */
+}

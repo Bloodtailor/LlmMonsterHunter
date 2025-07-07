@@ -27,7 +27,7 @@
 
 .flippable-card-fullscreen {
   width: min(600px, 90vw);
-  height: min(800px, 85vh);
+  height: min(840px, 85vh); /* Changed to maintain 5:7 aspect ratio (600/840 = 0.714) */
 }
 
 /* Main Card - contains both front and back */
@@ -122,7 +122,7 @@
   
   .flippable-card-fullscreen {
     width: min(500px, 95vw);
-    height: min(700px, 80vh);
+    height: min(700px, 80vh); /* Maintains 5:7 aspect ratio */
   }
 }
 
@@ -144,7 +144,7 @@
   
   .flippable-card-fullscreen {
     width: min(400px, 98vw);
-    height: min(600px, 75vh);
+    height: min(560px, 75vh); /* Maintains 5:7 aspect ratio */
   }
 }
 

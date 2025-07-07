@@ -15,8 +15,8 @@ DEFAULT_CFG = 2.0
 DEFAULT_DENOISE = 1.0
 
 # === Image Dimensions ===
-DEFAULT_WIDTH = 1024
-DEFAULT_HEIGHT = 1024
+DEFAULT_WIDTH = 896
+DEFAULT_HEIGHT = 1254 
 DEFAULT_BATCH_SIZE = 1
 
 # === Negative Prompt (Universal) ===
