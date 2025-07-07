@@ -14,6 +14,7 @@
 @import './components/UI.css';
 @import './components/FlippableCard.css';
 @import './components/MonsterCard.css';
+@import './components/PartyDisplay.css';
 @import './components/CardArtViewer.css';
 @import './components/LLMLogViewer.css';
 @import './components/StreamingDisplay.css';

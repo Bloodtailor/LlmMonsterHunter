@@ -1,9 +1,10 @@
-// Home Base Screen - WITH PARTY/POOL SEPARATION
-// Displays following monsters and active party with exclusive visibility
+// Home Base Screen - WITH REUSABLE PARTY DISPLAY
+// Displays following monsters and active party using the reusable PartyDisplay component
 // Monsters in party are hidden from the pool automatically
 
 import React, { useState, useEffect } from 'react';
 import MonsterCard from '../game/MonsterCard';
+import PartyDisplay from '../game/PartyDisplay';
 import { usePartyManager } from '../game/PartyManager';
 import { getGameState, getFollowingMonsters, getActiveParty, isPartyReady } from '../../services/gameStateApi';
 import { 
@@ -149,59 +150,22 @@ function HomeBaseScreen({ onEnterDungeon }) {
         <p>Prepare your party and venture into the unknown dungeons</p>
       </header>
 
-      {/* Active Party Section */}
-      <section className="active-party-section">
-        <div className="section-header">
-          <h2>⚔️ Active Party ({partyValidation.currentSize}/{partyValidation.maxSize})</h2>
-          <div className="party-status">
-            {partyReady ? (
-              <span className="status-badge status-success">✅ Ready for Dungeon</span>
-            ) : (
-              <span className="status-badge status-pending">⏳ Add Monsters to Party</span>
-            )}
-          </div>
-        </div>
-
-        <div className="active-party-container">
-          {activeParty.length === 0 ? (
-            <div className="empty-party">
-              <div className="empty-party-content">
-                <div className="empty-icon">👥</div>
-                <h3>No Active Party</h3>
-                <p>Click the <strong>+</strong> button on monsters below to add them to your party</p>
-              </div>
-            </div>
-          ) : (
-            <div className="party-grid">
-              {activeParty.map(monster => (
-                <div key={monster.id} className="party-monster-wrapper">
-                  <MonsterCard
-                    monster={monster}
-                    size="small"
-                    showPartyToggle={true}
-                    isInParty={true}
-                    isPartyFull={false}
-                    onPartyToggle={handlePartyToggle}
-                    partyDisabled={updating}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Enter Dungeon Button */}
-        <div className="dungeon-actions">
-          <button 
-            onClick={handleEnterDungeon}
-            disabled={!partyReady || updating}
-            className={`btn btn-lg ${partyReady ? 'btn-primary' : 'btn-secondary'}`}
-          >
-            {updating ? '⏳ Updating Party...' : 
-             partyReady ? '🏰 Enter Dungeon' : '⏳ Form Party First'}
-          </button>
-        </div>
-      </section>
+      {/* Active Party Section - Using Reusable Component */}
+      <PartyDisplay
+        partyMonsters={activeParty}
+        title="⚔️ Active Party"
+        showHeader={true}
+        showPartyToggles={true}
+        showActions={true}
+        emptyTitle="No Active Party"
+        emptyMessage="Click the + button on monsters below to add them to your party"
+        emptyIcon="👥"
+        onPartyToggle={handlePartyToggle}
+        onActionClick={handleEnterDungeon}
+        partyReady={partyReady}
+        updating={updating}
+        maxPartySize={4}
+      />
 
       {/* Available Pool Section */}
       <section className="following-monsters-section">
