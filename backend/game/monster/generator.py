@@ -2,10 +2,11 @@
 
 from typing import Dict, Any
 from backend.models.monster import Monster
-from backend.game.utils import build_and_generate, validate_and_continue
+from backend.game.utils import (
+    build_and_generate, validate_and_continue,
+    error_response, success_response, print_success
+)
 from backend.game import AbilityGenerator
-from backend.utils.responses import error_response, success_response
-from backend.utils.console import print_success
 from backend.services import generation_service
 
 class MonsterGenerator:

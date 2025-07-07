@@ -2,9 +2,10 @@
 
 from typing import Dict, Any
 import random
-from backend.game.utils import build_and_generate
-from backend.utils.responses import error_response, success_response
-from backend.utils.console import print_warning, print_success
+from backend.game.utils import (
+    build_and_generate,
+    error_response, success_response, print_warning, print_success
+)
 
 class DungeonGenerator:
     """Clean dungeon text generation - handles all LLM-based content creation"""
