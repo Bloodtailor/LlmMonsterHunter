@@ -7,12 +7,12 @@ from backend.game.ability.generator import AbilityGenerator
 # Create singleton generator instance
 _generator = AbilityGenerator()
 
-def generate_ability(monster_id: int, wait_for_completion: bool = True) -> Dict[str, Any]:
+def generate_ability(monster_id: int) -> Dict[str, Any]:
     """
     Generate a single new ability for an existing monster
     Delegates to game logic layer
     """
-    return _generator.generate_single_ability(monster_id, wait_for_completion)
+    return _generator.generate_single_ability(monster_id)
 
 def generate_initial_abilities(monster_data: Dict[str, Any], monster_id: int) -> Dict[str, Any]:
     """

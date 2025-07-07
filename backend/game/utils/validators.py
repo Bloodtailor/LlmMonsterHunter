@@ -1,9 +1,10 @@
 # Game Validators - Extracted Repeated Validation Logic
 # Consolidates validation patterns used across game services
+# Returns consistent validation dictionaries (not response format)
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from backend.models.monster import Monster
-from backend.utils import error_response, success_response, print_error
+from backend.utils.console import print_error
 
 def validate_party_size(monster_ids: List[int], max_size: int = 4) -> Dict[str, Any]:
     """
@@ -91,7 +92,7 @@ def validate_monsters_are_following(monster_ids: List[int], following_list: List
     
     Args:
         monster_ids (list): Monster IDs to validate
-        following_list (list): Current following monsters
+        following_list (list): Current following list
         
     Returns:
         dict: {valid: bool, not_following?: list, error?: str}

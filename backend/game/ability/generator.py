@@ -11,7 +11,7 @@ from backend.utils.console import print_success
 class AbilityGenerator:
     """Clean ability generation - utils handle everything"""
     
-    def generate_single_ability(self, monster_id: int, wait_for_completion: bool = True) -> Dict[str, Any]:
+    def generate_single_ability(self, monster_id: int) -> Dict[str, Any]:
         """Generate one ability for existing monster"""
         
         # Validate monster - early return if invalid
