@@ -1,12 +1,14 @@
-// Monster Card Component - USES FLIPPABLE CARD
+// Monster Card Component - WITH CARD ART VIEWER
 // Front: Monster art + basic info, Back: Detailed stats and abilities
-// Handles missing card art gracefully with placeholder
+// Now includes expand button for full-size card art viewing
 
 import React, { useState } from 'react';
 import FlippableCard from '../ui/FlippableCard';
+import CardArtViewer from '../ui/CardArtViewer';
 
 function MonsterCard({ monster, size = 'normal', onAbilityGenerate = null }) {
   const [generatingAbility, setGeneratingAbility] = useState(false);
+  const [showArtViewer, setShowArtViewer] = useState(false);
 
   // Handle card art - use actual backend URL if available
   const getCardArtUrl = () => {
@@ -40,17 +42,35 @@ function MonsterCard({ monster, size = 'normal', onAbilityGenerate = null }) {
     return icons[type] || '⚡';
   };
 
+  // Handle expand button click
+  const handleExpandArt = (e) => {
+    e.stopPropagation(); // Prevent card flip
+    if (getCardArtUrl()) {
+      setShowArtViewer(true);
+    }
+  };
+
   // Front of card - Art + Basic Info
   const frontContent = (
     <div className="monster-card-front">
       {/* Card Art */}
       <div className="monster-art-section">
         {getCardArtUrl() ? (
-          <img 
-            src={getCardArtUrl()} 
-            alt={`${monster.name} card art`}
-            className="monster-art"
-          />
+          <>
+            <img 
+              src={getCardArtUrl()} 
+              alt={`${monster.name} card art`}
+              className="monster-art"
+            />
+            {/* Expand Button */}
+            <button 
+              className="expand-art-button"
+              onClick={handleExpandArt}
+              title="View full-size card art"
+            >
+              🔍
+            </button>
+          </>
         ) : (
           <div className="monster-art-placeholder">
             <div className="placeholder-icon">🐲</div>
@@ -68,22 +88,24 @@ function MonsterCard({ monster, size = 'normal', onAbilityGenerate = null }) {
           <span className="monster-species">{monster.species}</span>
         </div>
 
-        {/* Ability Preview */}
-        <div className="abilities-preview">
-          <span className="abilities-count">⚡ {monster.ability_count} abilities</span>
-          {monster.abilities && monster.abilities.length > 0 && (
-            <div className="ability-chips">
-              {monster.abilities.slice(0, 2).map((ability, index) => (
-                <span key={index} className="ability-chip">
-                  {getAbilityTypeIcon(ability.ability_type)} {ability.name}
-                </span>
-              ))}
-              {monster.abilities.length > 2 && (
-                <span className="more-abilities">+{monster.abilities.length - 2}</span>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Ability Preview - Hide for small cards */}
+        {size !== 'small' && (
+          <div className="abilities-preview">
+            <span className="abilities-count">⚡ {monster.ability_count} abilities</span>
+            {monster.abilities && monster.abilities.length > 0 && (
+              <div className="ability-chips">
+                {monster.abilities.slice(0, 2).map((ability, index) => (
+                  <span key={index} className="ability-chip">
+                    {getAbilityTypeIcon(ability.ability_type)} {ability.name}
+                  </span>
+                ))}
+                {monster.abilities.length > 2 && (
+                  <span className="more-abilities">+{monster.abilities.length - 2}</span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -185,19 +207,30 @@ function MonsterCard({ monster, size = 'normal', onAbilityGenerate = null }) {
   );
 
   return (
-    <FlippableCard
-      frontContent={frontContent}
-      backContent={backContent}
-      cardId={monster.id}
-      className="monster-card-container"
-      size={size}
-      onFlip={(isFlipped, cardId) => {
-        // Optional: Track analytics or perform actions on flip
-        if (isFlipped) {
-          console.log(`Viewing details for monster ${cardId}`);
-        }
-      }}
-    />
+    <>
+      <FlippableCard
+        frontContent={frontContent}
+        backContent={backContent}
+        cardId={monster.id}
+        className="monster-card-container"
+        size={size}
+        onFlip={(isFlipped, cardId) => {
+          // Optional: Track analytics or perform actions on flip
+          if (isFlipped) {
+            console.log(`Viewing details for monster ${cardId}`);
+          }
+        }}
+      />
+      
+      {/* Card Art Viewer Modal */}
+      <CardArtViewer
+        isOpen={showArtViewer}
+        onClose={() => setShowArtViewer(false)}
+        artUrl={getCardArtUrl()}
+        monsterName={monster.name}
+        monsterSpecies={monster.species}
+      />
+    </>
   );
 }
 
