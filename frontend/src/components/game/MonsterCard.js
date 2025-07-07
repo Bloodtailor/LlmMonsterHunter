@@ -1,12 +1,22 @@
-// Monster Card Component - WITH CARD ART VIEWER
+// Monster Card Component - WITH INTEGRATED PARTY TOGGLE BUTTON
 // Front: Monster art + basic info, Back: Detailed stats and abilities
-// Now includes expand button for full-size card art viewing
+// Now includes party toggle button positioned relative to the card itself
 
 import React, { useState } from 'react';
 import FlippableCard from '../ui/FlippableCard';
 import CardArtViewer from '../ui/CardArtViewer';
 
-function MonsterCard({ monster, size = 'normal', onAbilityGenerate = null }) {
+function MonsterCard({ 
+  monster, 
+  size = 'normal', 
+  onAbilityGenerate = null,
+  // Party toggle props
+  showPartyToggle = false,
+  isInParty = false,
+  isPartyFull = false,
+  onPartyToggle = null,
+  partyDisabled = false
+}) {
   const [generatingAbility, setGeneratingAbility] = useState(false);
   const [showArtViewer, setShowArtViewer] = useState(false);
 
@@ -28,6 +38,47 @@ function MonsterCard({ monster, size = 'normal', onAbilityGenerate = null }) {
     } finally {
       setGeneratingAbility(false);
     }
+  };
+
+  // Handle party toggle
+  const handlePartyToggle = (e) => {
+    e.stopPropagation(); // Prevent card flip
+    if (onPartyToggle && !partyDisabled) {
+      onPartyToggle(monster, isInParty);
+    }
+  };
+
+  // Get party button state
+  const getPartyButtonState = () => {
+    if (partyDisabled) {
+      return {
+        icon: '⏳',
+        className: 'party-toggle-disabled',
+        title: 'Updating party...'
+      };
+    }
+    
+    if (isInParty) {
+      return {
+        icon: '✓',
+        className: 'party-toggle-remove',
+        title: `Remove ${monster.name} from party`
+      };
+    }
+    
+    if (isPartyFull) {
+      return {
+        icon: '🚫',
+        className: 'party-toggle-full',
+        title: 'Party is full (4/4)'
+      };
+    }
+    
+    return {
+      icon: '+',
+      className: 'party-toggle-add',
+      title: `Add ${monster.name} to party`
+    };
   };
 
   const getAbilityTypeIcon = (type) => {
@@ -53,6 +104,18 @@ function MonsterCard({ monster, size = 'normal', onAbilityGenerate = null }) {
   // Front of card - Art + Basic Info
   const frontContent = (
     <div className="monster-card-front">
+      {/* Party Toggle Button - positioned relative to card */}
+      {showPartyToggle && (
+        <button
+          className={`party-toggle-button ${getPartyButtonState().className}`}
+          onClick={handlePartyToggle}
+          disabled={partyDisabled || (isPartyFull && !isInParty)}
+          title={getPartyButtonState().title}
+        >
+          {getPartyButtonState().icon}
+        </button>
+      )}
+
       {/* Card Art */}
       <div className="monster-art-section">
         {getCardArtUrl() ? (

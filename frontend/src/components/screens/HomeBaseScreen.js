@@ -1,10 +1,10 @@
-// Home Base Screen - WITH PARTY MANAGEMENT
-// Displays following monsters and active party with click-to-toggle functionality
-// Handles party management without interfering with card flip functionality
+// Home Base Screen - WITH INTEGRATED PARTY BUTTONS
+// Displays following monsters and active party with integrated party toggle buttons
+// Party buttons are now positioned consistently relative to the cards themselves
 
 import React, { useState, useEffect } from 'react';
 import MonsterCard from '../game/MonsterCard';
-import { PartyToggleButton, usePartyManager } from '../game/PartyManager';
+import { usePartyManager } from '../game/PartyManager';
 import { getGameState, getFollowingMonsters, getActiveParty, isPartyReady } from '../../services/gameStateApi';
 
 function HomeBaseScreen({ onEnterDungeon }) {
@@ -189,13 +189,11 @@ function HomeBaseScreen({ onEnterDungeon }) {
                     monster={monster}
                     size="small"
                     showPartyBadge={true}
-                  />
-                  <PartyToggleButton
-                    monster={monster}
+                    showPartyToggle={true}
                     isInParty={true}
                     isPartyFull={false}
-                    onToggle={handlePartyToggle}
-                    disabled={updating}
+                    onPartyToggle={handlePartyToggle}
+                    partyDisabled={updating}
                   />
                 </div>
               ))}
@@ -244,13 +242,11 @@ function HomeBaseScreen({ onEnterDungeon }) {
                   <MonsterCard
                     monster={monster}
                     size="normal"
-                  />
-                  <PartyToggleButton
-                    monster={monster}
+                    showPartyToggle={true}
                     isInParty={isMonsterInParty(monster)}
                     isPartyFull={activeParty.length >= 4}
-                    onToggle={handlePartyToggle}
-                    disabled={updating}
+                    onPartyToggle={handlePartyToggle}
+                    partyDisabled={updating}
                   />
                 </div>
               ))}
