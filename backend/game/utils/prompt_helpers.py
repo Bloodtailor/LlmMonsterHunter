@@ -5,7 +5,8 @@
 from typing import Dict, Any, Optional
 from backend.ai.llm.prompt_engine import get_template_config, build_prompt
 from backend.services import generation_service
-from backend.utils import success_response, error_response, print_error
+from backend.utils.responses import success_response, error_response
+from backend.utils.console import print_error
 
 def build_game_prompt(template_name: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
@@ -53,8 +54,7 @@ def build_game_prompt(template_name: str, variables: Optional[Dict[str, Any]] = 
 def make_generation_request(prompt_text: str, 
                           prompt_type: str,
                           template_name: str,
-                          template_config: Dict[str, Any],
-                          wait_for_completion: bool = True) -> Dict[str, Any]:
+                          template_config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Make a standardized generation request using template configuration
     
@@ -63,7 +63,6 @@ def make_generation_request(prompt_text: str,
         prompt_type (str): Type of prompt (e.g., 'ability_generation')
         template_name (str): Template name (e.g., 'generate_ability')
         template_config (dict): Template configuration with parser, max_tokens, etc.
-        wait_for_completion (bool): Whether to wait for completion
         
     Returns:
         dict: Generation service result
@@ -77,7 +76,7 @@ def make_generation_request(prompt_text: str,
             parser_config=template_config['parser'],
             max_tokens=template_config['max_tokens'],
             temperature=template_config['temperature'],
-            wait_for_completion=wait_for_completion
+            wait_for_completion=True  # Always wait since we removed async
         )
         
     except Exception as e:
@@ -86,8 +85,7 @@ def make_generation_request(prompt_text: str,
 
 def build_and_generate(template_name: str,
                       prompt_type: str, 
-                      variables: Optional[Dict[str, Any]] = None,
-                      wait_for_completion: bool = True) -> Dict[str, Any]:
+                      variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Complete helper that builds prompt and makes generation request
     Most common pattern across all game services
@@ -96,7 +94,6 @@ def build_and_generate(template_name: str,
         template_name (str): Template name
         prompt_type (str): Prompt type for logging
         variables (dict): Template variables
-        wait_for_completion (bool): Whether to wait
         
     Returns:
         dict: Complete generation result with enhanced error handling
@@ -115,8 +112,7 @@ def build_and_generate(template_name: str,
         prompt_text=prompt_result['prompt_text'],
         prompt_type=prompt_type,
         template_name=template_name,
-        template_config=prompt_result['template_config'],
-        wait_for_completion=wait_for_completion
+        template_config=prompt_result['template_config']
     )
     
     # Add stage info for debugging
