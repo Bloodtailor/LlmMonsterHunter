@@ -1,9 +1,10 @@
 # Service Layer Validators - ENHANCED: All Service Validation Logic
 # Consolidates validation logic at the service layer where it belongs
-# Replaces backend/game/utils/validators.py completely
+# Updated with game state validation for database-backed system
 
 from typing import List, Dict, Any
 from backend.models.monster import Monster
+from backend.models.game_state import GameState
 from backend.utils import error_response
 
 # === Monster Validators ===
@@ -84,7 +85,7 @@ def validate_monster_list_params(limit: int, offset: int, filter_type: str, sort
     
     return {'valid': True}
 
-# === Game State Validators ===
+# === Game State Validators - DATABASE-BACKED ===
 
 def validate_party_size(monster_ids: List[int], max_size: int = 4) -> Dict[str, Any]:
     """
@@ -110,27 +111,37 @@ def validate_party_size(monster_ids: List[int], max_size: int = 4) -> Dict[str, 
     
     return {'valid': True, 'unique_ids': unique_ids}
 
-def validate_monsters_are_following(monster_ids: List[int], following_list: List[int]) -> Dict[str, Any]:
+def validate_monsters_are_following(monster_ids: List[int]) -> Dict[str, Any]:
     """
     Validate that all monsters are in the following list
-    Used in game_state_service
+    Used in game_state_service - now checks database
     """
     
-    not_following = [mid for mid in monster_ids if mid not in following_list]
-    
-    if not_following:
+    try:
+        game_state = GameState.get_current_game_state()
+        following_ids = game_state.get_following_monster_ids()
+        
+        not_following = [mid for mid in monster_ids if mid not in following_ids]
+        
+        if not_following:
+            return {
+                'valid': False,
+                'not_following': not_following,
+                'error': f'Monsters {not_following} are not following you'
+            }
+        
+        return {'valid': True}
+        
+    except Exception as e:
         return {
             'valid': False,
-            'not_following': not_following,
-            'error': f'Monsters {not_following} are not following you'
+            'error': f'Error checking following status: {str(e)}'
         }
-    
-    return {'valid': True}
 
-def validate_following_monster_addition(monster_id: int, following_list: List[int]) -> Dict[str, Any]:
+def validate_following_monster_addition(monster_id: int) -> Dict[str, Any]:
     """
     Validate adding a monster to the following list
-    Used in game_state_service
+    Used in game_state_service - now checks database
     """
     
     # First validate monster exists
@@ -138,35 +149,86 @@ def validate_following_monster_addition(monster_id: int, following_list: List[in
     if not monster_validation['valid']:
         return monster_validation
     
-    # Check if already following
-    if monster_id in following_list:
-        monster = monster_validation['monster']
+    try:
+        # Check if already following
+        game_state = GameState.get_current_game_state()
+        following_ids = game_state.get_following_monster_ids()
+        
+        if monster_id in following_ids:
+            monster = monster_validation['monster']
+            return {
+                'valid': False,
+                'error': f'Monster {monster.name} is already following you',
+                'monster': monster
+            }
+        
+        return {'valid': True, 'monster': monster_validation['monster']}
+        
+    except Exception as e:
         return {
             'valid': False,
-            'error': f'Monster {monster.name} is already following you',
-            'monster': monster
+            'error': f'Error checking following status: {str(e)}',
+            'monster': monster_validation['monster']
         }
+
+def validate_following_monster_removal(monster_id: int) -> Dict[str, Any]:
+    """
+    Validate removing a monster from the following list
+    Used in game_state_service - now checks database
+    """
     
-    return {'valid': True, 'monster': monster_validation['monster']}
+    # First validate monster exists
+    monster_validation = validate_monster_exists(monster_id)
+    if not monster_validation['valid']:
+        return monster_validation
+    
+    try:
+        # Check if monster is following
+        game_state = GameState.get_current_game_state()
+        following_ids = game_state.get_following_monster_ids()
+        
+        if monster_id not in following_ids:
+            return {
+                'valid': False,
+                'error': f'Monster {monster_id} is not following you',
+                'monster': monster_validation['monster']
+            }
+        
+        return {'valid': True, 'monster': monster_validation['monster']}
+        
+    except Exception as e:
+        return {
+            'valid': False,
+            'error': f'Error checking following status: {str(e)}',
+            'monster': monster_validation['monster']
+        }
 
 # === Dungeon Validators ===
 
 def validate_party_ready_for_dungeon() -> Dict[str, Any]:
     """
     Validate that active party is ready for dungeon entry
-    Used in dungeon_service
+    Used in dungeon_service - now checks database
     """
     
-    from backend.services import game_state_service
-    
-    if not game_state_service.is_party_ready_for_dungeon():
+    try:
+        game_state = GameState.get_current_game_state()
+        
+        if not game_state.is_party_ready_for_dungeon():
+            return {
+                'valid': False,
+                'error': 'No active party set. Add monsters to your party before entering the dungeon.',
+                'ready_for_dungeon': False
+            }
+        
+        return {'valid': True}
+        
+    except Exception as e:
         return {
             'valid': False,
-            'error': 'No active party set. Add monsters to your party before entering the dungeon.',
+            'error': f'Error checking party readiness: {str(e)}',
             'ready_for_dungeon': False
         }
-    
-    return {'valid': True}
 
 def validate_door_choice(door_choice: str, available_doors: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
@@ -202,20 +264,30 @@ def validate_door_choice(door_choice: str, available_doors: List[Dict[str, Any]]
     
     return {'valid': True, 'door': chosen_door, 'valid_choices': valid_choices}
 
-def validate_in_dungeon(dungeon_state) -> Dict[str, Any]:
+def validate_in_dungeon() -> Dict[str, Any]:
     """
     Validate that player is currently in a dungeon
-    Used in dungeon_service
+    Used in dungeon_service - now checks database
     """
     
-    if not dungeon_state:
+    try:
+        game_state = GameState.get_current_game_state()
+        
+        if not game_state.in_dungeon or not game_state.dungeon_state:
+            return {
+                'valid': False,
+                'error': 'Not currently in a dungeon',
+                'in_dungeon': False
+            }
+        
+        return {'valid': True, 'in_dungeon': True}
+        
+    except Exception as e:
         return {
             'valid': False,
-            'error': 'Not currently in a dungeon',
+            'error': f'Error checking dungeon status: {str(e)}',
             'in_dungeon': False
         }
-    
-    return {'valid': True, 'in_dungeon': True}
 
 # === Generation Validators ===
 
