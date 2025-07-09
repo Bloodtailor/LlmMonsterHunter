@@ -1,22 +1,16 @@
-# Prompt Helpers - Extracted Repeated Code
-# Consolidates the prompt building and generation request patterns
-# Used across monster_service, ability_service, dungeon_service
+# Prompt Helpers - UPDATED: Consistent Utility Function Usage
+# Consolidates prompt building and generation request patterns
+# Used across monster, ability, and dungeon services with consistent error handling
 
 from typing import Dict, Any, Optional
 from backend.ai.llm.prompt_engine import get_template_config, build_prompt
 from backend.services import generation_service
-from backend.utils import success_response, error_response, print_error
+from backend.utils import success_response, error_response, print_error, print_success
 
 def build_game_prompt(template_name: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Build a game prompt with variables and get template configuration
-    
-    Args:
-        template_name (str): Template name (e.g., 'generate_ability')
-        variables (dict): Variables to substitute in template
-        
-    Returns:
-        dict: {success: bool, prompt_text: str, template_config: dict, error?: str}
+    Uses utility functions for consistent error handling
     """
     
     try:
@@ -45,7 +39,7 @@ def build_game_prompt(template_name: str, variables: Optional[Dict[str, Any]] = 
         
     except Exception as e:
         return error_response(
-            str(e),
+            f'Prompt building error: {str(e)}',
             prompt_text=None,
             template_config=None
         )
@@ -56,27 +50,21 @@ def make_generation_request(prompt_text: str,
                           template_config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Make a standardized generation request using template configuration
-    
-    Args:
-        prompt_text (str): Built prompt text
-        prompt_type (str): Type of prompt (e.g., 'ability_generation')
-        template_name (str): Template name (e.g., 'generate_ability')
-        template_config (dict): Template configuration with parser, max_tokens, etc.
-        
-    Returns:
-        dict: Generation service result
+    Uses utility functions for consistent error handling
     """
     
     try:
-        return generation_service.text_generation_request(
+        result = generation_service.text_generation_request(
             prompt=prompt_text,
             prompt_type=prompt_type,
             prompt_name=template_name,
             parser_config=template_config['parser'],
             max_tokens=template_config['max_tokens'],
             temperature=template_config['temperature'],
-            wait_for_completion=True  # Always wait since we removed async
+            wait_for_completion=True
         )
+        
+        return result
         
     except Exception as e:
         print_error(f"Generation request failed: {str(e)}")
@@ -88,17 +76,10 @@ def build_and_generate(template_name: str,
     """
     Complete helper that builds prompt and makes generation request
     Most common pattern across all game services
-    
-    Args:
-        template_name (str): Template name
-        prompt_type (str): Prompt type for logging
-        variables (dict): Template variables
-        
-    Returns:
-        dict: Complete generation result with enhanced error handling
+    Uses utility functions for consistent error handling
     """
     
-    # Build prompt
+    # Build prompt using utility functions
     prompt_result = build_game_prompt(template_name, variables)
     if not prompt_result['success']:
         return error_response(
@@ -106,7 +87,7 @@ def build_and_generate(template_name: str,
             stage='prompt_building'
         )
     
-    # Make generation request
+    # Make generation request using utility functions
     generation_result = make_generation_request(
         prompt_text=prompt_result['prompt_text'],
         prompt_type=prompt_type,
@@ -114,8 +95,93 @@ def build_and_generate(template_name: str,
         template_config=prompt_result['template_config']
     )
     
-    # Add stage info for debugging
+    # Add stage info for debugging if generation failed
     if not generation_result.get('success'):
         generation_result['stage'] = 'generation'
+    else:
+        print_success(f"Generated {prompt_type} using {template_name}")
     
     return generation_result
+
+def validate_template_exists(template_name: str) -> Dict[str, Any]:
+    """
+    Validate that a template exists and is accessible
+    Used by services for template validation
+    """
+    
+    try:
+        template_config = get_template_config(template_name)
+        if not template_config:
+            return {
+                'valid': False,
+                'error': f'Template not found: {template_name}',
+                'template_config': None
+            }
+        
+        return {
+            'valid': True,
+            'template_config': template_config
+        }
+        
+    except Exception as e:
+        return {
+            'valid': False,
+            'error': f'Template validation error: {str(e)}',
+            'template_config': None
+        }
+
+def get_available_templates_by_category(category: str) -> Dict[str, str]:
+    """
+    Get available templates filtered by category
+    Used by services to provide template lists
+    """
+    
+    try:
+        from backend.ai.llm.prompt_engine import get_prompt_engine
+        
+        engine = get_prompt_engine()
+        templates = {}
+        
+        for name in engine.list_templates():
+            template = engine.get_template(name)
+            if template and template.category == category:
+                templates[name] = template.description
+        
+        return templates
+        
+    except Exception as e:
+        print_error(f"Failed to get templates for category '{category}': {str(e)}")
+        return {}
+
+def build_monster_context_variables(monster_context: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Build standardized variables from monster context
+    Used across ability and monster generation
+    """
+    
+    # Format existing abilities
+    existing = monster_context.get('existing_abilities', [])
+    abilities_text = "\n".join([
+        f"- {a['name']} ({a.get('type', 'unknown')}): {a['description']}" for a in existing
+    ]) if existing else "None (this will be their first ability)"
+    
+    # Format personality
+    traits = monster_context.get('personality_traits', [])
+    personality = ', '.join(traits) if traits else 'Mysterious'
+    
+    # Get stats with defaults
+    stats = monster_context.get('stats', {})
+    
+    return {
+        'monster_name': monster_context.get('name', 'Unknown'),
+        'monster_species': monster_context.get('species', 'Unknown Species'), 
+        'monster_description': monster_context.get('description', 'A mysterious creature'),
+        'monster_backstory': monster_context.get('backstory', 'Unknown origins'),
+        'monster_health': stats.get('health', 100),
+        'monster_attack': stats.get('attack', 20),
+        'monster_defense': stats.get('defense', 15),
+        'monster_speed': stats.get('speed', 10),
+        'monster_personality': personality,
+        'existing_abilities_text': abilities_text,
+        'ability_count': monster_context.get('ability_count', 0)
+    }
