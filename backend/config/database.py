@@ -65,10 +65,20 @@ def create_tables():
         from backend.models.llm_log import LLMLog              # LLM child table
         from backend.models.image_log import ImageLog          # Image child table
         
+        # 🔧 NEW: Normalized game state models
+        from backend.models.game_state import GameState        # Main game state
+        from backend.models.game_state_relations import (      # Relationship tables
+            FollowingMonster,
+            ActiveParty,
+            DungeonState,
+            DungeonDoor
+        )
+        
         # Create all tables
         db.create_all()
         print("✅ Database tables created successfully")
-        print("   Tables: monsters, abilities, llm_logs")
+        print("   Tables: monsters, abilities, generation_logs, llm_logs, image_logs")
+        print("   Tables: game_state, following_monsters, active_party, dungeon_state, dungeon_doors")
         return True
         
     except SQLAlchemyError as e:
