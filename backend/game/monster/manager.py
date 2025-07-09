@@ -12,7 +12,7 @@ from backend.utils import success_response, error_response
 class MonsterManager:
     """Pure business logic - no validation"""
     
-    def get_all_monsters_enhanced(self, limit: int, offset: int, filter_type: str, sort_by: str) -> Dict[str, Any]:
+    def get_all_monsters(self, limit: int, offset: int, filter_type: str, sort_by: str) -> Dict[str, Any]:
         """Get monsters - assumes valid parameters"""
         
         # Start with base query
@@ -52,7 +52,7 @@ class MonsterManager:
             'filters_applied': {'filter_type': filter_type, 'sort_by': sort_by}
         })
     
-    def get_enhanced_monster_stats(self, filter_type: str) -> Dict[str, Any]:
+    def get_monster_stats(self, filter_type: str) -> Dict[str, Any]:
         """Get stats - assumes valid filter_type"""
         
         # Base query
@@ -126,25 +126,3 @@ class MonsterManager:
             return error_response('Monster not found', monster=None)
         
         return success_response({'monster': monster.to_dict()})
-    
-    # LEGACY COMPATIBILITY
-    def get_all_monsters(self, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
-        """LEGACY: Basic pagination"""
-        return self.get_all_monsters_enhanced(limit, offset, 'all', 'newest')
-    
-    def get_monster_stats(self) -> Dict[str, Any]:
-        """LEGACY: Basic stats"""
-        enhanced_stats = self.get_enhanced_monster_stats('all')
-        if not enhanced_stats['success']:
-            return enhanced_stats
-        
-        stats = enhanced_stats['stats']
-        return success_response({
-            'total_monsters': stats['total_monsters'],
-            'total_abilities': stats['total_abilities'],
-            'avg_abilities_per_monster': stats['avg_abilities_per_monster'],
-            'monsters_with_card_art': stats['with_card_art'],
-            'card_art_percentage': stats['card_art_percentage'],
-            'newest_monster': stats['newest_monster'],
-            'available_templates': []
-        })
