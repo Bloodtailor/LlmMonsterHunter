@@ -1,15 +1,20 @@
-# Game State Manager - Clean State Management Logic
+# Game State Manager - UPDATED: Use Service Validators
+# Now uses backend/services/validators.py instead of backend/game/utils/validators.py
+# This allows us to delete the old validators file
 
 from typing import List, Dict, Any, Optional
 from backend.models.monster import Monster
-from backend.game.utils import (
-    validate_party_size, validate_monster_exists, validate_monsters_are_following,
-    validate_following_monster_addition, validate_and_continue,
-    error_response, success_response, print_success
+from backend.services.validators import (
+    validate_party_size,
+    validate_monsters_are_following,
+    validate_following_monster_addition
+)
+from backend.utils import (
+    error_response, success_response, validate_and_continue, print_success
 )
 
 class GameStateManager:
-    """Clean game state management - handles all session state logic"""
+    """Clean game state management using service validators"""
     
     def __init__(self):
         # Game state variables - private to manager
@@ -19,12 +24,7 @@ class GameStateManager:
         self._in_dungeon: bool = False                 # Whether player is in dungeon
     
     def get_game_state(self) -> Dict[str, Any]:
-        """
-        Get complete current game state
-        
-        Returns:
-            dict: All current game state information
-        """
+        """Get complete current game state"""
         try:
             # Get monster details for following monsters
             following_monster_details = []
@@ -62,17 +62,9 @@ class GameStateManager:
             return error_response(str(e))
     
     def add_following_monster(self, monster_id: int) -> Dict[str, Any]:
-        """
-        Add a monster to the following list
-        
-        Args:
-            monster_id (int): ID of monster to add
-            
-        Returns:
-            dict: Success status and updated state
-        """
+        """Add a monster to the following list"""
         try:
-            # Validate using our utilities
+            # Validate using service validators
             validation = validate_following_monster_addition(monster_id, self._following_monsters)
             error_check = validate_and_continue(validation, {'following_count': len(self._following_monsters)})
             if error_check:
@@ -95,15 +87,7 @@ class GameStateManager:
             return error_response(str(e), following_count=len(self._following_monsters))
     
     def remove_following_monster(self, monster_id: int) -> Dict[str, Any]:
-        """
-        Remove a monster from the following list
-        
-        Args:
-            monster_id (int): ID of monster to remove
-            
-        Returns:
-            dict: Success status and updated state
-        """
+        """Remove a monster from the following list"""
         try:
             # Check if monster is following
             if monster_id not in self._following_monsters:
@@ -136,17 +120,9 @@ class GameStateManager:
             return error_response(str(e), following_count=len(self._following_monsters))
     
     def set_active_party(self, monster_ids: List[int]) -> Dict[str, Any]:
-        """
-        Set the active party from following monsters
-        
-        Args:
-            monster_ids (list): List of monster IDs to set as active party (max 4)
-            
-        Returns:
-            dict: Success status and party details
-        """
+        """Set the active party from following monsters"""
         try:
-            # Validate party size using our utilities
+            # Validate party size using service validators
             party_validation = validate_party_size(monster_ids, max_size=4)
             error_check = validate_and_continue(party_validation, {'party_count': len(self._active_party)})
             if error_check:
@@ -154,7 +130,7 @@ class GameStateManager:
             
             unique_ids = party_validation['unique_ids']
             
-            # Validate all monsters are following using our utilities
+            # Validate all monsters are following using service validators
             following_validation = validate_monsters_are_following(unique_ids, self._following_monsters)
             error_check = validate_and_continue(following_validation, {'party_count': len(self._active_party)})
             if error_check:
@@ -187,12 +163,7 @@ class GameStateManager:
             return error_response(str(e), party_count=len(self._active_party))
     
     def get_active_party(self) -> Dict[str, Any]:
-        """
-        Get current active party details
-        
-        Returns:
-            dict: Active party information
-        """
+        """Get current active party details"""
         try:
             # Get monster details
             party_details = []
@@ -219,12 +190,7 @@ class GameStateManager:
             )
     
     def get_following_monsters(self) -> Dict[str, Any]:
-        """
-        Get all monsters currently following the player
-        
-        Returns:
-            dict: Following monsters information
-        """
+        """Get all monsters currently following the player"""
         try:
             # Get monster details
             following_details = []
@@ -251,12 +217,7 @@ class GameStateManager:
             )
     
     def reset_game_state(self) -> Dict[str, Any]:
-        """
-        Reset all game state to initial values (for testing)
-        
-        Returns:
-            dict: Reset confirmation
-        """
+        """Reset all game state to initial values (for testing)"""
         try:
             self._following_monsters.clear()
             self._active_party.clear()
@@ -274,21 +235,11 @@ class GameStateManager:
             return error_response(str(e))
     
     def is_party_ready_for_dungeon(self) -> bool:
-        """
-        Check if party is ready for dungeon (has at least 1 monster)
-        
-        Returns:
-            bool: True if party is ready for dungeon
-        """
+        """Check if party is ready for dungeon (has at least 1 monster)"""
         return len(self._active_party) > 0
     
     def get_party_summary(self) -> str:
-        """
-        Get a text summary of the current party for display/logging
-        
-        Returns:
-            str: Human-readable party summary
-        """
+        """Get a text summary of the current party for display/logging"""
         if not self._active_party:
             return "No active party"
         

@@ -1,10 +1,15 @@
-# Monster Service - TRULY SIMPLIFIED: Minimal Validation
-# Only validates what routes can't handle
-# Eliminates redundant checks
+# Monster Service - GREATLY SIMPLIFIED: Minimal Trust Boundary
+# Only validates what routes absolutely cannot handle
+# Eliminates all redundant error checking
 
 from typing import Dict, Any
 from backend.game import MonsterGenerator, MonsterManager
-from backend.utils import success_response, error_response
+from .validators import (
+    validate_monster_exists,
+    validate_monster_template, 
+    validate_monster_list_params
+)
+from backend.utils import success_response, error_response, validate_and_continue
 
 # Create singleton instances
 _generator = MonsterGenerator()
@@ -12,23 +17,23 @@ _manager = MonsterManager()
 
 def generate_monster(prompt_name: str = "detailed_monster", 
                     generate_card_art: bool = True) -> Dict[str, Any]:
-    """Generate monster - only check template exists"""
+    """Generate monster - only validate template exists"""
     
-    # Only validate what routes can't: template existence
     available_templates = _generator.get_available_templates()
-    if prompt_name not in available_templates:
-        return error_response(f"Template '{prompt_name}' not found", monster=None)
+    template_validation = validate_monster_template(prompt_name, available_templates)
+    error_check = validate_and_continue(template_validation, {'monster': None})
+    if error_check:
+        return error_check
     
-    # Everything else is trusted
     return _generator.generate_monster(prompt_name, generate_card_art)
 
 def generate_card_art_for_existing_monster(monster_id: int) -> Dict[str, Any]:
-    """Generate card art - only check monster exists"""
+    """Generate card art - only validate monster exists"""
     
-    # Only validate what routes can't: monster existence
-    from backend.models.monster import Monster
-    if not Monster.get_monster_by_id(monster_id):
-        return error_response(f"Monster {monster_id} not found")
+    monster_validation = validate_monster_exists(monster_id)
+    error_check = validate_and_continue(monster_validation)
+    if error_check:
+        return error_check
     
     return _generator.generate_card_art_for_existing_monster(monster_id)
 
@@ -37,25 +42,38 @@ def get_available_templates() -> Dict[str, str]:
     return _generator.get_available_templates()
 
 def get_all_monsters(limit: int = 50, offset: int = 0, 
-                            filter_type: str = 'all', sort_by: str = 'newest') -> Dict[str, Any]:
-    """Get monsters - trust routes handled parameter validation"""
+                    filter_type: str = 'all', sort_by: str = 'newest') -> Dict[str, Any]:
+    """Get monsters - validate complex parameters"""
+    
+    params_validation = validate_monster_list_params(limit, offset, filter_type, sort_by)
+    error_check = validate_and_continue(params_validation)
+    if error_check:
+        return error_check
+    
     return _manager.get_all_monsters(limit, offset, filter_type, sort_by)
 
 def get_monster_stats(filter_type: str = 'all') -> Dict[str, Any]:
-    """Get stats - trust routes handled parameter validation"""
+    """Get stats - validate filter parameter"""
+    
+    valid_filters = ['all', 'with_art', 'without_art']
+    if filter_type not in valid_filters:
+        return error_response(f'Invalid filter parameter - must be: {", ".join(valid_filters)}')
+    
     return _manager.get_monster_stats(filter_type)
 
 def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
-    """Get monster - trust routes handled integer validation"""
+    """Get monster - delegate directly (routes handle integer validation)"""
     return _manager.get_monster_by_id(monster_id)
 
 def get_monster_card_art_info(monster_id: int) -> Dict[str, Any]:
-    """Get card art info - trust routes handled integer validation"""
-    from backend.models.monster import Monster
+    """Get card art info - delegate directly (routes handle integer validation)"""
     
-    monster = Monster.get_monster_by_id(monster_id)
-    if not monster:
-        return error_response(f"Monster {monster_id} not found", monster_id=monster_id)
+    monster_validation = validate_monster_exists(monster_id)
+    error_check = validate_and_continue(monster_validation, {'monster_id': monster_id})
+    if error_check:
+        return error_check
+    
+    monster = monster_validation['monster']
     
     return success_response({
         'monster_id': monster_id,
