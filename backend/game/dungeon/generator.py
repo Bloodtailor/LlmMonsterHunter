@@ -1,35 +1,31 @@
-# Dungeon Generator - Clean Text Generation Logic
+# Dungeon Generator - SIMPLIFIED: No Validation
+# Pure business logic - assumes all inputs are valid
+# Eliminates defensive programming completely
 
 from typing import Dict, Any
 import random
-from backend.game.utils import (
-    build_and_generate,
-    error_response, success_response, print_warning, print_success
-)
+from backend.game.utils import build_and_generate
+from backend.utils import error_response, success_response, print_warning, print_success
 
 class DungeonGenerator:
-    """Clean dungeon text generation - handles all LLM-based content creation"""
+    """Pure business logic - no validation"""
     
     def generate_entry_text(self, party_summary: str) -> Dict[str, Any]:
-        """Generate atmospheric dungeon entry text using template system"""
+        """Generate entry text - assumes valid party_summary"""
         
-        try:
-            variables = {'party_summary': party_summary}
-            result = build_and_generate('entry_atmosphere', 'dungeon_generation', variables)
-            
-            if result['success']:
-                return success_response({
-                    'text': result['text'].strip(),
-                    'generation_id': result.get('generation_id')
-                })
-            else:
-                return error_response(result.get('error', 'Entry text generation failed'))
-                
-        except Exception as e:
-            return error_response(str(e))
+        variables = {'party_summary': party_summary}
+        result = build_and_generate('entry_atmosphere', 'dungeon_generation', variables)
+        
+        if result['success']:
+            return success_response({
+                'text': result['text'].strip(),
+                'generation_id': result.get('generation_id')
+            })
+        else:
+            return error_response(result.get('error', 'Entry text generation failed'))
     
     def generate_random_location(self) -> Dict[str, Any]:
-        """Generate a random dungeon location using template system"""
+        """Generate location - no validation, fallback on any error"""
         
         try:
             result = build_and_generate('random_location', 'dungeon_generation')
@@ -44,122 +40,102 @@ class DungeonGenerator:
                     'generation_id': result.get('generation_id')
                 })
             else:
-                # Fallback location if LLM fails
+                # Fallback location
                 fallback_location = self._get_fallback_location()
-                print_warning(f"Using fallback location: {fallback_location['name']}")
-                
                 return success_response({
                     'location': fallback_location,
                     'generation_id': None
                 })
                 
-        except Exception as e:
-            # Use fallback on any error
+        except Exception:
+            # Always succeed with fallback
             fallback_location = self._get_fallback_location()
-            print_warning(f"Error generating location, using fallback: {fallback_location['name']}")
-            
             return success_response({
                 'location': fallback_location,
                 'generation_id': None
             })
     
     def generate_door_choices(self) -> Dict[str, Any]:
-        """Generate 3 door choices (2 locations + 1 exit) using random_location template"""
+        """Generate 3 doors - always succeeds with fallbacks"""
         
-        try:
-            doors = []
-            
-            # Generate first location door
-            location1_result = self.generate_random_location()
-            if location1_result['success']:
-                location1 = location1_result['location']
-                doors.append({
-                    'id': 'location_1',
-                    'type': 'location',
-                    'name': location1['name'],
-                    'description': location1['description']
-                })
-            else:
-                print_warning("Failed to generate location 1, using fallback")
-                doors.append({
-                    'id': 'location_1',
-                    'type': 'location',
-                    'name': 'Mysterious Chamber',
-                    'description': 'A dimly lit chamber with ancient stone walls and mysterious shadows.'
-                })
-            
-            # Generate second location door
-            location2_result = self.generate_random_location()
-            if location2_result['success']:
-                location2 = location2_result['location']
-                doors.append({
-                    'id': 'location_2',
-                    'type': 'location',
-                    'name': location2['name'],
-                    'description': location2['description']
-                })
-            else:
-                print_warning("Failed to generate location 2, using fallback")
-                doors.append({
-                    'id': 'location_2',
-                    'type': 'location',
-                    'name': 'Ancient Sanctum',
-                    'description': 'An old chamber filled with weathered statues and forgotten memories.'
-                })
-            
-            # Always add the exit door
+        doors = []
+        
+        # Generate first location door
+        location1_result = self.generate_random_location()
+        if location1_result['success']:
+            location1 = location1_result['location']
             doors.append({
-                'id': 'exit',
-                'type': 'exit',
-                'name': 'Exit the Dungeon',
-                'description': 'A familiar stone stairway leading back to the surface and safety of the outside world.'
+                'id': 'location_1',
+                'type': 'location',
+                'name': location1['name'],
+                'description': location1['description']
             })
-            
-            print_success(f"Generated doors: {[door['name'] for door in doors]}")
-            
-            return success_response({'doors': doors})
-            
-        except Exception as e:
-            return error_response(str(e))
+        else:
+            doors.append({
+                'id': 'location_1',
+                'type': 'location',
+                'name': 'Mysterious Chamber',
+                'description': 'A dimly lit chamber with ancient stone walls and mysterious shadows.'
+            })
+        
+        # Generate second location door
+        location2_result = self.generate_random_location()
+        if location2_result['success']:
+            location2 = location2_result['location']
+            doors.append({
+                'id': 'location_2',
+                'type': 'location',
+                'name': location2['name'],
+                'description': location2['description']
+            })
+        else:
+            doors.append({
+                'id': 'location_2',
+                'type': 'location',
+                'name': 'Ancient Sanctum',
+                'description': 'An old chamber filled with weathered statues and forgotten memories.'
+            })
+        
+        # Always add exit door
+        doors.append({
+            'id': 'exit',
+            'type': 'exit',
+            'name': 'Exit the Dungeon',
+            'description': 'A familiar stone stairway leading back to the surface and safety of the outside world.'
+        })
+        
+        return success_response({'doors': doors})
     
     def generate_location_event_text(self, location_name: str) -> Dict[str, Any]:
-        """Generate event text for a location using template system"""
+        """Generate event text - assumes valid location_name"""
         
-        try:
-            variables = {'location_name': location_name}
-            result = build_and_generate('location_event', 'dungeon_generation', variables)
-            
-            if result['success']:
-                return success_response({
-                    'text': result['text'].strip(),
-                    'generation_id': result.get('generation_id')
-                })
-            else:
-                return error_response(result.get('error', 'Location event generation failed'))
-                
-        except Exception as e:
-            return error_response(str(e))
+        variables = {'location_name': location_name}
+        result = build_and_generate('location_event', 'dungeon_generation', variables)
+        
+        if result['success']:
+            return success_response({
+                'text': result['text'].strip(),
+                'generation_id': result.get('generation_id')
+            })
+        else:
+            return error_response(result.get('error', 'Location event generation failed'))
     
     def generate_exit_text(self, party_summary: str) -> Dict[str, Any]:
-        """Generate exit text for leaving the dungeon using template system"""
+        """Generate exit text - assumes valid party_summary"""
         
-        try:
-            variables = {'party_summary': party_summary}
-            result = build_and_generate('exit_narrative', 'dungeon_generation', variables)
-            
-            if result['success']:
-                return success_response({
-                    'text': result['text'].strip(),
-                    'generation_id': result.get('generation_id')
-                })
-            else:
-                return error_response(result.get('error', 'Exit text generation failed'))
-                
-        except Exception as e:
-            return error_response(str(e))
+        variables = {'party_summary': party_summary}
+        result = build_and_generate('exit_narrative', 'dungeon_generation', variables)
+        
+        if result['success']:
+            return success_response({
+                'text': result['text'].strip(),
+                'generation_id': result.get('generation_id')
+            })
+        else:
+            return error_response(result.get('error', 'Exit text generation failed'))
     
     def _get_fallback_location(self) -> Dict[str, str]:
-        """Get a random fallback location when LLM generation fails"""
+        """Get fallback location - always works"""
         
         fallback_locations = [
             {
