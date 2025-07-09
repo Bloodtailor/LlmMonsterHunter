@@ -4,7 +4,7 @@
 
 from typing import List, Dict, Any
 from backend.models.monster import Monster
-from backend.game.utils import print_error
+from backend.utils import print_error
 
 def validate_party_size(monster_ids: List[int], max_size: int = 4) -> Dict[str, Any]:
     """
