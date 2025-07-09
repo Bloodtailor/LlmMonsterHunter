@@ -1,4 +1,4 @@
-# ComfyUI Workflow Management - CLEANED UP
+# ComfyUI Workflow Management - CLEANED UP FOR CONSISTENCY
 # Handles loading, modifying, and validating workflows
 # Pure workflow operations with minimal output
 
@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import copy
+from backend.utils import print_error, print_warning
 
 class WorkflowManager:
     """
@@ -39,7 +40,7 @@ class WorkflowManager:
             workflow_path = self.workflows_dir / f"{workflow_name}.json"
             
             if not workflow_path.exists():
-                print(f"❌ Workflow file not found: {workflow_path}")
+                print_error(f"Workflow file not found: {workflow_path}")
                 return None
             
             with open(workflow_path, 'r', encoding='utf-8') as f:
@@ -48,14 +49,13 @@ class WorkflowManager:
             # Cache the workflow
             self._workflow_cache[workflow_name] = workflow
             
-            # Removed verbose loading message
             return copy.deepcopy(workflow)
             
         except json.JSONDecodeError as e:
-            print(f"❌ Invalid JSON in workflow {workflow_name}: {e}")
+            print_error(f"Invalid JSON in workflow {workflow_name}: {e}")
             return None
         except Exception as e:
-            print(f"❌ Error loading workflow {workflow_name}: {e}")
+            print_error(f"Error loading workflow {workflow_name}: {e}")
             return None
     
     def modify_workflow_prompt(self, workflow: Dict[str, Any],
@@ -80,38 +80,29 @@ class WorkflowManager:
         # Update positive prompt (node 5 in monster_generation workflow)
         if "5" in modified and "inputs" in modified["5"]:
             modified["5"]["inputs"]["text"] = positive_prompt
-            # Removed verbose update message
         else:
-            print("⚠️ No positive prompt node found (node 5)")
+            print_warning("No positive prompt node found (node 5)")
         
         # Update negative prompt if provided (node 6)
         if negative_prompt and "6" in modified and "inputs" in modified["6"]:
             modified["6"]["inputs"]["text"] = negative_prompt
-            # Removed verbose update message
         
         # Update KSampler parameters (node 2)
         if "2" in modified and "inputs" in modified["2"]:
             sampler_inputs = modified["2"]["inputs"]
             
-            # Update seed
+            # Update parameters if provided
             if "seed" in kwargs:
                 sampler_inputs["seed"] = kwargs["seed"]
-                # Removed verbose update message
             
-            # Update steps
             if "steps" in kwargs:
                 sampler_inputs["steps"] = kwargs["steps"]
-                # Removed verbose update message
             
-            # Update CFG scale
             if "cfg" in kwargs:
                 sampler_inputs["cfg"] = kwargs["cfg"]
-                # Removed verbose update message
             
-            # Update denoise
             if "denoise" in kwargs:
                 sampler_inputs["denoise"] = kwargs["denoise"]
-                # Removed verbose update message
         
         # Update image dimensions (node 7)
         if "7" in modified and "inputs" in modified["7"]:
@@ -119,15 +110,12 @@ class WorkflowManager:
             
             if "width" in kwargs:
                 latent_inputs["width"] = kwargs["width"]
-                # Removed verbose update message
             
             if "height" in kwargs:
                 latent_inputs["height"] = kwargs["height"]
-                # Removed verbose update message
             
             if "batch_size" in kwargs:
                 latent_inputs["batch_size"] = kwargs["batch_size"]
-                # Removed verbose update message
         
         return modified
     
@@ -194,7 +182,7 @@ class WorkflowManager:
             workflow_files = list(self.workflows_dir.glob("*.json"))
             return [f.stem for f in workflow_files]
         except Exception as e:
-            print(f"❌ Error listing workflows: {e}")
+            print_error(f"Error listing workflows: {e}")
             return []
     
 

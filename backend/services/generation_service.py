@@ -4,12 +4,12 @@
 
 import time
 from typing import Dict, Any, Optional
+from backend.utils import success_response, error_response, print_success
 
 def text_generation_request(prompt: str, 
                            prompt_type: str = None,
                            prompt_name: str = None,
                            parser_config: Optional[Dict[str, Any]] = None,
-                           wait_for_completion: bool = True,
                            **inference_overrides) -> Dict[str, Any]:
     """
     THE ONLY WAY to request LLM text generation
@@ -20,7 +20,6 @@ def text_generation_request(prompt: str,
         prompt_type (str): Type of prompt (optional)
         prompt_name (str): Specific prompt name (optional)
         parser_config (dict): Parser configuration for automatic parsing (optional)
-        wait_for_completion (bool): Whether to wait for completion
         **inference_overrides: Any inference parameter overrides
         
     Returns:
@@ -43,7 +42,7 @@ def text_generation_request(prompt: str,
         
         # Show simplified request info
         truncated_prompt = prompt[:50] + "..." if len(prompt) > 50 else prompt
-        print(f"🎯 Generation Service: Text request for {prompt_type}/{prompt_name} - \"{truncated_prompt}\"")
+        print_success(f"Text generation request: {prompt_type}/{prompt_name} - \"{truncated_prompt}\"")
         
         # Create generation log entry
         from backend.models.generation_log import GenerationLog
@@ -57,43 +56,24 @@ def text_generation_request(prompt: str,
         )
         
         if not generation_log or not generation_log.save():
-            return {
-                'success': False,
-                'error': 'Failed to create generation log entry'
-            }
+            return error_response('Failed to create generation log entry')
         
         # Add to unified queue
         from backend.ai.queue import get_ai_queue
         queue = get_ai_queue()
         
         if not queue.add_request(generation_log.id):
-            return {
-                'success': False,
-                'error': 'Failed to add request to queue',
-                'generation_id': generation_log.id
-            }
-        
-        if not wait_for_completion:
-            return {
-                'success': True,
-                'generation_id': generation_log.id,
-                'generation_type': 'llm',
-                'message': 'LLM generation request queued for processing'
-            }
+            return error_response('Failed to add request to queue', generation_id=generation_log.id)
         
         # Wait for completion
         return _wait_for_completion(queue, generation_log.id, 'llm')
         
     except Exception as e:
-        return {
-            'success': False,
-            'error': str(e)
-        }
+        return error_response(str(e))
 
 def image_generation_request(prompt_text: str,
                            prompt_type: str = "image_generation",
                            prompt_name: str = "monster_generation",
-                           wait_for_completion: bool = True,
                            **image_overrides) -> Dict[str, Any]:
     """
     THE ONLY WAY to request image generation - COMPLETELY GENERIC
@@ -103,7 +83,6 @@ def image_generation_request(prompt_text: str,
         prompt_text (str): The unique part of the prompt (ONLY REQUIRED parameter)
         prompt_type (str): Type of prompt (for logging)
         prompt_name (str): Workflow name to use 
-        wait_for_completion (bool): Whether to wait for completion
         **image_overrides: Any image parameter overrides
         
     Returns:
@@ -114,15 +93,11 @@ def image_generation_request(prompt_text: str,
         # Check if image generation is enabled
         import os
         if not os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true':
-            return {
-                'success': False,
-                'error': 'Image generation is disabled',
-                'reason': 'DISABLED'
-            }
+            return error_response('Image generation is disabled', reason='DISABLED')
         
         # Show simplified request info
         truncated_prompt = prompt_text[:50] + "..." if len(prompt_text) > 50 else prompt_text
-        print(f"🎨 Generation Service: Image request for workflow '{prompt_name}' - \"{truncated_prompt}\"")
+        print_success(f"Image generation request: {prompt_name} - \"{truncated_prompt}\"")
         
         # Prepare image parameters
         image_params = {
@@ -141,38 +116,20 @@ def image_generation_request(prompt_text: str,
         )
         
         if not generation_log or not generation_log.save():
-            return {
-                'success': False,
-                'error': 'Failed to create image generation log entry'
-            }
+            return error_response('Failed to create image generation log entry')
         
         # Add to unified queue
         from backend.ai.queue import get_ai_queue
         queue = get_ai_queue()
         
         if not queue.add_request(generation_log.id):
-            return {
-                'success': False,
-                'error': 'Failed to add image request to queue',
-                'generation_id': generation_log.id
-            }
-        
-        if not wait_for_completion:
-            return {
-                'success': True,
-                'generation_id': generation_log.id,
-                'generation_type': 'image',
-                'message': 'Image generation request queued for processing'
-            }
+            return error_response('Failed to add image request to queue', generation_id=generation_log.id)
         
         # Wait for completion
         return _wait_for_completion(queue, generation_log.id, 'image')
         
     except Exception as e:
-        return {
-            'success': False,
-            'error': str(e)
-        }
+        return error_response(str(e))
 
 def _wait_for_completion(queue, generation_id: int, generation_type: str, timeout: int = 600) -> Dict[str, Any]:
     """
@@ -199,8 +156,7 @@ def _wait_for_completion(queue, generation_id: int, generation_type: str, timeou
             result = status['result']
             
             if generation_type == 'llm':
-                return {
-                    'success': True,
+                return success_response({
                     'text': result.get('text', ''),
                     'tokens': result.get('tokens', 0),
                     'duration': result.get('duration', 0),
@@ -209,34 +165,30 @@ def _wait_for_completion(queue, generation_id: int, generation_type: str, timeou
                     'parsing_success': result.get('parsing_success'),
                     'parsed_data': result.get('parsed_data'),
                     'attempt': result.get('attempt', 1)
-                }
+                })
             elif generation_type == 'image':
-                return {
-                    'success': True,
+                return success_response({
                     'image_path': result.get('image_path', ''),
                     'execution_time': result.get('execution_time', 0),
                     'generation_id': generation_id,
                     'generation_type': 'image',
-                    'prompt_id': result.get('prompt_id'),
-                    'cleanup_success': result.get('cleanup_success', True)
-                }
+                    'prompt_id': result.get('prompt_id')
+                })
         
         if status['status'] == 'failed':
-            return {
-                'success': False,
-                'error': status.get('error', 'Processing failed'),
-                'generation_id': generation_id,
-                'generation_type': generation_type
-            }
+            return error_response(
+                status.get('error', 'Processing failed'),
+                generation_id=generation_id,
+                generation_type=generation_type
+            )
         
         time.sleep(0.5)
     
-    return {
-        'success': False,
-        'error': f'{generation_type.upper()} generation timed out after {timeout} seconds',
-        'generation_id': generation_id,
-        'generation_type': generation_type
-    }
+    return error_response(
+        f'{generation_type.upper()} generation timed out after {timeout} seconds',
+        generation_id=generation_id,
+        generation_type=generation_type
+    )
 
 # Export main functions
 __all__ = [

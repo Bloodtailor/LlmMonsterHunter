@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
+from backend.utils import print_success, print_error, print_warning
 
 @dataclass
 class PromptTemplate:
@@ -37,7 +38,7 @@ class PromptEngine:
         
         try:
             if not self.templates_dir.exists():
-                print(f"⚠️ Templates dir not found: {self.templates_dir}")
+                print_warning(f"Templates dir not found: {self.templates_dir}")
                 return False
             
             # Load all JSON files
@@ -45,11 +46,11 @@ class PromptEngine:
                 self._load_file(template_file)
             
             self._loaded = True
-            print(f"✅ Loaded {len(self._templates)} templates")
+            print_success(f"Loaded {len(self._templates)} templates")
             return True
             
         except Exception as e:
-            print(f"❌ Error loading templates: {e}")
+            print_error(f"Error loading templates: {e}")
             return False
     
     def _load_file(self, file_path: Path):
@@ -98,7 +99,7 @@ class PromptEngine:
             try:
                 prompt = prompt.format(**variables)
             except Exception as e:
-                print(f"❌ Error formatting template {template_name}: {e}")
+                print_error(f"Error formatting template {template_name}: {e}")
                 return None
         
         return prompt

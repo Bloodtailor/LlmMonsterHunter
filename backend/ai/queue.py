@@ -9,6 +9,7 @@ from datetime import datetime
 from queue import Queue, Empty
 from dataclasses import dataclass
 from enum import Enum
+from backend.utils import print_error
 
 _global_queue = None
 _queue_lock = threading.Lock()
@@ -71,7 +72,6 @@ class AIGenerationQueue:
         self._running = True
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
         self._worker_thread.start()
-        # Removed verbose worker start message
     
     def add_request(self, generation_id: int) -> bool:
         """
@@ -85,12 +85,11 @@ class AIGenerationQueue:
         """
         
         try:
-            # Get generation log entry to determine type and priority
+            # Get generation log entry (service layer already validated it exists)
             from backend.models.generation_log import GenerationLog
             log_entry = GenerationLog.query.get(generation_id)
             
             if not log_entry:
-                # Removed verbose error message
                 return False
             
             # Create queue item
@@ -114,11 +113,9 @@ class AIGenerationQueue:
                 "queue_size": self._queue.qsize()
             })
             
-            # Removed verbose queue addition message
             return True
             
-        except Exception as e:
-            # Removed verbose error message
+        except Exception:
             return False
     
     def get_request_status(self, generation_id: int) -> Optional[Dict[str, Any]]:
@@ -158,8 +155,7 @@ class AIGenerationQueue:
         try:
             from backend.services.event_service import emit_event
             emit_event(event_type, data)
-        except Exception as e:
-            # Removed verbose event emission error
+        except Exception:
             pass
     
     def _process_item(self, item: QueueItem):
@@ -262,12 +258,11 @@ class AIGenerationQueue:
                     "generation_id": generation_id
                 })
                 
-                # Removed verbose processing message
                 self._process_item(item)
                 self._current_item = None
                 
             except Exception as e:
-                # Removed verbose worker error message
+                print_error(f"Worker error: {e}")
                 if self._current_item:
                     self._current_item.status = QueueItemStatus.FAILED
                     self._current_item.error = str(e)
@@ -281,8 +276,3 @@ def get_ai_queue() -> AIGenerationQueue:
             _global_queue = AIGenerationQueue()
             _global_queue.start_worker()
     return _global_queue
-
-# Backwards compatibility aliases
-def get_llm_queue() -> AIGenerationQueue:
-    """Backwards compatibility - get AI queue"""
-    return get_ai_queue()
