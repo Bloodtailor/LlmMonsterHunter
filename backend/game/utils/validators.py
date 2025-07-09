@@ -1,30 +1,18 @@
-# Game Validators - Extracted Repeated Validation Logic
-# Consolidates validation patterns used across game services
-# Returns consistent validation dictionaries (not response format)
+# Game Validators - CONSOLIDATED: Simplified Validation Logic
+# Used only by service layer (trust boundary)
+# Returns consistent validation dictionaries for easy consumption
 
 from typing import List, Dict, Any
 from backend.models.monster import Monster
-from backend.utils import print_error
 
 def validate_party_size(monster_ids: List[int], max_size: int = 4) -> Dict[str, Any]:
     """
     Validate party size constraints
     Used in game_state_service.set_active_party()
-    
-    Args:
-        monster_ids (list): List of monster IDs
-        max_size (int): Maximum party size (default 4)
-        
-    Returns:
-        dict: {valid: bool, error?: str, unique_ids: list}
     """
     
     if not isinstance(monster_ids, list):
-        return {
-            'valid': False,
-            'error': 'monster_ids must be a list',
-            'unique_ids': []
-        }
+        return {'valid': False, 'error': 'monster_ids must be a list', 'unique_ids': []}
     
     # Remove duplicates while preserving order
     unique_ids = []
@@ -39,63 +27,35 @@ def validate_party_size(monster_ids: List[int], max_size: int = 4) -> Dict[str, 
             'unique_ids': unique_ids
         }
     
-    return {
-        'valid': True,
-        'unique_ids': unique_ids
-    }
+    return {'valid': True, 'unique_ids': unique_ids}
 
 def validate_monster_exists(monster_id: int) -> Dict[str, Any]:
     """
     Validate that a monster exists in the database
-    Used across multiple services
-    
-    Args:
-        monster_id (int): Monster ID to validate
-        
-    Returns:
-        dict: {valid: bool, monster?: Monster, error?: str}
+    Used across multiple services for monster ID validation
     """
     
-    try:
-        if not isinstance(monster_id, int) or monster_id <= 0:
-            return {
-                'valid': False,
-                'error': 'Invalid monster ID - must be a positive integer',
-                'monster': None
-            }
-        
-        monster = Monster.get_monster_by_id(monster_id)
-        if not monster:
-            return {
-                'valid': False,
-                'error': f'Monster {monster_id} not found',
-                'monster': None
-            }
-        
-        return {
-            'valid': True,
-            'monster': monster
-        }
-        
-    except Exception as e:
-        print_error(f"Database error validating monster {monster_id}: {str(e)}")
+    if not isinstance(monster_id, int) or monster_id <= 0:
         return {
             'valid': False,
-            'error': f'Database error validating monster {monster_id}: {str(e)}',
+            'error': 'Invalid monster ID - must be a positive integer',
             'monster': None
         }
+    
+    monster = Monster.get_monster_by_id(monster_id)
+    if not monster:
+        return {
+            'valid': False,
+            'error': f'Monster {monster_id} not found',
+            'monster': None
+        }
+    
+    return {'valid': True, 'monster': monster}
 
 def validate_monsters_are_following(monster_ids: List[int], following_list: List[int]) -> Dict[str, Any]:
     """
     Validate that all monsters are in the following list
     Used in game_state_service.set_active_party()
-    
-    Args:
-        monster_ids (list): Monster IDs to validate
-        following_list (list): Current following list
-        
-    Returns:
-        dict: {valid: bool, not_following?: list, error?: str}
     """
     
     not_following = [mid for mid in monster_ids if mid not in following_list]
@@ -107,21 +67,12 @@ def validate_monsters_are_following(monster_ids: List[int], following_list: List
             'error': f'Monsters {not_following} are not following you'
         }
     
-    return {
-        'valid': True
-    }
+    return {'valid': True}
 
 def validate_door_choice(door_choice: str, available_doors: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Validate door choice in dungeon
     Used in dungeon_service.choose_door()
-    
-    Args:
-        door_choice (str): Chosen door ID
-        available_doors (list): List of available door objects
-        
-    Returns:
-        dict: {valid: bool, door?: dict, valid_choices?: list, error?: str}
     """
     
     if not door_choice:
@@ -143,11 +94,7 @@ def validate_door_choice(door_choice: str, available_doors: List[Dict[str, Any]]
     # Find the chosen door
     chosen_door = next((door for door in available_doors if door['id'] == door_choice), None)
     
-    return {
-        'valid': True,
-        'door': chosen_door,
-        'valid_choices': valid_choices
-    }
+    return {'valid': True, 'door': chosen_door, 'valid_choices': valid_choices}
 
 def validate_generation_result(result: Dict[str, Any], 
                              require_parsing: bool = True,
@@ -155,14 +102,6 @@ def validate_generation_result(result: Dict[str, Any],
     """
     Validate generation service results with consistent error handling
     Used across monster, ability, and dungeon services
-    
-    Args:
-        result (dict): Generation service result
-        require_parsing (bool): Whether to require successful parsing
-        operation_name (str): Name of operation for error messages
-        
-    Returns:
-        dict: {valid: bool, error?: str, stage?: str}
     """
     
     if not result.get('success'):
@@ -180,21 +119,12 @@ def validate_generation_result(result: Dict[str, Any],
             'stage': 'parsing'
         }
     
-    return {
-        'valid': True
-    }
+    return {'valid': True}
 
 def validate_following_monster_addition(monster_id: int, following_list: List[int]) -> Dict[str, Any]:
     """
     Validate adding a monster to the following list
     Used in game_state_service.add_following_monster()
-    
-    Args:
-        monster_id (int): Monster ID to add
-        following_list (list): Current following list
-        
-    Returns:
-        dict: {valid: bool, monster?: Monster, error?: str}
     """
     
     # First validate monster exists
@@ -211,7 +141,38 @@ def validate_following_monster_addition(monster_id: int, following_list: List[in
             'monster': monster
         }
     
-    return {
-        'valid': True,
-        'monster': monster_validation['monster']
-    }
+    return {'valid': True, 'monster': monster_validation['monster']}
+
+# SIMPLIFIED: Common validation patterns
+def validate_positive_integer(value: Any, field_name: str) -> Dict[str, Any]:
+    """Validate that a value is a positive integer"""
+    
+    if not isinstance(value, int) or value <= 0:
+        return {
+            'valid': False,
+            'error': f'{field_name} must be a positive integer'
+        }
+    
+    return {'valid': True}
+
+def validate_string_not_empty(value: Any, field_name: str) -> Dict[str, Any]:
+    """Validate that a value is a non-empty string"""
+    
+    if not isinstance(value, str) or not value.strip():
+        return {
+            'valid': False,
+            'error': f'{field_name} must be a non-empty string'
+        }
+    
+    return {'valid': True}
+
+def validate_choice_in_list(value: Any, choices: List[str], field_name: str) -> Dict[str, Any]:
+    """Validate that a value is in a list of valid choices"""
+    
+    if value not in choices:
+        return {
+            'valid': False,
+            'error': f'{field_name} must be one of: {choices}'
+        }
+    
+    return {'valid': True}

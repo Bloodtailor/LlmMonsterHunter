@@ -1,39 +1,34 @@
-# Ability Generator - Ultra Clean with Response Utils
+# Ability Generator - TRULY SIMPLIFIED: No Validation
+# Pure business logic - assumes all inputs are valid
+# Eliminates defensive programming completely
 
 from typing import Dict, Any
 from backend.models.ability import Ability
-from backend.game.utils import (
-    build_and_generate, validate_monster_exists, validate_and_continue,
-    error_response, success_response, print_success
-)
+from backend.game.utils import build_and_generate
+from backend.utils import success_response, error_response, print_success
 
 class AbilityGenerator:
-    """Clean ability generation - utils handle everything"""
+    """Pure business logic - no validation"""
     
     def generate_single_ability(self, monster_id: int) -> Dict[str, Any]:
-        """Generate one ability for existing monster"""
+        """Generate one ability - assumes monster exists"""
         
-        # Validate monster - early return if invalid
-        monster_validation = validate_monster_exists(monster_id)
-        error_check = validate_and_continue(monster_validation, {'ability': None})
-        if error_check:
-            return error_check
+        # Get monster (assumes it exists)
+        from backend.models.monster import Monster
+        monster = Monster.get_monster_by_id(monster_id)
         
-        monster = monster_validation['monster']
-        print(f"⚡ Generating ability for {monster.name}")
+        print_success(f"Generating ability for {monster.name}")
         
         # Generate using utils
         variables = self._build_variables(monster.get_context_for_ability_generation())
         result = build_and_generate('generate_ability', 'ability_generation', variables)
         
-        # Early return for generation failure
         if not result['success']:
-            return error_response(result['error'], ability=None, monster_id=monster_id)
+            return error_response("Ability generation failed", ability=None, monster_id=monster_id)
         
         # Create ability
         ability = Ability.create_from_llm_data(monster_id, result['parsed_data'])
-        if not ability or not ability.save():
-            return error_response('Failed to save ability', ability=None)
+        ability.save()
         
         print_success(f"Ability '{ability.name}' created for {monster.name}")
         return success_response({
@@ -43,25 +38,25 @@ class AbilityGenerator:
         })
     
     def generate_initial_abilities(self, monster_data: Dict[str, Any], monster_id: int) -> Dict[str, Any]:
-        """Generate 2 starting abilities for new monster"""
+        """Generate 2 starting abilities - assumes valid inputs"""
         
-        print(f"⚡ Generating initial abilities for {monster_data.get('name', 'Unknown')}")
+        print_success(f"Generating initial abilities for {monster_data['name']}")
         
         # Generate using utils
         variables = self._build_variables(monster_data)
         result = build_and_generate('generate_initial_abilities', 'ability_generation', variables)
         
         if not result['success']:
-            return error_response(result['error'], abilities=[])
+            return error_response("Initial abilities generation failed", abilities=[], abilities_created=0)
         
         # Create abilities
         abilities = []
         for key in ['ability1', 'ability2']:
             if key in result['parsed_data']:
                 ability = Ability.create_from_llm_data(monster_id, result['parsed_data'][key])
-                if ability and ability.save():
-                    abilities.append(ability.to_dict())
-                    print_success(f"Initial ability '{ability.name}' created")
+                ability.save()
+                abilities.append(ability.to_dict())
+                print_success(f"Initial ability '{ability.name}' created")
         
         return success_response({
             'abilities': abilities,
@@ -70,17 +65,13 @@ class AbilityGenerator:
         })
     
     def get_abilities_for_monster(self, monster_id: int) -> Dict[str, Any]:
-        """Get all abilities for a monster"""
-        
-        monster_validation = validate_monster_exists(monster_id)
-        error_check = validate_and_continue(monster_validation, {'abilities': [], 'count': 0})
-        if error_check:
-            return error_check
+        """Get all abilities - assumes monster exists"""
         
         abilities = Ability.get_abilities_for_monster(monster_id)
         return success_response({
             'abilities': [ability.to_dict() for ability in abilities],
-            'count': len(abilities)
+            'count': len(abilities),
+            'monster_id': monster_id
         })
     
     def _build_variables(self, monster_context: Dict[str, Any]) -> Dict[str, Any]:
