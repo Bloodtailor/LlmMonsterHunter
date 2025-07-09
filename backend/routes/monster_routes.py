@@ -23,7 +23,7 @@ def generate_monster():
 def get_monsters():
     """Get all monsters - thin HTTP wrapper with parameter extraction"""
     
-    result = monster_service.get_all_monsters_enhanced(
+    result = monster_service.get_all_monsters(
         limit=request.args.get('limit', 50, type=int),
         offset=request.args.get('offset', 0, type=int),
         filter_type=request.args.get('filter', 'all'),
@@ -47,7 +47,7 @@ def get_templates():
 @monster_bp.route('/stats')
 def get_stats():
     """Get monster statistics - thin HTTP wrapper"""
-    result = monster_service.get_enhanced_monster_stats(
+    result = monster_service.get_monster_stats(
         filter_type=request.args.get('filter', 'all')
     )
     return jsonify(result), 200 if result['success'] else 400
