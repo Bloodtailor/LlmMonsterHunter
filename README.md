@@ -20,24 +20,29 @@ A revolutionary text-based monster-catching game that leverages **Large Language
 ### Prerequisites (Install BEFORE running setup)
 
 #### ✅ **Required Software:**
-1. **Python 3.8+** - [Download from python.org](https://www.python.org/downloads/)
-2. **Node.js 16+** - [Download from nodejs.org](https://nodejs.org/) 
-   - ✅ npm comes included with Node.js
-3. **MySQL Server** - [Download MySQL Community Server](https://dev.mysql.com/downloads/mysql/)
-   - ⚠️ **Important:** MySQL Workbench is just the GUI - you need the actual server
-   - 💡 During installation, remember your root password!
-4. **Git** - [Download from git-scm.com](https://git-scm.com/downloads)
+1. **Python 3.8+**
+2. **Node.js 16+** (includes npm)
+2. **MySQL Server** (any recent version)
+3. **NVIDIA GPU Drivers** (latest)
+4. **CUDA Toolkit 12.x**
+5. Visual Studio Build Tools with **C++ components**
+6. **ComfyUI (separate installation)**
+
+#### 🤖 **Required AI Modles:**
+7. **Text Model:** 7B GGUF model (kunoichi-7b recommended)
+8. **Image Model:** SDXL Turbo ([DreamShaper XL Turbo](https://civitai.com/models/112902/dreamshaper-xl) recommended) 
 
 #### 🎯 **For CUDA Support (Recommended for AI features):**
-5. **NVIDIA GPU Drivers** - [Download latest drivers](https://www.nvidia.com/drivers/)
-6. **CUDA Toolkit** - [Download CUDA 12.x](https://developer.nvidia.com/cuda-toolkit)
-7. **Visual Studio Build Tools** - [Download Build Tools](https://visualstudio.microsoft.com/downloads/)
+9. **NVIDIA GPU Drivers** - [Download latest drivers](https://www.nvidia.com/drivers/)
+10. **CUDA Toolkit** - [Download CUDA 12.x](https://developer.nvidia.com/cuda-toolkit)
+11. **Visual Studio Build Tools** - [Download Build Tools](https://visualstudio.microsoft.com/downloads/)
    - Install the "C++ build tools" workload
 
 #### 🔧 **Hardware Requirements:**
 - **NVIDIA GPU** with 8GB+ VRAM (for AI model acceleration)
 - **32GB RAM** recommended (16GB minimum)
-- **10GB+ free storage**
+- **20GB+ free storage**
+- **Windows 10/11** 
 
 ### Installation Steps
 
