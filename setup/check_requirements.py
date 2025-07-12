@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Import checker modules (mix of old and new patterns during transition)
 from setup.checks.nodejs_checks import check_nodejs_requirements  # NEW PATTERN
-from setup.mysql_setup import check_mysql_requirements
+from setup.checks.mysql_checks import check_mysql_requirements  # NEW PATTERN
 from setup.database_connection import check_database_connection
 from setup.gpu_cuda_setup import check_gpu_cuda_requirements
 from setup.visual_studio_setup import check_visual_studio_requirements

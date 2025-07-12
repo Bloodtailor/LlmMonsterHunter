@@ -7,7 +7,6 @@ Orchestrates the complete Node.js setup experience with clean UX
 from setup.ux_utils import *
 from setup.checks.nodejs_checks import check_nodejs, check_npm, check_frontend_dependencies
 from setup.installation.nodejs_installation import install_frontend_dependencies
-from setup.instructions import get_instructions
 
 def run_nodejs_interactive_setup(current=None, total=None):
     """
@@ -50,10 +49,7 @@ def run_nodejs_interactive_setup(current=None, total=None):
         print_error("Node.js or npm is missing - this requires manual installation.")
         print()
         
-        # Show installation instructions
-        instructions = get_instructions('nodejs_installation')
-        for line in instructions:
-            print(line)
+        show_instructions('nodejs_installation')
         
         while True:
             choice = input("Do you want to [S]kip, [T]ry anyways, or [E]xit [S/T/E]: ").strip()

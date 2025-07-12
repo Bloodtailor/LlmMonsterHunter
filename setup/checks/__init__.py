@@ -4,10 +4,12 @@ Pure detection/validation logic for all system components
 """
 
 from .nodejs_checks import check_nodejs_requirements
+from .mysql_checks import check_mysql_requirements
 
 # Component-level checks registry for orchestration
 COMPONENT_CHECKS = {
     'Node.js & npm': check_nodejs_requirements,
+    'MySQL Server': check_mysql_requirements,
 }
 
 def run_all_checks():
