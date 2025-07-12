@@ -4,10 +4,12 @@ Interactive setup orchestration for all system components
 """
 
 from .nodejs_flow import run_nodejs_interactive_setup
+from .mysql_flow import run_mysql_interactive_setup
 
 # Interactive flow registry for orchestration
 COMPONENT_FLOWS = {
     'Node.js & npm': run_nodejs_interactive_setup,
+    'MySQL Server': run_mysql_interactive_setup,
 }
 
 def run_component_flow(component_name):
