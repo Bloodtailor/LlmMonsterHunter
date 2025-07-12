@@ -5,23 +5,26 @@
 INSTRUCTIONS = {
     'nodejs_installation': [
         "📋 INSTALLATION REQUIRED:",
-        "1. Go to https://nodejs.org/",
-        "2. Download the LTS version (version 18 or later)",
-        "3. Run the downloaded installer",
-        "   - Accept all default settings unless you know what you're doing",
-        "4. After installation, open a terminal and run the following commands to verify:",
-        "   - `node -v` (should return a version like v18.x.x or higher)",
-        "   - `npm -v` (should return a version number)",
-        "5. Once installed, please re-run start_game.bat"
+        "   1. Go to https://nodejs.org/",
+        "   2. Download the LTS version (version 18 or later)",
+        "   3. Run the downloaded installer",
+        "      - Accept all default settings unless you know what you're doing",
+        "",
+        "   4. After installation, open a terminal and run the following commands to verify:",
+        "      - `node -v` (should return a version like v18.x.x or higher)",
+        "      - `npm -v` (should return a version number)",
+        "",
+        "   5. Once installed, please re-run start_game.bat",
         "",
         "💡 This usually takes 2–3 minutes to download and install.",
         "💡 You'll need to restart your command prompt after installation."
         "",
         "",
         "You have the following options to continue:",
-        "1. Skip and move on to next component (recommended)",
-        "2. Try to install frontend dependencies anyways (if nodejs is installed, but undetected)",
-        "3. Exit the setup and restart when nodejs is installed"
+        "   1. Skip and move on to next component (recommended)",
+        "   2. Try to install frontend dependencies anyways (if nodejs is installed, but undetected)",
+        "   3. Exit the setup and restart when nodejs is installed",
+        ""
     ],
 
 

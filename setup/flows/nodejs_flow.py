@@ -9,7 +9,7 @@ from setup.checks.nodejs_checks import check_nodejs, check_npm, check_frontend_d
 from setup.installation.nodejs_installation import install_frontend_dependencies
 from setup.instructions import get_instructions
 
-def run_nodejs_interactive_setup():
+def run_nodejs_interactive_setup(current=None, total=None):
     """
     Interactive setup flow for Node.js and React frontend
     
@@ -20,6 +20,8 @@ def run_nodejs_interactive_setup():
     # Show clean component header
     show_component_header(
         component_name="Node.js & npm",
+        current = current,
+        total = total,
         description="Required for React frontend development server"
     )
     
@@ -27,16 +29,16 @@ def run_nodejs_interactive_setup():
     nodejs_ok, nodejs_message = check_nodejs()
     npm_ok, npm_message = check_npm()
     frontend_ok, frontend_message = check_frontend_dependencies()
-    
+
     # Package results for display
     check_results = {
         "Node.js Runtime": (nodejs_ok, nodejs_message),
         "npm Package Manager": (npm_ok, npm_message),
         "Frontend Dependencies": (frontend_ok, frontend_message)
     }
-    
+
     # Display results beautifully
-    overall_ok = display_check_results(check_results)
+    overall_ok = display_check_results("NODEJS", check_results)
     
     # If everything is working, we're done!
     if overall_ok:
@@ -49,7 +51,7 @@ def run_nodejs_interactive_setup():
         print()
         
         # Show installation instructions
-        instructions = get_instructions('nodejs_installation'),
+        instructions = get_instructions('nodejs_installation')
         for line in instructions:
             print(line)
         
@@ -130,3 +132,7 @@ def run_nodejs_interactive_setup():
     }
 
     return final_result
+
+
+if __name__ == "__main__":
+    run_nodejs_interactive_setup()
