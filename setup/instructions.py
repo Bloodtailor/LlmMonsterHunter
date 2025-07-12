@@ -6,22 +6,24 @@ INSTRUCTIONS = {
     'nodejs_installation': [
         "📋 INSTALLATION REQUIRED:",
         "1. Go to https://nodejs.org/",
-        "2. Download Node.js 18+ (LTS recommended)",
-        "3. Run the installer with default settings",
-        "4. npm is included automatically",
+        "2. Download the LTS version (version 18 or later)",
+        "3. Run the downloaded installer",
+        "   - Accept all default settings unless you know what you're doing",
+        "4. After installation, open a terminal and run the following commands to verify:",
+        "   - `node -v` (should return a version like v18.x.x or higher)",
+        "   - `npm -v` (should return a version number)",
+        "5. Once installed, please re-run start_game.bat"
         "",
-        "💡 This usually takes 2-3 minutes to download and install."
+        "💡 This usually takes 2–3 minutes to download and install.",
+        "💡 You'll need to restart your command prompt after installation."
+        "",
+        "",
+        "You have the following options to continue:",
+        "1. Skip and move on to next component (recommended)",
+        "2. Try to install frontend dependencies anyways (if nodejs is installed, but undetected)",
+        "3. Exit the setup and restart when nodejs is installed"
     ],
 
-    'nodejs_restart_prompt': [
-        "⚠️  Node.js installation may require command prompt restart.",
-        "After installing Node.js:",
-        "1. Close this command prompt window",
-        "2. Open a new command prompt",
-        "3. Run the game launcher again",
-        "",
-        "💡 This ensures PATH environment variable is updated"
-    ],
 
     'mysql_installation': [
         "📋 INSTALLATION REQUIRED:",

@@ -4,6 +4,38 @@ UX Utilities for Setup System
 Provides shared utility functions for consistent, scannable user experience
 """
 
+import io
+import contextlib
+
+def print_warning(message):
+    """
+    Display standardized warning message
+    """
+    
+    print(f"⚠️  {message}")
+
+def print_error(message):
+    """
+    Display standardized error message
+    """
+
+    print(f"❌  {message}")
+
+def print_success(message):
+    """Display standardized error message"""
+
+    print(f"✅  {message}")
+
+def print_continue(message):
+    """Display standardized continue message for continuning onto next component"""
+
+    print(f"⏭️  {message}")
+
+def print_info(message):
+    """Display standardized info message for instructions for the user or important information"""
+
+    print(f"💡  {message}")
+
 def show_status_table(components):
     """
     Display a clean status overview table for all components
@@ -95,3 +127,44 @@ def show_component_header(component_name, current=None, total=None, description=
         print(description)
         print()
 
+def display_check_results(check_results):
+    """
+    Display check results beautifully
+    
+    Args:
+        check_results (dict): Dictionary of check results
+            Format: {"Check Name": (success_bool, message_string)}
+        
+    Returns:
+        bool: True if all checks passed, False otherwise
+    """
+    
+    print("🔍 Checking current status...")
+    print()
+    
+    # Extract just the boolean results for the status table
+    status_only = {name: result[0] for name, result in check_results.items()}
+    
+    # Show beautiful status table
+    ready_count, total_count = show_status_table(status_only)
+    
+    # Show detailed messages
+    print("📋 Details:")
+    for check_name, (success, message) in check_results.items():
+        print(f"   {check_name}: {message}")
+    print()
+    
+    overall_ok = all(result[0] for result in check_results.values())
+    return overall_ok
+
+__all__ = [
+    "show_status_table",
+    "show_instructions_and_wait"
+    "show_component_header",
+    "display_check_results",
+    "print_error",
+    "print_warning",
+    "print_success",
+    "print_continue",
+    "print_info"
+]
