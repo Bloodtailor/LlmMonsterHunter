@@ -31,6 +31,8 @@ def run_mysql_interactive_setup(current=None, total=None):
         total=total,
         description="Required for database operations and game data storage"
     )
+
+    print("Checking current status...")
     
     # Initial status check
     server_ok, server_message = check_mysql_server()

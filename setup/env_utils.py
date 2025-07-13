@@ -7,6 +7,15 @@ Centralized utilities for .env file handling across all setup modules
 import os
 from pathlib import Path
 
+def env_file_exists():
+    """
+    Check if .env file exists.
+    
+    Returns:
+        bool: True if .env file exists
+    """
+    return Path(".env").exists()
+
 def load_env_config():
     """
     Load and parse the .env file into a dictionary.

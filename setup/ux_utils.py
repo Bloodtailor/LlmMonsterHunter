@@ -195,8 +195,6 @@ def display_check_results(component_name, check_results):
         bool: True if all checks passed, False otherwise
     """
     
-    print("Checking current status...")
-    
     # Extract just the boolean results for the status table
     status_only = {name: result[0] for name, result in check_results.items()}
     
