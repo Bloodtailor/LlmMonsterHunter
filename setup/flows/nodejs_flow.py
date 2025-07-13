@@ -23,6 +23,8 @@ def run_nodejs_interactive_setup(current=None, total=None):
         total = total,
         description="Required for React frontend development server"
     )
+
+    print("Checking current status...")
     
     # Run individual checks
     nodejs_ok, nodejs_message = check_nodejs()

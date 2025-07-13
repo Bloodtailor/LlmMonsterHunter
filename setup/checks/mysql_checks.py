@@ -170,7 +170,7 @@ def get_mysql_service_name():
     Helper function to get actual MySQL service name (for installation logic)
     Returns service name string or None
     """
-    service_names = ["MySQL84", "MySQL80", "MySQL", "mysqld"]
+    service_names = ["MySQL93", "MySQL84", "MySQL80", "MySQL", "mysqld"]
     
     for service in service_names:
         try:
