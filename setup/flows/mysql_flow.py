@@ -117,7 +117,7 @@ def handle_mysql_not_installed():
     print_error("MySQL Server installation required.")
     print()
     
-    show_instructions_and_wait('mysql_installation', "Press Enter after installing MySQL...")
+    show_message_and_wait('mysql_installation', "Press Enter after installing MySQL...")
     
     # Check if installation worked
     return verify_mysql_setup()
@@ -164,7 +164,7 @@ def handle_service_start_failed():
     print("Automatic service start failed.")
     print()
     
-    show_instructions_and_wait('mysql_service_start', "Press Enter after starting MySQL service...")
+    show_message_and_wait('mysql_service_start', "Press Enter after starting MySQL service...")
     
     return verify_mysql_setup()
 
@@ -174,7 +174,7 @@ def handle_manual_mysql_repair():
     print("Manual MySQL troubleshooting required.")
     print()
     
-    show_instructions_and_wait('mysql_troubleshooting', "Press Enter after fixing MySQL...")
+    show_message_and_wait('mysql_troubleshooting', "Press Enter after fixing MySQL...")
     
     return verify_mysql_setup()
 
@@ -192,7 +192,7 @@ def handle_cli_path_issue():
         print(f"Found MySQL installation at: {mysql_path}")
         print()
         
-        show_instructions_and_wait('mysql_cli_path', "Press Enter after adding MySQL to PATH...")
+        show_message_and_wait('mysql_cli_path', "Press Enter after adding MySQL to PATH...")
         
         return verify_mysql_setup()
     
@@ -200,7 +200,7 @@ def handle_cli_path_issue():
         print_warning("Cannot locate MySQL installation for PATH configuration.")
         print()
         
-        show_instructions_and_wait('mysql_cli_path_generic', "Press Enter after configuring PATH...")
+        show_message_and_wait('mysql_cli_path_generic', "Press Enter after configuring PATH...")
         
         return verify_mysql_setup()
 

@@ -2,7 +2,7 @@
 # Centralized repository of all verbose installation instructions
 # Used by setup modules to keep code clean and instructions consistent
 
-INSTRUCTIONS = {
+MESSAGES = {
     'nodejs_installation': [
         "📋 INSTALLATION REQUIRED:",
         "   1. Go to https://nodejs.org/",
@@ -296,23 +296,23 @@ INSTRUCTIONS = {
     ]
 }
 
-def get_instructions(key):
+def get_message(key):
     """
-    Get installation instructions by key
+    Get user messages by key
     
     Args:
-        key (str): Instruction key from INSTRUCTIONS dict
+        key (str): Message key from MESSAGES dict
         
     Returns:
-        list: List of instruction lines, or empty list if key not found
+        list: List of message lines, or empty list if key not found
     """
-    return INSTRUCTIONS.get(key, [])
+    return MESSAGES.get(key, [])
 
-def get_available_instructions():
+def get_available_messages():
     """
-    Get list of all available instruction keys
+    Get list of all available messages keys
     
     Returns:
-        list: All instruction keys
+        list: All message keys
     """
-    return list(INSTRUCTIONS.keys())
+    return list(MESSAGES.keys())

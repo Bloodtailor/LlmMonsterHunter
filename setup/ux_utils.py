@@ -6,7 +6,7 @@ Provides shared utility functions for consistent, scannable user experience
 
 import io
 import contextlib
-from setup.instructions import get_instructions
+from setup.user_messages import get_message
 
 def print_warning(message):
     """
@@ -128,26 +128,26 @@ def show_component_status_table(component_name, checks):
     
     return ready_checks, total_checks
 
-def show_instructions(instruction_key):
+def show_message(message_key):
     """
-    Show installation instructions for user to read
+    Show message for user to read
     """
 
-    instructions = get_instructions(instruction_key)
-    for line in instructions:
+    message = get_message(message_key)
+    for line in message:
         print(line)
 
-def show_instructions_and_wait(instruction_key, pause_message="Press Enter to continue..."):
+def show_message_and_wait(message_key, pause_message="Press Enter to continue..."):
     """
-    Show instruction block and pause for user to read and act
+    Show message block and pause for user to read and act
     
     Args:
-        instructions (list): List of instruction lines
+        message_key (key): Key to message in user_message.py
         pause_message (str): Message to show before pausing
     """
-    # Display all instruction lines
-    instructions = get_instructions(instruction_key)
-    for line in instructions:
+    # Display all message lines
+    message = get_message(message_key)
+    for line in message:
         print(line)
     
     print()
@@ -213,8 +213,8 @@ def display_check_results(component_name, check_results):
 __all__ = [
     "show_status_table",
     "show_component_status_table",
-    "show_instructions",
-    "show_instructions_and_wait",
+    "show_message",
+    "show_message_and_wait",
     "show_component_header",
     "display_check_results",
     "print_error",

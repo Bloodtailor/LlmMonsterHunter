@@ -57,13 +57,12 @@ def run_database_interactive_setup(current=None, total=None):
     if not config_ok:
         if not handle_config_issues():
             return False
-    
-    # Re-check connection after config fixes
-    if config_ok or not config_ok:  # Always check if config was just fixed
+        # Re-check connection after config fixes
         connection_ok, connection_message = check_mysql_server_connection()
-        if not connection_ok:
-            if not handle_connection_issues(connection_message):
-                return False
+
+    if not connection_ok:
+        if not handle_connection_issues(connection_message):
+            return False
     
     # Re-check database after connection fixes  
     database_ok, database_message = check_database_exists()
@@ -99,7 +98,7 @@ def handle_config_issues():
 def handle_missing_password():
     """Handle missing or placeholder database password"""
     
-    show_instructions('database_password_setup')
+    show_message('database_password_setup')
     
     while True:
         choice = input("Enter your MySQL root password now? [Y/n]: ").strip()
@@ -179,15 +178,15 @@ def handle_connection_issues(connection_message):
         print_info("You may need to start MySQL manually.")
         print()
         
-        show_instructions_and_wait('database_connection_troubleshooting', "Press Enter after starting MySQL...")
+        show_message_and_wait('database_connection_troubleshooting', "Press Enter after starting MySQL...")
         return verify_connection_working()
     
     else:
         print_error(connection_message)
         print()
         
-        show_instructions('database_troubleshooting')
-        show_instructions_and_wait('database_troubleshooting', "Press Enter after fixing connection...")
+        show_message('database_troubleshooting')
+        show_message_and_wait('database_troubleshooting', "Press Enter after fixing connection...")
         
         return verify_connection_working()
 
@@ -207,7 +206,7 @@ def handle_database_missing():
         print_error(f"Database creation failed: {message}")
         print()
         
-        show_instructions('database_manual_creation')
+        show_message('database_manual_creation')
         
         retry = input("Try again, or continue anyway? [R]etry/[C]ontinue/[Q]uit: ").strip().upper()
         
