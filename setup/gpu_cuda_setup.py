@@ -211,7 +211,5 @@ def setup_gpu_cuda_interactive():
         return False
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "setup":
-        setup_gpu_cuda_interactive()
-    else:
-        check_gpu_cuda_requirements()
+
+    setup_gpu_cuda_interactive()

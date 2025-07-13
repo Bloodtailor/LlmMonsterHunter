@@ -51,7 +51,7 @@ def run_nodejs_interactive_setup(current=None, total=None):
         print_error("Node.js or npm is missing - this requires manual installation.")
         print()
         
-        show_instructions('nodejs_installation')
+        show_message('nodejs_installation')
         
         while True:
             choice = input("Do you want to [S]kip, [T]ry anyways, or [E]xit [S/T/E]: ").strip()
