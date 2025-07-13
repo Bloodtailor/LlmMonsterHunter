@@ -412,6 +412,44 @@ MESSAGES = {
         "• GPU may not be compatible with this motherboard",
         "",
         "⚠️  If you don't have an NVIDIA GPU, this game requires one for good performance"
+    ],
+    
+    'gpu_hardware_capable': [
+        "",
+        "✅ GPU HARDWARE CONFIRMED",
+        "",
+        "Your NVIDIA GPU meets the requirements for this AI game.",
+        "Expected minimum performance with your hardware:",
+        "",
+        "⚡  LLM inference: 20+ tokens per second",
+        "🖼️  Image generation: 30 seconds or faster per image (if ComfyUI enabled)", 
+        "🤖  The recommended AI models should work without any manual configuration.",
+        "",
+        "Any remaining setup issues are likely with software configuration rather than hardware limitations.",
+        "This means that they should be solvable since your hardware is confirmed working and capable."
+    ],
+
+    'gpu_hardware_not_capable': [
+        "",
+        "⚠️  GPU CAPABILITY CONCERN",
+        "", 
+        "Your NVIDIA GPU was detected but may struggle with this AI game's requirements.",
+        "",
+        "What this means:",
+        "• LLM responses may take longer than expected",
+        "• Image generation may be very slow or fail",
+        "• Gameplay experience may feel sluggish",
+        "• Some AI features may not work reliably",
+        "",
+        "Options to consider:",
+        "1. Continue setup anyway - the game might still be playable",
+        "2. Try with smaller/faster AI models (requires manual configuration)",
+        "3. Consider upgrading to a more recent NVIDIA GPU",
+        "",
+        "Minimum recommended: GTX 1060 6GB or RTX 2060",
+        "Ideal for smooth gameplay: RTX 3070 or better",
+        "",
+        "The setup will continue, but performance expectations should be adjusted."
     ]
 }
 

@@ -52,7 +52,7 @@ def run_gpu_cuda_interactive_setup(current=None, total=None):
 
     # Display results beautifully
     overall_ok = display_check_results("GPU & CUDA", check_results)
-    
+
     # If everything is working, we're done!
     if overall_ok:
         print("All GPU and CUDA components are ready!")
@@ -63,7 +63,25 @@ def run_gpu_cuda_interactive_setup(current=None, total=None):
     
     # Now handle specific issues
     if not gpu_ok:
-        return handle_no_gpu_detected(check_results)
+        if not handle_no_gpu_detected(check_results):
+            return False
+    else:
+        print(f"NVIDIA GPU Detected")
+        print(gpu_message)
+        print()
+
+        # Let the user know their GPU Capability
+        if compute_ok:
+            print("Your GPU is likely fast enough to run the game")
+            print(compute_message)
+            show_message_and_wait('gpu_hardware_capable')
+
+        else:
+            print("Your GPU may not be fast enough to run the game")
+            print_error(compute_message)
+            show_message_and_wait('gpu_hardware_not_capable')
+
+    
     
     # TODO: Handle other cases (GPU detected but other issues)
     print_warning("GPU detected but other CUDA issues need to be handled")
@@ -102,6 +120,7 @@ def handle_no_gpu_detected(check_results):
     # Present troubleshooting options
     while True:
         print("Choose how to proceed:")
+        print("  [C] Continue with CUDA setup anyway (I have an NVIDIA GPU)")
         print("  [T] Get troubleshooting instructions to fix GPU detection")  
         print("  [S] Skip GPU setup and continue with other components")
         print("  [E] Exit setup entirely")
@@ -109,7 +128,13 @@ def handle_no_gpu_detected(check_results):
         
         choice = input("Your choice [T/S/E]: ").strip().upper()
         
-        if choice == "T":
+
+        if choice == "C":
+            print("Continuing... ")
+            print()
+            return True
+
+        elif choice == "T":
             print()
             if cuda_signs:
                 show_message_and_wait('gpu_driver_troubleshooting')
@@ -140,3 +165,5 @@ def handle_no_gpu_detected(check_results):
         else:
             print("Please enter T, S, or E")
             print()
+
+run_gpu_cuda_interactive_setup()
