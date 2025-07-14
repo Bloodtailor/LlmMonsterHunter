@@ -34,6 +34,25 @@ DRY_RUN_SCENARIOS = {
         (True, "GPU compute capability 6.1 (good for AI)"),
         (False, "GPU compute capability 3.5 (limited AI support)"),
         (False, "Could not determine GPU compute capability")
+    ],
+    'check_visual_studio_installations': [
+        (True, "Visual Studio 2022 found at C:\\Program Files\\Microsoft Visual Studio\\2022\\Community"),
+        (True, "VS Build Tools 2022 found at C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools"),
+        (True, "2 VS installations found (primary: Visual Studio 2022)"),
+        (False, "No Visual Studio installations found in common directories")
+    ],
+
+    'check_windows_sdk': [
+        (True, "Windows SDK found at C:\\Program Files (x86)\\Windows Kits\\10"),
+        (True, "Windows SDK found at C:\\Program Files\\Windows Kits\\10"),
+        (False, "Windows SDK not found in common directories")
+    ],
+
+    'check_cpp_build_tools': [
+        (True, "C++ build tools found (MSVC 14.39.33519)"),
+        (True, "C++ build tools found (MSVC 14.29.30133)"),
+        (False, "C++ build tools not found in Visual Studio installations"),
+        (False, "No Visual Studio installations to check for C++ tools")
     ]
 }
 
