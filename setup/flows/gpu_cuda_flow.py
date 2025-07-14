@@ -14,7 +14,7 @@ from setup.checks.gpu_cuda_checks import (
     check_gpu_compute_capability
 )
 
-def run_gpu_cuda_interactive_setup(current=None, total=None):
+def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
     """
     Interactive setup flow for NVIDIA GPU and CUDA toolkit
     
@@ -40,6 +40,19 @@ def run_gpu_cuda_interactive_setup(current=None, total=None):
     cuda_path_ok, cuda_path_message = check_cuda_path_env()
     compute_ok, compute_message = check_gpu_compute_capability()
 
+    # Dry run mode - simulate common first-time setup scenario
+    if dry_run:
+        print_dry_run_header("Running as a dry run")
+        
+        from setup.dry_run_utils import set_dry_run
+        # Most common first-time setup: GPU works, but drivers/CUDA need setup
+        gpu_ok, gpu_message = set_dry_run('check_nvidia_gpu')
+        driver_ok, driver_message = set_dry_run('check_nvidia_driver_version')
+        cuda_dirs_ok, cuda_dirs_message = set_dry_run('check_cuda_directories')
+        nvcc_ok, nvcc_message = set_dry_run('check_nvcc_compiler')
+        cuda_path_ok, cuda_path_message = set_dry_run('check_cuda_path_env')
+        compute_ok, compute_message = set_dry_run('check_gpu_compute_capability')
+
     # Package results for display
     check_results = {
         "NVIDIA GPU": (gpu_ok, gpu_message),
@@ -61,7 +74,7 @@ def run_gpu_cuda_interactive_setup(current=None, total=None):
     # Show the requirement explanation
     show_message_and_wait('gpu_requirement_explanation')
     
-    # Now handle specific issues
+    # Now handle specific issues in dependency order
     if not gpu_ok:
         if not handle_no_gpu_detected(check_results):
             return False
@@ -75,16 +88,20 @@ def run_gpu_cuda_interactive_setup(current=None, total=None):
             print("Your GPU is likely fast enough to run the game")
             print(compute_message)
             show_message_and_wait('gpu_hardware_capable')
-
         else:
             print("Your GPU may not be fast enough to run the game")
             print_error(compute_message)
             show_message_and_wait('gpu_hardware_not_capable')
 
+    # Handle driver issues (foundation layer)
+    if not driver_ok:
+        if not handle_driver_issues(driver_message):
+            return False
     
+    # TODO: Handle CUDA toolkit installation
+    # TODO: Handle CUDA environment/PATH issues
     
-    # TODO: Handle other cases (GPU detected but other issues)
-    print_warning("GPU detected but other CUDA issues need to be handled")
+    print_warning("GPU detected but remaining CUDA issues need to be handled")
     return False
 
 def handle_no_gpu_detected(check_results):
@@ -126,7 +143,7 @@ def handle_no_gpu_detected(check_results):
         print("  [E] Exit setup entirely")
         print()
         
-        choice = input("Your choice [T/S/E]: ").strip().upper()
+        choice = input("Your choice [C/T/S/E]: ").strip().upper()
         
 
         if choice == "C":
@@ -163,7 +180,120 @@ def handle_no_gpu_detected(check_results):
             sys.exit(0)
             
         else:
-            print("Please enter T, S, or E")
+            print("Please enter C, T, S, or E")
             print()
 
-run_gpu_cuda_interactive_setup()
+def handle_driver_issues(driver_message):
+    """
+    Handle NVIDIA driver problems
+    
+    Args:
+        driver_message (str): Message from driver version check
+        
+    Returns:
+        bool: True if user wants to continue, False to exit component
+    """
+    
+    print("NVIDIA Driver Issues Detected")
+    print()
+    print_error(driver_message)
+    print()
+    
+    # Determine issue type based on message
+    if driver_message and "too old" in driver_message.lower():
+        show_message('gpu_driver_outdated')
+    else:
+        show_message('gpu_driver_general_issues')
+    
+    print()
+    
+    # Present user options
+    while True:
+        print("Choose how to proceed:")
+        print("  [F] Get instructions to fix driver issues")
+        print("  [C] Continue with current drivers anyway")
+        print("  [S] Skip GPU setup and continue with other components")
+        print("  [E] Exit setup entirely")
+        print()
+        
+        choice = input("Your choice [F/C/S/E]: ").strip().upper()
+        
+        if choice == "F":
+            print()
+            show_message('gpu_driver_fix_instructions')
+            print()
+            
+            # Give option to re-check after following instructions
+            while True:
+                print("Choose how to proceed:")
+                print("  [R] Re-check drivers now")
+                print("  [C] Continue with current drivers anyway")
+                print("  [E] Exit setup")
+                print()
+                
+                recheck_choice = input("Your choice [R/C/E]: ").strip().upper()
+                
+                if recheck_choice == "R":
+                    print()
+                    print("Re-checking NVIDIA drivers...")
+                    
+                    # Re-run driver check
+                    new_driver_ok, new_driver_message = check_nvidia_driver_version()
+                    
+                    if new_driver_ok:
+                        print_success("Driver issues resolved!")
+                        print(new_driver_message)
+                        print()
+                        return True
+                    else:
+                        print_warning("Driver issues still detected:")
+                        print(new_driver_message)
+                        print()
+                        print("You can try the fix instructions again or continue anyway.")
+                        # Loop back to give them the options again
+                        
+                elif recheck_choice == "C":
+                    print()
+                    print("Continuing with current driver setup...")
+                    print_info("Driver issues may cause problems later")
+                    print()
+                    return True
+                    
+                elif recheck_choice == "E":
+                    print()
+                    print("Exiting setup...")
+                    print()
+                    import sys
+                    sys.exit(0)
+                    
+                else:
+                    print("Please enter R, C, or E")
+                    print()
+                
+        elif choice == "C":
+            print()
+            print_continue("Continuing with current drivers...")
+            print_info("Driver issues may cause problems with CUDA compilation")
+            print()
+            return True
+            
+        elif choice == "S":
+            print()
+            print_continue("Skipping GPU setup...")
+            print_info("You can complete this later after fixing driver issues")
+            print()
+            return False
+            
+        elif choice == "E":
+            print()
+            print("Exiting setup...")
+            print()
+            import sys
+            sys.exit(0)
+            
+        else:
+            print("Please enter F, C, S, or E")
+            print()
+
+if __name__ == "__main__":
+    run_gpu_cuda_interactive_setup(dry_run=True)

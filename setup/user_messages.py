@@ -450,6 +450,66 @@ MESSAGES = {
         "Ideal for smooth gameplay: RTX 3070 or better",
         "",
         "The setup will continue, but performance expectations should be adjusted."
+    ],
+
+    'gpu_driver_outdated': [
+        "📋 OUTDATED NVIDIA DRIVERS DETECTED",
+        "",
+        "Your NVIDIA drivers are too old for modern CUDA development.",
+        "This will prevent proper GPU acceleration and may cause compilation failures.",
+        "",
+        "Minimum driver requirements:",
+        "• CUDA 12.x support: Driver 530.30 or newer",
+        "• CUDA 11.x support: Driver 470.57 or newer",
+        "• For best compatibility: Latest Game Ready drivers",
+        "",
+        "💡 Driver updates are usually quick (5-10 minutes) and solve most issues"
+    ],
+
+    'gpu_driver_general_issues': [
+        "📋 NVIDIA DRIVER PROBLEMS DETECTED",
+        "",
+        "There are issues with your NVIDIA driver installation.",
+        "This will prevent proper GPU acceleration for AI workloads.",
+        "",
+        "Common driver problems:",
+        "• Drivers were corrupted during installation",
+        "• Windows Update installed generic drivers over NVIDIA drivers",
+        "• Multiple driver versions are conflicting",
+        "• Driver installation was incomplete",
+        "• System needs restart after driver changes",
+        "",
+        "Impact on the game:",
+        "• GPU acceleration may not work",
+        "• CUDA compilation may fail",
+        "• AI model inference will be very slow",
+        "",
+        "💡 Most driver issues can be fixed with a clean driver reinstall"
+    ],
+
+    'gpu_driver_fix_instructions': [
+        "📋 FIXING NVIDIA DRIVER ISSUES:",
+        "",
+        "Method 1 - Quick Driver Update (Try First):",
+        "1. Go to https://www.nvidia.com/drivers/",
+        "2. Select your GPU or use auto-detection",
+        "3. Download latest Game Ready Driver (not Studio)",
+        "4. Run installer and choose 'Express Installation'",
+        "5. Restart computer when prompted",
+        "6. Test with: nvidia-smi",
+        "",
+        "Method 2 - Clean Driver Installation (If Method 1 Fails):",
+        "1. Download DDU (Display Driver Uninstaller) from guru3d.com",
+        "2. Download latest NVIDIA drivers (save to desktop)",
+        "3. Boot into Safe Mode:",
+        "   - Settings → Update & Security → Recovery → Advanced Startup",
+        "   - Troubleshoot → Advanced Options → Startup Settings → Restart",
+        "   - Press 4 for Safe Mode",
+        "4. Run DDU, select NVIDIA, click 'Clean and Restart'",
+        "5. After restart, install the NVIDIA drivers you downloaded",
+        "6. Restart again after installation",
+        "7. Test with: nvidia-smi",
+        "",
     ]
 }
 

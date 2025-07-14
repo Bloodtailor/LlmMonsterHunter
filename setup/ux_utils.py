@@ -37,6 +37,23 @@ def print_info(message):
 
     print(f"💡  {message}")
 
+def print_dry_run(message):
+    """
+    Display standardized dry run message with color
+    """
+    # ANSI color codes: cyan text
+    CYAN = '\033[96m'
+    RESET = '\033[0m'
+    
+    print(f"{CYAN}{message}{RESET}")
+
+def print_dry_run_header(message):
+    """
+    Display standardized header to identify a component is being run in dry run mode
+    """
+    
+    print_dry_run(f"🧪 DRY RUN: {message}")
+
 def show_status_table(components):
     """
     Display a clean status overview table for all components
@@ -221,5 +238,7 @@ __all__ = [
     "print_warning",
     "print_success",
     "print_continue",
-    "print_info"
+    "print_info",
+    "print_dry_run",
+    "print_dry_run_header"
 ]
