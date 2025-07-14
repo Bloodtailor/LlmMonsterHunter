@@ -244,38 +244,7 @@ def handle_driver_fix_instructions():
 
     show_message('gpu_driver_fix_instructions')
 
-    options = [
-        ("R", "Re-check drivers now")
-    ]
-
-    choice = handle_user_choice(options, COMPONENT_NAME)
-
-    if choice == "R":
-        return handle_driver_recheck()
-    elif choice == "CONTINUE":
-        return True
-    else:
-        return False  
-
-def handle_driver_recheck():
-    """Run driver check and display results"""
-
-    print("Re-checking NVIDIA drivers...")
-    
-    # Re-run driver check
-    driver_ok, driver_message = check_nvidia_driver_version()
-    
-    if driver_ok:
-        print_success("Driver issues resolved!")
-        print(driver_message)
-        print()
-        return True
-    else:
-        print_warning("Driver issues still detected:")
-        print(driver_message)
-        print()
-        print("You can try the fix instructions again or continue anyway.")
-        handle_driver_issues(driver_message)
+    return prompt_continue_or_skip(COMPONENT_NAME)
 
 
 def handle_cuda_toolkit_missing(cuda_dirs_message):
@@ -363,10 +332,15 @@ def handle_cuda_environment_issues(nvcc_ok, nvcc_message, cuda_path_ok, cuda_pat
     print()
     
     # Show specific issues
-    if not nvcc_ok:
-        print_error(f"CUDA Compiler: {nvcc_message}")
-    if not cuda_path_ok:
-        print_error(f"Environment Variable: {cuda_path_message}")
+    if nvcc_ok:
+        print_success(nvcc_message)
+    else:
+        print_error(nvcc_message)
+
+    if cuda_path_ok:
+        print_success(cuda_path_message)
+    else:
+        print_error(cuda_path_message)
     
     print()
     print("CUDA toolkit appears to be installed but is not properly configured.")
