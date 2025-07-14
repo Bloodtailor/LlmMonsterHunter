@@ -4,7 +4,7 @@ Node.js Interactive Setup Flow
 Orchestrates the complete Node.js setup experience with clean UX
 """
 
-from setup.ux_utils import *
+from setup.utils.ux_utils import *
 from setup.checks.nodejs_checks import check_nodejs, check_npm, check_frontend_dependencies
 from setup.installation.nodejs_installation import install_frontend_dependencies
 
@@ -16,6 +16,10 @@ def run_nodejs_interactive_setup(current=None, total=None):
         bool: True if setup completed successfully, False otherwise
     """
     
+    # ================================================================
+    # SECTION 1: INITIAL STATUS CHECK AND DISPLAY
+    # ================================================================
+
     # Show clean component header
     show_component_header(
         component_name="Node.js & npm",
@@ -46,76 +50,27 @@ def run_nodejs_interactive_setup(current=None, total=None):
         print("All Node.js components are ready!")
         return True
     
+    # ================================================================
+    # SECTION 2: INTERACTIVE SETUP FLOWS AND LOGIC
+    # ================================================================
+
     # If Node.js/npm are missing, we need user to install them
     if not nodejs_ok or not npm_ok:
-        print_error("Node.js or npm is missing - this requires manual installation.")
-        print()
-        
-        show_message('nodejs_installation')
-        
-        while True:
-            choice = input("Do you want to [S]kip, [T]ry anyways, or [E]xit [S/T/E]: ").strip()
-            
-            if choice == "S":
-                print()
-                print_continue("Continuing to other components...")
-                print_info("Remember to come back and complete Node.js setup later!")
-                print()
-                return False
-            
-            elif choice == "T":
-                
-                print()
-                print("Attempting to install frontend dependencies anyway...")
-                success, message = install_frontend_dependencies()
-                
-                if success:
-                    print(f"Surprise! Frontend dependencies installed successfully!")
-                    print("Your Node.js setup might be working after all.")
-                    print()
-                    return True
-                else:
-                    print(f"Frontend dependency installation failed: {message}")
-                    print_info("You'll need to install Node.js properly first.")
-                    print()
-                    return False
-            
-            elif choice == "E":
-                print()
-                print("Exiting setup...")
-                print()
-                import sys
-                sys.exit(0)
-            else:
-                print("Please enter S, T, or E")
-    
-    # Node.js and npm are present, but frontend dependencies are missing
-    # This is the ideal auto-install scenario
-    elif not frontend_ok:
-        print("🔧 Node.js and npm are working! Installing frontend dependencies...")
-        print()
-        
-        success, message = install_frontend_dependencies()
-        
-        if success:
-            print("Frontend dependencies installed successfully!")
-            print("Node.js setup is now complete!")
-            print()
-            final_result = True
+        if not handle_nodejs_issue():
+            return False
         else:
-            print_warning(f"Frontend dependency installation failed: {message}")
-            print_info("You may need to run 'npm install' manually in the frontend directory.")
-            print()
-            final_result = False
-
-    # This shouldn't happen, but just in case
-    else:
-        print_warning("Unexpected state in Node.js setup")
-        print()
-        final_result = False
+            frontend_ok, frontend_message = check_frontend_dependencies()
     
+    if not frontend_ok:
+        if not handle_frontend_issue():
+            return False
+    
+    # ================================================================
+    # SECTION 3: FINAL CHECKS AND DISPLAY
+    # ================================================================
+
     # Check everything one more time
-    print("Final state of the component:")
+    print("Checking final state of the component...")
 
     # Run individual checks
     nodejs_ok, nodejs_message = check_nodejs()
@@ -123,14 +78,85 @@ def run_nodejs_interactive_setup(current=None, total=None):
     frontend_ok, frontend_message = check_frontend_dependencies()
     
     # Package results for display
-    check_results = {
+    final_check_results = {
         "Node.js Runtime": (nodejs_ok, nodejs_message),
         "npm Package Manager": (npm_ok, npm_message),
         "Frontend Dependencies": (frontend_ok, frontend_message)
     }
 
-    return final_result
+    # Display results beautifully
+    overall_ok = display_check_results("NODEJS", final_check_results)
+    
+    if overall_ok:
+        return True
+    else:
+        return False
+
+def handle_nodejs_issue():
+    """Handle case where nodejs or npm is not installed"""
+    
+    print_error("Node.js or npm is missing - this requires manual installation.")
+    print()
+    
+    show_message('nodejs_installation')
+    
+    while True:
+        choice = input("Do you want to [S]kip, [T]ry anyways, or [E]xit [S/T/E]: ").strip()
+        
+        if choice == "S":
+            print()
+            print()
+            return False
+        
+        elif choice == "T":
+            
+            print()
+            print("Attempting to install frontend dependencies anyway...")
+            success, message = install_frontend_dependencies()
+            
+            if success:
+                print(f"Surprise! Frontend dependencies installed successfully!")
+                print("Your Node.js setup might be working after all.")
+                print()
+                return True
+            else:
+                print(f"Frontend dependency installation failed: {message}")
+                print_info("You'll need to install Node.js properly first.")
+                print()
+                return False
+        
+        elif choice == "E":
+            print()
+            print("Exiting setup...")
+            print()
+            import sys
+            sys.exit(0)
+        else:
+            print("Please enter S, T, or E")
+
+def handle_frontend_issue():
+    """
+    Handle case where frontend dependencies is not installed 
+    But nodejs and npm are working.
+    """
+    
+    print("🔧 Node.js and npm are working! Installing frontend dependencies...")
+    print()
+    
+    success, message = install_frontend_dependencies()
+    
+    if success:
+        print("Frontend dependencies installed successfully!")
+        print("Node.js setup is now complete!")
+        print()
+        return True
+    else:
+        print_warning(f"Frontend dependency installation failed: {message}")
+        print_info("You may need to run 'npm install' manually in the frontend directory.")
+        print()
+        return False
 
 
 if __name__ == "__main__":
-    run_nodejs_interactive_setup()
+    from setup.utils.dry_run_utils import run_as_standalone_component
+    run_as_standalone_component("NodeJS", run_nodejs_interactive_setup)

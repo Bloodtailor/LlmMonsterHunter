@@ -6,7 +6,7 @@ Pure installation logic for database creation and configuration
 
 import subprocess
 from setup.checks.database_checks import get_database_config
-from setup.env_utils import update_env_config
+from setup.utils.env_utils import update_env_config
 
 def create_database():
     """

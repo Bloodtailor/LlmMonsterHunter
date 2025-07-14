@@ -22,7 +22,7 @@ MESSAGES = {
         "",
         "You have the following options to continue:",
         "   1. Skip and move on to next component (recommended)",
-        "   2. Try to install frontend dependencies anyways (if nodejs is installed, but undetected)",
+        "   2. Try to install frontend dependencies anyways (if nodejs is installed, but not detected)",
         "   3. Exit the setup and restart when nodejs is installed",
         ""
     ],

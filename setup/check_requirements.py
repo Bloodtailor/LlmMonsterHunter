@@ -19,7 +19,7 @@ from setup.model_directory import check_model_directory_requirements
 from setup.basic_backend import check_basic_backend_requirements_silent
 
 # Import UX utilities
-from setup.ux_utils import show_status_table
+from setup.utils.ux_utils import show_status_table
 
 def print_header(text):
     """Print a formatted header."""
