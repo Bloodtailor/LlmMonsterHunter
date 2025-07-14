@@ -4,7 +4,7 @@ MySQL Interactive Setup Flow
 Orchestrates the complete MySQL setup experience with clean UX
 """
 
-from setup.ux_utils import *
+from setup.utils.ux_utils import *
 from setup.checks.mysql_checks import (
     check_mysql_server, 
     check_mysql_cli, 
@@ -16,14 +16,18 @@ from setup.checks.mysql_checks import (
 )
 from setup.installation.mysql_installation import start_mysql_service
 
-def run_mysql_interactive_setup(current=None, total=None):
+def run_mysql_interactive_setup(current=None, total=None, dry_run=False):
     """
     Interactive setup flow for MySQL server and CLI
     
     Returns:
         bool: True if setup completed successfully, False otherwise
     """
-    
+
+    # ================================================================
+    # SECTION 1: INITIAL STATUS CHECK AND DISPLAY
+    # ================================================================
+
     # Show clean component header
     show_component_header(
         component_name="MySQL Server",
@@ -32,11 +36,20 @@ def run_mysql_interactive_setup(current=None, total=None):
         description="Required for database operations and game data storage"
     )
 
-    print("Checking current status...")
+    print("Checking current status of MySQL setup...")
     
     # Initial status check
     server_ok, server_message = check_mysql_server()
     cli_ok, cli_message = check_mysql_cli()
+
+    # Dry run mode - set check results to custom values
+    if dry_run:
+        print_dry_run_header()
+        
+        from setup.utils.dry_run_utils import set_dry_run
+        server_ok, server_message = set_dry_run('check_mysql_server')
+        cli_ok, cli_message = set_dry_run('check_mysql_cli')
+
     
     # Package results for display
     check_results = {
@@ -46,6 +59,10 @@ def run_mysql_interactive_setup(current=None, total=None):
     
     # Display results beautifully
     overall_ok = display_check_results("MYSQL", check_results)
+
+    # ================================================================
+    # SECTION 2: INTERACTIVE SETUP FLOWS AND LOGIC
+    # ================================================================
     
     # If everything is working, we're done!
     if overall_ok:
@@ -60,9 +77,29 @@ def run_mysql_interactive_setup(current=None, total=None):
     if not server_ok:
         return handle_server_issue()
     
-    # This shouldn't happen, but just in case
-    print_warning("Unexpected state in MySQL setup")
-    return False
+    # ================================================================
+    # SECTION 3: FINAL CHECKS AND DISPLAY
+    # ================================================================
+
+    print("Checking final status of MySQL setup...")
+
+    # Final status check
+    server_ok, server_message = check_mysql_server()
+    cli_ok, cli_message = check_mysql_cli()
+    
+    # Package results for display
+    final_check_results = {
+        "MySQL Server": (server_ok, server_message),
+        "MySQL CLI": (cli_ok, cli_message)
+    }
+
+    # Display results beautifully
+    overall_ok = display_check_results("MYSQL", final_check_results)
+    
+    if overall_ok:
+        return True
+    else:
+        return False
 
 def handle_server_issue():
     """Handle MySQL server not responding"""
@@ -233,4 +270,5 @@ def verify_mysql_setup():
         return False
 
 if __name__ == "__main__":
-    run_mysql_interactive_setup()
+    from setup.utils.dry_run_utils import run_as_standalone_component
+    run_as_standalone_component("MySQL", run_mysql_interactive_setup)

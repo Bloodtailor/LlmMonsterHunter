@@ -54,7 +54,7 @@ def test_ux_utilities():
     print("Testing NEW UX utilities (clean narrative functions)...")
     print("="*50)
     
-    from setup.ux_utils import (
+    from setup.utils.ux_utils import (
         show_component_header, show_quick_status, show_progress_update,
         show_success_result, show_final_completion, show_transition_pause
     )

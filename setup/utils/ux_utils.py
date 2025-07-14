@@ -47,12 +47,12 @@ def print_dry_run(message):
     
     print(f"{CYAN}{message}{RESET}")
 
-def print_dry_run_header(message):
+def print_dry_run_header():
     """
     Display standardized header to identify a component is being run in dry run mode
     """
     
-    print_dry_run(f"🧪 DRY RUN: {message}")
+    print_dry_run("🧪 DRY RUN: Running as a dry run")
 
 def show_status_table(components):
     """
@@ -227,6 +227,115 @@ def display_check_results(component_name, check_results):
     overall_ok = all(result[0] for result in check_results.values())
     return overall_ok
 
+def handle_user_choice(custom_options, component_name="this component"):
+    """
+    Handle standard user choices with optional custom options
+    
+    Args:
+        custom_options: List of tuples like [("I", "Get installation instructions"), ...]
+        component_name: Name for messages like "MySQL"
+        
+    Returns:
+        str: The choice letter (uppercased)
+
+    Usage:
+    choice = handle_user_choice([
+        ("I", "Get CUDA toolkit installation instructions"),
+        ("R", "Re-check installation")
+    ], "CUDA toolkit setup")
+    """
+    
+    while True:
+        print("Choose how to proceed:")
+        
+        # Show custom options first
+        for letter, description in custom_options:
+            print(f"  [{letter.upper()}] {description}")
+        
+        # Show standard options
+        print(f"  [S] Skip {component_name} setup for now (you can finish it later)")
+        print(f"  [C] Continue {component_name} setup without resolving issue (not recommended)")
+        print(f"  [E] Exit setup and try again later")
+        print()
+        
+        # Build valid choices
+        valid_choices = [letter.upper() for letter, _ in custom_options] + ['S', 'C', 'E']
+        choice_str = "/".join(valid_choices)
+        
+        choice = input(f"Your choice [{choice_str}]: ").strip().upper()
+        
+        if choice in valid_choices:
+            if choice == "S":
+                print()
+                print_continue("Continuing to other components...")
+                print_info(f"Remember to come back and complete {component_name} setup later!")
+                print()
+                return "SKIP"
+            elif choice == "C":
+                print()
+                print(f"Continuing {component_name} setup without resolving issue")
+                print("This may cause problems later.")
+                print()
+                return "CONTINUE"
+            elif choice == "E":
+                print()
+                print("Exiting setup...")
+                print()
+                import sys
+                sys.exit(0)
+            else:
+                return choice
+        else:
+            print(f"Please enter one of: {choice_str}")
+            print()
+
+def prompt_continue_or_skip(component_name="this component"):
+    """
+    Prompt the user to decide whether to continue, skip, or exit a setup component.
+
+    Args:
+        component_name: Name for messages like "MySQL"
+
+    Returns:
+        bool: True if the user chooses to continue setup,
+              False if the user chooses to skip.
+              Exits the program if the user chooses to exit.
+    """
+    
+    while True:
+        print("Choose how to proceed:")
+        
+        # Show standard options
+        print(f"  [S] Skip {component_name} setup for now (you can finish it later)")
+        print(f"  [C] Continue {component_name} setup without resolving issue (not recommended)")
+        print(f"  [E] Exit setup and try again later")
+        print()
+        
+        choice = input("Your choice [S/C/E]: ").strip().upper()
+        
+        if choice in ['S', 'C', 'E']:
+            if choice == "S":
+                print()
+                print_continue("Continuing to other components...")
+                print_info(f"Remember to come back and complete {component_name} setup later!")
+                print()
+                return False
+            elif choice == "C":
+                print()
+                print(f"Continuing {component_name} setup without resolving issue")
+                print("This may cause problems later.")
+                print()
+                return True
+            elif choice == "E":
+                print()
+                print("Exiting setup...")
+                print()
+                import sys
+                sys.exit(0)
+        else:
+            print("Please enter S C or E")
+            print()
+
 __all__ = [
     "show_status_table",
     "show_component_status_table",
@@ -240,5 +349,7 @@ __all__ = [
     "print_continue",
     "print_info",
     "print_dry_run",
-    "print_dry_run_header"
+    "print_dry_run_header",
+    "handle_user_choice",
+    "prompt_continue_or_skip"
 ]

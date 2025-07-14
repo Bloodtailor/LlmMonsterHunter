@@ -1,6 +1,6 @@
 # setup/dry_run_utils.py
 
-from setup.ux_utils import print_dry_run, print_dry_run_header
+from setup.utils.ux_utils import print_dry_run, print_dry_run_header
 
 DRY_RUN_SCENARIOS = {
     'check_nvidia_gpu': [
@@ -39,7 +39,9 @@ DRY_RUN_SCENARIOS = {
 
 def set_dry_run(check_name):
     """Interactive dry run scenario selection"""
-    scenarios = DRY_RUN_SCENARIOS.get(check_name, [(True, "Default success scenario")])
+
+    fallback_choices = [(True, "Dry run error message not configured"), (False, "Dry run error message not configured")]
+    scenarios = DRY_RUN_SCENARIOS.get(check_name, fallback_choices)
     
     print_dry_run(f"\nDry run options for: {check_name}")
     for i, (success, message) in enumerate(scenarios, 1):
@@ -58,3 +60,21 @@ def set_dry_run(check_name):
                 print_dry_run("Invalid choice, please try again.")
         except ValueError:
             print_dry_run("Please enter a number.")
+
+def run_as_standalone_component(component_name, setup_function):
+    print(f"🔧 Running {component_name} as a standalone component")
+    print("You can perform a dry run to preview actions without making changes.\n")
+
+    while True:
+        choice = input("Would you like to run a dry run? [Y/n]: ").strip().lower()
+        if choice in ["", "y", "yes"]:
+            dry_run = True
+            break
+        elif choice in ["n", "no"]:
+            dry_run = False
+            break
+        else:
+            print("❌ Invalid input. Please enter 'y' or 'n'.\n")
+
+    setup_function(dry_run=dry_run)
+    input(f"\n{component_name} setup finished. Press Enter to exit...")

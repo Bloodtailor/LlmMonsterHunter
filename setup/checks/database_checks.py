@@ -8,7 +8,7 @@ Returns data instead of printing for clean UX flow
 import subprocess
 import sys
 from pathlib import Path
-from setup.env_utils import load_env_config
+from setup.utils.env_utils import load_env_config
 
 def check_env_database_config():
     """

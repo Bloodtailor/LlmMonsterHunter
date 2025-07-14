@@ -4,7 +4,7 @@ Database Interactive Setup Flow
 Orchestrates the complete database configuration experience with clean UX
 """
 
-from setup.ux_utils import *
+from setup.utils.ux_utils import *
 from setup.checks.database_checks import (
     check_env_database_config,
     check_mysql_server_connection, 
@@ -15,7 +15,7 @@ from setup.installation.database_installation import (
     create_database
 )
 
-def run_database_interactive_setup(current=None, total=None):
+def run_database_interactive_setup(current=None, total=None, dry_run=False):
     """
     Interactive setup flow for database configuration
     
@@ -37,6 +37,15 @@ def run_database_interactive_setup(current=None, total=None):
     config_ok, config_message = check_env_database_config()
     connection_ok, connection_message = check_mysql_server_connection()
     database_ok, database_message = check_database_exists()
+
+    # Dry run mode - set check results to custom values
+    if dry_run:
+        print_dry_run_header()
+        
+        from setup.utils.dry_run_utils import set_dry_run
+        config_ok, config_message = set_dry_run('check_env_database_config')
+        connection_ok, connection_message = set_dry_run('check_mysql_server_connection')
+        database_ok, database_message = set_dry_run('check_database_exists')
     
     # Package results for display
     check_results = {
@@ -47,6 +56,10 @@ def run_database_interactive_setup(current=None, total=None):
     
     # Display results beautifully
     overall_ok = display_check_results("DATABASE", check_results)
+
+    # ================================================================
+    # SECTION 2: INTERACTIVE SETUP FLOWS AND LOGIC
+    # ================================================================
     
     # If everything is working, we're done!
     if overall_ok:
@@ -63,7 +76,7 @@ def run_database_interactive_setup(current=None, total=None):
     if not connection_ok:
         if not handle_connection_issues(connection_message):
             return False
-    
+
     # Re-check database after connection fixes  
     database_ok, database_message = check_database_exists()
     if not database_ok:
@@ -72,6 +85,10 @@ def run_database_interactive_setup(current=None, total=None):
         if not handle_database_missing():
             return False
     
+    # ================================================================
+    # SECTION 3: FINAL CHECKS AND DISPLAY
+    # ================================================================
+
     # Final verification
     return verify_database_setup()
 
@@ -79,20 +96,30 @@ def handle_config_issues():
     """Handle missing or invalid database configuration"""
     
     # Check what specifically is missing
-    from setup.env_utils import load_env_config
+    from setup.utils.env_utils import load_env_config
     env_vars = load_env_config()
     
     if not env_vars:
         print_error(".env file not found")
-        print_info("Run basic setup first to create .env file")
+        print("Run basic setup first to create .env file")
+        print()
+        print_warning("This componenet cannot be setup until the basic backend is setup.")
+        print_continue("Skipping this component.")
+        print()
+        input("Press enter to continue to the next compnonent...")
         return False
     
     password = env_vars.get('DB_PASSWORD', '')
     if not password or password == 'your_mysql_password_here':
         return handle_missing_password()
     else:
-        print_error("Database configuration has issues")
-        print_info("Check your .env file database settings")
+        print_error("DB_PASSWORD already exists but config check failed for unknown reason")
+        print("Please ensure that the .env was created correctly")
+        print()
+        print_warning("This componenet cannot be setup until this error has been resolved.")
+        print_continue("Skipping this component.")
+        print()
+        input("Press enter to continue to the next compnonent...")
         return False
 
 def handle_missing_password():
@@ -184,8 +211,7 @@ def handle_connection_issues(connection_message):
     else:
         print_error(connection_message)
         print()
-        
-        show_message('database_troubleshooting')
+
         show_message_and_wait('database_troubleshooting', "Press Enter after fixing connection...")
         
         return verify_connection_working()
@@ -272,4 +298,5 @@ def verify_database_setup():
         return False
 
 if __name__ == "__main__":
-    run_database_interactive_setup()
+    from setup.utils.dry_run_utils import run_as_standalone_component
+    run_as_standalone_component("Database", run_database_interactive_setup)
