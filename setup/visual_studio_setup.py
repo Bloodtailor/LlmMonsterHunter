@@ -163,7 +163,5 @@ def setup_visual_studio_interactive():
         return True  # Return True to allow continuing
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "setup":
-        setup_visual_studio_interactive()
-    else:
-        check_visual_studio_requirements()
+
+    setup_visual_studio_interactive()

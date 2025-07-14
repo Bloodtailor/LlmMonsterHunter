@@ -39,11 +39,12 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
     
     # Run individual checks
     gpu_ok, gpu_message = check_nvidia_gpu()
+    compute_ok, compute_message = check_gpu_compute_capability()
     driver_ok, driver_message = check_nvidia_driver_version()
     cuda_dirs_ok, cuda_dirs_message = check_cuda_directories()
     nvcc_ok, nvcc_message = check_nvcc_compiler()
     cuda_path_ok, cuda_path_message = check_cuda_path_env()
-    compute_ok, compute_message = check_gpu_compute_capability()
+
 
     # Dry run mode - simulate common first-time setup scenario
     if dry_run:
@@ -52,20 +53,22 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
         from setup.utils.dry_run_utils import set_dry_run
         # Most common first-time setup: GPU works, but drivers/CUDA need setup
         gpu_ok, gpu_message = set_dry_run('check_nvidia_gpu')
+        compute_ok, compute_message = set_dry_run('check_gpu_compute_capability')
         driver_ok, driver_message = set_dry_run('check_nvidia_driver_version')
         cuda_dirs_ok, cuda_dirs_message = set_dry_run('check_cuda_directories')
         nvcc_ok, nvcc_message = set_dry_run('check_nvcc_compiler')
         cuda_path_ok, cuda_path_message = set_dry_run('check_cuda_path_env')
-        compute_ok, compute_message = set_dry_run('check_gpu_compute_capability')
+        
 
     # Package results for display
     check_results = {
         "NVIDIA GPU": (gpu_ok, gpu_message),
+        "GPU Capability": (compute_ok, compute_message),
         "NVIDIA Drivers": (driver_ok, driver_message),
         "CUDA Toolkit": (cuda_dirs_ok, cuda_dirs_message),
         "CUDA Compiler": (nvcc_ok, nvcc_message),
-        "CUDA Environment": (cuda_path_ok, cuda_path_message),
-        "GPU Capability": (compute_ok, compute_message)
+        "CUDA Environment": (cuda_path_ok, cuda_path_message),\
+
     }
 
     # Display results beautifully
@@ -130,20 +133,22 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
 
     # Re-run all checks
     gpu_ok, gpu_message = check_nvidia_gpu()
+    compute_ok, compute_message = check_gpu_compute_capability()
     driver_ok, driver_message = check_nvidia_driver_version()
     cuda_dirs_ok, cuda_dirs_message = check_cuda_directories()
     nvcc_ok, nvcc_message = check_nvcc_compiler()
     cuda_path_ok, cuda_path_message = check_cuda_path_env()
-    compute_ok, compute_message = check_gpu_compute_capability()
+
 
     # Package final results
     final_check_results = {
         "NVIDIA GPU": (gpu_ok, gpu_message),
+        "GPU Capability": (compute_ok, compute_message),
         "NVIDIA Drivers": (driver_ok, driver_message),
         "CUDA Toolkit": (cuda_dirs_ok, cuda_dirs_message),
         "CUDA Compiler": (nvcc_ok, nvcc_message),
-        "CUDA Environment": (cuda_path_ok, cuda_path_message),
-        "GPU Capability": (compute_ok, compute_message)
+        "CUDA Environment": (cuda_path_ok, cuda_path_message)
+
     }
 
     # Display final results
