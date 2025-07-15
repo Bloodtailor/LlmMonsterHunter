@@ -3,6 +3,7 @@
 from setup.utils.ux_utils import print_dry_run
 
 DRY_RUN_SCENARIOS = {
+    # For gpu_cuda_flow.py
     'check_nvidia_gpu': [
         (True, "NVIDIA GeForce RTX 3070"),
         (True, "NVIDIA GeForce GTX 1060 6GB"),
@@ -35,38 +36,36 @@ DRY_RUN_SCENARIOS = {
         (False, "GPU compute capability 3.5 (limited AI support)"),
         (False, "Could not determine GPU compute capability")
     ],
+    # For vs_flow.py
     'check_visual_studio_installations': [
         (True, "Visual Studio 2022 found at C:\\Program Files\\Microsoft Visual Studio\\2022\\Community"),
         (True, "VS Build Tools 2022 found at C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools"),
         (True, "2 VS installations found (primary: Visual Studio 2022)"),
         (False, "No Visual Studio installations found in common directories")
     ],
-
     'check_windows_sdk': [
         (True, "Windows SDK found at C:\\Program Files (x86)\\Windows Kits\\10"),
         (True, "Windows SDK found at C:\\Program Files\\Windows Kits\\10"),
         (False, "Windows SDK not found in common directories")
     ],
-
     'check_cpp_build_tools': [
         (True, "C++ build tools found (MSVC 14.39.33519)"),
         (True, "C++ build tools found (MSVC 14.29.30133)"),
         (False, "C++ build tools not found in Visual Studio installations"),
         (False, "No Visual Studio installations to check for C++ tools")
     ],
+    # For llama_cpp_flow.py
     'check_llama_cpp_installed': [
         (True, "llama-cpp-python installed: 0.2.11"),
         (True, "llama-cpp-python installed: 0.2.20"),
         (False, "llama-cpp-python not installed"),
         (False, "Virtual environment pip not found")
     ],
-
     'test_llama_cpp_import': [
         (True, "llama-cpp-python imports successfully"),
         (False, "Import failed: No module named 'llama_cpp'"),
         (False, "llama-cpp-python not installed")
     ],
-
     'test_llama_cpp_performance': [
         (True, "52.3 tokens/sec (very fast - high-end GPU acceleration)"),
         (True, "28.7 tokens/sec (fast - good GPU acceleration)"),
@@ -75,14 +74,54 @@ DRY_RUN_SCENARIOS = {
         (False, "0.8 tokens/sec (very slow - CPU-only)"),
         (False, "Cannot test performance: Model file not found"),
     ],
-    # Add this entry to the DRY_RUN_SCENARIOS dictionary in dry_run_utils.py:
-
+    # For llm_env_flow.py
     'check_env_model_path': [
         (True, "Model configured: llama-2-7b-chat.q4_K_M.gguf (3.8 GB)"),
         (False, "LLM_MODEL_PATH still set to placeholder value"),
         (False, "Model file not found: C:/AI/models/missing-model.gguf"),
         (False, ".env file not found or unreadable")
-    ]
+    ],
+    # For nodejs_flow.py
+    'check_nodejs': [
+        (True, "Node.js v18.17.0"),
+        (True, "Node.js v16.14.2"), 
+        (False, "Node.js not found"),
+    ],
+    'check_npm': [
+        (True, "npm 9.6.7"),
+        (True, "npm 8.19.4"),
+        (False, "npm not found in PATH"),
+    ],
+    'check_frontend_dependencies': [
+        (True, "Frontend dependencies installed"),
+        (False, "Frontend dependencies not installed"),
+    ],
+    # For mysql_flow.py
+    'check_mysql_server': [
+        (True, "MySQL server responding (authentication required)"),
+        (False, "Cannot connect to MySQL server"),
+        (False, "Cannot test connection (mysql command not available)"),
+    ],
+    'check_mysql_cli': [
+        (True, "MySQL CLI: mysql Ver 8.0.34 for Win64"),
+        (False, "MySQL command line client not found in PATH"),
+    ],
+    # For mysql_flow.py
+    'check_env_database_config': [
+        (True, "Database config: root@localhost:3306/monster_hunter_game"),
+        (False, "Database password not set in .env file"),
+        (False, ".env file not found or unreadable"),
+    ],
+    'check_mysql_server_connection': [
+        (True, "MySQL server connection successful"),
+        (False, "MySQL connection failed: Access denied (check password)"),
+        (False, "MySQL connection failed: Cannot connect to server"),
+    ],
+    'check_database_exists': [
+        (True, "Database 'monster_hunter_game' exists and is accessible"),
+        (False, "Database 'monster_hunter_game' does not exist"),
+        (False, "Database access denied (check password and permissions)"),
+    ],
 }
 
 def set_dry_run(check_name):
@@ -93,6 +132,7 @@ def set_dry_run(check_name):
     
     print_dry_run(f"\nDry run options for: {check_name}")
     for i, (success, message) in enumerate(scenarios, 1):
+        message += " (simulated)"
         status = "✅" if success else "❌"
         print_dry_run(f"{i}. {status} {message}")
     

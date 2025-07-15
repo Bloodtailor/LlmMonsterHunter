@@ -12,8 +12,66 @@ from setup.checks.basic_backend_checks import (
     check_network_access,
     check_virtual_environment,
     check_basic_dependencies,
-    check_env_file
+    check_env_file,
+    check_basic_backend_requirements_silent
 )
+
+def auto_setup_basic_backend():
+    """Automatically set up basic backend requirements, only showing output when installing."""
+
+    # End early if backend already set up
+    backend_ok = check_basic_backend_requirements_silent()
+    if backend_ok:
+        return True 
+    
+    print("Setting up basic backend requirements...")
+
+    import subprocess
+    from pathlib import Path
+    from setup.installation.basic_backend_installation import (
+        create_virtual_environment, 
+        install_basic_dependencies, 
+        create_env_file
+    )
+
+    # Create virtual environment if needed
+    venv_path = Path("venv")
+    if not venv_path.exists():
+        print("Creating virtual environment...")
+        success, message = create_virtual_environment()
+        if success:
+            print("✅ Virtual environment created")
+        else:
+            print(f"❌ {message}")
+            return False
+    
+    # Install basic dependencies if needed
+    pip_path = Path("venv/Scripts/pip.exe")
+    if pip_path.exists():
+        try:
+            result = subprocess.run([str(pip_path), "show", "Flask"], 
+                                  capture_output=True, text=True, check=True)
+            if "Version:" not in result.stdout:
+                raise subprocess.CalledProcessError(1, "Flask not found")
+        except subprocess.CalledProcessError:
+            success, message = install_basic_dependencies()
+            if not success:
+                print(f"❌ {message}")
+                return False
+    else:
+        print("❌ Virtual environment pip not found")
+        return False
+    
+    # Create .env file if needed
+    from setup.utils.env_utils import env_file_exists
+    if not env_file_exists():
+        success, message = create_env_file()
+        if not success:
+            print(f"❌ {message}")
+            return False
+    
+    print("✅ Basic backend setup completed")
+    return True
 
 def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False):
     """

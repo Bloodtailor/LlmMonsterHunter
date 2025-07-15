@@ -10,7 +10,7 @@ echo Checking requirements...
 echo.
 
 REM Step 1: Auto-setup basic backend (silent unless installing)
-python setup/basic_backend.py auto
+python -m setup.setup_environment auto
 if errorlevel 1 (
     echo ERROR: Basic backend setup failed
     pause
@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 
 REM Step 2: Check all requirements (summary mode)
-python -m setup.check_requirements summary
+python -m setup.check_requirements
 set requirements_result=%errorlevel%
 
 REM Step 3: Handle requirements result

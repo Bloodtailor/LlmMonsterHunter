@@ -4,6 +4,8 @@ MySQL Interactive Setup Flow
 Orchestrates the complete MySQL setup experience with clean UX
 """
 
+COMPONENT_NAME = "MySQL"
+
 from setup.utils.ux_utils import *
 from setup.checks.mysql_checks import (
     check_mysql_server, 
@@ -271,4 +273,4 @@ def verify_mysql_setup():
 
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
-    run_as_standalone_component("MySQL", run_mysql_interactive_setup)
+    run_as_standalone_component(COMPONENT_NAME, run_mysql_interactive_setup)

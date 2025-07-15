@@ -51,7 +51,6 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
         print_dry_run_header()
         
         from setup.utils.dry_run_utils import set_dry_run
-        # Most common first-time setup: GPU works, but drivers/CUDA need setup
         gpu_ok, gpu_message = set_dry_run('check_nvidia_gpu')
         compute_ok, compute_message = set_dry_run('check_gpu_compute_capability')
         driver_ok, driver_message = set_dry_run('check_nvidia_driver_version')

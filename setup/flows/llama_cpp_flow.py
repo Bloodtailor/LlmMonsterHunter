@@ -48,7 +48,6 @@ def run_llama_cpp_interactive_setup(current=None, total=None, dry_run=False):
         print_dry_run_header()
         
         from setup.utils.dry_run_utils import set_dry_run
-        # Most common scenario: Not installed yet
         installed_ok, installed_message = set_dry_run('check_llama_cpp_installed')
         import_ok, import_message = set_dry_run('test_llama_cpp_import')
         performance_ok, performance_message = set_dry_run('test_llama_cpp_performance')
