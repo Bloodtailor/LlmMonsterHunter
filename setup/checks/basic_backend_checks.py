@@ -102,7 +102,7 @@ def check_basic_backend_requirements_silent():
     except Exception:
         return False
     
-def get_diagnostic_info(include_overall=False):
+def get_basic_backend_diagnostic(include_overall=False):
     """
     Get comprehensive basic backend diagnostic information.
     Used by flows to understand what specifically needs to be addressed.

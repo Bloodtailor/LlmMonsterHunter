@@ -65,7 +65,7 @@ def check_nodejs_requirements():
     
     return nodejs_ok and npm_ok and deps_ok
 
-def get_diagnostic_info(include_overall=False):
+def get_nodejs_diagnostic(include_overall=False):
     """
     Get comprehensive Node.js diagnostic information.
     Used by flows to understand what specifically needs to be addressed.

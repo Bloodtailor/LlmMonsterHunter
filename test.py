@@ -1,3 +1,3 @@
-from setup.checks import run_full_diagnostic
+from setup.checks import run_component_diagnostic
 
-run_full_diagnostic()
+run_component_diagnostic('Basic Backend')

@@ -86,7 +86,7 @@ def check_mysql_server_connection():
             f"-h{config['host']}", 
             f"-P{config['port']}", 
             f"-u{config['user']}", 
-            f"-p{config['password']}", 
+            f"-p{config['password']}" if config['password'] else "--skip-password",
             "-e", "SELECT 1;"
         ]
         
@@ -156,7 +156,7 @@ def check_database_requirements():
     
     return config_ok and server_ok and database_ok
 
-def get_diagnostic_info(include_overall=False):
+def get_database_diagnostic(include_overall=False):
     """
     Get comprehensive database diagnostic information.
     Used by flows to understand what specifically needs to be addressed.
@@ -172,13 +172,13 @@ def get_diagnostic_info(include_overall=False):
     database_ok, database_msg = check_database_exists()
     
     result = {
-        'database_config': (config_ok, config_msg),
-        'mysql_connection': (connection_ok, connection_msg),
-        'database_exists': (database_ok, database_msg),
+        "Database Configuration": (config_ok, config_msg),
+        "MySQL Connection": (connection_ok, connection_msg),
+        "Game Database": (database_ok, database_msg),
     }
     
     if include_overall:
         overall_ok = check_database_requirements()
-        result['overall'] = (overall_ok, "All database requirements met" if overall_ok else "Some database requirements missing")
+        result["overall"] = (overall_ok, "All database requirements met" if overall_ok else "Some database requirements missing")
     
     return result

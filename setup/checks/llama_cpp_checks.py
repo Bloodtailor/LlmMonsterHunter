@@ -234,7 +234,7 @@ def check_llama_cpp_requirements():
     
     return installed_ok and import_ok
 
-def get_diagnostic_info(include_overall=False):
+def get_llama_cpp_diagnostic(include_overall=False):
     """
     Get comprehensive llama-cpp-python diagnostic information.
     Used by flows to understand what specifically needs to be addressed.
