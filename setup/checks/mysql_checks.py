@@ -8,6 +8,7 @@ Returns data instead of printing for clean UX flow
 import subprocess
 import sys
 from pathlib import Path
+from setup.constants import MYSQL_SERVICE_NAMES, MYSQL_LOCATIONS
 
 def check_mysql_server():
     """
@@ -62,7 +63,7 @@ def check_mysql_service():
     Check MySQL service status (for automation purposes)
     Returns service name if found, useful for starting/stopping
     """
-    service_names = ["MySQL84", "MySQL80", "MySQL", "mysqld"]
+    service_names = MYSQL_SERVICE_NAMES
     
     for service in service_names:
         try:
@@ -82,18 +83,7 @@ def check_mysql_installations():
     Check if MySQL installations can be found on the system
     Used for diagnostic purposes to distinguish "not installed" vs "installed but broken"
     """
-    possible_locations = [
-        "C:\\Program Files\\MySQL",
-        "C:\\Program Files (x86)\\MySQL", 
-        "C:\\mysql",
-        "C:\\xampp\\mysql",
-        "C:\\wamp64\\bin\\mysql",
-        "C:\\laragon\\bin\\mysql",
-        "C:\\AppServ\\MySQL",
-        "C:\\Server\\MySQL",
-        "D:\\xampp\\mysql",
-        "D:\\wamp\\bin\\mysql"
-    ]
+    possible_locations = MYSQL_LOCATIONS
     
     installations = []
     
@@ -126,7 +116,7 @@ def check_mysql_service_exists():
     Check if any MySQL service exists on the system (regardless of running state)
     Used for diagnostic purposes to detect installed but non-running MySQL
     """
-    service_names = ["MySQL84", "MySQL80", "MySQL", "mysqld"]
+    service_names = MYSQL_SERVICE_NAMES
     
     for service in service_names:
         try:
@@ -144,14 +134,7 @@ def get_mysql_installations_list():
     Helper function to get list of installation paths (for flow logic)
     Returns list of paths for PATH troubleshooting
     """
-    possible_locations = [
-        "C:\\Program Files\\MySQL",
-        "C:\\Program Files (x86)\\MySQL", 
-        "C:\\mysql",
-        "C:\\xampp\\mysql",
-        "C:\\wamp64\\bin\\mysql",
-        "C:\\laragon\\bin\\mysql"
-    ]
+    possible_locations = MYSQL_LOCATIONS
     
     installations = []
     
@@ -170,7 +153,7 @@ def get_mysql_service_name():
     Helper function to get actual MySQL service name (for installation logic)
     Returns service name string or None
     """
-    service_names = ["MySQL93", "MySQL84", "MySQL80", "MySQL", "mysqld"]
+    service_names = MYSQL_SERVICE_NAMES
     
     for service in service_names:
         try:
@@ -189,3 +172,34 @@ def check_mysql_requirements():
     cli_ok, _ = check_mysql_cli()
     
     return server_ok and cli_ok
+
+def get_diagnostic_info(include_overall=False):
+    """
+    Get comprehensive MySQL diagnostic information.
+    Used by flows to understand what specifically needs to be addressed.
+    
+    Args:
+        include_overall (bool): Whether to include overall requirement check
+    
+    Returns:
+        dict: All MySQL check results for detailed analysis
+    """
+    server_ok, server_msg = check_mysql_server()
+    cli_ok, cli_msg = check_mysql_cli()
+    service_ok, service_msg = check_mysql_service()
+    installations_ok, installations_msg = check_mysql_installations()
+    service_exists_ok, service_exists_msg = check_mysql_service_exists()
+    
+    result = {
+        'mysql_server': (server_ok, server_msg),
+        'mysql_cli': (cli_ok, cli_msg),
+        'mysql_service': (service_ok, service_msg),
+        'mysql_installations': (installations_ok, installations_msg),
+        'mysql_service_exists': (service_exists_ok, service_exists_msg),
+    }
+    
+    if include_overall:
+        overall_ok = check_mysql_requirements()
+        result['overall'] = (overall_ok, "All MySQL requirements met" if overall_ok else "Some MySQL requirements missing")
+    
+    return result

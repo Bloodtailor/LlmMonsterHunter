@@ -64,3 +64,30 @@ def check_nodejs_requirements():
     deps_ok, _ = check_frontend_dependencies()
     
     return nodejs_ok and npm_ok and deps_ok
+
+def get_diagnostic_info(include_overall=False):
+    """
+    Get comprehensive Node.js diagnostic information.
+    Used by flows to understand what specifically needs to be addressed.
+    
+    Args:
+        include_overall (bool): Whether to include overall requirement check
+    
+    Returns:
+        dict: All Node.js check results for detailed analysis
+    """
+    nodejs_ok, nodejs_msg = check_nodejs()
+    npm_ok, npm_msg = check_npm()
+    deps_ok, deps_msg = check_frontend_dependencies()
+    
+    result = {
+        'nodejs': (nodejs_ok, nodejs_msg),
+        'npm': (npm_ok, npm_msg),
+        'frontend_dependencies': (deps_ok, deps_msg),
+    }
+    
+    if include_overall:
+        overall_ok = check_nodejs_requirements()
+        result['overall'] = (overall_ok, "All Node.js requirements met" if overall_ok else "Some Node.js requirements missing")
+    
+    return result
