@@ -4,11 +4,13 @@ Node.js Interactive Setup Flow
 Orchestrates the complete Node.js setup experience with clean UX
 """
 
+COMPONENT_NAME = "Nodejs"
+
 from setup.utils.ux_utils import *
 from setup.checks.nodejs_checks import check_nodejs, check_npm, check_frontend_dependencies
 from setup.installation.nodejs_installation import install_frontend_dependencies
 
-def run_nodejs_interactive_setup(current=None, total=None):
+def run_nodejs_interactive_setup(current=None, total=None, dry_run=False):
     """
     Interactive setup flow for Node.js and React frontend
     
@@ -34,6 +36,15 @@ def run_nodejs_interactive_setup(current=None, total=None):
     nodejs_ok, nodejs_message = check_nodejs()
     npm_ok, npm_message = check_npm()
     frontend_ok, frontend_message = check_frontend_dependencies()
+
+    # Dry run mode - set check results to custom values
+    if dry_run:
+        print_dry_run_header()
+        
+        from setup.utils.dry_run_utils import set_dry_run
+        nodejs_ok, nodejs_message = set_dry_run('check_nodejs')
+        npm_ok, npm_message = set_dry_run('check_npm')
+        frontend_ok, frontend_message = set_dry_run('check_frontend_dependencies')
 
     # Package results for display
     check_results = {
@@ -159,4 +170,4 @@ def handle_frontend_issue():
 
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
-    run_as_standalone_component("NodeJS", run_nodejs_interactive_setup)
+    run_as_standalone_component(COMPONENT_NAME, run_nodejs_interactive_setup)

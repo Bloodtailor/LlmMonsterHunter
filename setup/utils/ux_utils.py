@@ -8,6 +8,12 @@ import io
 import contextlib
 from setup.user_messages import get_message
 
+def print_header(text):
+    """Print a formatted header."""
+    print("\n" + "=" * 60)
+    print(text.center(60))
+    print("=" * 60)
+
 def print_warning(message):
     """
     Display standardized warning message
@@ -364,6 +370,7 @@ __all__ = [
     "show_message_and_wait",
     "show_component_header",
     "display_check_results",
+    "print_header",
     "print_error",
     "print_warning",
     "print_success",

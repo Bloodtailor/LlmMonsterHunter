@@ -3,6 +3,7 @@
 Database Interactive Setup Flow
 Orchestrates the complete database configuration experience with clean UX
 """
+COMPONENT_NAME = "Database"
 
 from setup.utils.ux_utils import *
 from setup.checks.database_checks import (
@@ -299,4 +300,4 @@ def verify_database_setup():
 
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
-    run_as_standalone_component("Database", run_database_interactive_setup)
+    run_as_standalone_component(COMPONENT_NAME, run_database_interactive_setup)

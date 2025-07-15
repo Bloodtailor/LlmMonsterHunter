@@ -10,7 +10,6 @@ from setup.checks.vs_checks import (
     check_visual_studio_installations,
     check_windows_sdk,
     check_cpp_build_tools,
-    get_visual_studio_diagnostic_info
 )
 
 def run_visual_studio_interactive_setup(current=None, total=None, dry_run=False):
@@ -45,7 +44,6 @@ def run_visual_studio_interactive_setup(current=None, total=None, dry_run=False)
         print_dry_run_header()
         
         from setup.utils.dry_run_utils import set_dry_run
-        # Most common scenario: No VS installation found
         installations_ok, installations_message = set_dry_run('check_visual_studio_installations')
         sdk_ok, sdk_message = set_dry_run('check_windows_sdk')
         cpp_tools_ok, cpp_tools_message = set_dry_run('check_cpp_build_tools')

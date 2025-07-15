@@ -20,8 +20,8 @@ COMPONENT_CHECKS = {
     'Database Connection': check_database_requirements,
     'NVIDIA GPU & CUDA': check_gpu_cuda_requirements,
     'Visual Studio Build Tools': check_visual_studio_requirements,
-    'LLM Integration': check_llama_cpp_requirements,
     'Model Directory': check_model_directory_requirements,
+    'LLM Integration': check_llama_cpp_requirements,
 }
 
 def run_all_checks():
@@ -32,7 +32,7 @@ def run_all_checks():
 
     results = {}
     for name, check_func in COMPONENT_CHECKS.items():
-        print(f"🔍 Checking {name} requirements...")
+        print(f"Checking {name} requirements...")
         results[name] = check_func()
     return results
 
@@ -70,8 +70,8 @@ def run_full_diagnostic():
         ("Database Connection", get_database_diagnostic),
         ("NVIDIA GPU & CUDA", get_gpu_cuda_diagnostic),
         ("Visual Studio Build Tools", get_vs_diagnostic),
-        ("LLM Integration", get_llama_cpp_diagnostic),
         ("Model Directory", get_llm_env_diagnostic),
+        ("LLM Integration", get_llama_cpp_diagnostic),
     ]
     
     # Run diagnostics for each component

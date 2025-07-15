@@ -43,7 +43,6 @@ def run_llm_env_interactive_setup(current=None, total=None, dry_run=False):
         print_dry_run_header()
         
         from setup.utils.dry_run_utils import set_dry_run
-        # Most common scenario: Model path not configured yet
         model_path_ok, model_path_message = set_dry_run('check_env_model_path')
 
     # Package results for display
