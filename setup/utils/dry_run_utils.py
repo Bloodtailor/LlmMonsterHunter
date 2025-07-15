@@ -74,6 +74,14 @@ DRY_RUN_SCENARIOS = {
         (False, "6.8 tokens/sec (slow - weak GPU or limited GPU offload)"),
         (False, "0.8 tokens/sec (very slow - CPU-only)"),
         (False, "Cannot test performance: Model file not found"),
+    ],
+    # Add this entry to the DRY_RUN_SCENARIOS dictionary in dry_run_utils.py:
+
+    'check_env_model_path': [
+        (True, "Model configured: llama-2-7b-chat.q4_K_M.gguf (3.8 GB)"),
+        (False, "LLM_MODEL_PATH still set to placeholder value"),
+        (False, "Model file not found: C:/AI/models/missing-model.gguf"),
+        (False, ".env file not found or unreadable")
     ]
 }
 
