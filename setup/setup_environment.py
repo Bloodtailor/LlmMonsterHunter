@@ -6,7 +6,7 @@ Walks user through setting up missing requirements
 
 import sys
 from setup.check_requirements import check_requirements
-from setup.checks import COMPONENT_CHECKS, run_all_checks
+from setup.checks import COMPONENT_CHECKS, run_component_diagnostic
 from setup.flows import COMPONENT_FLOWS
 from setup.utils.ux_utils import (
     print_header, show_status_table, print_success, print_error, print_warning, 
@@ -37,13 +37,14 @@ def main_interactive_setup(dry_run=False):
         try:
             is_working = check_function()
             if is_working and not dry_run:
-                print_success(f"{component_name} is already working correctly.")
                 continue
         except Exception as e:
-            print_error(f"Error checking {component_name}: {e}")
+            print_error(f"\nError checking {component_name}: {e}\n")
         
         # Ask user if they want to set this up
-        print(f"\n{component_name} needs to be set up. (component {current} of {total_components})")
+        print(f"\n{component_name} needs to be set up. (component {current} of {total_components})\n")
+        run_component_diagnostic(component_name)
+
         if prompt_user_confirmation(f"Do you want to set up {component_name} now? [Y/n]: "):
             try:
                 print()
@@ -61,7 +62,10 @@ def main_interactive_setup(dry_run=False):
                 print()
                 print_error(f"Error during {component_name} setup: {e}")
                 
-            input("Press Enter to continue...")
+            print()
+            print_header(f"{component_name} setup complete!")
+            print()
+            input("Press Enter to continue to the next component...")
         else:
             print()
             print_continue(f"Skipping {component_name} setup.")
@@ -69,12 +73,14 @@ def main_interactive_setup(dry_run=False):
     
     # Final summary  
     print()
-    if prompt_user_confirmation(f"Would you like to recheck requirments? [Y/n]: "):
+    print_header("Interactive Environment Setup: FINISHED")
+    print()
+    if prompt_user_confirmation(f"Would you like to recheck requirments before exiting? [Y/n]: "):
         check_requirements()
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "auto":
         auto_setup_basic_backend()
     else:
-        from setup.utils.dry_run_utils import run_as_standalone_component
-        run_as_standalone_component("Setup Environment", main_interactive_setup)
+        #from setup.utils.dry_run_utils import run_as_standalone_component
+        main_interactive_setup()

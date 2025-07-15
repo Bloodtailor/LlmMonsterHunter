@@ -231,7 +231,7 @@ def check_gpu_cuda_requirements():
     
     return has_gpu_and_driver and has_cuda_toolkit and has_development_access
 
-def get_diagnostic_info(include_overall=False):
+def get_gpu_cuda_diagnostic(include_overall=False):
     """
     Get comprehensive GPU CUDA diagnostic information.
     Used by flows to understand what specifically needs to be addressed.

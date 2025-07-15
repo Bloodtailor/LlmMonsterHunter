@@ -10,6 +10,9 @@ from setup.user_messages import get_message
 
 def print_header(text):
     """Print a formatted header."""
+
+    text = text.upper()
+
     print("\n" + "=" * 60)
     print(text.center(60))
     print("=" * 60)
@@ -123,11 +126,14 @@ def show_component_status_table(component_name, checks):
     # Calculate summary
     total_checks = len(checks)
     ready_checks = sum(1 for status in checks.values() if status)
+
+    header = f"{component_name} STATUS"
+    formatted_header = header.upper()
     
     # Table header
     print()
     print("┌─────────────────────────────────────────────────────────────┐")
-    print(f"│                      {component_name} STATUS{' ' * (32 - len(str(component_name)))}│")
+    print(f"│{formatted_header.center(61)}│")
     print("├─────────────────────────────────────────────────────────────┤")
     
     # Component rows
@@ -194,8 +200,12 @@ def show_component_header(component_name, current=None, total=None, description=
     else:
         status = ""
 
+    text = f"INTERACTIVE SETUP{status}: {component_name}"
+    text = text.upper()
+    text = text.center(64)
+
     print("================================================================")
-    print(f"INTERACTIVE SETUP{status}: {component_name}".center(64))
+    print(text)
     print("================================================================")
     
     # Description if provided

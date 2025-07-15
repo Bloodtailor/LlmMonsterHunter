@@ -109,7 +109,7 @@ def check_model_directory_requirements():
     env_ok, _ = check_env_model_path()
     return env_ok
 
-def get_diagnostic_info(include_overall=False):
+def get_llm_env_diagnostic(include_overall=False):
     """
     Get comprehensive LLM environment diagnostic information.
     Used by flows to understand what specifically needs to be addressed.

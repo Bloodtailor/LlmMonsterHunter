@@ -101,7 +101,7 @@ def check_visual_studio_requirements():
     
     return installations_ok and sdk_ok and cpp_tools_ok
 
-def get_diagnostic_info(include_overall=False):
+def get_vs_diagnostic(include_overall=False):
     """
     Get comprehensive Visual Studio diagnostic information.
     Used by flows to understand what specifically needs to be addressed.

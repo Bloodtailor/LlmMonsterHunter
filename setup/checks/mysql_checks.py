@@ -173,7 +173,7 @@ def check_mysql_requirements():
     
     return server_ok and cli_ok
 
-def get_diagnostic_info(include_overall=False):
+def get_mysql_diagnostic(include_overall=False):
     """
     Get comprehensive MySQL diagnostic information.
     Used by flows to understand what specifically needs to be addressed.
