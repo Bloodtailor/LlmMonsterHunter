@@ -336,6 +336,27 @@ def prompt_continue_or_skip(component_name="this component"):
             print("Please enter S C or E")
             print()
 
+def prompt_user_confirmation(message):
+    """
+    Prompt the user input yes or no.
+
+    Returns:
+        bool: True/False if the user chooses yes/no
+
+    """
+    
+    while True:
+        choice = input(message).strip().upper()
+        
+        if choice in ['Y', 'YES','N','NO']:
+            if choice in ['Y', 'YES']:
+                return True
+            elif ['N','NO']:
+                return False
+        else:
+            print("Please enter Y or N")
+            print()
+            
 __all__ = [
     "show_status_table",
     "show_component_status_table",
@@ -351,5 +372,6 @@ __all__ = [
     "print_dry_run",
     "print_dry_run_header",
     "handle_user_choice",
-    "prompt_continue_or_skip"
+    "prompt_continue_or_skip",
+    "prompt_user_confirmation"
 ]

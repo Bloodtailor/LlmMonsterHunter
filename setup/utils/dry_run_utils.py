@@ -1,6 +1,6 @@
 # setup/dry_run_utils.py
 
-from setup.utils.ux_utils import print_dry_run, print_dry_run_header
+from setup.utils.ux_utils import print_dry_run
 
 DRY_RUN_SCENARIOS = {
     'check_nvidia_gpu': [
@@ -53,6 +53,27 @@ DRY_RUN_SCENARIOS = {
         (True, "C++ build tools found (MSVC 14.29.30133)"),
         (False, "C++ build tools not found in Visual Studio installations"),
         (False, "No Visual Studio installations to check for C++ tools")
+    ],
+    'check_llama_cpp_installed': [
+        (True, "llama-cpp-python installed: 0.2.11"),
+        (True, "llama-cpp-python installed: 0.2.20"),
+        (False, "llama-cpp-python not installed"),
+        (False, "Virtual environment pip not found")
+    ],
+
+    'test_llama_cpp_import': [
+        (True, "llama-cpp-python imports successfully"),
+        (False, "Import failed: No module named 'llama_cpp'"),
+        (False, "llama-cpp-python not installed")
+    ],
+
+    'test_llama_cpp_performance': [
+        (True, "52.3 tokens/sec (very fast - high-end GPU acceleration)"),
+        (True, "28.7 tokens/sec (fast - good GPU acceleration)"),
+        (True, "15.2 tokens/sec (decent - entry-level GPU acceleration)"),
+        (False, "6.8 tokens/sec (slow - weak GPU or limited GPU offload)"),
+        (False, "0.8 tokens/sec (very slow - CPU-only)"),
+        (False, "Cannot test performance: Model file not found"),
     ]
 }
 
