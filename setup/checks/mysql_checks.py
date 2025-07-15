@@ -184,7 +184,6 @@ def get_mysql_service_name():
 
 def check_mysql_requirements():
     """Check all MySQL related requirements (for orchestration)."""
-    print("Checking MySQL server and CLI requirements...")
     
     server_ok, _ = check_mysql_server()
     cli_ok, _ = check_mysql_cli()

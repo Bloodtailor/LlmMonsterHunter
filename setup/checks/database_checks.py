@@ -149,7 +149,6 @@ def check_database_exists():
 
 def check_database_requirements():
     """Check all database related requirements (for orchestration)."""
-    print("Checking database configuration and connectivity...")
     
     config_ok, _ = check_env_database_config()
     server_ok, _ = check_mysql_server_connection()

@@ -58,7 +58,6 @@ def check_frontend_dependencies():
 
 def check_nodejs_requirements():
     """Check all Node.js related requirements (for orchestration)."""
-    print("Checking Node.js and npm requirements...")
     
     nodejs_ok, _ = check_nodejs()
     npm_ok, _ = check_npm()
