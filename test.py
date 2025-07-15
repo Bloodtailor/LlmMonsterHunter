@@ -1,4 +1,3 @@
-from setup.checks import run_all_checks
-from setup.utils import show_status_table
+from setup.checks import run_full_diagnostic
 
-show_status_table(run_all_checks())
+run_full_diagnostic()

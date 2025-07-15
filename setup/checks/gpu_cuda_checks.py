@@ -230,3 +230,36 @@ def check_gpu_cuda_requirements():
     has_development_access = nvcc_ok or cuda_path_ok
     
     return has_gpu_and_driver and has_cuda_toolkit and has_development_access
+
+def get_diagnostic_info(include_overall=False):
+    """
+    Get comprehensive GPU CUDA diagnostic information.
+    Used by flows to understand what specifically needs to be addressed.
+    
+    Args:
+        include_overall (bool): Whether to include overall requirement check
+    
+    Returns:
+        dict: All GPU CUDA check results for detailed analysis
+    """
+    gpu_ok, gpu_msg = check_nvidia_gpu()
+    driver_ok, driver_msg = check_nvidia_driver_version()
+    cuda_dirs_ok, cuda_dirs_msg = check_cuda_directories()
+    nvcc_ok, nvcc_msg = check_nvcc_compiler()
+    cuda_path_ok, cuda_path_msg = check_cuda_path_env()
+    compute_ok, compute_msg = check_gpu_compute_capability()
+    
+    result = {
+        'nvidia_gpu': (gpu_ok, gpu_msg),
+        'nvidia_driver': (driver_ok, driver_msg),
+        'cuda_directories': (cuda_dirs_ok, cuda_dirs_msg),
+        'cuda_compiler': (nvcc_ok, nvcc_msg),
+        'cuda_environment': (cuda_path_ok, cuda_path_msg),
+        'gpu_compute_capability': (compute_ok, compute_msg),
+    }
+    
+    if include_overall:
+        overall_ok = check_gpu_cuda_requirements()
+        result['overall'] = (overall_ok, "All GPU CUDA requirements met" if overall_ok else "Some GPU CUDA requirements missing")
+    
+    return result

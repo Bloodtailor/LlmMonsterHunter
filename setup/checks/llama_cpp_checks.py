@@ -233,3 +233,30 @@ def check_llama_cpp_requirements():
     import_ok, _ = test_llama_cpp_import()
     
     return installed_ok and import_ok
+
+def get_diagnostic_info(include_overall=False):
+    """
+    Get comprehensive llama-cpp-python diagnostic information.
+    Used by flows to understand what specifically needs to be addressed.
+    
+    Args:
+        include_overall (bool): Whether to include overall requirement check
+    
+    Returns:
+        dict: All llama-cpp-python check results for detailed analysis
+    """
+    installed_ok, installed_msg = check_llama_cpp_installed()
+    import_ok, import_msg = test_llama_cpp_import()
+    performance_ok, performance_msg = test_llama_cpp_performance()
+    
+    result = {
+        'llama_cpp_installed': (installed_ok, installed_msg),
+        'llama_cpp_import': (import_ok, import_msg),
+        'llama_cpp_performance': (performance_ok, performance_msg),
+    }
+    
+    if include_overall:
+        overall_ok = check_llama_cpp_requirements()
+        result['overall'] = (overall_ok, "All llama-cpp-python requirements met" if overall_ok else "Some llama-cpp-python requirements missing")
+    
+    return result

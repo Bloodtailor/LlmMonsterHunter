@@ -66,13 +66,6 @@ def create_env_file():
     """Create .env file from template."""
     return create_env_file_from_template()
 
-def update_database_password_in_env(password):
-    """Update database password in .env file."""
-    if not password:
-        return False, "Password cannot be empty"
-    
-    return update_env_config(DB_PASSWORD=password)
-
 def auto_setup_basic_backend():
     """Automatically set up basic backend requirements, only showing output when installing."""
     print("Setting up basic backend requirements...")

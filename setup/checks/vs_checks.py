@@ -10,6 +10,7 @@ They're designed to guide users, not provide perfect detection.
 
 import os
 from pathlib import Path
+from setup.constants import VS_LOCATIONS, SDK_LOCATIONS, NODEJS_LOCATIONS
 
 def check_visual_studio_installations():
     """
@@ -18,36 +19,7 @@ def check_visual_studio_installations():
     Returns:
         tuple: (success, message) where success indicates if any VS installation found
     """
-    vs_paths = [
-        # Visual Studio 2022 (all editions)
-        ("VS Community 2022", "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community"),
-        ("VS Professional 2022", "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional"),
-        ("VS Enterprise 2022", "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise"),
-        ("VS Preview 2022", "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview"),
-        ("VS Build Tools 2022", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools"),
-        
-        # Visual Studio 2019 (all editions)
-        ("VS Community 2019", "C:\\Program Files\\Microsoft Visual Studio\\2019\\Community"),
-        ("VS Professional 2019", "C:\\Program Files\\Microsoft Visual Studio\\2019\\Professional"),
-        ("VS Enterprise 2019", "C:\\Program Files\\Microsoft Visual Studio\\2019\\Enterprise"),
-        ("VS Preview 2019", "C:\\Program Files\\Microsoft Visual Studio\\2019\\Preview"),
-        ("VS Build Tools 2019", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools"),
-        
-        # Visual Studio 2017 (legacy but still used)
-        ("VS Community 2017", "C:\\Program Files\\Microsoft Visual Studio\\2017\\Community"),
-        ("VS Professional 2017", "C:\\Program Files\\Microsoft Visual Studio\\2017\\Professional"),
-        ("VS Enterprise 2017", "C:\\Program Files\\Microsoft Visual Studio\\2017\\Enterprise"),
-        ("VS Build Tools 2017", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools"),
-        
-        # Alternative drive installations
-        ("VS 2022 (D: drive)", "D:\\Microsoft Visual Studio\\2022\\Community"),
-        ("VS 2019 (D: drive)", "D:\\Microsoft Visual Studio\\2019\\Community"),
-        
-        # Legacy paths (older installers)
-        ("Visual Studio 2022", "C:\\Program Files\\Microsoft Visual Studio\\2022"),
-        ("Visual Studio 2019", "C:\\Program Files\\Microsoft Visual Studio\\2019"),
-        ("Visual Studio 2017", "C:\\Program Files\\Microsoft Visual Studio\\2017")
-    ]
+    vs_paths = VS_LOCATIONS
     
     found_installations = []
     for name, path in vs_paths:
@@ -71,37 +43,7 @@ def check_windows_sdk():
     Returns:
         tuple: (success, message)
     """
-    sdk_paths = [
-        # Windows 10/11 SDK (most common)
-        "C:\\Program Files (x86)\\Windows Kits\\10",
-        "C:\\Program Files\\Windows Kits\\10",
-        
-        # Windows 8.1 SDK (legacy but still used)
-        "C:\\Program Files (x86)\\Windows Kits\\8.1",
-        "C:\\Program Files\\Windows Kits\\8.1",
-        
-        # Windows 8.0 SDK (older legacy)
-        "C:\\Program Files (x86)\\Windows Kits\\8.0",
-        "C:\\Program Files\\Windows Kits\\8.0",
-        
-        # Legacy Microsoft SDKs
-        "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v10.0",
-        "C:\\Program Files\\Microsoft SDKs\\Windows\\v10.0",
-        "C:\\Program Files (x86)\\Microsoft SDKs\\Windows",
-        "C:\\Program Files\\Microsoft SDKs\\Windows",
-        
-        # Alternative drive installations
-        "D:\\Windows Kits\\10",
-        "D:\\Windows Kits\\8.1",
-        
-        # Visual Studio installer locations
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Windows Kits\\10",
-        "C:\\Program Files\\Microsoft Visual Studio\\Shared\\Windows Kits\\10",
-        
-        # Standalone SDK installer locations
-        "C:\\Program Files (x86)\\Windows SDKs\\10",
-        "C:\\Program Files\\Windows SDKs\\10"
-    ]
+    sdk_paths = SDK_LOCATIONS
     
     for path in sdk_paths:
         if os.path.exists(path):
@@ -124,37 +66,7 @@ def check_cpp_build_tools():
         return False, "No Visual Studio installations to check for C++ tools"
     
     # Common base paths where VS might be installed
-    base_paths = [
-        # Visual Studio 2022 (all editions)
-        "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community",
-        "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional", 
-        "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise",
-        "C:\\Program Files\\Microsoft Visual Studio\\2022\\Preview",
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools",
-        
-        # Visual Studio 2019 (all editions)
-        "C:\\Program Files\\Microsoft Visual Studio\\2019\\Community",
-        "C:\\Program Files\\Microsoft Visual Studio\\2019\\Professional",
-        "C:\\Program Files\\Microsoft Visual Studio\\2019\\Enterprise", 
-        "C:\\Program Files\\Microsoft Visual Studio\\2019\\Preview",
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools",
-        
-        # Visual Studio 2017 (legacy but still used)
-        "C:\\Program Files\\Microsoft Visual Studio\\2017\\Community",
-        "C:\\Program Files\\Microsoft Visual Studio\\2017\\Professional",
-        "C:\\Program Files\\Microsoft Visual Studio\\2017\\Enterprise",
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools",
-        
-        # Alternative drive installations
-        "D:\\Microsoft Visual Studio\\2022\\Community",
-        "D:\\Microsoft Visual Studio\\2019\\Community",
-        "D:\\Microsoft Visual Studio\\2017\\Community",
-        
-        # Legacy year-only paths (older detection patterns)
-        "C:\\Program Files\\Microsoft Visual Studio\\2022",
-        "C:\\Program Files\\Microsoft Visual Studio\\2019",
-        "C:\\Program Files\\Microsoft Visual Studio\\2017"
-    ]
+    base_paths = NODEJS_LOCATIONS
     
     for base_path in base_paths:
         if not os.path.exists(base_path):
@@ -189,10 +101,13 @@ def check_visual_studio_requirements():
     
     return installations_ok and sdk_ok and cpp_tools_ok
 
-def get_visual_studio_diagnostic_info():
+def get_diagnostic_info(include_overall=False):
     """
     Get comprehensive Visual Studio diagnostic information.
     Used by flows to understand what specifically needs to be addressed.
+    
+    Args:
+        include_overall (bool): Whether to include overall requirement check
     
     Returns:
         dict: All VS check results for detailed analysis
@@ -201,8 +116,14 @@ def get_visual_studio_diagnostic_info():
     sdk_ok, sdk_msg = check_windows_sdk()
     cpp_tools_ok, cpp_tools_msg = check_cpp_build_tools()
     
-    return {
+    result = {
         'installations': (installations_ok, installations_msg),
         'windows_sdk': (sdk_ok, sdk_msg),
         'cpp_build_tools': (cpp_tools_ok, cpp_tools_msg),
     }
+    
+    if include_overall:
+        overall_ok = check_visual_studio_requirements()
+        result['overall'] = (overall_ok, "All Visual Studio requirements met" if overall_ok else "Some Visual Studio requirements missing")
+    
+    return result

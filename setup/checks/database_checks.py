@@ -155,3 +155,30 @@ def check_database_requirements():
     database_ok, _ = check_database_exists()
     
     return config_ok and server_ok and database_ok
+
+def get_diagnostic_info(include_overall=False):
+    """
+    Get comprehensive database diagnostic information.
+    Used by flows to understand what specifically needs to be addressed.
+    
+    Args:
+        include_overall (bool): Whether to include overall requirement check
+    
+    Returns:
+        dict: All database check results for detailed analysis
+    """
+    config_ok, config_msg = check_env_database_config()
+    connection_ok, connection_msg = check_mysql_server_connection()
+    database_ok, database_msg = check_database_exists()
+    
+    result = {
+        'database_config': (config_ok, config_msg),
+        'mysql_connection': (connection_ok, connection_msg),
+        'database_exists': (database_ok, database_msg),
+    }
+    
+    if include_overall:
+        overall_ok = check_database_requirements()
+        result['overall'] = (overall_ok, "All database requirements met" if overall_ok else "Some database requirements missing")
+    
+    return result

@@ -101,3 +101,36 @@ def check_basic_backend_requirements_silent():
         return all([python_ok, pip_ok, venv_ok, deps_ok, env_ok])
     except Exception:
         return False
+    
+def get_diagnostic_info(include_overall=False):
+    """
+    Get comprehensive basic backend diagnostic information.
+    Used by flows to understand what specifically needs to be addressed.
+    
+    Args:
+        include_overall (bool): Whether to include overall requirement check
+    
+    Returns:
+        dict: All basic backend check results for detailed analysis
+    """
+    python_ok, python_msg = check_python_version()
+    pip_ok, pip_msg = check_pip()
+    network_ok, network_msg = check_network_access()
+    venv_ok, venv_msg = check_virtual_environment()
+    deps_ok, deps_msg = check_basic_dependencies()
+    env_ok, env_msg = check_env_file()
+    
+    result = {
+        'python_version': (python_ok, python_msg),
+        'pip': (pip_ok, pip_msg),
+        'network_access': (network_ok, network_msg),
+        'virtual_environment': (venv_ok, venv_msg),
+        'basic_dependencies': (deps_ok, deps_msg),
+        'env_file': (env_ok, env_msg),
+    }
+    
+    if include_overall:
+        overall_ok = check_basic_backend_requirements()
+        result['overall'] = (overall_ok, "All basic backend requirements met" if overall_ok else "Some basic backend requirements missing")
+    
+    return result

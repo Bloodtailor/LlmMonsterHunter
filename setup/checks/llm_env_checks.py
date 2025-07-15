@@ -108,3 +108,26 @@ def check_model_directory_requirements():
     """Check that a valid model path is configured in .env."""
     env_ok, _ = check_env_model_path()
     return env_ok
+
+def get_diagnostic_info(include_overall=False):
+    """
+    Get comprehensive LLM environment diagnostic information.
+    Used by flows to understand what specifically needs to be addressed.
+    
+    Args:
+        include_overall (bool): Whether to include overall requirement check
+    
+    Returns:
+        dict: All LLM environment check results for detailed analysis
+    """
+    model_path_ok, model_path_msg = check_env_model_path()
+    
+    result = {
+        'model_path': (model_path_ok, model_path_msg),
+    }
+    
+    if include_overall:
+        overall_ok = check_model_directory_requirements()
+        result['overall'] = (overall_ok, "All LLM environment requirements met" if overall_ok else "Some LLM environment requirements missing")
+    
+    return result
