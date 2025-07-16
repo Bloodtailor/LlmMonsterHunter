@@ -1,7 +1,7 @@
 # Workflow loader - Maps workflow types to existing game logic functions
 # Combs through the files in the game folder
 # Registers files named "registered_workflows.py" as callable workflows
-
+print("🔍 Loading workflow registry")
 from typing import Callable, Dict, Any, Optional
 import inspect
 import threading

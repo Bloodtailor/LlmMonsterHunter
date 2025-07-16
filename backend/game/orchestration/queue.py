@@ -1,7 +1,7 @@
 # Game Orchestration Queue - Multi-Step Workflow Processing
 # Handles complex game workflows that call existing game logic
 # Single worker thread processes workflows sequentially
-
+print("🔍 Loading orchestration queue")
 import threading
 import time
 from typing import Dict, Any, Optional, Callable
