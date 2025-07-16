@@ -27,6 +27,13 @@ def initialize_ai_systems(app):
             print_success("AI generation queue ready")
         else:
             print_error("AI queue initialization failed")
+
+    # Initialize Game Queue
+    with app.app_context():
+        if _initialize_game_queue(app):
+            print_success("Game orchestration queue ready")
+        else:
+            print_error("Game orchestration queue failed")
     
     # Check image generation capability
     _check_image_generation()
@@ -50,13 +57,29 @@ def _initialize_ai_queue(app):
     try:
         from backend.ai.queue import get_ai_queue
         
-        queue = get_ai_queue()
-        queue.set_flask_app(app)
+        ai_queue = get_ai_queue()
+        ai_queue.set_flask_app(app)
         return True
         
     except Exception as e:
-        print_error(f"Queue initialization error: {e}")
+        print_error(f"AI queue initialization error: {e}")
         return False
+    
+def _initialize_game_queue(app):
+    """Initialize unified AI queue with Flask context"""
+    try:
+        from backend.game.orchestration.queue import get_game_orchestration_queue
+        from backend.game.orchestration.workflow_loader import load_all_workflows
+
+        game_queue = get_game_orchestration_queue()
+        game_queue.set_flask_app(app)
+
+        load_all_workflows()
+
+        return True
+    
+    except Exception as e:
+        print_error(f"Game queue initialization error: {e}")
 
 def _check_image_generation():
     """Check image generation capability"""
