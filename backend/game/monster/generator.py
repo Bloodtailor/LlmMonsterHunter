@@ -4,7 +4,7 @@
 
 from typing import Dict, Any
 from backend.models.monster import Monster
-from backend.game.utils import build_and_generate
+from backend.game.utils import build_and_generate, IMAGE_GENERATION_ENABLED
 from backend.utils import success_response, error_response, print_success
 from backend.game import AbilityGenerator
 from backend.services import generation_service
@@ -15,7 +15,7 @@ class MonsterGenerator:
     def __init__(self):
         self.ability_generator = AbilityGenerator()
     
-    def generate_monster(self, prompt_name: str, generate_card_art: bool) -> Dict[str, Any]:
+    def generate_monster(self, prompt_name: str = "detailed_monster") -> Dict[str, Any]:
         """Generate monster - assumes valid inputs"""
         
         print_success(f"Generating monster using template: {prompt_name}")
@@ -38,7 +38,7 @@ class MonsterGenerator:
         
         # Generate card art if requested
         card_art_result = {'success': False}
-        if generate_card_art:
+        if IMAGE_GENERATION_ENABLED:
             card_art_result = self._generate_card_art(monster)
         
         # Reload monster with abilities and card art

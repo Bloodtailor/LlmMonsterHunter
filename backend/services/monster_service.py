@@ -15,8 +15,7 @@ from backend.utils import success_response, error_response, validate_and_continu
 _generator = MonsterGenerator()
 _manager = MonsterManager()
 
-def generate_monster(prompt_name: str = "detailed_monster", 
-                    generate_card_art: bool = True) -> Dict[str, Any]:
+def generate_monster(prompt_name: str = "detailed_monster") -> Dict[str, Any]:
     """Generate monster - only validate template exists"""
     
     available_templates = _generator.get_available_templates()
@@ -25,7 +24,7 @@ def generate_monster(prompt_name: str = "detailed_monster",
     if error_check:
         return error_check
     
-    return _generator.generate_monster(prompt_name, generate_card_art)
+    return _generator.generate_monster(prompt_name)
 
 def generate_card_art_for_existing_monster(monster_id: int) -> Dict[str, Any]:
     """Generate card art - only validate monster exists"""

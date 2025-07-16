@@ -11,11 +11,10 @@ monster_bp = Blueprint('monsters', __name__, url_prefix='/api/monsters')
 def generate_monster():
     """Generate monster - thin HTTP wrapper"""
     data = request.get_json() or {}
+
+    prompt_name = data.get('prompt_name', 'detailed_monster')
     
-    result = monster_service.generate_monster(
-        prompt_name=data.get('prompt_name', 'detailed_monster'),
-        generate_card_art=data.get('generate_card_art', True)
-    )
+    result = monster_service.generate_monster(prompt_name)
     
     return jsonify(result), 200 if result['success'] else 500
 
