@@ -59,13 +59,9 @@ def create_tables():
         from backend.models.base import BaseModel  # Base model class
         from backend.models.monster import Monster  # Monster model
         from backend.models.ability import Ability  # Ability model
-        
-        # 🔧 NEW: Normalized generation log models
         from backend.models.generation_log import GenerationLog  # Parent table
         from backend.models.llm_log import LLMLog              # LLM child table
         from backend.models.image_log import ImageLog          # Image child table
-        
-        # 🔧 NEW: Normalized game state models
         from backend.models.game_state import GameState        # Main game state
         from backend.models.game_state_relations import (      # Relationship tables
             FollowingMonster,
@@ -73,6 +69,7 @@ def create_tables():
             DungeonState,
             DungeonDoor
         )
+        from backend.models.game_workflow import GameWorkflow
         
         # Create all tables
         db.create_all()

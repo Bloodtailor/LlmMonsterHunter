@@ -4,6 +4,8 @@
 
 import os
 
+IMAGE_GENERATION_ENABLED = os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true'
+
 # === Model and Checkpoint Settings ===
 DEFAULT_CHECKPOINT = "XL\\dreamshaperXL_v21TurboDPMSDE.safetensors"
 DEFAULT_SAMPLER = "dpmpp_sde_gpu"

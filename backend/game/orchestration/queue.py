@@ -10,7 +10,7 @@ from queue import Queue, Empty
 from dataclasses import dataclass
 from enum import Enum
 from backend.utils import print_success, print_error, print_info
-from backend.game.orchestration.workflow_registry import get_workflow, list_workflows
+from .workflow_registry import get_workflow, list_workflows
 
 _global_game_queue = None
 _game_queue_lock = threading.Lock()
@@ -84,7 +84,7 @@ class GameOrchestrationQueue:
         if self._worker_thread:
             self._worker_thread.join(timeout=5)
     
-    def add_workflow(self, workflow_type: str, context: Dict[str, Any], priority: int = 5) -> Optional[int]:
+    def add_workflow(self, workflow_type: str, context: Dict[str, Any] = {"content": "no content"}, priority: int = 5) -> Optional[int]:
         """
         Add a workflow to the queue
         

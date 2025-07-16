@@ -5,6 +5,7 @@ from .ability import AbilityGenerator
 from .monster import MonsterGenerator, MonsterManager
 from .dungeon import DungeonGenerator, DungeonManager
 from .state import GameStateManager
+from .orchestration import GameOrchestrationQueue
 
 __all__ = [
     'AbilityGenerator',
@@ -12,5 +13,6 @@ __all__ = [
     'MonsterManager',
     'DungeonGenerator',
     'DungeonManager',
-    'GameStateManager'
+    'GameStateManager',
+    'GameOrchestrationQueue'
 ]

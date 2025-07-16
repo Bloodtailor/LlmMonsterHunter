@@ -7,7 +7,7 @@ import inspect
 import threading
 
 # Global registry of workflow_name -> callable
-_WORKFLOW_REGISTRY: dict[str, Callable[[dict], dict]] = {}
+_WORKFLOW_REGISTRY: Dict[str, Callable[[dict], dict]] = {}
 _REGISTRY_LOCK = threading.Lock()  # thread-safe if registering dynamically
 
 class WorkflowRegistrationError(Exception):
