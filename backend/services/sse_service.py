@@ -157,7 +157,15 @@ class SSEService:
         for event_type in llm_events:
             self._event_service.subscribe(event_type, self.broadcast_event)
             # Removed verbose subscription messages
-    
+
+        #subscribe to all dungeon events
+        dungeon_events = [
+            'dungeon.main.ready'
+        ]
+
+        for event_type in dungeon_events:
+            self._event_service.subscribe(event_type, self.broadcast_event)
+            
     def _convert_to_sse_format(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """
         Convert event_service event to SSE format
