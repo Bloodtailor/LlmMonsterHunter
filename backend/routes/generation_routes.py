@@ -181,30 +181,3 @@ def get_prompts():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
-@generation_bp.route('/test/llm', methods=['POST'])
-def test_llm():
-    """Test LLM generation"""
-    data = request.get_json() or {}
-    prompt = data.get('prompt', 'Hello! Please respond with just the word "hi".')
-    
-    result = generation_service.text_generation_request(
-        prompt=prompt, 
-        prompt_type='api_test',
-        wait_for_completion=True
-    )
-    return jsonify(result)
-
-@generation_bp.route('/test/image', methods=['POST'])
-def test_image():
-    """Test image generation"""
-    data = request.get_json() or {}
-    description = data.get('description', 'A majestic fire dragon with golden scales')
-    
-    result = generation_service.image_generation_request(
-        prompt_text="A goblin",
-        prompt_type="image_generation",
-        prompt_name="monster_generation",
-        wait_for_completion=True
-    )
-    return jsonify(result)

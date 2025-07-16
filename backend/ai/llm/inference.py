@@ -99,10 +99,10 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
                         if choice.get('finish_reason') is not None:
                             break
                             
-                except Exception as e:
+                except Exception:
                     continue
                     
-        except Exception as e:
+        except Exception:
             # Continue with whatever we have so far
             pass
         
@@ -125,11 +125,9 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
         }
         
     except Exception as e:
-        error_msg = f"Streaming generation failed: {str(e)}"
-        
         return {
             'success': False,
-            'error': error_msg,
+            'error': f"Streaming generation failed: {str(e)}",
             'text': accumulated_text if 'accumulated_text' in locals() else None,
             'tokens': token_count if 'token_count' in locals() else 0,
             'duration': time.time() - start_time if 'start_time' in locals() else 0

@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any
+from backend.utils import print_success, print_info, print_error, print_warning
 
 # Global state for model management ONLY
 _model = None
@@ -46,11 +47,11 @@ def load_model() -> bool:
     with _model_lock:
         # Check if already loaded
         if _model is not None and _model_info['loaded']:
-            print("✅ Model already loaded, skipping reload")
+            print_success("Model already loaded, skipping reload")
             return True
         
         try:
-            print("🔄 Loading LLM model...")
+            print_info("Loading LLM model...")
             
             # Get configuration from .env
             model_path = os.getenv('LLM_MODEL_PATH')
@@ -60,10 +61,9 @@ def load_model() -> bool:
             if not model_path or not Path(model_path).exists():
                 raise FileNotFoundError(f"Model file not found: {model_path}")
             
-            print(f"📋 Configuration:")
-            print(f"   Model: {Path(model_path).name}")
-            print(f"   GPU Layers: {gpu_layers}")
-            print(f"   Context Size: {context_size}")
+            print_info(f"Model: {Path(model_path).name}")
+            print_info(f"GPU Layers: {gpu_layers}")
+            print_info(f"Context Size: {context_size}")
             
             # Import and load model
             from llama_cpp import Llama
@@ -96,12 +96,12 @@ def load_model() -> bool:
                 'error': None
             })
             
-            print(f"✅ Model loaded successfully in {load_duration:.1f} seconds")
+            print_success(f"Model loaded successfully in {load_duration:.1f} seconds")
             return True
             
         except Exception as e:
             error_msg = f"Failed to load model: {str(e)}"
-            print(f"❌ {error_msg}")
+            print_error(error_msg)
             
             _model_info.update({
                 'loaded': False,
@@ -129,10 +129,6 @@ def unload_model():
                 'gpu_layers': None,
                 'error': None
             })
-            # Removed verbose unloading messages
-        else:
-            # Removed "No model to unload" message
-            pass
 
 def is_model_loaded() -> bool:
     """Check if model is currently loaded"""
@@ -176,7 +172,7 @@ def warm_up_model() -> bool:
     try:
         from .inference import generate_streaming
         
-        print("🔥 Warming up model...")
+        print_info("Warming up model...")
         
         # Quick warmup generation
         result = generate_streaming(
@@ -189,14 +185,14 @@ def warm_up_model() -> bool:
         if result['success']:
             tokens_per_sec = result.get('tokens_per_second', 0)
             if tokens_per_sec > 15:
-                print(f"✅ Model warmed up successfully ({tokens_per_sec:.1f} tok/s - GPU performance)")
+                print_success(f"Model warmed up successfully ({tokens_per_sec:.1f} tok/s - GPU performance)")
             else:
-                print(f"⚠️  Model warmed up ({tokens_per_sec:.1f} tok/s - check GPU usage)")
+                print_warning(f"Model warmed up ({tokens_per_sec:.1f} tok/s - check GPU usage)")
             return True
         else:
-            print(f"⚠️  Model warmup failed: {result['error']}")
+            print_warning(f"Model warmup failed: {result['error']}")
             return False
             
     except Exception as e:
-        print(f"⚠️  Warmup error: {e}")
+        print_warning(f"Warmup error: {e}")
         return False

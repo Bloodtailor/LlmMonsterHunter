@@ -5,6 +5,7 @@
 from typing import Dict, Any, Optional, Callable
 from .inference import generate_streaming
 from .parser import parse_response
+from backend.utils import error_response, success_response, print_success, print_error
 
 def process_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
     """
@@ -19,46 +20,28 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
     """
     
     try:
-        # Load generation log and verify it's an LLM generation
+        # Load generation log (service layer already validated it exists)
         from backend.models.generation_log import GenerationLog
         
         generation_log = GenerationLog.query.get(generation_id)
         if not generation_log:
-            return {
-                'success': False,
-                'error': f'Generation log {generation_id} not found',
-                'generation_id': generation_id
-            }
+            return error_response(f'Generation log {generation_id} not found', generation_id=generation_id)
         
         if generation_log.generation_type != 'llm':
-            return {
-                'success': False,
-                'error': f'Generation {generation_id} is not an LLM generation (type: {generation_log.generation_type})',
-                'generation_id': generation_id
-            }
+            return error_response(
+                f'Generation {generation_id} is not an LLM generation (type: {generation_log.generation_type})',
+                generation_id=generation_id
+            )
         
         # Get LLM-specific data
         llm_log = generation_log.llm_log
         if not llm_log:
-            return {
-                'success': False,
-                'error': f'LLM log not found for generation {generation_id}',
-                'generation_id': generation_id
-            }
+            return error_response(f'LLM log not found for generation {generation_id}', generation_id=generation_id)
         
         # Extract parameters
         prompt_text = generation_log.prompt_text
         inference_params = llm_log.get_inference_params()
         parser_config = llm_log.parser_config
-        
-        if not prompt_text or not inference_params:
-            generation_log.mark_failed("Missing prompt or parameters")
-            generation_log.save()
-            return {
-                'success': False,
-                'error': 'Missing prompt or parameters',
-                'generation_id': generation_id
-            }
         
         # Mark as started
         generation_log.mark_started()
@@ -67,7 +50,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
         # Attempt generation + parsing loop
         while True:
             current_attempt = generation_log.generation_attempt
-            print(f"🎯 LLM Generation attempt {current_attempt}/{generation_log.max_attempts}")
+            print_success(f"LLM Generation attempt {current_attempt}/{generation_log.max_attempts}")
             
             # Generate text
             generation_result = generate_streaming(
@@ -79,12 +62,11 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
             if not generation_result['success']:
                 generation_log.mark_failed(generation_result['error'])
                 generation_log.save()
-                return {
-                    'success': False,
-                    'error': generation_result['error'],
-                    'generation_id': generation_id,
-                    'attempt': current_attempt
-                }
+                return error_response(
+                    generation_result['error'],
+                    generation_id=generation_id,
+                    attempt=current_attempt
+                )
             
             # Update LLM log with generation results
             llm_log.mark_response_completed(
@@ -107,10 +89,9 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                     llm_log.save()
                     generation_log.save()
                     
-                    print(f"✅ LLM parsing succeeded on attempt {current_attempt}")
+                    print_success(f"LLM parsing succeeded on attempt {current_attempt}")
                     
-                    return {
-                        'success': True,
+                    return success_response({
                         'text': generation_result['text'],
                         'parsed_data': parse_result.data,
                         'tokens': generation_result.get('tokens', 0),
@@ -119,7 +100,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                         'generation_id': generation_id,
                         'attempt': current_attempt,
                         'parsing_success': True
-                    }
+                    })
                 else:
                     # Parsing failed
                     llm_log.mark_parse_failed(parse_result.error)
@@ -137,8 +118,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                         generation_log.mark_completed()
                         generation_log.save()
                         
-                        return {
-                            'success': True,  # Generation succeeded, parsing failed
+                        return success_response({
                             'text': generation_result['text'],
                             'parsed_data': None,
                             'tokens': generation_result.get('tokens', 0),
@@ -148,14 +128,13 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                             'attempt': current_attempt,
                             'parsing_success': False,
                             'parsing_error': parse_result.error
-                        }
+                        })
             else:
                 # No parsing needed, just return generation result
                 generation_log.mark_completed()
                 generation_log.save()
                 
-                return {
-                    'success': True,
+                return success_response({
                     'text': generation_result['text'],
                     'tokens': generation_result.get('tokens', 0),
                     'duration': generation_result.get('duration', 0),
@@ -163,7 +142,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
                     'generation_id': generation_id,
                     'attempt': current_attempt,
                     'parsing_success': None  # No parsing attempted
-                }
+                })
         
     except Exception as e:
         # Try to mark as failed in database
@@ -176,46 +155,4 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
         except:
             pass  # Don't fail on database update failure
         
-        return {
-            'success': False,
-            'error': str(e),
-            'generation_id': generation_id
-        }
-
-def quick_inference(prompt: str, **inference_overrides) -> Dict[str, Any]:
-    """
-    Quick LLM inference without parsing - for simple text generation
-    
-    Args:
-        prompt (str): Text to generate
-        **inference_overrides: Optional parameter overrides
-        
-    Returns:
-        dict: Generation results
-    """
-    
-    try:
-        # Get defaults and apply overrides
-        from backend.config.llm_config import get_all_inference_defaults
-        from backend.models.generation_log import GenerationLog
-        
-        params = get_all_inference_defaults()
-        params.update(inference_overrides)
-        
-        # Create generation log with LLM child
-        generation_log = GenerationLog.create_llm_log(
-            prompt_type='quick_inference',
-            prompt_name='quick_inference',
-            prompt_text=prompt,
-            inference_params=params,
-            parser_config=None  # No parsing
-        )
-        
-        if not generation_log or not generation_log.save():
-            return {'success': False, 'error': 'Failed to create generation log'}
-        
-        # Process without parsing
-        return process_request(generation_log.id)
-        
-    except Exception as e:
-        return {'success': False, 'error': str(e)}
+        return error_response(str(e), generation_id=generation_id)

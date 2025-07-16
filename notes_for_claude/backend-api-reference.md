@@ -253,14 +253,6 @@ Serves image files directly.
 #### GET /generation/stats
 **Success:** `{success: true, data: {overall, llm, image}}`
 
-#### POST /generation/test/llm
-**Request:** `{prompt: string}`  
-**Success:** Standard text generation response
-
-#### POST /generation/test/image
-**Request:** `{description: string}`  
-**Success:** Standard image generation response
-
 ### Streaming & SSE
 
 #### GET /streaming/llm-events
@@ -277,9 +269,6 @@ Debug endpoint showing active connections and event types.
 
 #### GET /game/status
 **Success:** `{game_name, version, status, features: {monster_generation, ability_generation, image_generation, etc.}, ai_systems}`
-
-#### GET /test/generation
-**Success:** `{llm_test: "success"|"failed", image_test: "success"|"queued"|"disabled", overall_success: boolean}`
 
 #### GET /game_tester/tests
 **Success:** `[test_file_names]`

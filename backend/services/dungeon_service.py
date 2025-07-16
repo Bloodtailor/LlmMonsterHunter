@@ -39,7 +39,7 @@ def choose_door(door_choice: str) -> Dict[str, Any]:
     current_state = _get_dungeon_state()
     
     # Validate in dungeon
-    dungeon_validation = validate_in_dungeon(current_state)
+    dungeon_validation = validate_in_dungeon()
     error_check = validate_and_continue(dungeon_validation, {'in_dungeon': False})
     if error_check:
         return error_check
