@@ -6,7 +6,7 @@ from typing import Dict, Any
 from backend.models.monster import Monster
 from backend.game.utils import build_and_generate, IMAGE_GENERATION_ENABLED
 from backend.utils import success_response, error_response, print_success
-from backend.game import AbilityGenerator
+from backend.game.ability.generator import AbilityGenerator
 from backend.services import generation_service
 
 class MonsterGenerator:

@@ -68,8 +68,7 @@ def _initialize_ai_queue(app):
 def _initialize_game_queue(app):
     """Initialize unified AI queue with Flask context"""
     try:
-        from backend.game.orchestration.queue import get_game_orchestration_queue
-        from backend.game.orchestration.workflow_loader import load_all_workflows
+        from backend.game import get_game_orchestration_queue, load_all_workflows
 
         game_queue = get_game_orchestration_queue()
         game_queue.set_flask_app(app)

@@ -1,5 +1,5 @@
 # workflow_loader.py
-
+print("🔍 Loading workflow loader")
 import importlib.util
 from pathlib import Path
 
