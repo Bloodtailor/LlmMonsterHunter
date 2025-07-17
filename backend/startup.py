@@ -1,8 +1,8 @@
 # AI Systems Initialization - CLEANED UP
 # Loads LLM model and initializes unified AI generation queue
-
+print(f"🔍 Loading {__file__}")
 import os
-from backend.utils.console import print_section, print_success, print_error, print_warning, print_info
+from backend.core.utils.console import print_section, print_success, print_error, print_warning, print_info
 
 def initialize_ai_systems(app):
     """
@@ -68,17 +68,15 @@ def _initialize_ai_queue(app):
 def _initialize_game_queue(app):
     """Initialize unified AI queue with Flask context"""
     try:
-        
-        '''
-        from backend.game.orchestration import get_game_orchestration_queue
+        from backend.workflow.workflow_queue import get_queue
 
-        game_queue = get_game_orchestration_queue()
+        game_queue = get_queue()
         game_queue.set_flask_app(app)
 
         print("attempting to view workflows... ")
         from backend.core.workflow_registry import list_workflows
         print(list_workflows())
-        '''
+
         return True
     
     except Exception as e:

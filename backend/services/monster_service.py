@@ -1,8 +1,9 @@
 # Monster Service - GREATLY SIMPLIFIED: Minimal Trust Boundary
 # Only validates what routes absolutely cannot handle
 # Eliminates all redundant error checking
-
+print(f"🔍 Loading {__file__}")
 from typing import Dict, Any
+from backend.core.utils import success_response, error_response, validate_and_continue
 from backend.game.monster.generator import MonsterGenerator
 from backend.game.monster.manager import MonsterManager
 from .validators import (
@@ -10,7 +11,7 @@ from .validators import (
     validate_monster_template, 
     validate_monster_list_params
 )
-from backend.utils import success_response, error_response, validate_and_continue
+
 
 # Create singleton instances
 _generator = MonsterGenerator()

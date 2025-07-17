@@ -1,6 +1,6 @@
 # Flask Application Factory - CLEANED UP
 # Creates and configures the Flask application
-
+print(f"🔍 Loading {__file__}")
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -29,7 +29,7 @@ def create_app(config_name='development'):
     CORS(app, origins=['http://localhost:3000'])
     
     # Initialize database
-    from backend.config.database import init_db, create_tables
+    from backend.core.config.database import init_db, create_tables
     init_db(app)
     
     # Register all models and create tables
@@ -122,7 +122,7 @@ def _register_routes(app):
     def test_generation():
         """Test AI generation capabilities"""
         
-        from backend.services import generation_service
+        from backend.ai import gateway
         
         results = {
             'llm_test': 'not_tested',
@@ -132,7 +132,7 @@ def _register_routes(app):
         
         # Test LLM
         try:
-            llm_result = generation_service.text_generation_request(
+            llm_result = gateway.text_generation_request(
                 prompt="Say 'LLM test successful'",
                 wait_for_completion=True
             )
@@ -145,7 +145,7 @@ def _register_routes(app):
         image_enabled = os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true'
         if image_enabled:
             try:
-                image_result = generation_service.image_generation_request(
+                image_result = gateway.image_generation_request(
                     prompt_text="A goblin",
                     wait_for_completion=False
                 )

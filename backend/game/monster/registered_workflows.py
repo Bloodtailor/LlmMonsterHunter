@@ -1,9 +1,9 @@
 # Registers as a callable function for the game orchestration queue to use
-print("🔍 Loading monster workflow")
+print(f"🔍 Loading {__file__}")
 
-from backend.core.workflow_registry import workflow_task
+from backend.core.workflow_registry import register_workflow
 
-@workflow_task()
+@register_workflow()
 def monster_basic(context: dict) -> dict:
     """ generate basic monster using AI """
     try:
@@ -14,7 +14,10 @@ def monster_basic(context: dict) -> dict:
         # Call existing game logic - this will make AI requests and wait for completion
         result = generator.generate_monster()
         
-        return result
+        return {
+            'success': True,
+            'monster': f'Monster complete {result}'
+        }
         
     except Exception as e:
         return {

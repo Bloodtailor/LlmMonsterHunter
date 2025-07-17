@@ -1,7 +1,7 @@
 # SSE Service - CLEANED UP
 # Server-Sent Events Management with minimal output
 # EVENT-DRIVEN: Uses blocking queues for maximum efficiency
-
+print(f"🔍 Loading {__file__}")
 import json
 import time
 import threading

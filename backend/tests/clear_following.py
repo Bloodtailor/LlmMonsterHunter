@@ -1,6 +1,6 @@
 # Test Following List Management
 # Simple tests to add random monsters and clear following list
-
+print(f"🔍 Loading {__file__}")
 import requests
 import random
 

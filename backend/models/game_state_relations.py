@@ -1,9 +1,9 @@
 # Game State Relationship Models - NORMALIZED DESIGN
 # Separate tables for following monsters and active party
 # Proper foreign key relationships with cascade deletes
-
+print(f"🔍 Loading {__file__}")
 from backend.models.base import BaseModel
-from backend.config.database import db
+from backend.core.config.database import db
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 

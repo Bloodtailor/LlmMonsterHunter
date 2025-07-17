@@ -1,7 +1,7 @@
 # Dungeon Service - TRUST BOUNDARY: Validation + Delegation
 # Validates all inputs and delegates to game logic
 # Single source of truth for dungeon business rules
-
+print(f"🔍 Loading {__file__}")
 from typing import Dict, Any
 from backend.game.dungeon import DungeonManager
 from backend.services.validators import (
@@ -9,7 +9,7 @@ from backend.services.validators import (
     validate_door_choice,
     validate_in_dungeon
 )
-from backend.utils import error_response, success_response, validate_and_continue
+from backend.core.utils import error_response, success_response, validate_and_continue
 
 # Create singleton manager instance
 _manager = DungeonManager()

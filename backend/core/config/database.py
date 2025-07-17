@@ -1,7 +1,7 @@
 # Database Configuration and Connection Management
 # Sets up SQLAlchemy for MySQL database operations
 # Handles connection pooling and session management
-
+print(f"🔍 Loading {__file__}")
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError

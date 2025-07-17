@@ -1,7 +1,7 @@
 # Game Orchestration Queue - Multi-Step Workflow Processing
 # Handles complex game workflows that call existing game logic
 # Single worker thread processes workflows sequentially
-print("🔍 Loading orchestration queue")
+print(f"🔍 Loading {__file__}")
 import threading
 import time
 from typing import Dict, Any, Optional, Callable
@@ -9,8 +9,10 @@ from datetime import datetime
 from queue import Queue, Empty
 from dataclasses import dataclass
 from enum import Enum
-from backend.utils import print_success, print_error, print_info
+from backend.core.utils import print_success, print_error, print_info
 from backend.core.workflow_registry import get_workflow, list_workflows
+from backend.models.game_workflow import GameWorkflow
+from backend.services.event_service import emit_event
 
 _global_game_queue = None
 _game_queue_lock = threading.Lock()
@@ -49,7 +51,7 @@ class WorkflowItem:
             'completed_at': self.completed_at.isoformat() if self.completed_at else None
         }
 
-class GameOrchestrationQueue:
+class WorkflowQueue:
     """
     Orchestrates complex multi-step game workflows
     Single worker thread processes workflows by calling existing game logic
@@ -84,7 +86,7 @@ class GameOrchestrationQueue:
         if self._worker_thread:
             self._worker_thread.join(timeout=5)
     
-    def add_workflow(self, workflow_type: str, context: Dict[str, Any] = {"content": "no content"}, priority: int = 5) -> Optional[int]:
+    def add_workflow(self, workflow_type, context, priority) -> Optional[int]:
         """
         Add a workflow to the queue
         
@@ -97,14 +99,8 @@ class GameOrchestrationQueue:
             int: Workflow ID if successful, None if failed
         """
         
-        fn = get_workflow(workflow_type)
-        if not fn:
-            print_error(f"Unknown workflow type: {workflow_type}")
-            return None
-        
         try:
             # Create workflow database record
-            from backend.models.game_workflow import GameWorkflow
             workflow = GameWorkflow.create_workflow(workflow_type, context, priority)
             
             if not workflow or not workflow.save():
@@ -286,8 +282,6 @@ class GameOrchestrationQueue:
     def _update_workflow_database(self, item: WorkflowItem):
         """Update workflow status in database"""
         try:
-            from backend.models.game_workflow import GameWorkflow
-            
             workflow = GameWorkflow.query.get(item.workflow_id)
             if workflow:
                 workflow.status = item.status.value
@@ -302,18 +296,17 @@ class GameOrchestrationQueue:
     def _emit_event(self, event_type: str, data: Dict[str, Any]):
         """Emit event using event service"""
         try:
-            from backend.services.event_service import emit_event
             emit_event(event_type, data)
         except Exception as e:
             print_error(f"Failed to emit event {event_type}: {e}")
 
-def get_game_orchestration_queue() -> GameOrchestrationQueue:
+def get_queue() -> WorkflowQueue:
     """Get global game orchestration queue instance"""
     global _global_game_queue
     
     with _game_queue_lock:
         if _global_game_queue is None:
-            _global_game_queue = GameOrchestrationQueue()
+            _global_game_queue = WorkflowQueue()
             _global_game_queue.start_worker()
     
     return _global_game_queue

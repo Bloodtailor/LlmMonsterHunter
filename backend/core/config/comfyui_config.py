@@ -1,7 +1,7 @@
 # ComfyUI Configuration
 # User-customizable settings for different ComfyUI setups
 # These settings accommodate different user machines and model configurations
-
+print(f"🔍 Loading {__file__}")
 import os
 
 IMAGE_GENERATION_ENABLED = os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true'

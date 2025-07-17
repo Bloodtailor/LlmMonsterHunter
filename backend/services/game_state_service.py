@@ -1,7 +1,7 @@
 # Game State Service - TRUST BOUNDARY: Validation + Delegation
 # Validates all inputs and delegates to game logic
 # Single source of truth for game state business rules
-
+print(f"🔍 Loading {__file__}")
 from typing import List, Dict, Any
 from backend.game.state import GameStateManager
 from backend.services.validators import (
@@ -10,7 +10,7 @@ from backend.services.validators import (
     validate_following_monster_addition,
     validate_following_monster_removal
 )
-from backend.utils import error_response, success_response, validate_and_continue
+from backend.core.utils import error_response, success_response, validate_and_continue
 
 # Create singleton manager instance
 _manager = GameStateManager()

@@ -1,13 +1,13 @@
 # Monster Manager - TRULY SIMPLIFIED: No Validation
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming completely
-
+print(f"🔍 Loading {__file__}")
 from typing import Dict, Any
 from sqlalchemy import func
 from backend.models.monster import Monster
 from backend.models.ability import Ability
-from backend.config.database import db
-from backend.utils import success_response, error_response
+from backend.core.config.database import db
+from backend.core.utils import success_response, error_response
 
 class MonsterManager:
     """Pure business logic - no validation"""

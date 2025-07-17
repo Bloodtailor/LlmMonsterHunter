@@ -1,9 +1,9 @@
 # Game State Database Model - NORMALIZED DESIGN
 # Single row representing current game state with proper relationships
 # Follows database normalization principles
-
+print(f"🔍 Loading {__file__}")
 from backend.models.base import BaseModel
-from backend.config.database import db
+from backend.core.config.database import db
 from sqlalchemy import Column, Integer, String, Text, Boolean
 from sqlalchemy.orm import relationship
 from typing import Dict, Any, Optional

@@ -1,7 +1,7 @@
 # AI Generation Queue - CLEANED UP
 # Handles both LLM text generation and ComfyUI image generation
 # Uses normalized generation_log database structure
-
+print(f"🔍 Loading {__file__}")
 import threading
 import time
 from typing import Dict, Any, Optional
@@ -9,7 +9,12 @@ from datetime import datetime
 from queue import Queue, Empty
 from dataclasses import dataclass
 from enum import Enum
-from backend.utils import print_error
+from backend.core.utils import print_error
+from backend.services.event_service import emit_event
+from backend.models.generation_log import GenerationLog
+from backend.ai.llm.processor import process_llm_request
+from backend.ai.llm.core import unload_model
+from backend.ai.comfyui.processor import process_image_request
 
 _global_queue = None
 _queue_lock = threading.Lock()
@@ -86,7 +91,6 @@ class AIGenerationQueue:
         
         try:
             # Get generation log entry (service layer already validated it exists)
-            from backend.models.generation_log import GenerationLog
             log_entry = GenerationLog.query.get(generation_id)
             
             if not log_entry:
@@ -153,7 +157,6 @@ class AIGenerationQueue:
     def _emit_event(self, event_type: str, data: Dict[str, Any]):
         """Emit event using event service"""
         try:
-            from backend.services.event_service import emit_event
             emit_event(event_type, data)
         except Exception:
             pass
@@ -221,18 +224,14 @@ class AIGenerationQueue:
     
     def _process_llm_item(self, item: QueueItem, callback) -> Dict[str, Any]:
         """Process LLM generation using the LLM processor"""
-        from backend.ai.llm.processor import process_request
-        return process_request(item.generation_id, callback=callback)
+        return process_llm_request(item.generation_id, callback=callback)
     
     def _process_image_item(self, item: QueueItem, callback) -> Dict[str, Any]:
         """Process image generation using ComfyUI processor"""
 
         # Unload the LLM Model
-        from backend.ai.llm.core import unload_model
         unload_model()
-
-        from backend.ai.comfyui.processor import process_request
-        return process_request(item.generation_id, callback=callback)
+        return process_image_request(item.generation_id, callback=callback)
     
     def _worker_loop(self):
         """Main worker loop - processes queue items"""

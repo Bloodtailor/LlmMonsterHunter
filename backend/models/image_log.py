@@ -1,9 +1,9 @@
 # Image Log Child Table - Generic Image Generation Results
 # Contains only the essential image generation results
 # Linked to GenerationLog parent table
-
+print(f"🔍 Loading {__file__}")
 from backend.models.base import BaseModel
-from backend.config.database import db
+from backend.core.config.database import db
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from typing import Dict, Any
