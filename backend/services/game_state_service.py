@@ -3,7 +3,7 @@
 # Single source of truth for game state business rules
 
 from typing import List, Dict, Any
-from backend.game import GameStateManager
+from backend.game.state import GameStateManager
 from backend.services.validators import (
     validate_party_size,
     validate_monsters_are_following,

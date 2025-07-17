@@ -1,7 +1,7 @@
 # Registers as a callable function for the game orchestration queue to use
 print("🔍 Loading monster workflow")
 
-from ..orchestration import workflow_task
+from backend.core.workflow_registry import workflow_task
 
 @workflow_task()
 def monster_basic(context: dict) -> dict:
