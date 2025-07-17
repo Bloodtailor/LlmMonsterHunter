@@ -4,7 +4,7 @@
 
 from typing import Dict, Any, Optional
 from backend.ai.llm.prompt_engine import get_template_config, build_prompt
-from backend.services import generation_service
+from backend.services.generation_service import text_generation_request
 from backend.utils import success_response, error_response, print_error, print_success
 
 def build_game_prompt(template_name: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -54,7 +54,7 @@ def make_generation_request(prompt_text: str,
     """
     
     try:
-        result = generation_service.text_generation_request(
+        result = text_generation_request(
             prompt=prompt_text,
             prompt_type=prompt_type,
             prompt_name=template_name,
