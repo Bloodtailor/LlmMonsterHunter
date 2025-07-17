@@ -68,7 +68,6 @@ def _initialize_ai_queue(app):
 def _initialize_game_queue(app):
     """Initialize unified AI queue with Flask context"""
     try:
-        from backend.game.utils import make_generation_request
         
         '''
         from backend.game.orchestration import get_game_orchestration_queue
