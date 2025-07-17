@@ -1,9 +1,9 @@
 # Generation Log Base Model - NORMALIZED DATABASE DESIGN
 # Parent table for all generation types with separate child tables
 # Follows database normalization principles
-
+print(f"🔍 Loading {__file__}")
 from backend.models.base import BaseModel
-from backend.config.database import db
+from backend.core.config.database import db
 from sqlalchemy import Column, Integer, String, Text, JSON, Float, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime

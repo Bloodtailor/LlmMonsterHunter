@@ -1,7 +1,7 @@
 # Workflow loader - Maps workflow types to existing game logic functions
 # Combs through the files in the game folder
 # Registers files named "registered_workflows.py" as callable workflows
-print("🔍 Loading workflow registry")
+print(f"🔍 Loading {__file__}")
 from typing import Callable, Dict, Any, Optional
 import inspect
 import threading
@@ -13,7 +13,7 @@ _REGISTRY_LOCK = threading.Lock()  # thread-safe if registering dynamically
 class WorkflowRegistrationError(Exception):
     pass
 
-def workflow_task(name: Optional[str] = None):
+def register_workflow(name: Optional[str] = None):
     """
     Decorator to register a function as an orchestration workflow step.
 

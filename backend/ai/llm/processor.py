@@ -1,13 +1,13 @@
 # LLM Processor - CLEANED UP
 # Handles complete inference pipeline with automatic retries and parsing
 # Works with normalized generation_log structure
-
+print(f"🔍 Loading {__file__}")
 from typing import Dict, Any, Optional, Callable
 from .inference import generate_streaming
 from .parser import parse_response
-from backend.utils import error_response, success_response, print_success, print_error
+from backend.core.utils import error_response, success_response, print_success, print_error
 
-def process_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
+def process_llm_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
     """
     Complete LLM inference + parsing pipeline with automatic retries
     

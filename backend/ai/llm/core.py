@@ -1,14 +1,14 @@
 # LLM Core Module - CLEANED UP
 # ONLY handles model loading, unloading, and status
 # No queue, no streaming, no logging - pure model operations
-
+print(f"🔍 Loading {__file__}")
 import os
 import threading
 import time
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any
-from backend.utils import print_success, print_info, print_error, print_warning
+from backend.core.utils import print_success, print_info, print_error, print_warning
 
 # Global state for model management ONLY
 _model = None

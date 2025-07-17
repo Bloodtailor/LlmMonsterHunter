@@ -1,11 +1,11 @@
 # Prompt Helpers - UPDATED: Consistent Utility Function Usage
 # Consolidates prompt building and generation request patterns
 # Used across monster, ability, and dungeon services with consistent error handling
-
+print(f"🔍 Loading {__file__}")
 from typing import Dict, Any, Optional
-from backend.ai.llm.prompt_engine import get_template_config, build_prompt
-from backend.services.generation_service import text_generation_request
-from backend.utils import success_response, error_response, print_error, print_success
+from backend.ai import get_template_config, build_prompt
+from backend.ai import text_generation_request
+from backend.core.utils import success_response, error_response, print_error, print_success
 
 def build_game_prompt(template_name: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """

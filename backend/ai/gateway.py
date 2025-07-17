@@ -1,10 +1,15 @@
-# Generation Service - CLEANED UP
+# AI gateway - formerly generation_service.py
 # THE ONLY WAY to request any AI generation (LLM or Image)
 # Creates normalized generation_log entries and delegates to unified queue
-
+print(f"🔍 Loading {__file__}")
+import os
 import time
 from typing import Dict, Any, Optional
-from backend.utils import success_response, error_response, print_success
+from backend.core.utils import success_response, error_response, print_success
+from backend.core.config.llm_config import get_all_inference_defaults
+from backend.models.generation_log import GenerationLog
+from .queue import get_ai_queue
+
 
 def text_generation_request(prompt: str, 
                            prompt_type: str = None,
@@ -28,7 +33,6 @@ def text_generation_request(prompt: str,
     
     try:
         # Get inference defaults and apply overrides
-        from backend.config.llm_config import get_all_inference_defaults
         inference_params = get_all_inference_defaults()
         
         for key, value in inference_overrides.items():
@@ -45,8 +49,6 @@ def text_generation_request(prompt: str,
         print_success(f"Text generation request: {prompt_type}/{prompt_name} - \"{truncated_prompt}\"")
         
         # Create generation log entry
-        from backend.models.generation_log import GenerationLog
-        
         generation_log = GenerationLog.create_llm_log(
             prompt_type=prompt_type,
             prompt_name=prompt_name,
@@ -59,7 +61,6 @@ def text_generation_request(prompt: str,
             return error_response('Failed to create generation log entry')
         
         # Add to unified queue
-        from backend.ai.queue import get_ai_queue
         queue = get_ai_queue()
         
         if not queue.add_request(generation_log.id):
@@ -91,7 +92,6 @@ def image_generation_request(prompt_text: str,
     
     try:
         # Check if image generation is enabled
-        import os
         if not os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true':
             return error_response('Image generation is disabled', reason='DISABLED')
         
@@ -106,8 +106,6 @@ def image_generation_request(prompt_text: str,
         }
         
         # Create generation log entry
-        from backend.models.generation_log import GenerationLog
-        
         generation_log = GenerationLog.create_image_log(
             prompt_type=prompt_type,
             prompt_name=prompt_name,
@@ -119,7 +117,7 @@ def image_generation_request(prompt_text: str,
             return error_response('Failed to create image generation log entry')
         
         # Add to unified queue
-        from backend.ai.queue import get_ai_queue
+        
         queue = get_ai_queue()
         
         if not queue.add_request(generation_log.id):

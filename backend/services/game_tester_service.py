@@ -1,3 +1,4 @@
+print(f"🔍 Loading {__file__}")
 import io
 import sys
 import traceback

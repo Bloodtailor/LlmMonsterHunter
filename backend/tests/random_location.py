@@ -1,3 +1,4 @@
+print(f"🔍 Loading {__file__}")
 from backend.services.dungeon_service import _generate_random_location
 
 print('\n🗺️ Testing Random Location Generation...')

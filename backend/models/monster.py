@@ -1,9 +1,9 @@
 # Monster Database Model - UPDATED WITH CARD ART PATH
 # Enhanced with abilities relationship, methods, and card art storage
 # Focuses only on data storage and retrieval - NO game logic
-
+print(f"🔍 Loading {__file__}")
 from backend.models.base import BaseModel
-from backend.config.database import db
+from backend.core.config.database import db
 from sqlalchemy import Column, Integer, String, Text, JSON
 from sqlalchemy.orm import relationship
 import json

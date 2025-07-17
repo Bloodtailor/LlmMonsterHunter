@@ -1,11 +1,11 @@
 # Prompt Engine - Template Management
 # Lean template loading and building system
-
+print(f"🔍 Loading {__file__}")
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
-from backend.utils import print_success, print_error, print_warning
+from backend.core.utils import print_success, print_error, print_warning
 
 @dataclass
 class PromptTemplate:

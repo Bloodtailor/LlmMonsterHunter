@@ -1,9 +1,9 @@
 # Dungeon Manager - SIMPLIFIED: No Validation
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming completely
-
+print(f"🔍 Loading {__file__}")
 from typing import Dict, Any, Optional
-from backend.utils import error_response, success_response, print_success
+from backend.core.utils import error_response, success_response, print_success
 from .generator import DungeonGenerator
 
 class DungeonManager:

@@ -1,11 +1,11 @@
 # Dungeon Generator - SIMPLIFIED: No Validation
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming completely
-
+print(f"🔍 Loading {__file__}")
 from typing import Dict, Any
 import random
 from backend.game.utils import build_and_generate
-from backend.utils import error_response, success_response, print_warning, print_success
+from backend.core.utils import error_response, success_response, print_warning, print_success
 
 class DungeonGenerator:
     """Pure business logic - no validation"""

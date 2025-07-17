@@ -1,13 +1,13 @@
 # ComfyUI Processor - SIMPLIFIED  
 # Trusts upstream validation, focuses on image generation
-
+print(f"🔍 Loading {__file__}")
 import time
 import random
 from pathlib import Path
 from typing import Dict, Any, Optional, Callable
-from backend.utils import error_response, success_response, print_success
+from backend.core.utils import error_response, success_response, print_success
 
-def process_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
+def process_image_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
     """
     Complete image generation pipeline
     Trusts that queue already validated this is a valid image generation
@@ -41,7 +41,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
         
         # Check ComfyUI server availability
         from .client import ComfyUIClient
-        from backend.config.comfyui_config import get_server_url, get_timeout
+        from backend.core.config.comfyui_config import get_server_url, get_timeout
         
         client = ComfyUIClient(base_url=get_server_url())
         
@@ -74,7 +74,7 @@ def process_request(generation_id: int, callback: Optional[Callable[[str], None]
             callback(f"Loaded workflow: {workflow_name}")
         
         # Build complete positive prompt
-        from backend.config.comfyui_config import get_base_positive_prompt, get_all_generation_defaults
+        from backend.core.config.comfyui_config import get_base_positive_prompt, get_all_generation_defaults
         
         base_prompt = get_base_positive_prompt()
         complete_positive_prompt = f"{prompt_text}, {base_prompt}"

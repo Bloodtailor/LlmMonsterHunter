@@ -1,7 +1,7 @@
 # Game State Routes - SIMPLIFIED: Thin HTTP Layer Only
 # Trust boundary established at service layer
 # Routes only handle: HTTP parsing → Service call → HTTP response formatting
-
+print(f"🔍 Loading {__file__}")
 from flask import Blueprint, jsonify, request
 from backend.services import game_state_service
 

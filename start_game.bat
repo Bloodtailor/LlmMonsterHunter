@@ -85,14 +85,14 @@ echo ================================================================
 echo                        GAME IS RUNNING!
 echo ================================================================
 echo.
-echo 🎮 Game Interface: http://localhost:3000
-echo 🔧 Backend API:   http://localhost:5000
+echo Game Interface: http://localhost:3000
+echo Backend API:   http://localhost:5000
 echo.
 echo Two new windows should have opened:
 echo   1. Backend Server (Flask API)
 echo   2. Frontend Server (React App)
 echo.
-echo 💡 Tips:
+echo Tips:
 echo   - Wait for both servers to fully load
 echo   - The React app will open in your browser automatically
 echo   - Close server windows or press Ctrl+C to stop the game

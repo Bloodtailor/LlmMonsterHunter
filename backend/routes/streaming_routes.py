@@ -1,11 +1,10 @@
 # Streaming Routes - UPDATED FOR UNIFIED GENERATION SERVICE
 # Uses event-driven SSE service for maximum efficiency
 # Now supports both LLM and image generation events
-
+print(f"🔍 Loading {__file__}")
 import json
 import time
 from flask import Blueprint, Response, request, jsonify
-from backend.services import generation_service  # 🔧 UPDATED: was llm_service
 from backend.services.sse_service import get_sse_service
 
 streaming_bp = Blueprint('streaming', __name__, url_prefix='/api/streaming')

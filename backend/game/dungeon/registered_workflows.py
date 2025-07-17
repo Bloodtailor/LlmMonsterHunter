@@ -1,9 +1,9 @@
 # Registers as a callable function for the game orchestration queue to use
 
+print(f"🔍 Loading {__file__}")
+from backend.core.workflow_registry import register_workflow
 
-from backend.core.workflow_registry import workflow_task
-
-@workflow_task()
+@register_workflow()
 def dungeon_entry(context: dict) -> dict:
     """Handle dungeon entry workflow by calling existing DungeonManager"""    
     try:

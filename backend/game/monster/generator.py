@@ -1,13 +1,13 @@
 # Monster Generator - TRULY SIMPLIFIED: No Validation
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming
-
+print(f"🔍 Loading {__file__}")
 from typing import Dict, Any
 from backend.models.monster import Monster
 from backend.game.utils import build_and_generate, IMAGE_GENERATION_ENABLED
-from backend.utils import success_response, error_response, print_success
+from backend.core.utils import success_response, error_response, print_success
 from backend.game.ability.generator import AbilityGenerator
-from backend.services import generation_service
+from backend.ai import gateway
 
 class MonsterGenerator:
     """Pure business logic - no validation"""
@@ -68,7 +68,7 @@ class MonsterGenerator:
         
         prompt_text = monster.get_context_for_image_generation()
         
-        image_result = generation_service.image_generation_request(
+        image_result = gateway.image_generation_request(
             prompt_text=prompt_text,
             prompt_type="monster_card_art",
             prompt_name="monster_generation"

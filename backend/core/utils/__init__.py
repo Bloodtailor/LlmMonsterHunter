@@ -1,6 +1,6 @@
 # Backend Utils Package
 # Common utilities for entire backend project
-
+print(f"🔍 Loading {__file__}")
 from .responses import success_response, error_response, check_and_return, validate_and_continue
 from .console import (
     print_header, print_section, print_success, print_error, print_warning, 
