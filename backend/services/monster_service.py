@@ -3,7 +3,8 @@
 # Eliminates all redundant error checking
 
 from typing import Dict, Any
-from backend.game import MonsterGenerator, MonsterManager
+from backend.game.monster.generator import MonsterGenerator
+from backend.game.monster.manager import MonsterManager
 from .validators import (
     validate_monster_exists,
     validate_monster_template, 

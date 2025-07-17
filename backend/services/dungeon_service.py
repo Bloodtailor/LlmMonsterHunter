@@ -3,7 +3,7 @@
 # Single source of truth for dungeon business rules
 
 from typing import Dict, Any
-from backend.game import DungeonManager
+from backend.game.dungeon import DungeonManager
 from backend.services.validators import (
     validate_party_ready_for_dungeon,
     validate_door_choice,

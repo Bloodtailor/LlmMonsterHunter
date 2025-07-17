@@ -11,7 +11,7 @@ from backend.utils import (
 
 
 __all__ = [
-    'IMAGE_GENERATION_ENABLED'
+    'IMAGE_GENERATION_ENABLED',
     'build_game_prompt',
     'make_generation_request',
     'build_and_generate',

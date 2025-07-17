@@ -10,7 +10,7 @@ from queue import Queue, Empty
 from dataclasses import dataclass
 from enum import Enum
 from backend.utils import print_success, print_error, print_info
-from .workflow_registry import get_workflow, list_workflows
+from backend.core.workflow_registry import get_workflow, list_workflows
 
 _global_game_queue = None
 _game_queue_lock = threading.Lock()
