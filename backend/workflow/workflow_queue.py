@@ -12,7 +12,7 @@ from enum import Enum
 from backend.core.utils import print_success, print_error, print_info
 from backend.core.workflow_registry import get_workflow, list_workflows
 from backend.models.game_workflow import GameWorkflow
-from backend.services.event_service import emit_event
+from backend.core.event_bus import emit_event
 
 _global_game_queue = None
 _game_queue_lock = threading.Lock()
