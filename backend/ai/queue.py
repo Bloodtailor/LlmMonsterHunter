@@ -10,7 +10,7 @@ from queue import Queue, Empty
 from dataclasses import dataclass
 from enum import Enum
 from backend.core.utils import print_error
-from backend.services.event_service import emit_event
+from backend.core.event_bus import emit_event
 from backend.models.generation_log import GenerationLog
 from backend.ai.llm.processor import process_llm_request
 from backend.ai.llm.core import unload_model

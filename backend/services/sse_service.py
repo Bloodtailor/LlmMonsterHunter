@@ -8,7 +8,7 @@ import threading
 from typing import Dict, Any, Set, Optional
 from queue import Queue, Empty
 import threading
-from .event_service import get_event_service
+from ..core.event_bus import get_event_service
 
 class SSEConnection:
     """
