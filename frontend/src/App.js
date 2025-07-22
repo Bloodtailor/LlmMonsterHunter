@@ -8,6 +8,7 @@ import HomeBaseScreen from './components/screens/HomeBaseScreen';
 import DungeonScreen from './components/screens/DungeonScreen';
 import DeveloperScreen from './components/screens/DeveloperScreen';
 import StreamingDisplay from './components/streaming/StreamingDisplay';
+import ApiServicesTestScreen from './components/screens/ApiServicesTestScreen';
 import { healthCheck, getGameStatus } from './services/api';
 
 function App() {
@@ -136,6 +137,13 @@ function App() {
           >
             🔧 Developer
           </button>
+
+          <button 
+            className={`nav-button ${currentScreen === 'api-services' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('api-services')}
+          >
+            🧪 API Tests
+          </button>
           {/* Dungeon button only shows when in dungeon */}
           {currentScreen === 'dungeon' && (
             <button className="nav-button active">
@@ -165,6 +173,10 @@ function App() {
             gameData={appStatus.gameData}
             onRefresh={checkBackendStatus}
           />
+        )}
+
+        {currentScreen === 'api-services' && (
+          <ApiServicesTestScreen />
         )}
 
         {currentScreen === 'dungeon' && (

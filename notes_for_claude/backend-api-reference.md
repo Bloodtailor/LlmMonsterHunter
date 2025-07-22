@@ -1,4 +1,4 @@
-# Backend API Reference for Frontend - ENHANCED WITH DUNGEON SYSTEM
+# Backend API Reference - AI Consumption
 
 ## API Base URL
 - Development: `http://localhost:5000/api`
@@ -7,131 +7,145 @@
 **Success:** `{success: true, ...data}`  
 **Error:** `{success: false, error: string, ...context}`
 
-## Core API Endpoints
-
-### Monster Management
+## Monster Management
 
 #### POST /monsters/generate
-**Request:** `{prompt_name?, generate_card_art?}`  
-**Success:** `{success: true, monster: MonsterObject, generation_stats: {tokens, duration, abilities_generated, card_art_generated}}`  
-**Error:** `{success: false, error: string, monster: null}`
+**Request:** `{prompt_name?: string}`  
+**Default:** `prompt_name: "detailed_monster"`  
+**Success:** 
+```json
+{
+  "success": true,
+  "monster": MonsterObject,
+  "generation_id": number,
+  "generation_stats": {
+    "tokens": number,
+    "duration": number,
+    "abilities_generated": number,
+    "card_art_generated": boolean
+  }
+}
+```
+**Error (500):** `{success: false, error: string, monster: null}`
 
-#### GET /monsters - ENHANCED WITH SERVER-SIDE FILTERING & SORTING
-**Request:** Query params:
-- `limit=12` (1-1000, default: 50) - Number of monsters per page
-- `offset=24` (0+, default: 0) - Number of monsters to skip  
-- `filter=with_art` (`all|with_art|without_art`, default: `all`) - Card art filter
-- `sort=name` (`newest|oldest|name|species`, default: `newest`) - Sort order
+#### GET /monsters
+**Request:** Query parameters:
+- `limit?: number` (1-1000, default: 50)
+- `offset?: number` (0+, default: 0)
+- `filter?: string` (`all|with_art|without_art`, default: `all`)
+- `sort?: string` (`newest|oldest|name|species`, default: `newest`)
 
-**Examples:**
-- `/monsters?limit=12&offset=0&filter=with_art&sort=name` - First 12 monsters with art, sorted by name
-- `/monsters?limit=24&offset=48&sort=species` - Third page of 24 monsters, sorted by species
-- `/monsters?filter=without_art&sort=oldest` - All monsters without art, oldest first
-
-**Success Response:** 
+**Success:** 
 ```json
 {
   "success": true,
   "monsters": [MonsterObject],
-  "total": 101,
-  "count": 12,
+  "total": number,
+  "count": number,
   "pagination": {
-    "limit": 12,
-    "offset": 24,
-    "has_more": true,
-    "next_offset": 36,
-    "prev_offset": 12
+    "limit": number,
+    "offset": number,
+    "has_more": boolean,
+    "next_offset": number|null,
+    "prev_offset": number|null
   },
   "filters_applied": {
-    "filter_type": "with_art",
-    "sort_by": "name"
+    "filter_type": string,
+    "sort_by": string
   }
 }
 ```
-
-**Error Response (400):** `{success: false, error: "Invalid filter parameter - must be: all, with_art, or without_art"}`
+**Error (400):** `{success: false, error: "Invalid filter parameter - must be: all, with_art, or without_art"}`
 
 #### GET /monsters/:id
+**Parameters:** `id: number`  
 **Success:** `{success: true, monster: MonsterObject}`  
-**Error:** `{success: false, error: "Monster not found", monster: null}`
+**Error (404):** `{success: false, error: "Monster not found", monster: null}`
 
-#### POST /monsters/:id/abilities
-**Success:** `{success: true, ability: AbilityObject, generation_stats}`
+#### GET /monsters/templates
+**Success:** `{success: true, templates: {[template_name: string]: string}}`
 
-#### GET /monsters/:id/abilities
-**Success:** `{success: true, abilities: [AbilityObject], count: number}`
+#### GET /monsters/stats
+**Request:** Query parameters:
+- `filter?: string` (`all|with_art|without_art`, default: `all`)
 
-#### POST /monsters/:id/card-art
-**Success:** `{success: true, image_path: string, execution_time: number}`
-
-#### GET /monsters/card-art/:path
-Serves image files directly.
-
-### Monster Statistics - ENHANCED
-
-#### GET /monsters/stats - ENHANCED WITH FILTERING
-**Request:** Query params:
-- `filter=with_art` (`all|with_art|without_art`, default: `all`) - Apply same filtering as monsters list
-
-**Examples:**
-- `/monsters/stats` - All monsters statistics
-- `/monsters/stats?filter=with_art` - Statistics for only monsters with card art
-- `/monsters/stats?filter=without_art` - Statistics for only monsters without card art
-
-**Success Response:**
+**Success:**
 ```json
 {
   "success": true,
-  "filter_applied": "with_art",
+  "filter_applied": string,
   "stats": {
-    "total_monsters": 67,
-    "total_abilities": 134,
-    "avg_abilities_per_monster": 2.0,
-    "with_card_art": 67,
-    "without_card_art": 0,
-    "card_art_percentage": 100.0,
-    "unique_species": 18,
-    "species_breakdown": {
-      "Fire Dragon": 5,
-      "Forest Guardian": 3,
-      "Ice Sprite": 2
-    },
-    "newest_monster": MonsterObject,
-    "oldest_monster": MonsterObject
+    "total_monsters": number,
+    "total_abilities": number,
+    "avg_abilities_per_monster": number,
+    "with_card_art": number,
+    "without_card_art": number,
+    "card_art_percentage": number,
+    "unique_species": number,
+    "species_breakdown": {[species: string]: number},
+    "newest_monster": MonsterObject|null,
+    "oldest_monster": MonsterObject|null
   },
   "context": {
-    "all_monsters_count": 101,
-    "all_monsters_with_art": 67,
-    "overall_card_art_percentage": 66.3
+    "all_monsters_count": number,
+    "all_monsters_with_art": number,
+    "overall_card_art_percentage": number
   }
 }
 ```
 
-### 🎮 Game State Management - NEW
+#### POST /monsters/:id/abilities
+**Parameters:** `id: number`  
+**Success:** `{success: true, ability: AbilityObject, generation_id: number, monster_id: number}`  
+**Error (500):** `{success: false, error: string, ability: null, monster_id: number}`
+
+#### GET /monsters/:id/abilities
+**Parameters:** `id: number`  
+**Success:** `{success: true, abilities: [AbilityObject], count: number, monster_id: number}`  
+**Error (404):** `{success: false, error: "Monster not found", abilities: [], count: 0, monster_id: number}`
+
+#### POST /monsters/:id/card-art
+**Parameters:** `id: number`  
+**Success:** `{success: true, image_path: string, generation_id: number}`  
+**Error (500):** `{success: false, error: string}`
+
+#### GET /monsters/:id/card-art
+**Parameters:** `id: number`  
+**Success:** `{success: true, monster_id: number, card_art: CardArtObject}`  
+**Error (404):** `{success: false, error: string, monster_id: number}`
+
+#### GET /monsters/card-art/:path
+**Parameters:** `path: string`  
+Serves image files directly.  
+**Success:** Binary image data  
+**Error (404):** `{success: false, error: "Image not found"}`  
+**Error (400):** `{success: false, error: "Invalid image path"}`
+
+## Game State Management
 
 #### GET /game-state
-**Success:** `{success: true, game_state: GameStateObject}`  
-**Error:** `{success: false, error: string}`
+**Success:** `{success: true, ...GameStateObject}`
 
 #### POST /game-state/reset
 **Success:** `{success: true, message: "Game state reset to initial values", game_state: GameStateObject}`
 
 #### POST /game-state/following/add
 **Request:** `{monster_id: number}`  
-**Success:** `{success: true, message: "Monster name is now following you", monster: MonsterObject, following_count: number}`  
-**Error:** `{success: false, error: "Monster 123 not found", following_count: number}`
+**Success:** `{success: true, message: string, monster: MonsterObject, following_count: number}`  
+**Error (400):** `{success: false, error: string, following_count: number}`
 
-#### POST /game-state/following/remove  
+#### POST /game-state/following/remove
 **Request:** `{monster_id: number}`  
-**Success:** `{success: true, message: "Monster name is no longer following you", following_count: number, party_count: number}`
+**Success:** `{success: true, message: string, following_count: number, party_count: number}`  
+**Error (400):** `{success: false, error: string, following_count: number}`
 
 #### GET /game-state/following
-**Success:** `{success: true, following_monsters: {ids: [number], count: number, details: [MonsterObject]}}`
+**Success:** `{success: true, following_monsters: FollowingMonstersObject}`
 
 #### POST /game-state/party/set
-**Request:** `{monster_ids: [number, number, number]}`  
-**Success:** `{success: true, message: "Active party set: Monster1, Monster2, Monster3", active_party: PartyObject}`  
-**Error:** `{success: false, error: "Active party cannot exceed 4 monsters", party_count: number}`
+**Request:** `{monster_ids: number[]}`  
+**Success:** `{success: true, message: string, active_party: PartyObject}`  
+**Error (400):** `{success: false, error: string, party_count: number}`
 
 #### GET /game-state/party
 **Success:** `{success: true, active_party: PartyObject}`
@@ -139,81 +153,50 @@ Serves image files directly.
 #### GET /game-state/party/ready
 **Success:** `{success: true, ready_for_dungeon: boolean, party_summary: string, message: string}`
 
-### 🏰 Dungeon System - NEW
+## Dungeon System
 
 #### POST /dungeon/enter
-**Description:** Enter dungeon with current active party. Generates atmospheric entry text, initial location, and 3 door choices.  
-**Requirements:** Must have active party set (at least 1 monster)  
 **Success:** 
 ```json
 {
   "success": true,
   "dungeon_entered": true,
-  "entry_text": "Generated atmospheric text about entering the dungeon...",
-  "location": {
-    "name": "Crystal Cavern", 
-    "description": "Glowing crystals illuminate the chamber..."
-  },
-  "doors": [
-    {
-      "id": "location_1",
-      "type": "location", 
-      "name": "Ancient Library",
-      "description": "Dusty tomes line the walls of this forgotten archive..."
-    },
-    {
-      "id": "location_2",
-      "type": "location",
-      "name": "Echoing Chamber", 
-      "description": "Your footsteps echo endlessly in this vast space..."
-    },
-    {
-      "id": "exit",
-      "type": "exit",
-      "name": "Exit the Dungeon",
-      "description": "A familiar stone stairway leading back to the surface..."
-    }
-  ],
-  "party_summary": "Tanner, Luna, and Sparkles",
-  "message": "Welcome to the dungeon! Choose your path wisely."
+  "entry_text": string,
+  "location": LocationObject,
+  "doors": [DoorObject, DoorObject, ExitDoorObject],
+  "party_summary": string,
+  "message": string
 }
 ```
-**Error:** `{success: false, error: "No active party set. Add monsters to your party before entering the dungeon.", ready_for_dungeon: false}`
+**Error (400):** `{success: false, error: "No active party set. Add monsters to your party before entering the dungeon.", ready_for_dungeon: false}`
 
 #### POST /dungeon/choose-door
-**Request:** `{door_choice: "location_1" | "location_2" | "exit"}`  
-**Description:** Choose a door in the dungeon. Location doors generate event text and new location. Exit door generates exit text and returns to home base.
-
+**Request:** `{door_choice: string}`  
 **Location Door Success:**
 ```json
 {
   "success": true,
-  "choice_made": "Ancient Library",
-  "event_text": "Generated text about exploring the Ancient Library...",
-  "new_location": {
-    "name": "Forgotten Shrine",
-    "description": "Candles flicker mysteriously in this sacred space..."
-  },
-  "new_doors": [DoorObject, DoorObject, ExitDoor],
+  "choice_made": string,
+  "event_text": string,
+  "new_location": LocationObject,
+  "new_doors": [DoorObject, DoorObject, ExitDoorObject],
   "continue_button": true,
   "in_dungeon": true
 }
 ```
-
 **Exit Door Success:**
 ```json
 {
   "success": true,
   "choice_made": "Exit the Dungeon",
-  "exit_text": "Generated text about successfully leaving the dungeon...",
+  "exit_text": string,
   "dungeon_completed": true,
   "in_dungeon": false,
   "return_to_home_button": true,
-  "message": "You have successfully exited the dungeon!"
+  "message": string
 }
 ```
-
-**Error:** `{success: false, error: "Invalid door choice. Available: ['location_1', 'location_2', 'exit']", in_dungeon: true}`
+**Error (400):** `{success: false, error: string, in_dungeon: boolean}`
 
 #### GET /dungeon/state
 **Success (In Dungeon):** 
@@ -224,249 +207,285 @@ Serves image files directly.
   "state": {
     "current_location": LocationObject,
     "available_doors": [DoorObject],
-    "last_event_text": "Text from last door choice...",
-    "party_summary": "Tanner, Luna, and Sparkles"
+    "last_event_text": string,
+    "party_summary": string
   },
-  "party_summary": "Tanner, Luna, and Sparkles"
+  "party_summary": string
+}
+```
+**Success (Not In Dungeon):** `{success: true, in_dungeon: false, state: null, message: string}`
+
+#### GET /dungeon/status
+**Success (In Dungeon):** `{success: true, in_dungeon: true, location_name: string, party_summary: string, door_count: number, message: string}`  
+**Success (Home Base):** `{success: true, in_dungeon: false, message: "Currently at home base"}`
+
+## Generation System
+
+#### GET /generation/status
+**Success:** 
+```json
+{
+  "success": true,
+  "data": {
+    "llm_status": object,
+    "image_status": object,
+    "queue_info": object,
+    "generation_types_supported": string[]
+  }
 }
 ```
 
-**Success (Not In Dungeon):** `{success: true, in_dungeon: false, state: null, message: "Not currently in a dungeon"}`
-
-#### GET /dungeon/status
-**Description:** Quick status check for UI  
-**Success (In Dungeon):** `{success: true, in_dungeon: true, location_name: "Crystal Cavern", party_summary: "Tanner, Luna, and Sparkles", door_count: 3, message: "Currently in Crystal Cavern with Tanner, Luna, and Sparkles"}`  
-**Success (Home Base):** `{success: true, in_dungeon: false, message: "Currently at home base"}`
-
-### Generation System
-
-#### GET /generation/status
-**Success:** `{success: true, data: {llm_status, image_status, queue_info, generation_types_supported}}`
-
 #### GET /generation/logs
-**Request:** Query params: `limit?, type?, status?`  
-**Success:** `{success: true, data: {logs: [GenerationLogObject], count, filters}}`
+**Request:** Query parameters:
+- `limit?: number` (1-100, default: 20)
+- `type?: string` (`llm|image`)
+- `status?: string` (`pending|generating|completed|failed`)
+
+**Success:** 
+```json
+{
+  "success": true,
+  "data": {
+    "logs": [GenerationLogObject],
+    "count": number,
+    "filters": {
+      "type": string|null,
+      "status": string|null,
+      "limit": number
+    }
+  }
+}
+```
 
 #### GET /generation/logs/:id
-**Success:** `{success: true, data: GenerationLogObject}`
+**Parameters:** `id: number`  
+**Success:** `{success: true, data: GenerationLogObject}`  
+**Error (404):** `{success: false, error: "Generation log not found"}`
 
 #### GET /generation/stats
-**Success:** `{success: true, data: {overall, llm, image}}`
+**Success:** 
+```json
+{
+  "success": true,
+  "data": {
+    "overall": object,
+    "llm": object,
+    "image": object
+  }
+}
+```
 
-### Streaming & SSE
+## Streaming & SSE
 
 #### GET /streaming/llm-events
-Server-Sent Events endpoint. Returns event stream.
-
+Server-Sent Events endpoint. Returns event stream with 30-second keep-alive pings. Supports both LLM and image generation events.
 
 #### GET /streaming/connections
-Debug endpoint showing active connections and event types.
+**Success:**
+```json
+{
+  "active_connections": number,
+  "event_types": string[],
+  "streaming_method": "event_driven_blocking",
+  "efficiency": "Only sends data when events occur (no polling!)",
+  "supported_generation_types": ["llm", "image"]
+}
+```
 
-### Testing & System
+## Testing & System
 
 #### GET /health
 **Success:** `{status: "healthy", message: string, api_version: "2.0"}`
 
 #### GET /game/status
-**Success:** `{game_name, version, status, features: {monster_generation, ability_generation, image_generation, etc.}, ai_systems}`
+**Success:** 
+```json
+{
+  "game_name": "Monster Hunter Game",
+  "version": string,
+  "status": "development",
+  "features": {
+    "monster_generation": boolean,
+    "ability_generation": boolean,
+    "image_generation": boolean,
+    "streaming_display": boolean,
+    "unified_queue": boolean,
+    "gpu_acceleration": boolean,
+    "battle_system": boolean,
+    "chat_system": boolean,
+    "save_system": boolean
+  },
+  "ai_systems": object
+}
+```
 
 #### GET /game_tester/tests
-**Success:** `[test_file_names]`
+**Success:** `string[]`
 
 #### GET /game_tester/run/:test_name
-**Success:** `{success: true, test_name, output, message}`
+**Parameters:** `test_name: string`  
+**Success:** `{success: true, test_name: string, output: string, message: string}`  
+**Error (404):** `{success: false, error: string, output: ""}`  
+**Error (500):** `{success: false, error: string, traceback: string, output: string}`
 
 ## Data Models
 
 ### MonsterObject
 ```json
 {
-  "id": 1,
-  "name": "Thornwick",
-  "species": "Forest Guardian", 
-  "description": "A mystical creature...",
-  "backstory": "Born in the ancient woods...",
-  "stats": {"max_health": 120, "current_health": 120, "attack": 25, "defense": 18, "speed": 15},
-  "personality_traits": ["wise", "protective"],
+  "id": number,
+  "name": string,
+  "species": string,
+  "description": string,
+  "backstory": string,
+  "stats": {
+    "max_health": number,
+    "current_health": number,
+    "attack": number,
+    "defense": number,
+    "speed": number
+  },
+  "personality_traits": string[],
   "abilities": [AbilityObject],
-  "ability_count": 2,
-  "card_art": {"has_card_art": true, "relative_path": "monster_card_art/00000001.png", "exists": true, "url": "/api/monsters/card-art/monster_card_art/00000001.png"},
-  "created_at": "2025-01-01T00:00:00",
-  "updated_at": "2025-01-01T00:00:00"
+  "ability_count": number,
+  "card_art": CardArtObject,
+  "created_at": string,
+  "updated_at": string
 }
 ```
 
 ### AbilityObject
 ```json
 {
-  "id": 1,
-  "monster_id": 1,
-  "name": "Nature's Blessing",
-  "description": "Heals nearby allies with forest magic",
-  "ability_type": "support",
-  "created_at": "2025-01-01T00:00:00"
+  "id": number,
+  "monster_id": number,
+  "name": string,
+  "description": string,
+  "ability_type": string,
+  "created_at": string
 }
 ```
 
-### GameStateObject - NEW
+### CardArtObject
 ```json
 {
-  "following_monsters": {
-    "ids": [1, 2, 3, 4, 5],
-    "count": 5,
-    "details": [MonsterObject]
-  },
-  "active_party": {
-    "ids": [1, 2, 3],
-    "count": 3, 
-    "details": [MonsterObject]
-  },
+  "has_card_art": boolean,
+  "relative_path": string|null,
+  "exists": boolean,
+  "url": string|null
+}
+```
+
+### GameStateObject
+```json
+{
+  "following_monsters": FollowingMonstersObject,
+  "active_party": PartyObject,
   "dungeon_state": {
-    "in_dungeon": false,
-    "current_state": null
+    "in_dungeon": boolean,
+    "current_state": object|null
   },
-  "game_status": "home_base"
+  "game_status": "home_base"|"in_dungeon"
 }
 ```
 
-### PartyObject - NEW
+### FollowingMonstersObject
 ```json
 {
-  "ids": [1, 2, 3],
-  "count": 3,
+  "ids": number[],
+  "count": number,
   "details": [MonsterObject]
 }
 ```
 
-### LocationObject - NEW
+### PartyObject
 ```json
 {
-  "name": "Crystal Cavern",
-  "description": "Luminescent crystals cast dancing shadows across the chamber walls, creating an otherworldly atmosphere."
+  "ids": number[],
+  "count": number,
+  "details": [MonsterObject]
 }
 ```
 
-### DoorObject - NEW
+### LocationObject
 ```json
 {
-  "id": "location_1",
-  "type": "location",
-  "name": "Ancient Library", 
-  "description": "Dusty tomes and scrolls line the walls of this forgotten archive, promising secrets of ages past."
+  "name": string,
+  "description": string
+}
+```
+
+### DoorObject
+```json
+{
+  "id": string,
+  "type": "location"|"exit",
+  "name": string,
+  "description": string
 }
 ```
 
 ### GenerationLogObject
 ```json
 {
-  "id": 1,
-  "generation_type": "llm|image",
-  "prompt_type": "monster_generation|ability_generation|image_generation|dungeon_generation",
-  "prompt_name": "detailed_monster|generate_ability|monster_generation|entry_atmosphere|random_location",
-  "status": "pending|generating|completed|failed",
-  "priority": 5,
-  "duration_seconds": 2.5,
-  "attempts_used": 1,
-  "max_attempts": 3,
-  "is_completed": true,
-  "is_failed": false,
-  "llm_data": {"response_tokens": 150, "tokens_per_second": 45, "parse_success": true},
-  "image_data": {"image_path": "monster_card_art/00000001.png", "has_image": true}
+  "id": number,
+  "generation_type": "llm"|"image",
+  "prompt_type": string,
+  "prompt_name": string,
+  "status": "pending"|"generating"|"completed"|"failed",
+  "priority": number,
+  "duration_seconds": number|null,
+  "attempts_used": number,
+  "max_attempts": number,
+  "is_completed": boolean,
+  "is_failed": boolean,
+  "llm_data": object|null,
+  "image_data": object|null
 }
 ```
 
 ## SSE Event Types
 
 **Connection Events:**
-- `sse.connected`: `{message: "Connected to Monster Hunter Game"}`
-- `ping`: `{timestamp: number}` (keep-alive every 30s)
+- `sse.connected`: `{message: string}`
+- `ping`: `{timestamp: number}`
 
 **LLM Generation Events:**
-- `generation_started`: `{item: QueueItemObject, generation_id: number}`
-- `generation_update`: `{generation_id: number, partial_text: string, tokens_so_far: number}`  
-- `generation_completed`: `{item: QueueItemObject, generation_id: number, result: object}`
-- `generation_failed`: `{item: QueueItemObject, generation_id: number, error: string}`
-- `queue_update`: `{action: "added", item: QueueItemObject, queue_size: number}`
+- `generation_started`: `{item: object, generation_id: number}`
+- `generation_update`: `{generation_id: number, partial_text: string, tokens_so_far: number}`
+- `generation_completed`: `{item: object, generation_id: number, result: object}`
+- `generation_failed`: `{item: object, generation_id: number, error: string}`
+- `queue_update`: `{action: string, item: object, queue_size: number}`
 
 **Image Generation Events:**
-- `image.generation.started`: `{item: QueueItemObject, generation_id: number}`
+- `image.generation.started`: `{item: object, generation_id: number}`
 - `image.generation.update`: `{generation_id: number, progress_message: string}`
-- `image.generation.completed`: `{item: QueueItemObject, generation_id: number, result: object}`
-- `image.generation.failed`: `{item: QueueItemObject, generation_id: number, error: string}`
+- `image.generation.completed`: `{item: object, generation_id: number, result: object}`
+- `image.generation.failed`: `{item: object, generation_id: number, error: string}`
 
-### QueueItemObject
-```json
-{
-  "generation_id": 1,
-  "generation_type": "llm|image", 
-  "priority": 5,
-  "status": "pending|processing|completed|failed",
-  "created_at": "2025-01-01T00:00:00",
-  "started_at": "2025-01-01T00:00:00",
-  "completed_at": "2025-01-01T00:00:00",
-  "result": {},
-  "error": "string"
-}
-```
+## Common Error Patterns
 
-## 🎮 Complete Game Flow Implementation Guide
+**Parameter Validation:**
+- `"Invalid monster ID - must be a positive integer"`
+- `"Invalid filter parameter - must be: all, with_art, or without_art"`
+- `"Invalid sort parameter - must be: newest, oldest, name, species"`
+- `"monster_ids must be a list"`
+- `"Limit must be between 1 and 1000"`
+- `"Offset must be 0 or greater"`
 
-### Home Base Screen Implementation
-1. **Load Following Monsters:** `GET /game-state/following` 
-2. **Display Monster Cards:** Show monster card art, names, species for selection
-3. **Party Selection:** Allow clicking up to 4 monsters for party
-4. **Set Active Party:** `POST /game-state/party/set` with selected monster IDs
-5. **Check Readiness:** `GET /game-state/party/ready` before showing "Enter Dungeon" button
-6. **Enter Dungeon Button:** `POST /dungeon/enter` when clicked
+**Business Logic:**
+- `"Monster not found"`
+- `"Monster {name} is already following you"`
+- `"Monster {id} is not following you"`
+- `"Active party cannot exceed 4 monsters"`
+- `"Monsters [ids] are not following you"`
+- `"No active party set. Add monsters to your party before entering the dungeon."`
+- `"Not currently in a dungeon"`
+- `"Invalid door choice. Available: [choices]"`
 
-### Dungeon Screen Implementation
-1. **Show Entry Text:** Display `entry_text` from dungeon enter response
-2. **Show Current Location:** Display location name and description
-3. **Show Party:** Display active party monster cards/names
-4. **Show Door Choices:** Render 3 buttons for door choices
-5. **Handle Door Click:** `POST /dungeon/choose-door` with selected door ID
-6. **Show Event Text:** Display event text or exit text based on choice
-7. **Update Location:** Show new location and doors (if not exiting)
-8. **Handle Exit:** Return to home base screen when exit is chosen
-
-### Game State Management
-- **Reset Game:** `POST /game-state/reset` for testing/debugging
-- **Add Test Monsters:** `POST /game-state/following/add` for development
-- **Check Dungeon Status:** `GET /dungeon/status` to know which screen to show
-- **Persistent State:** Game state persists until server restart (no save files)
-
-### Error Patterns
-
-**Enhanced Error Responses:**
-- `"No active party set. Add monsters to your party before entering the dungeon."` - Show party setup UI
-- `"Active party cannot exceed 4 monsters"` - Limit party selection UI
-- `"Invalid door choice. Available: ['location_1', 'location_2', 'exit']"` - Re-render door choices
-- `"Not currently in a dungeon"` - Redirect to home base screen
-- `"Monster 123 not found"` - Remove from UI selection
-
-**Common Errors:**
-- `"Monster not found"` (404) - When monster was deleted
-- `"Failed to generate entry text: LLM generation failed"` - Show generic entry text
-- `"Template not found: template_name"` - Backend configuration issue
-- `"ComfyUI server not running"` - Image generation unavailable
-
-### Configuration Affecting Frontend
-
-### Environment Variables
-- `ENABLE_IMAGE_GENERATION`: `"true"|"false"` - Controls card art generation and display
-- `FLASK_DEBUG`: `"true"|"false"` - Affects error verbosity
-
-### Feature Flags (from /game/status)
-```json
-{
-  "monster_generation": true,
-  "ability_generation": true, 
-  "image_generation": true,  // depends on ENABLE_IMAGE_GENERATION + ComfyUI
-  "streaming_display": true,
-  "unified_queue": true,
-  "gpu_acceleration": true,  // depends on LLM config
-  "battle_system": false,     // not implemented yet
-  "chat_system": false,       // not implemented yet
-  "save_system": true         // via game state management
-}
-```
+**Generation Errors:**
+- `"Monster generation failed"`
+- `"Ability generation failed"`
+- `"Image generation failed"`
+- `"Template not found"`
+- `"Generation log not found"`
