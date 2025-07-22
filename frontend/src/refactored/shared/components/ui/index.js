@@ -1,5 +1,5 @@
 // UI Primitives Master Export - Single source for all UI components
-// Allows for clean imports like: import { Button, StatusBadge, Alert } from 'shared/components/ui'
+// Allows for clean imports like: import { Button, StatusBadge, Alert, Input, Select } from 'shared/components/ui'
 // Organizes all primitives for easy discovery and consistent imports
 
 // ===== BUTTON COMPONENTS =====
@@ -32,10 +32,7 @@ export {
   LoadingSkeleton,
   LOADING_SIZES,
   LOADING_COLORS,
-  LOADING_TYPES,
-  LOADING_CONTAINER_SIZES,
-  SKELETON_TYPES,
-  SKELETON_SHAPES
+  LOADING_TYPES
 } from './LoadingStates/index.js';
 
 // ===== FEEDBACK COMPONENTS =====
@@ -60,3 +57,11 @@ export {
   CARD_SECTION_TYPES,
   CARD_SECTION_ALIGNMENT
 } from './Card/index.js';
+
+// ===== FORM COMPONENTS (SIMPLIFIED) =====
+export {
+  Input,
+  Select,
+  SearchInput,
+  FormField
+} from './Form/index.js';

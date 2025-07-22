@@ -9,12 +9,9 @@ export {
 } from './LoadingSpinner.js';
 
 export { 
-  default as LoadingContainer, 
-  LOADING_CONTAINER_SIZES 
+  default as LoadingContainer 
 } from './LoadingContainer.js';
 
 export { 
   default as LoadingSkeleton, 
-  SKELETON_TYPES, 
-  SKELETON_SHAPES 
 } from './LoadingSkeleton.js';
