@@ -58,10 +58,12 @@ export {
   CARD_SECTION_ALIGNMENT
 } from './Card/index.js';
 
-// ===== FORM COMPONENTS (SIMPLIFIED) =====
+// ===== FORM COMPONENTS (CORRECTED) =====
 export {
   Input,
+  Textarea,
   Select,
   SearchInput,
-  FormField
+  FormField,
+  Form
 } from './Form/index.js';
