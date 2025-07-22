@@ -17,31 +17,8 @@ def get_status():
         queue = get_ai_queue()
         queue_status = queue.get_queue_status()
         
-        # Get model status
-        from backend.ai.llm import get_llm_status
-        llm_status = get_llm_status()
-        
-        # Get image generation status
-        import os
-        image_enabled = os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true'
-        image_status = {'enabled': image_enabled}
-        
-        if image_enabled:
-            try:
-                from backend.ai.comfyui.client import ComfyUIClient
-                client = ComfyUIClient()
-                image_status['server_running'] = client.is_server_running()
-                image_status['available'] = client.is_server_running()
-            except Exception as e:
-                image_status['error'] = str(e)
-                image_status['available'] = False
-        else:
-            image_status['available'] = False
-        
         # Combine status info
         status = {
-            'llm_status': llm_status,
-            'image_status': image_status,
             'queue_info': {
                 'worker_running': queue_status.get('worker_running', False),
                 'queue_size': queue_status.get('queue_size', 0),
@@ -49,8 +26,7 @@ def get_status():
                 'total_items': queue_status.get('total_items', 0),
                 'type_counts': queue_status.get('type_counts', {}),
                 'status_counts': queue_status.get('status_counts', {})
-            },
-            'generation_types_supported': ['llm'] + (['image'] if image_status['available'] else [])
+            }
         }
         
         return jsonify({'success': True, 'data': status})
