@@ -9,6 +9,7 @@ import DungeonScreen from './components/screens/DungeonScreen';
 import DeveloperScreen from './components/screens/DeveloperScreen';
 import StreamingDisplay from './components/streaming/StreamingDisplay';
 import ApiServicesTestScreen from './components/screens/ApiServicesTestScreen';
+import HooksTestScreen from './components/screens/HooksTestScreen';
 import { healthCheck, getGameStatus } from './services/api';
 
 function App() {
@@ -144,6 +145,13 @@ function App() {
           >
             🧪 API Tests
           </button>
+
+          <button 
+            className={`nav-button ${currentScreen === 'hook-tests' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('hook-tests')}
+          >
+            🧪 hook-tests
+          </button>
           {/* Dungeon button only shows when in dungeon */}
           {currentScreen === 'dungeon' && (
             <button className="nav-button active">
@@ -177,6 +185,10 @@ function App() {
 
         {currentScreen === 'api-services' && (
           <ApiServicesTestScreen />
+        )}
+
+        {currentScreen === 'hook-tests' && (
+          <HooksTestScreen />
         )}
 
         {currentScreen === 'dungeon' && (
