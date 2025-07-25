@@ -53,7 +53,7 @@ def create_tables():
     Create all database tables based on model definitions
     This will be called when we have models defined
     """
-    
+
     try:
         # Import all models so they're registered with SQLAlchemy
         from backend.models.base import BaseModel  # Base model class
