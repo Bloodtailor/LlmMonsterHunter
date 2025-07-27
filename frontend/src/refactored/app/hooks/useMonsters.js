@@ -1,264 +1,204 @@
-// useMonsters Hook - Updated to use simplified useApi pattern
-// Components control WHEN to make API calls via execute functions
-// Hooks provide data access + business logic, transformers applied explicitly
+// useMonsters Hook - FINAL CLEAN VERSION
+// Domain hooks that manage state + provide both raw and clean data
+// Components get clean data effortlessly, raw data available for debugging
 
-import { useState, useCallback } from 'react';
-import { useApi } from '../../shared/hooks/useApi.js';
+import { useCallback, useMemo } from 'react';
+import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as monstersApi from '../../api/services/monsters.js';
 import {
-  transformMonsterCollection,
-  transformMonsterResponse,
-  transformMonsterStats,
-  transformAbilitiesCollection,
-  transformCardArt,
-  transformMonsterTemplates,
-  transformMonsterGeneration,
-  transformAbilityGeneration
+  transformMonster,
+  transformAbility,
+  transformAbilities,
+  transformMonsterStats
 } from '../transformers/monsters.js';
 
 /**
- * Hook for managing monster collections with pagination
- * Component controls when to load via loadMonsters function
+ * Hook for managing monster collections
+ * Provides clean monster data + loading state
  */
 export function useMonsterCollection() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.loadMonsters);
-  
-  // Pagination state managed by this hook
-  const [currentOffset, setCurrentOffset] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const asyncState = useAsyncState();
 
-  /**
-   * Load monsters with specified options
-   * Component calls this when it wants to load data
-   * @param {object} options - Query options (limit, filter, sort, etc.)
-   * @returns {Promise<object>} Transformed monster collection
-   */
   const loadMonsters = useCallback(async (options = {}) => {
-    const params = {
-      offset: currentOffset,
-      ...options  // Component provides limit, filter, sort, etc.
+    await asyncState.execute(monstersApi.loadMonsters, options);
+  }, [asyncState.execute]);
+
+  // Transform raw data when it changes
+  const transformedData = useMemo(() => {
+    if (!asyncState.data) {
+      return { monsters: [], total: 0 };
+    }
+    
+    return {
+      monsters: (asyncState.data.monsters || []).map(transformMonster).filter(Boolean),
+      total: asyncState.data.total || 0
     };
-    
-    console.log('🔄 Loading monsters with params:', params);
-    const rawData = await execute(params);
-    
-    // Apply transformation explicitly
-    const transformedData = transformMonsterCollection(rawData);
-    return transformedData;
-  }, [currentOffset, execute]);
-
-  /**
-   * Navigate to specific page
-   * Updates pagination state - component should call loadMonsters after
-   */
-  const goToPage = useCallback((page, limit = 12) => {
-    const newOffset = (page - 1) * limit;
-    setCurrentOffset(newOffset);
-    setCurrentPage(page);
-  }, []);
-
-  /**
-   * Reset pagination to first page  
-   */
-  const resetPagination = useCallback(() => {
-    setCurrentOffset(0);
-    setCurrentPage(1);
-  }, []);
-
-  // Calculate pagination info from current data
-  const pagination = data?.pagination ? {
-    ...data.pagination,
-    currentPage,
-    totalPages: Math.ceil(data.pagination.total / (data.pagination.limit || 12)),
-    hasNextPage: data.pagination.hasMore,
-    hasPrevPage: currentPage > 1
-  } : null;
+  }, [asyncState.data]);
 
   return {
-    // Transformed data
-    monsters: data?.monsters || [],
-    filters: data?.filters || { type: 'all', sortBy: 'newest' },
-    pagination,
+    // Clean transformed data
+    ...transformedData,
+
+    // Raw data (for debugging)
+    rawResponse: asyncState.data,
 
     // State flags
-    isLoading,
-    isError,
-    error,
+    isLoading: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
 
-    // Pagination state
-    currentPage,
-    currentOffset,
-
-    // Actions (component controls when these are called)
-    loadMonsters,
-    goToPage,
-    resetPagination
+    // Actions
+    loadMonsters
   };
 }
 
 /**
  * Hook for managing individual monster data
- * Component controls when to load via loadMonster function
  */
 export function useMonster() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.getMonster);
+  const asyncState = useAsyncState();
 
-  /**
-   * Load specific monster by ID
-   * @param {number} monsterId - Monster ID to load
-   * @returns {Promise<object>} Transformed monster object
-   */
   const loadMonster = useCallback(async (monsterId) => {
-    console.log('🐲 Loading monster:', monsterId);
-    const rawData = await execute(monsterId);
-    
-    // Apply transformation explicitly
-    const transformedData = transformMonsterResponse(rawData);
-    return transformedData;
-  }, [execute]);
+    await asyncState.execute(monstersApi.getMonster, monsterId);
+  }, [asyncState.execute]);
+
+  // Transform raw monster when data changes
+  const monster = useMemo(() => {
+    if (!asyncState.data?.monster) return null;
+    return transformMonster(asyncState.data.monster);
+  }, [asyncState.data]);
 
   return {
-    monster: data,
-    isLoading,
-    isError,
-    error,
+    monster,
+    rawResponse: asyncState.data,
+    isLoading: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     loadMonster
   };
 }
 
 /**
  * Hook for monster statistics
- * Component controls when to load via loadStats function
  */
 export function useMonsterStats() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.loadMonsterStats);
+  const asyncState = useAsyncState();
 
-  /**
-   * Load monster statistics with filter
-   * @param {string} filter - Filter type ('all', 'with_art', 'without_art')
-   * @returns {Promise<object>} Transformed stats object
-   */
   const loadStats = useCallback(async (filter = 'all') => {
-    console.log('📈 Loading monster stats with filter:', filter);
-    const rawData = await execute(filter);
-    
-    // Apply transformation explicitly
-    const transformedData = transformMonsterStats(rawData);
-    return transformedData;
-  }, [execute]);
+    await asyncState.execute(monstersApi.loadMonsterStats, filter);
+  }, [asyncState.execute]);
+
+  // Transform raw stats when data changes
+  const stats = useMemo(() => {
+    if (!asyncState.data?.stats) return null;
+    return transformMonsterStats(asyncState.data.stats);
+  }, [asyncState.data]);
 
   return {
-    stats: data,
-    isLoading,
-    isError,
-    error,
+    stats,
+    rawResponse: asyncState.data,
+    isLoading: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     loadStats
   };
 }
 
 /**
  * Hook for monster abilities
- * Component controls when to load via loadAbilities function
  */
 export function useMonsterAbilities() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.getMonsterAbilities);
+  const asyncState = useAsyncState();
 
-  /**
-   * Load abilities for specific monster
-   * @param {number} monsterId - Monster ID to load abilities for
-   * @returns {Promise<object>} Transformed abilities collection
-   */
   const loadAbilities = useCallback(async (monsterId) => {
-    console.log('⚡ Loading abilities for monster:', monsterId);
-    const rawData = await execute(monsterId);
+    await asyncState.execute(monstersApi.getMonsterAbilities, monsterId);
+  }, [asyncState.execute]);
+
+  // Transform raw abilities when data changes
+  const transformedData = useMemo(() => {
+    if (!asyncState.data) {
+      return { abilities: [], count: 0, monsterId: null };
+    }
     
-    // Apply transformation explicitly
-    const transformedData = transformAbilitiesCollection(rawData);
-    return transformedData;
-  }, [execute]);
+    return {
+      abilities: transformAbilities(asyncState.data.abilities || []),
+      count: asyncState.data.count || 0,
+      monsterId: asyncState.data.monster_id || null
+    };
+  }, [asyncState.data]);
 
   return {
-    abilities: data?.abilities || [],
-    count: data?.count || 0,
-    monsterId: data?.monsterId || null,
-    isLoading,
-    isError,
-    error,
+    ...transformedData,
+    rawResponse: asyncState.data,
+    isLoading: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     loadAbilities
   };
 }
 
 /**
  * Hook for monster card art
- * Component controls when to load via loadCardArt function
  */
 export function useMonsterCardArt() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.getMonsterCardArt);
+  const asyncState = useAsyncState();
 
-  /**
-   * Load card art for specific monster
-   * @param {number} monsterId - Monster ID to load card art for
-   * @returns {Promise<object>} Transformed card art object
-   */
   const loadCardArt = useCallback(async (monsterId) => {
-    console.log('🎨 Loading card art for monster:', monsterId);
-    const rawData = await execute(monsterId);
+    await asyncState.execute(monstersApi.getMonsterCardArt, monsterId);
+  }, [asyncState.execute]);
+
+  // Transform raw card art when data changes
+  const cardArt = useMemo(() => {
+    if (!asyncState.data) return null;
     
-    // Apply transformation explicitly
-    const transformedData = transformCardArt(rawData);
-    return transformedData;
-  }, [execute]);
+    return {
+      exists: asyncState.data.card_art?.exists || false,
+      relativePath: asyncState.data.card_art?.relative_path || null,
+      monsterId: asyncState.data.monster_id || null
+    };
+  }, [asyncState.data]);
 
   return {
-    cardArt: data,
-    isLoading,
-    isError,
-    error,
+    cardArt,
+    rawResponse: asyncState.data,
+    isLoading: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     loadCardArt
   };
 }
 
 /**
  * Hook for monster templates
- * Component controls when to load via loadTemplates function
  */
 export function useMonsterTemplates() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.getMonsterTemplates);
+  const asyncState = useAsyncState();
 
-  /**
-   * Load available monster templates
-   * @returns {Promise<object>} Transformed templates object
-   */
   const loadTemplates = useCallback(async () => {
-    console.log('📝 Loading monster templates');
-    const rawData = await execute();
-    
-    // Apply transformation explicitly
-    const transformedData = transformMonsterTemplates(rawData);
-    return transformedData;
-  }, [execute]);
+    await asyncState.execute(monstersApi.getMonsterTemplates);
+  }, [asyncState.execute]);
+
+  // Templates are already clean, just extract them
+  const templates = useMemo(() => {
+    return asyncState.data?.templates || {};
+  }, [asyncState.data]);
 
   return {
-    templates: data || {},
-    isLoading,
-    isError,
-    error,
+    templates,
+    rawResponse: asyncState.data,
+    isLoading: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     loadTemplates
   };
 }
 
 /**
  * Hook for monster generation (mutation)
- * Component controls when to generate via generate function
  */
 export function useMonsterGeneration() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.generateMonster);
+  const asyncState = useAsyncState();
 
-  /**
-   * Generate a new monster
-   * @param {object} options - Generation options
-   * @returns {Promise<object>} Transformed generation result
-   */
   const generate = useCallback(async (options = {}) => {
     const generationOptions = {
       prompt_name: 'detailed_monster',
@@ -266,123 +206,143 @@ export function useMonsterGeneration() {
       ...options
     };
     
-    console.log('✨ Generating monster with options:', generationOptions);
-    const rawData = await execute(generationOptions);
+    await asyncState.execute(monstersApi.generateMonster, generationOptions);
+  }, [asyncState.execute]);
+
+  // Transform generation result when data changes
+  const generationResult = useMemo(() => {
+    if (!asyncState.data) return null;
     
-    // Apply transformation explicitly
-    const transformedData = transformMonsterGeneration(rawData);
-    return transformedData;
-  }, [execute]);
+    return {
+      success: asyncState.data.success || false,
+      monster: asyncState.data.monster ? transformMonster(asyncState.data.monster) : null,
+      requestId: asyncState.data.request_id || null,
+      logId: asyncState.data.log_id || null,
+      error: asyncState.data.error || null
+    };
+  }, [asyncState.data]);
 
   return {
-    generationResult: data,
-    monster: data?.monster || null,
-    isGenerating: isLoading,
-    isError,
-    error,
+    generationResult,
+    monster: generationResult?.monster || null,
+    rawResponse: asyncState.data,
+    isGenerating: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     generate
   };
 }
 
 /**
  * Hook for ability generation (mutation)
- * Component controls when to generate via generate function
  */
 export function useAbilityGeneration() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.generateAbility);
+  const asyncState = useAsyncState();
 
-  /**
-   * Generate an ability for specific monster
-   * @param {number} monsterId - Monster ID to generate ability for
-   * @param {object} options - Generation options
-   * @returns {Promise<object>} Transformed ability generation result
-   */
   const generate = useCallback(async (monsterId, options = {}) => {
     const generationOptions = {
       wait_for_completion: true,
       ...options
     };
     
-    console.log('⚡ Generating ability for monster:', monsterId, 'with options:', generationOptions);
-    const rawData = await execute(monsterId, generationOptions);
+    await asyncState.execute(monstersApi.generateAbility, monsterId, generationOptions);
+  }, [asyncState.execute]);
+
+  // Transform ability generation result when data changes
+  const generationResult = useMemo(() => {
+    if (!asyncState.data) return null;
     
-    // Apply transformation explicitly
-    const transformedData = transformAbilityGeneration(rawData);
-    return transformedData;
-  }, [execute]);
+    return {
+      success: asyncState.data.success || false,
+      ability: asyncState.data.ability ? transformAbility(asyncState.data.ability) : null,
+      requestId: asyncState.data.request_id || null,
+      logId: asyncState.data.log_id || null,
+      error: asyncState.data.error || null
+    };
+  }, [asyncState.data]);
 
   return {
-    generationResult: data,
-    ability: data?.ability || null,
-    isGenerating: isLoading,
-    isError,
-    error,
+    generationResult,
+    ability: generationResult?.ability || null,
+    rawResponse: asyncState.data,
+    isGenerating: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     generate
   };
 }
 
 /**
  * Hook for card art generation (mutation)
- * Component controls when to generate via generate function
  */
 export function useCardArtGeneration() {
-  const { data, isLoading, isError, error, execute } = useApi(monstersApi.generateCardArt);
+  const asyncState = useAsyncState();
 
-  /**
-   * Generate card art for specific monster
-   * @param {number} monsterId - Monster ID to generate card art for
-   * @param {object} options - Generation options
-   * @returns {Promise<object>} Raw generation result
-   */
   const generate = useCallback(async (monsterId, options = {}) => {
-    console.log('🎨 Generating card art for monster:', monsterId);
-    const rawData = await execute(monsterId, options);
-    return rawData;
-  }, [execute]);
+    await asyncState.execute(monstersApi.generateCardArt, monsterId, options);
+  }, [asyncState.execute]);
 
   return {
-    generationResult: data,
-    isGenerating: isLoading,
-    isError,
-    error,
+    generationResult: asyncState.data,
+    rawResponse: asyncState.data,
+    isGenerating: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     generate
   };
 }
 
-/**
- * Comprehensive hook that provides multiple monster operations
- * Components can use individual hooks or this combined one based on needs
- */
-export function useMonsters() {
-  const collection = useMonsterCollection();
-  const individual = useMonster();
-  const stats = useMonsterStats();
-  const abilities = useMonsterAbilities();
-  const cardArt = useMonsterCardArt();
-  const templates = useMonsterTemplates();
-  const generation = useMonsterGeneration();
-  const abilityGeneration = useAbilityGeneration();
-  const cardArtGeneration = useCardArtGeneration();
+// ===== CLEAN COMPONENT USAGE EXAMPLE =====
+/*
 
-  return {
-    // Individual hook instances
-    collection,
-    individual,
-    stats,
-    abilities,
-    cardArt,
-    templates,
-    generation,
-    abilityGeneration,
-    cardArtGeneration,
-    
-    // Helper function to load initial data
-    loadInitialData: useCallback(async () => {
-      await Promise.all([
-        collection.loadMonsters({ limit: 12 }),
-        stats.loadStats('all'),
-        templates.loadTemplates()
-      ]);
-    }, [collection, stats, templates])
+function MonsterListScreen() {
+  // UI state
+  const [filter, setFilter] = useState('all');
+  const [sort, setSort] = useState('newest');
+
+  // Domain hook - provides clean data + state management
+  const { 
+    monsters,         // ← Clean transformed monsters
+    total,           // ← Clean total number
+    isLoading,       // ← Managed by useAsyncState
+    loadMonsters     // ← Just call it, no await needed!
+  } = useMonsterCollection();
+
+  // UI pagination hook
+  const pagination = usePagination({ limit: 12, total });
+
+  // Component coordinates when to load
+  useEffect(() => {
+    loadMonsters({
+      limit: pagination.limit,
+      offset: pagination.currentOffset,
+      filter: filter !== 'all' ? filter : undefined,
+      sort
+    });
+  }, [filter, sort, pagination.currentOffset]);
+
+  const handlePageChange = (page) => {
+    pagination.goToPage(page);
+    // loadMonsters will be called by useEffect when pagination.currentOffset changes
   };
+
+  return (
+    <div>
+      <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <option value="all">All</option>
+        <option value="with_art">With Art</option>
+        <option value="without_art">Without Art</option>
+      </select>
+
+      {isLoading ? (
+        <LoadingContainer message="Loading monsters..." />
+      ) : (
+        <MonsterGrid monsters={monsters} />  // ← Clean data, no transformation needed
+      )}
+
+      <Pagination pagination={pagination} onPageChange={handlePageChange} />
+    </div>
+  );
 }
+
+*/
