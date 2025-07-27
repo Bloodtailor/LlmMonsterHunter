@@ -1,0 +1,255 @@
+/* Card Components - Card, CardSection */
+/* Container components for organizing content with consistent styling */
+
+/* ===== BASE CARD ===== */
+
+.card {
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== CARD VARIANTS ===== */
+
+.card-default {
+  background: var(--background-medium);
+  border: 1px solid var(--background-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-outlined {
+  background: var(--background-medium);
+  border: 2px solid var(--primary-color);
+  box-shadow: none;
+}
+
+.card-elevated {
+  background: var(--background-medium);
+  border: 1px solid var(--background-light);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-flat {
+  background: var(--background-medium);
+  border: none;
+  box-shadow: none;
+}
+
+/* ===== CARD SIZES ===== */
+
+.card-sm {
+  max-width: 280px;
+}
+
+.card-md {
+  max-width: 400px;
+}
+
+.card-lg {
+  max-width: 600px;
+}
+
+.card-xl {
+  max-width: 800px;
+}
+
+/* ===== CARD PADDING ===== */
+
+.card-padding-none {
+  padding: 0;
+}
+
+.card-padding-sm {
+  padding: var(--spacing-sm);
+}
+
+.card-padding-md {
+  padding: var(--spacing-md);
+}
+
+.card-padding-lg {
+  padding: var(--spacing-lg);
+}
+
+/* ===== CARD BACKGROUNDS ===== */
+
+.card-background-light {
+  background: var(--background-light);
+}
+
+.card-background-dark {
+  background: var(--background-dark);
+}
+
+.card-background-transparent {
+  background: transparent;
+}
+
+/* ===== INTERACTIVE CARDS ===== */
+
+.card-interactive {
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  outline: none;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-interactive:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.card-interactive:active {
+  transform: translateY(0);
+}
+
+.card-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== CARD SECTION ===== */
+
+.card-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* Section types */
+.card-section-header {
+  border-bottom: 1px solid var(--background-light);
+  padding-bottom: var(--spacing-sm);
+}
+
+.card-section-content {
+  flex: 1;
+}
+
+.card-section-footer {
+  border-top: 1px solid var(--background-light);
+  padding-top: var(--spacing-sm);
+  margin-top: auto;
+}
+
+/* Section padding overrides */
+.card-section-padding-none {
+  padding: 0;
+}
+
+.card-section-padding-sm {
+  padding: var(--spacing-sm);
+}
+
+.card-section-padding-md {
+  padding: var(--spacing-md);
+}
+
+.card-section-padding-lg {
+  padding: var(--spacing-lg);
+}
+
+/* Section modifiers */
+.card-section-bordered {
+  border: 1px solid var(--background-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-md);
+}
+
+.card-section-highlighted {
+  background: var(--background-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-md);
+}
+
+/* Section alignment */
+.card-section-align-left {
+  text-align: left;
+  align-items: flex-start;
+}
+
+.card-section-align-center {
+  text-align: center;
+  align-items: center;
+}
+
+.card-section-align-right {
+  text-align: right;
+  align-items: flex-end;
+}
+
+/* Section header (title + action) */
+.card-section-with-header {
+  gap: var(--spacing-md);
+}
+
+.card-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.card-section-title {
+  flex: 1;
+  margin: 0;
+}
+
+.card-section-title h1,
+.card-section-title h2,
+.card-section-title h3,
+.card-section-title h4,
+.card-section-title h5,
+.card-section-title h6 {
+  margin: 0;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.card-section-title h4 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.card-section-action {
+  flex-shrink: 0;
+}
+
+.card-section-content {
+  color: var(--text-medium);
+  line-height: 1.6;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 768px) {
+  .card-xl,
+  .card-lg {
+    max-width: 100%;
+  }
+  
+  .card-section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+  
+  .card-section-align-right,
+  .card-section-align-center {
+    text-align: left;
+    align-items: flex-start;
+  }
+}

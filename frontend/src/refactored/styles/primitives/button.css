@@ -1,0 +1,305 @@
+/* Button Components - Button, IconButton, ButtonGroup */
+/* Foundation interactive element used throughout the application */
+
+/* ===== BASE BUTTON ===== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-primary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ===== BUTTON VARIANTS ===== */
+
+.btn-primary {
+  background: var(--primary-color);
+  color: var(--text-light);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-color) 85%, black);
+  border-color: color-mix(in srgb, var(--primary-color) 85%, black);
+}
+
+.btn-secondary {
+  background: var(--background-light);
+  color: var(--text-light);
+  border-color: var(--background-light);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--background-medium);
+  border-color: var(--primary-color);
+}
+
+.btn-danger {
+  background: var(--error-color);
+  color: var(--text-light);
+  border-color: var(--error-color);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error-color) 85%, black);
+  border-color: color-mix(in srgb, var(--error-color) 85%, black);
+}
+
+.btn-success {
+  background: var(--success-color);
+  color: var(--text-light);
+  border-color: var(--success-color);
+}
+
+.btn-success:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--success-color) 85%, black);
+  border-color: color-mix(in srgb, var(--success-color) 85%, black);
+}
+
+.btn-warning {
+  background: var(--warning-color);
+  color: var(--text-light);
+  border-color: var(--warning-color);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--warning-color) 85%, black);
+  border-color: color-mix(in srgb, var(--warning-color) 85%, black);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-light);
+  border-color: var(--text-dim);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--background-light);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.btn-link {
+  background: transparent;
+  color: var(--primary-color);
+  border-color: transparent;
+  text-decoration: underline;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.btn-link:hover:not(:disabled) {
+  color: var(--secondary-color);
+  text-decoration: none;
+}
+
+/* ===== BUTTON SIZES ===== */
+
+.btn-sm {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 12px;
+  gap: var(--spacing-xs);
+}
+
+.btn-md {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 14px;
+  gap: var(--spacing-sm);
+}
+
+.btn-lg {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: 16px;
+  gap: var(--spacing-sm);
+}
+
+.btn-xl {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  font-size: 18px;
+  gap: var(--spacing-md);
+}
+
+/* ===== BUTTON STATES ===== */
+
+.btn:disabled,
+.btn-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-loading .btn-text {
+  opacity: 0.7;
+}
+
+.btn-loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  animation: spin 1s linear infinite;
+}
+
+/* ===== BUTTON CONTENT ===== */
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  font-style: normal;
+  line-height: 1;
+}
+
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-loading-text {
+  opacity: 0.7;
+}
+
+/* Icon-only button adjustments */
+.btn-icon-only {
+  padding: var(--spacing-sm);
+  aspect-ratio: 1;
+  justify-content: center;
+}
+
+.btn-icon-only.btn-sm {
+  padding: var(--spacing-xs);
+}
+
+.btn-icon-only.btn-lg {
+  padding: var(--spacing-md);
+}
+
+.btn-icon-only.btn-xl {
+  padding: var(--spacing-lg);
+}
+
+/* ===== ICON BUTTON ===== */
+
+.icon-button {
+  /* Additional styling specific to icon buttons */
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-fast);
+}
+
+.icon-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.icon-button:active {
+  transform: translateY(0);
+}
+
+/* ===== BUTTON GROUP ===== */
+
+.button-group {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Orientation */
+.button-group-horizontal {
+  flex-direction: row;
+  align-items: center;
+}
+
+.button-group-vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Spacing */
+.button-group-spacing-tight {
+  gap: var(--spacing-xs);
+}
+
+.button-group-spacing-normal {
+  gap: var(--spacing-sm);
+}
+
+.button-group-spacing-loose {
+  gap: var(--spacing-md);
+}
+
+/* Alignment */
+.button-group-align-start {
+  justify-content: flex-start;
+}
+
+.button-group-align-center {
+  justify-content: center;
+}
+
+.button-group-align-end {
+  justify-content: flex-end;
+}
+
+.button-group-align-stretch .btn {
+  flex: 1;
+}
+
+/* Connected button group (optional) */
+.button-group-connected {
+  gap: 0;
+}
+
+.button-group-connected .btn {
+  border-radius: 0;
+  border-right-width: 0;
+}
+
+.button-group-connected .btn:first-child {
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.button-group-connected .btn:last-child {
+  border-top-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+  border-right-width: 1px;
+}
+
+.button-group-connected .btn:only-child {
+  border-radius: var(--radius-sm);
+  border-right-width: 1px;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 768px) {
+  .btn-xl {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 16px;
+  }
+  
+  .button-group-horizontal {
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,211 @@
+/* Pagination Components - Layout-only CSS for pagination system */
+/* Uses existing button and form styling - just arranges elements */
+
+/* ===== MAIN PAGINATION COMPONENT ===== */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.pagination-ellipsis {
+  padding: 0 var(--spacing-xs);
+  color: var(--text-dim);
+  user-select: none;
+}
+
+/* ===== PAGINATION INFO COMPONENT ===== */
+
+.pagination-info {
+  display: inline-flex;
+  align-items: center;
+}
+
+.pagination-info-text {
+  font-size: 14px;
+  color: var(--text-medium);
+}
+
+/* ===== PAGE JUMPER COMPONENT ===== */
+
+.page-jumper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.page-jumper-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.page-jumper-label {
+  font-size: 14px;
+  color: var(--text-medium);
+  white-space: nowrap;
+}
+
+.page-jumper-input {
+  width: 60px;
+  text-align: center;
+}
+
+.page-jumper-info {
+  font-size: 14px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ===== ITEMS PER PAGE SELECTOR ===== */
+
+.items-per-page-selector {
+  display: flex;
+  align-items: center;
+}
+
+.items-per-page-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.items-per-page-label {
+  font-size: 14px;
+  color: var(--text-medium);
+  white-space: nowrap;
+}
+
+.items-per-page-select {
+  min-width: 120px;
+}
+
+/* ===== FULL PAGINATION LAYOUTS ===== */
+
+.full-pagination {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Default Layout - Vertical stack */
+.full-pagination-default {
+  align-items: center;
+}
+
+.full-pagination-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: var(--spacing-md);
+}
+
+.full-pagination-main {
+  display: flex;
+  justify-content: center;
+}
+
+.full-pagination-bottom {
+  display: flex;
+  justify-content: center;
+}
+
+/* Compact Layout - Single row */
+.full-pagination-compact {
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.full-pagination-compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.full-pagination-compact-items {
+  display: flex;
+  justify-content: center;
+}
+
+/* Spread Layout - Info left, pagination center, jumper right */
+.full-pagination-spread {
+  gap: var(--spacing-sm);
+}
+
+.full-pagination-spread-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.full-pagination-spread-left {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.full-pagination-spread-center {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.full-pagination-spread-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.full-pagination-spread-items {
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 768px) {
+  .full-pagination-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+  
+  .full-pagination-compact-row {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .full-pagination-spread-row {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+  
+  .full-pagination-spread-left,
+  .full-pagination-spread-center,
+  .full-pagination-spread-right {
+    justify-content: center;
+  }
+  
+  .page-jumper-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
