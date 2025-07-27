@@ -67,3 +67,11 @@ export {
   FormField,
   Form
 } from './Form/index.js';
+
+// ===== PAGINATION COMPONENTS =====
+export {
+  Pagination,
+  PaginationInfo,
+  PageJumper,
+  ItemsPerPageSelector
+} from './Pagination/index.js';
