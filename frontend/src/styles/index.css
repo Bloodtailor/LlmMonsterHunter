@@ -27,6 +27,9 @@
 @import './screens/HomeBaseScreen.css';
 @import './screens/DungeonScreen.css';
 
+/* 6. NEW REFACTORED STYLES - Override and supplement existing styles */
+@import '../refactored/styles/index.css';
+
 /* Code highlighting for development */
 code {
   font-family: var(--font-family-mono);

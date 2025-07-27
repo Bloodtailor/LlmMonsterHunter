@@ -1,0 +1,267 @@
+/* Badge Components - Badge, StatusBadge, CountBadge */
+/* Small informational labels, indicators, and counters */
+
+/* ===== BASE BADGE ===== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-decoration: none;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.badge-content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* ===== BADGE VARIANTS ===== */
+
+.badge-primary {
+  background: var(--primary-color);
+  color: var(--text-light);
+  border-color: var(--primary-color);
+}
+
+.badge-secondary {
+  background: var(--background-light);
+  color: var(--text-light);
+  border-color: var(--background-light);
+}
+
+.badge-success {
+  background: var(--success-color);
+  color: var(--text-light);
+  border-color: var(--success-color);
+}
+
+.badge-error {
+  background: var(--error-color);
+  color: var(--text-light);
+  border-color: var(--error-color);
+}
+
+.badge-warning {
+  background: var(--warning-color);
+  color: var(--text-light);
+  border-color: var(--warning-color);
+}
+
+.badge-info {
+  background: var(--secondary-color);
+  color: var(--text-light);
+  border-color: var(--secondary-color);
+}
+
+.badge-light {
+  background: var(--text-light);
+  color: var(--background-dark);
+  border-color: var(--text-light);
+}
+
+.badge-dark {
+  background: var(--background-dark);
+  color: var(--text-light);
+  border-color: var(--background-dark);
+}
+
+/* ===== BADGE SIZES ===== */
+
+.badge-sm {
+  padding: 2px var(--spacing-xs);
+  font-size: 10px;
+  gap: 2px;
+}
+
+.badge-md {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 12px;
+  gap: var(--spacing-xs);
+}
+
+.badge-lg {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 14px;
+  gap: var(--spacing-xs);
+}
+
+/* ===== BADGE MODIFIERS ===== */
+
+.badge-pill {
+  border-radius: 999px;
+}
+
+.badge-outlined {
+  background: transparent;
+}
+
+.badge-outlined.badge-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.badge-outlined.badge-secondary {
+  color: var(--text-light);
+  border-color: var(--text-light);
+}
+
+.badge-outlined.badge-success {
+  color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.badge-outlined.badge-error {
+  color: var(--error-color);
+  border-color: var(--error-color);
+}
+
+.badge-outlined.badge-warning {
+  color: var(--warning-color);
+  border-color: var(--warning-color);
+}
+
+.badge-outlined.badge-info {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+/* ===== INTERACTIVE BADGES ===== */
+
+.badge-interactive {
+  cursor: pointer;
+  outline: none;
+  background: none;
+  border: 1px solid transparent;
+  text-align: left;
+}
+
+.badge-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge-interactive:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 1px;
+}
+
+.badge-interactive:active {
+  transform: translateY(0);
+}
+
+/* ===== REMOVABLE BADGES ===== */
+
+.badge-removable {
+  padding-right: var(--spacing-xs);
+}
+
+.badge-remove-button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin-left: var(--spacing-xs);
+  font-size: 10px;
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+
+.badge-remove-button:hover {
+  opacity: 1;
+}
+
+/* ===== STATUS BADGE ===== */
+
+.status-badge {
+  /* Inherits from base badge */
+  font-weight: 600;
+}
+
+.status-badge-icon {
+  font-style: normal;
+  line-height: 1;
+}
+
+.status-badge-text {
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-badge-info,
+.status-badge-generating,
+.status-badge-loading {
+  /* Uses badge-info variant */
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ===== COUNT BADGE ===== */
+
+.count-badge {
+  /* Inherits from base badge */
+  min-width: 24px;
+  justify-content: center;
+}
+
+.count-badge-icon {
+  font-style: normal;
+  line-height: 1;
+}
+
+.count-badge-label {
+  font-weight: normal;
+  opacity: 0.9;
+}
+
+.count-badge-number {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Count format styling */
+.count-badge-format-fraction .count-badge-number {
+  font-family: var(--font-family-mono);
+}
+
+.count-badge-format-percentage .count-badge-number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Count state styling */
+.count-badge-empty {
+  opacity: 0.6;
+}
+
+.count-badge-full {
+  background: var(--success-color);
+  color: var(--text-light);
+  animation: pulse 1.5s ease-in-out 3;
+}
+
+.count-badge-with-max {
+  min-width: 32px;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 768px) {
+  .badge-lg {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 12px;
+  }
+  
+  .count-badge-format-fraction {
+    min-width: 40px;
+  }
+}

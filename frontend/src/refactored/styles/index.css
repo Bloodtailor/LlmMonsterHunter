@@ -1,0 +1,22 @@
+/* Monster Hunter Game - Refactored Styles Entry Point */
+/* Imports all styles in the correct dependency order */
+
+/* 1. FOUNDATION - CSS Variables and Design Tokens */
+@import './theme.css';
+
+/* 2. GLOBAL STYLES - Reset, base styles, app layout */
+@import './globals.css';
+
+/* 3. UTILITIES - Helper classes used by components */
+@import './utilities.css';
+
+/* 4. UI PRIMITIVES - Ordered by complexity and dependencies */
+@import './primitives/loading.css';      /* Simplest, used by buttons */
+@import './primitives/button.css';       /* Used by many other components */
+@import './primitives/badge.css';        /* Simple, standalone */
+@import './primitives/form.css';         /* Inputs, selects - used by pagination */
+@import './primitives/card.css';         /* Container, used by others */
+@import './primitives/feedback.css';     /* Alert, EmptyState */
+@import './primitives/pagination.css';   /* Uses buttons, form inputs - NEXT */
+
+/* NOTE: Only pagination.css remains to be created */
