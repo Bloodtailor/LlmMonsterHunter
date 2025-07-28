@@ -2,105 +2,10 @@
 /* 3D flip animation with smooth transitions and hover effects */
 
 /* Card Container - maintains perspective for 3D effect */
-.flippable-card-container {
-  perspective: 1000px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-/* Size Variants */
-.flippable-card-small {
-  width: 200px;
-  height: 280px;
-}
-
-.flippable-card-normal {
-  width: 300px;
-  height: 420px;
-}
-
-.flippable-card-large {
-  width: 400px;
-  height: 560px;
-}
 
 .flippable-card-fullscreen {
   width: min(600px, 90vw);
   height: min(840px, 85vh); /* Changed to maintain 5:7 aspect ratio (600/840 = 0.714) */
-}
-
-/* Main Card - contains both front and back */
-.flippable-card {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  transform-style: preserve-3d;
-  transition: transform 0.6s ease-in-out;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-/* Flip Animation */
-.flippable-card.flipped {
-  transform: rotateY(180deg);
-}
-
-/* Hover Effect - slight lift when not flipped */
-.flippable-card:not(.disabled):not(.flipped):hover {
-  transform: translateY(-4px) rotateX(5deg);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Disabled State */
-.flippable-card.disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-/* Card Faces - both front and back */
-.card-front,
-.card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Front Face */
-.card-front {
-  background: var(--background-medium);
-  border: 2px solid var(--background-light);
-}
-
-/* Back Face - rotated 180 degrees initially */
-.card-back {
-  background: var(--background-dark);
-  border: 2px solid var(--primary-color);
-  transform: rotateY(180deg);
-}
-
-/* Flip Indicator */
-.flip-indicator {
-  text-align: center;
-  margin-top: var(--spacing-xs);
-}
-
-.flip-hint {
-  font-size: 12px;
-  color: var(--text-dim);
-  opacity: 0.7;
-  transition: opacity var(--transition-normal);
-}
-
-.flippable-card-container:hover .flip-hint {
-  opacity: 1;
-  color: var(--accent-color);
 }
 
 /* Hide flip indicator for fullscreen cards */
@@ -110,16 +15,6 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .flippable-card-normal {
-    width: 280px;
-    height: 390px;
-  }
-  
-  .flippable-card-large {
-    width: 320px;
-    height: 450px;
-  }
-  
   .flippable-card-fullscreen {
     width: min(500px, 95vw);
     height: min(700px, 80vh); /* Maintains 5:7 aspect ratio */
@@ -127,42 +22,8 @@
 }
 
 @media (max-width: 480px) {
-  .flippable-card-small {
-    width: 160px;
-    height: 220px;
-  }
-  
-  .flippable-card-normal {
-    width: 240px;
-    height: 340px;
-  }
-  
-  .flippable-card-large {
-    width: 280px;
-    height: 390px;
-  }
-  
   .flippable-card-fullscreen {
     width: min(400px, 98vw);
     height: min(560px, 75vh); /* Maintains 5:7 aspect ratio */
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .card-front,
-  .card-back {
-    border-width: 3px;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .flippable-card {
-    transition: none;
-  }
-  
-  .flippable-card:not(.disabled):not(.flipped):hover {
-    transform: none;
   }
 }

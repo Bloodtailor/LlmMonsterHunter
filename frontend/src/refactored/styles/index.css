@@ -18,5 +18,6 @@
 @import './primitives/card.css';         /* Container, used by others */
 @import './primitives/feedback.css';     /* Alert, EmptyState */
 @import './primitives/pagination.css';   /* Uses buttons, form inputs - NEXT */
+@import './primitives/FlippableCard.css';   /* Uses buttons, form inputs - NEXT */
 
 /* NOTE: Only pagination.css remains to be created */
