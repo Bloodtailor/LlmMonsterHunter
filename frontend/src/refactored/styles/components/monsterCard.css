@@ -204,6 +204,7 @@
 .monster-card-details {
   overflow-y: auto;
   max-height: 100%;
+  max-width: none;
 }
 
 .monster-card-abilities-list {

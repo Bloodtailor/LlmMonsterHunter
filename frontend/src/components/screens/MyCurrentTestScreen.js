@@ -1,6 +1,6 @@
-// MyCurrentTestScreen - FOCUSED ARCHITECTURE TEST
-// Tests our complete refactored architecture: useMonsterCollection + Full Pagination + MonsterCard
-// Simple and focused - just pagination with monster cards
+// MyCurrentTestScreen - FOCUSED ARCHITECTURE TEST WITH CARD VIEWER
+// Tests our complete refactored architecture: useMonsterCollection + Full Pagination + MonsterCard + MonsterCardViewer
+// Simple and focused - just pagination with monster cards + beautiful modal viewer
 
 import React, { useState, useEffect, useCallback } from "react";
 import { usePagination } from "../../refactored/shared/hooks/usePagination.js";
@@ -13,15 +13,17 @@ import {
   EMPTY_STATE_PRESETS
 } from "../../refactored/shared/ui/index.js";
 
-// Import our new MonsterCard (we'll need to adjust path when it's moved)
-import MonsterCard from "../../refactored/components/cards/MonsterCard.js";// TODO: Update path to refactored version
+// Import our new components
+import { useMonsterCardViewer } from "../../refactored/components/cards/useMonsterCardViewer.js";
 
 function MyCurrentTestScreen() {
   // UI state
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('newest');
   const [limit, setLimit] = useState(12);
-  const [cardSize, setCardSize] = useState('normal')
+  const [cardSize, setCardSize] = useState('normal');
+
+  const { MonsterCard, viewer } = useMonsterCardViewer();
 
   // Domain hook - provides clean monster data
   const {
@@ -90,7 +92,7 @@ function MyCurrentTestScreen() {
       {/* Header */}
       <div style={{ marginBottom: '30px', textAlign: 'center' }}>
         <h1>🧪 Monster Collection Architecture Test</h1>
-        <p>Testing: useMonsterCollection + Full-Featured Pagination + Refactored MonsterCard</p>
+        <p>Testing: useMonsterCollection + Full-Featured Pagination + Refactored MonsterCard + MonsterCardViewer</p>
       </div>
 
       {/* Controls */}
@@ -104,34 +106,60 @@ function MyCurrentTestScreen() {
         borderRadius: '8px'
       }}>
         <label>
-            <Select
-                options={['all', 'with_art', 'without_art']}
-                value={filter}
-                onChange={(e) => handleFilterChange(e.target.value)}
-            />
+          Filter:
+          <Select
+            options={['all', 'with_art', 'without_art']}
+            value={filter}
+            onChange={(e) => handleFilterChange(e.target.value)}
+          />
         </label>
         
         <label>
-            <Select
-                options={['newest', 'oldest', 'name', 'species']}
-                value={sort}
-                onChange={(e) => handleSortChange(e.target.value)}
-            />
+          Sort:
+          <Select
+            options={['newest', 'oldest', 'name', 'species']}
+            value={sort}
+            onChange={(e) => handleSortChange(e.target.value)}
+          />
         </label>
 
         <label>
-            <Select
-                options={['small', 'normal', 'large']}
-                value={cardSize}
-                onChange={(e) => handleCardSizeChange(e.target.value)}
-            />
+          Size:
+          <Select
+            options={['small', 'normal', 'large']}
+            value={cardSize}
+            onChange={(e) => handleCardSizeChange(e.target.value)}
+          />
         </label>
 
       </div>
 
-      {/* Full-Featured Pagination */}
+      {/* Error State */}
+      {isError && (
+        <Alert type="error" title="Loading Error" style={{ marginBottom: '20px' }}>
+          {error?.message || 'Failed to load monsters'}
+        </Alert>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div>🔄 Loading monsters...</div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !isError && monsters.length === 0 && (
+        <EmptyState
+          {...EMPTY_STATE_PRESETS.NO_MONSTERS}
+          size="lg"
+          style={{ margin: '40px 0' }}
+        />
+      )}
+
+      {/* Full-Featured Pagination (Top) */}
       {monsters.length > 0 && (
-        <div style={{ marginTop: '40px', marginBottom: '40px' }}>
+        <div style={{ marginBottom: '30px' }}>
           <FullPagination
             pagination={pagination}
             itemName="monsters"
@@ -161,16 +189,12 @@ function MyCurrentTestScreen() {
                 console.log('🔮 Generate ability for monster:', monsterId);
                 // TODO: Implement with useAbilityGeneration hook
               }}
-              onExpandCard={(monster) => {
-                console.log('🔍 Expand card for monster:', monster.name);
-              }}
             />
           ))}
         </div>
       )}
 
-
-      {/* Full-Featured Pagination */}
+      {/* Full-Featured Pagination (Bottom) */}
       {monsters.length > 0 && (
         <div style={{ marginTop: '40px', marginBottom: '40px' }}>
           <FullPagination
@@ -180,6 +204,7 @@ function MyCurrentTestScreen() {
             onLimitChange={handleLimitChange}
             layout={PAGINATION_LAYOUTS.DEFAULT}
           />
+          {viewer}
         </div>
       )}
 
@@ -195,7 +220,25 @@ function MyCurrentTestScreen() {
         <h3>🔍 Debug Information</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <div>
-            {JSON.stringify(monsters[0], null, 2)}
+            <strong>Clean Architecture Status:</strong>
+            <ul>
+              <li>✅ useMonsterCollection hook</li>
+              <li>✅ Clean domain objects</li>
+              <li>✅ Full-featured pagination</li>
+              <li>✅ MonsterCard with callback pattern</li>
+              <li>✅ MonsterCardViewer (no circular deps!)</li>
+              <li>✅ UI primitives</li>
+            </ul>
+          </div>
+          <div>
+            <strong>Current State:</strong>
+            <ul>
+              <li>Monsters: {monsters.length}/{total}</li>
+              <li>Page: {pagination.currentPage}/{pagination.totalPages}</li>
+              <li>Filter: {filter}</li>
+              <li>Sort: {sort}</li>
+              <li>Card Size: {cardSize}</li>
+            </ul>
           </div>
         </div>
       </div>
