@@ -32,7 +32,8 @@ export function transformMonster(rawMonster) {
     },
 
     // Ability metadata
-    abilityCount: rawMonster.ability_count || 0,
+    abilities: transformAbilities(rawMonster.abilities || []),
+    abilityCount: rawMonster.ability_count || (rawMonster.abilities || []).length,
 
     // Card art (simplified structure)
     cardArt: {

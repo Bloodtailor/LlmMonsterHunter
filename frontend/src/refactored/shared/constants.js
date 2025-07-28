@@ -12,7 +12,7 @@ export const CARD_SIZES = {
   SMALL: 'small',
   NORMAL: 'normal', 
   LARGE: 'large',
-  FULLSCREEN: 'fullscreen'
+  FULL: 'full' // Added for fullscreen viewer
 };
 
 // Application States

@@ -182,6 +182,12 @@ export const EMPTY_STATE_PRESETS = {
     icon: '⚠️',
     title: 'Loading Failed',
     message: 'Something went wrong while loading data. Please try again.'
+  },
+  NO_CARD_ART: {
+    icon: '🐲',
+    title: 'No Card Art',
+    message: null, // Remove the message for simplicity like the old one
+    className: 'monster-art-placeholder'
   }
 };
 
