@@ -1,104 +1,28 @@
-/* Monster Card Styles - WITH EXPAND BUTTON */
-/* Styles for the content inside the flippable card */
+/* MonsterCard Component Styles - MINIMAL VERSION */
+/* Only styles unique to monster card layout - let primitives handle everything else */
 
-/* Monster Card Container */
-.monster-card-container {
-  transition: var(--transition-normal);
-}
+/* ===== OVERVIEW SIDE - UNIQUE MONSTER CARD LAYOUT ===== */
 
-/* ===== FRONT OF CARD ===== */
-.monster-card-front {
-  position: relative;
-  background: linear-gradient(135deg, var(--background-dark), var(--background-medium));
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* Card Art Section */
+/* Image with overlay text effect - unique to monster cards */
 .monster-art-section {
-  flex: 1;
   position: relative;
+  flex: 1;
   overflow: hidden;
-  background: var(--background-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.monster-art {
+.monster-art-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
-.monster-art-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  background: linear-gradient(45deg, var(--background-light), var(--background-medium));
-  color: var(--text-dim);
-  border: 2px dashed var(--background-light);
-  margin: var(--spacing-md);
-  border-radius: var(--radius-md);
-}
-
-.placeholder-icon {
-  font-size: 48px;
-  margin-bottom: var(--spacing-sm);
-  opacity: 0.6;
-}
-
-.placeholder-text {
-  font-size: 12px;
-  font-weight: 500;
-  text-align: center;
-}
-
-/* Expand Art Button - NEW */
-.expand-art-button {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition-normal);
-  backdrop-filter: blur(4px);
-  z-index: 5;
-  opacity: 0.8;
-}
-
-.expand-art-button:hover {
-  background: rgba(0, 0, 0, 0.9);
-  border-color: var(--accent-color);
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.expand-art-button:active {
-  transform: scale(0.95);
-}
-
-/* Info Overlay */
 .monster-info-overlay {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  padding: var(--spacing-lg);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: var(--spacing-sm);
   color: white;
   display: flex;
   flex-direction: column;
@@ -109,448 +33,198 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .monster-name {
-  font-size: 18px;
-  font-weight: 700;
   margin: 0;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-}
-
-.monster-species {
-  background: var(--accent-color);
   color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
-/* Quick Stats */
-.monster-quick-stats {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
+/* ===== POSITIONING - MONSTER CARD SPECIFIC ===== */
 
-.stat-chip {
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(4px);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: 11px;
-}
-
-.stat-label {
-  color: var(--text-dim);
-  font-weight: 500;
-}
-
-.stat-value {
-  color: white;
-  font-weight: 700;
-  font-family: var(--font-family-mono);
-}
-
-/* Abilities Preview */
-.abilities-preview {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.abilities-count {
-  font-size: 12px;
-  color: var(--accent-color);
-  font-weight: 600;
-}
-
-.ability-chips {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.ability-chip {
-  background: rgba(255,255,255,0.15);
-  padding: 2px var(--spacing-xs);
-  border-radius: var(--radius-sm);
-  font-size: 10px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.more-abilities {
-  color: var(--text-dim);
-  font-size: 10px;
-  font-style: italic;
-}
-
-/* ===== BACK OF CARD ===== */
-.monster-card-back {
-  padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  height: 100%;
-  overflow-y: auto;
-  background: var(--background-dark);
-}
-
-/* Detail Header */
-.detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 2px solid var(--primary-color);
-}
-
-.detail-header h3 {
-  color: var(--accent-color);
-  margin: 0;
-  font-size: 16px;
-}
-
-.species-badge {
-  background: var(--secondary-color);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-/* Description */
-.description-section {
-  flex-shrink: 0;
-}
-
-.monster-description {
-  color: var(--text-medium);
-  font-size: 13px;
-  line-height: 1.4;
-  margin: 0;
-}
-
-/* Backstory */
-.backstory-section {
-  flex-shrink: 0;
-}
-
-.backstory-section h4 {
-  color: var(--secondary-color);
-  margin: 0 0 var(--spacing-sm) 0;
-  font-size: 14px;
-}
-
-.monster-backstory {
-  color: var(--text-medium);
-  font-size: 12px;
-  line-height: 1.4;
-  margin: 0;
-  font-style: italic;
-}
-
-/* Stats Section */
-.stats-section h4,
-.abilities-section h4,
-.traits-section h4 {
-  color: var(--secondary-color);
-  margin: 0 0 var(--spacing-sm) 0;
-  font-size: 14px;
-}
-
-.stats-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stat-name {
-  color: var(--text-medium);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.stat-number {
-  color: var(--accent-color);
-  font-family: var(--font-family-mono);
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.stat-bar {
-  position: relative;
-  background: var(--background-medium);
-  height: 12px;
-  border-radius: 6px;
-  overflow: hidden;
-  min-width: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-fill {
+/* Party toggle in corner */
+.monster-card-party-toggle {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, var(--success-color), var(--accent-color));
-  transition: width var(--transition-normal);
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  z-index: 10;
 }
 
-.stat-text {
-  position: relative;
-  z-index: 1;
-  font-size: 10px;
-  font-weight: 600;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+/* Expand button over image */
+.monster-card-expand-button {
+  position: absolute;
+  top: var(--spacing-sm);
+  left: var(--spacing-sm);
 }
 
-/* Abilities Section */
-.abilities-header {
+/* ===== ABILITY PREVIEW LAYOUT - MONSTER CARD SPECIFIC ===== */
+
+.ability-preview-chips {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.add-ability-btn {
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition-normal);
-}
-
-.add-ability-btn:hover:not(:disabled) {
-  background: #e67e22;
-  transform: scale(1.1);
-}
-
-.add-ability-btn:disabled {
-  background: var(--text-dim);
-  cursor: not-allowed;
-  transform: none;
-}
-
-.abilities-list {
-  display: flex;
-  flex-direction: column;
   gap: var(--spacing-xs);
-  max-height: 120px;
-  overflow-y: auto;
+  flex-wrap: wrap;
 }
 
-.ability-detail {
-  background: var(--background-medium);
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  border-left: 3px solid var(--accent-color);
+/* Base styles for indicators */
+.more-abilities-indicator,
+.more-traits-indicator {
+  color: var(--text-dim);
+  font-style: italic;
+  opacity: 0.8;
 }
 
-.ability-name {
-  color: var(--text-light);
-  font-weight: 600;
-  font-size: 12px;
-  margin-bottom: var(--spacing-xs);
+/* ===== SIZE-BASED TEXT SCALING ===== */
+
+/* Monster Name Scaling */
+.monster-name-small {
+  font-size: 1rem;
 }
 
-.ability-description {
-  color: var(--text-medium);
-  font-size: 11px;
+.monster-name-normal {
+  font-size: 1.125rem;
+}
+
+.monster-name-large {
+  font-size: 1.25rem;
+}
+
+.monster-name-full {
+  font-size: 1.5rem;
+}
+
+/* Description Text Scaling */
+.monster-card-description-small {
+  font-size: 0.8em;
   line-height: 1.3;
 }
 
-.no-abilities {
-  text-align: center;
-  padding: var(--spacing-md);
-  color: var(--text-dim);
-  font-style: italic;
-}
-
-.no-abilities p {
-  margin: var(--spacing-xs) 0;
-  font-size: 12px;
-}
-
-/* Traits Section */
-.traits-list {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.trait-tag {
-  background: var(--success-color);
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 500;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .monster-card-back {
-    padding: var(--spacing-sm);
-    gap: var(--spacing-sm);
-  }
-  
-  .monster-info-overlay {
-    padding: var(--spacing-md);
-  }
-  
-  .monster-name {
-    font-size: 16px;
-  }
-  
-  .abilities-list {
-    max-height: 100px;
-  }
-  
-  .expand-art-button {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-    top: 8px;
-    left: 8px;
-  }
-}
-
-/* Scrollbar Styling for abilities list */
-.abilities-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.abilities-list::-webkit-scrollbar-track {
-  background: var(--background-medium);
-  border-radius: 2px;
-}
-
-.abilities-list::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-  border-radius: 2px;
-}
-
-.abilities-list::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-color);
-}
-
-/* ===== FULLSCREEN SIZE OVERRIDES ===== */
-.flippable-card-fullscreen .monster-name {
-  font-size: 28px; /* Up from 18px */
-}
-
-.flippable-card-fullscreen .monster-species {
-  font-size: 14px; /* Up from 11px */
-  padding: var(--spacing-sm) var(--spacing-md); /* Larger padding */
-}
-
-.flippable-card-fullscreen .abilities-count {
-  font-size: 16px; /* Up from 12px */
-}
-
-.flippable-card-fullscreen .ability-chip {
-  font-size: 13px; /* Up from 10px */
-  padding: var(--spacing-xs) var(--spacing-sm); /* Larger padding */
-}
-
-.flippable-card-fullscreen .more-abilities {
-  font-size: 12px; /* Up from 10px */
-}
-
-/* Back side text sizing */
-.flippable-card-fullscreen .detail-header h3 {
-  font-size: 24px; /* Up from 16px */
-}
-
-.flippable-card-fullscreen .species-badge {
-  font-size: 14px; /* Up from 11px */
-  padding: var(--spacing-sm) var(--spacing-md); /* Larger padding */
-}
-
-.flippable-card-fullscreen .monster-description {
-  font-size: 16px; /* Up from 13px */
-  line-height: 1.5; /* Better readability */
-}
-
-.flippable-card-fullscreen .backstory-section h4,
-.flippable-card-fullscreen .stats-section h4,
-.flippable-card-fullscreen .abilities-section h4,
-.flippable-card-fullscreen .traits-section h4 {
-  font-size: 18px; /* Up from 14px */
-}
-
-.flippable-card-fullscreen .monster-backstory {
-  font-size: 15px; /* Up from 12px */
-  line-height: 1.5;
-}
-
-.flippable-card-fullscreen .stat-name {
-  font-size: 15px; /* Up from 12px */
-}
-
-.flippable-card-fullscreen .stat-number {
-  font-size: 16px; /* Up from 13px */
-}
-
-.flippable-card-fullscreen .stat-text {
-  font-size: 12px; /* Up from 10px */
-}
-
-.flippable-card-fullscreen .ability-name {
-  font-size: 15px; /* Up from 12px */
-}
-
-.flippable-card-fullscreen .ability-description {
-  font-size: 14px; /* Up from 11px */
+.monster-card-description-normal {
+  font-size: 0.9em;
   line-height: 1.4;
 }
 
-.flippable-card-fullscreen .trait-tag {
-  font-size: 14px; /* Up from 11px */
-  padding: var(--spacing-sm) var(--spacing-md); /* Larger padding */
+.monster-card-description-large {
+  font-size: 1em;
+  line-height: 1.4;
 }
 
-.flippable-card-fullscreen .no-abilities p {
-  font-size: 15px; /* Up from 12px */
+.monster-card-description-full {
+  font-size: 1.1em;
+  line-height: 1.5;
 }
 
-/* Expand button sizing for fullscreen */
-.flippable-card-fullscreen .expand-art-button {
-  width: 48px; /* Up from 32px */
-  height: 48px; /* Up from 32px */
-  font-size: 24px; /* Up from 16px */
+/* Backstory Text Scaling */
+.monster-card-backstory-small {
+  font-size: 0.75em;
+  line-height: 1.3;
 }
 
-/* Info overlay spacing for fullscreen */
-.flippable-card-fullscreen .monster-info-overlay {
-  padding: var(--spacing-xl); /* More padding for larger card */
+.monster-card-backstory-normal {
+  font-size: 0.85em;
+  line-height: 1.4;
 }
 
-.flippable-card-fullscreen .monster-card-back {
-  padding: var(--spacing-xl); /* More padding for back side */
-  gap: var(--spacing-lg); /* Larger gaps between sections */
+.monster-card-backstory-large {
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.monster-card-backstory-full {
+  font-size: 1em;
+  line-height: 1.5;
+}
+
+/* Ability Name Scaling */
+.monster-card-ability-name-small {
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.monster-card-ability-name-normal {
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.monster-card-ability-name-large {
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+.monster-card-ability-name-full {
+  font-size: 1em;
+  font-weight: 600;
+}
+
+/* Ability Description Scaling */
+.monster-card-ability-description-small {
+  font-size: 0.75em;
+  line-height: 1.3;
+}
+
+.monster-card-ability-description-normal {
+  font-size: 0.8em;
+  line-height: 1.3;
+}
+
+.monster-card-ability-description-large {
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+.monster-card-ability-description-full {
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+/* "More" Indicators Scaling */
+.more-abilities-indicator-small,
+.more-traits-indicator-small {
+  font-size: 0.7em;
+}
+
+.more-abilities-indicator-normal,
+.more-traits-indicator-normal {
+  font-size: 0.75em;
+}
+
+.more-abilities-indicator-large,
+.more-traits-indicator-large {
+  font-size: 0.8em;
+}
+
+.more-abilities-indicator-full,
+.more-traits-indicator-full {
+  font-size: 0.85em;
+}
+
+/* ===== SCROLLING FOR DETAILS CONTENT ===== */
+
+.monster-card-details {
+  overflow-y: auto;
+  max-height: 100%;
+  max-width: none;
+}
+
+.monster-card-abilities-list {
+  overflow-y: auto;
+  max-height: 120px;
+}
+
+/* Base ability item styling */
+.monster-card-ability-item {
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-xs);
+  border-left: 2px solid var(--accent-color);
+  background: var(--background-light);
+  border-radius: var(--radius-sm);
+}
+
+.monster-card-ability-name {
+  margin-bottom: var(--spacing-xs);
+}
+
+.monster-card-ability-description {
+  color: var(--text-medium);
 }

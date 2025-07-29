@@ -1,0 +1,37 @@
+/* Monster Hunter Game - Main CSS Entry Point */
+/* Imports all modular stylesheets in the correct order */
+
+/* 1. Design system and theme variables */
+@import './theme.css';
+
+/* 2. Global styles, reset, and layout */
+@import './globals.css';
+
+/* 3. Utility classes - Consolidated reusable styles */
+@import './utilities.css';
+
+/* 4. Reusable UI components */
+@import './components/UI.css';
+@import './components/FlippableCard.css';
+@import './components/MonsterCard.css';
+@import './components/PartyDisplay.css';
+@import './components/MonsterCardViewer.css';
+@import './components/LLMLogViewer.css';
+@import './components/StreamingDisplay.css';
+@import './components/Navigation.css';
+@import './components/TestRunner.css';
+
+/* 5. Screen-specific styles */
+@import './screens/MonsterSanctuary.css';
+@import './screens/DeveloperScreen.css';
+@import './screens/HomeBaseScreen.css';
+@import './screens/DungeonScreen.css';
+
+/* Code highlighting for development */
+code {
+  font-family: var(--font-family-mono);
+  background: var(--background-light);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+}

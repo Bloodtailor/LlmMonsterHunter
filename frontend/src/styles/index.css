@@ -1,40 +1,23 @@
-/* Monster Hunter Game - Main CSS Entry Point */
-/* Imports all modular stylesheets in the correct order */
+/* Monster Hunter Game - Refactored Styles Entry Point */
+/* Imports all styles in the correct dependency order */
 
-/* 1. Design system and theme variables */
+/* 1. FOUNDATION - CSS Variables and Design Tokens */
 @import './theme.css';
 
-/* 2. Global styles, reset, and layout */
+/* 2. GLOBAL STYLES - Reset, base styles, app layout */
 @import './globals.css';
 
-/* 3. Utility classes - Consolidated reusable styles */
+/* 3. UTILITIES - Helper classes used by components */
 @import './utilities.css';
 
-/* 4. Reusable UI components */
-@import './components/UI.css';
-@import './components/FlippableCard.css';
-@import './components/MonsterCard.css';
-@import './components/PartyDisplay.css';
-@import './components/MonsterCardViewer.css';
-@import './components/LLMLogViewer.css';
-@import './components/StreamingDisplay.css';
-@import './components/Navigation.css';
-@import './components/TestRunner.css';
+/* 4. UI PRIMITIVES - Ordered by complexity and dependencies */
+@import './primitives/loading.css';      /* Simplest, used by buttons */
+@import './primitives/button.css';       /* Used by many other components */
+@import './primitives/badge.css';        /* Simple, standalone */
+@import './primitives/form.css';         /* Inputs, selects - used by pagination */
+@import './primitives/card.css';         /* Container, used by others */
+@import './primitives/feedback.css';     /* Alert, EmptyState */
+@import './primitives/pagination.css';   /* Uses buttons, form inputs - NEXT */
+@import './primitives/FlippableCard.css';   /* Uses buttons, form inputs - NEXT */
 
-/* 5. Screen-specific styles */
-@import './screens/MonsterSanctuary.css';
-@import './screens/DeveloperScreen.css';
-@import './screens/HomeBaseScreen.css';
-@import './screens/DungeonScreen.css';
-
-/* 6. NEW REFACTORED STYLES - Override and supplement existing styles */
-@import '../refactored/styles/index.css';
-
-/* Code highlighting for development */
-code {
-  font-family: var(--font-family-mono);
-  background: var(--background-light);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-size: 0.9em;
-}
+/* NOTE: Only pagination.css remains to be created */
