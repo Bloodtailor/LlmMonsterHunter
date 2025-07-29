@@ -12,6 +12,7 @@ import ApiServicesTestScreen from './components/screens/ApiServicesTestScreen';
 import HooksTestScreen from './components/screens/HooksTestScreen';
 import MyCurrentTestScreen from './components/screens/MyCurrentTestScreen';
 import { healthCheck, getGameStatus } from './services/api';
+import { PartyProvider } from './refactored/app/contexts/PartyContext';
 
 function App() {
   // Application state
@@ -113,119 +114,121 @@ function App() {
 
   // Main application - backend is connected
   return (
-    <div className="App">
-      {/* Always-visible LLM Streaming Display */}
-      <StreamingDisplay />
-      
-      {/* App Header with Title Left, Navigation Centered */}
-      <header className="app-header">
-        <h1>🎮 Monster Hunter Game</h1>
-        <nav className="screen-navigation">
-          <button 
-            className={`nav-button ${currentScreen === 'homebase' ? 'active' : ''}`}
-            onClick={() => setCurrentScreen('homebase')}
-          >
-            🏠 Home Base
-          </button>
-          <button 
-            className={`nav-button ${currentScreen === 'sanctuary' ? 'active' : ''}`}
-            onClick={() => setCurrentScreen('sanctuary')}
-          >
-            🏛️ Sanctuary
-          </button>
-          <button 
-            className={`nav-button ${currentScreen === 'developer' ? 'active' : ''}`}
-            onClick={() => setCurrentScreen('developer')}
-          >
-            🔧 Developer
-          </button>
-
-          <button 
-            className={`nav-button ${currentScreen === 'api-services' ? 'active' : ''}`}
-            onClick={() => setCurrentScreen('api-services')}
-          >
-            🧪 API Tests
-          </button>
-
-          <button 
-            className={`nav-button ${currentScreen === 'hook-tests' ? 'active' : ''}`}
-            onClick={() => setCurrentScreen('hook-tests')}
-          >
-            🧪 Hook Tests
-          </button>
-
-          <button 
-            className={`nav-button ${currentScreen === 'current-test' ? 'active' : ''}`}
-            onClick={() => setCurrentScreen('current-test')}
-          >
-            🧪 Current Test
-          </button>
-
-          {/* Dungeon button only shows when in dungeon */}
-          {currentScreen === 'dungeon' && (
-            <button className="nav-button active">
-              🏰 In Dungeon
+    <PartyProvider>
+      <div className="App">
+        {/* Always-visible LLM Streaming Display */}
+        <StreamingDisplay />
+        
+        {/* App Header with Title Left, Navigation Centered */}
+        <header className="app-header">
+          <h1>🎮 Monster Hunter Game</h1>
+          <nav className="screen-navigation">
+            <button 
+              className={`nav-button ${currentScreen === 'homebase' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('homebase')}
+            >
+              🏠 Home Base
             </button>
+            <button 
+              className={`nav-button ${currentScreen === 'sanctuary' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('sanctuary')}
+            >
+              🏛️ Sanctuary
+            </button>
+            <button 
+              className={`nav-button ${currentScreen === 'developer' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('developer')}
+            >
+              🔧 Developer
+            </button>
+
+            <button 
+              className={`nav-button ${currentScreen === 'api-services' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('api-services')}
+            >
+              🧪 API Tests
+            </button>
+
+            <button 
+              className={`nav-button ${currentScreen === 'hook-tests' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('hook-tests')}
+            >
+              🧪 Hook Tests
+            </button>
+
+            <button 
+              className={`nav-button ${currentScreen === 'current-test' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('current-test')}
+            >
+              🧪 Current Test
+            </button>
+
+            {/* Dungeon button only shows when in dungeon */}
+            {currentScreen === 'dungeon' && (
+              <button className="nav-button active">
+                🏰 In Dungeon
+              </button>
+            )}
+          </nav>
+        </header>
+
+        {/* Main Content - Switch between screens */}
+        <main className="app-main">
+          {currentScreen === 'homebase' && (
+            <HomeBaseScreen 
+              onEnterDungeon={handleEnterDungeon}
+            />
           )}
-        </nav>
-      </header>
+          
+          {currentScreen === 'sanctuary' && (
+            <MonsterSanctuary 
+              gameData={appStatus.gameData}
+              onRefresh={checkBackendStatus}
+            />
+          )}
+          
+          {currentScreen === 'developer' && (
+            <DeveloperScreen 
+              gameData={appStatus.gameData}
+              onRefresh={checkBackendStatus}
+            />
+          )}
 
-      {/* Main Content - Switch between screens */}
-      <main className="app-main">
-        {currentScreen === 'homebase' && (
-          <HomeBaseScreen 
-            onEnterDungeon={handleEnterDungeon}
-          />
-        )}
-        
-        {currentScreen === 'sanctuary' && (
-          <MonsterSanctuary 
-            gameData={appStatus.gameData}
-            onRefresh={checkBackendStatus}
-          />
-        )}
-        
-        {currentScreen === 'developer' && (
-          <DeveloperScreen 
-            gameData={appStatus.gameData}
-            onRefresh={checkBackendStatus}
-          />
-        )}
+          {currentScreen === 'api-services' && (
+            <ApiServicesTestScreen />
+          )}
 
-        {currentScreen === 'api-services' && (
-          <ApiServicesTestScreen />
-        )}
+          {currentScreen === 'hook-tests' && (
+            <HooksTestScreen />
+          )}
 
-        {currentScreen === 'hook-tests' && (
-          <HooksTestScreen />
-        )}
+          {currentScreen === 'current-test' && (
+            <MyCurrentTestScreen />
+          )}
 
-        {currentScreen === 'current-test' && (
-          <MyCurrentTestScreen />
-        )}
+          {currentScreen === 'dungeon' && (
+            <DungeonScreen 
+              onReturnToHomeBase={handleReturnToHomeBase}
+            />
+          )}
+        </main>
 
-        {currentScreen === 'dungeon' && (
-          <DungeonScreen 
-            onReturnToHomeBase={handleReturnToHomeBase}
-          />
-        )}
-      </main>
-
-      {/* App Footer */}
-      <footer className="app-footer">
-        <p>Monster Hunter Game - MVP Development Phase</p>
-        <div className="footer-info">
-          <span>Status: {appStatus.gameData?.status || 'Unknown'}</span>
-          <span>•</span>
-          <span>Current Screen: {
-            currentScreen === 'homebase' ? 'Home Base' :
-            currentScreen === 'sanctuary' ? 'Monster Sanctuary' :
-            currentScreen === 'developer' ? 'Developer Tools' :
-            currentScreen === 'dungeon' ? 'Dungeon Adventure' : 'Unknown'
-          }</span>
-        </div>
-      </footer>
-    </div>
+        {/* App Footer */}
+        <footer className="app-footer">
+          <p>Monster Hunter Game - MVP Development Phase</p>
+          <div className="footer-info">
+            <span>Status: {appStatus.gameData?.status || 'Unknown'}</span>
+            <span>•</span>
+            <span>Current Screen: {
+              currentScreen === 'homebase' ? 'Home Base' :
+              currentScreen === 'sanctuary' ? 'Monster Sanctuary' :
+              currentScreen === 'developer' ? 'Developer Tools' :
+              currentScreen === 'dungeon' ? 'Dungeon Adventure' : 'Unknown'
+            }</span>
+          </div>
+        </footer>
+      </div>
+    </PartyProvider>
   );
 }
 

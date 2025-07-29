@@ -89,7 +89,7 @@ function MonsterCardDetails({
       )}
 
       {/* Stats */}
-      <CardSection type="content" title="Stats">
+      <CardSection type="content" title="Stats" alignment='left'>
         <div className="monster-card-stats-grid">
           <div className="monster-card-stat-row">
             <span>Health:</span>
@@ -97,15 +97,15 @@ function MonsterCardDetails({
           </div>
           <div className="monster-card-stat-row">
             <span>Attack:</span>
-            <Badge variant="warning" size={getBadgeSize()}>{monster.stats.attack}</Badge>
+            <Badge variant="primary" size={getBadgeSize()}>{monster.stats.attack}</Badge>
           </div>
           <div className="monster-card-stat-row">
             <span>Defense:</span>
-            <Badge variant="info" size={getBadgeSize()}>{monster.stats.defense}</Badge>
+            <Badge variant="primary" size={getBadgeSize()}>{monster.stats.defense}</Badge>
           </div>
           <div className="monster-card-stat-row">
             <span>Speed:</span>
-            <Badge variant="success" size={getBadgeSize()}>{monster.stats.speed}</Badge>
+            <Badge variant="primary" size={getBadgeSize()}>{monster.stats.speed}</Badge>
           </div>
         </div>
       </CardSection>
@@ -117,7 +117,7 @@ function MonsterCardDetails({
         action={onAbilityGenerate && (
           <IconButton
             icon="✨"
-            variant="primary" 
+            variant="secondary" 
             size={getButtonSize()}
             onClick={handleAbilityGenerate}
             ariaLabel="Generate new ability"
