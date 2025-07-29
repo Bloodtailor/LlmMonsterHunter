@@ -34,7 +34,20 @@ body {
   padding: var(--spacing-xl);
 }
 
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--background-light);
+  border-top: 4px solid var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: var(--spacing-lg) 0;
+}
 
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 .error-message {
   background: var(--background-medium);
