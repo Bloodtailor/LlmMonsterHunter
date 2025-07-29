@@ -193,6 +193,7 @@
 
 /* Section header (title + action) */
 .card-section-with-header {
+  margin-top: var(--spacing-md);
   gap: var(--spacing-md);
 }
 
@@ -220,7 +221,7 @@
 }
 
 .card-section-title h4 {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1.4;
 }
 

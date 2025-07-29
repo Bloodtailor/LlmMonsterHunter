@@ -12,6 +12,8 @@ import {
   EmptyState
 } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants.js';
+import { useParty } from '../../app/contexts/PartyContext/index.js';
+import ToggleButton from '../../shared/components/toggleButton.js';
 
 function MonsterCardOverview({
   monster,
@@ -19,10 +21,6 @@ function MonsterCardOverview({
   
   // Party management
   showPartyToggle = false,
-  isInParty = false,
-  isPartyFull = false,
-  onPartyToggle = null,
-  partyDisabled = false,
   
   // Card interactions
   onExpandCard = null,
@@ -31,11 +29,22 @@ function MonsterCardOverview({
   getCardArtUrl
 }) {
 
+    // NEW: Get party data from context instead of props
+  const { 
+    isInParty, 
+    isPartyFull, 
+    toggleParty, 
+    isLoading: partyDisabled 
+  } = useParty();
+
+  const monsterIsInParty = isInParty(monster.id);
+
+
   // Handle party toggle - just call parent callback
   const handlePartyToggle = (e) => {
     e.stopPropagation();
-    if (onPartyToggle && !partyDisabled) {
-      onPartyToggle(monster, isInParty);
+    if (showPartyToggle && !partyDisabled) {
+      toggleParty(monster);
     }
   };
 
@@ -81,19 +90,19 @@ function MonsterCardOverview({
 
   return (
     <div className="monster-card-overview">
-      {/* Party Toggle Button */}
-      {showPartyToggle && (
-        <div className="monster-card-party-toggle">
-          <StatusBadge
-            status={isInParty ? 'success' : (isPartyFull ? 'warning' : 'info')}
-            onClick={handlePartyToggle}
-            size={getBadgeSize()}
-          >
-            {isInParty ? '✓' : (isPartyFull ? '🚫' : '+')}
-          </StatusBadge>
-        </div>
-      )}
-
+      {/* Party Toggle Button - Clean and simple with ToggleButton */}
+      <div className="monster-card-party-toggle">
+        <ToggleButton
+          isInCollection={monsterIsInParty}
+          isCollectionFull={isPartyFull}
+          isLoading={partyDisabled}
+          onToggle={handlePartyToggle}
+          itemName={monster.name}
+          collectionName="party"
+          size={getButtonSize()}
+          maxItems={4}
+        />
+      </div>
       {/* Main Art Section - Full Card Coverage */}
       <div className="monster-art-section">
         {getCardArtUrl() ? (
