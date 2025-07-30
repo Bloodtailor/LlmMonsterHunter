@@ -7,10 +7,7 @@
 /* 2. GLOBAL STYLES - Reset, base styles, app layout */
 @import './globals.css';
 
-/* 3. UTILITIES - Helper classes used by components */
-@import './utilities.css';
-
-/* 4. UI PRIMITIVES - Ordered by complexity and dependencies */
+/* 3. UI PRIMITIVES - Ordered by complexity and dependencies */
 @import './primitives/loading.css';      /* Simplest, used by buttons */
 @import './primitives/button.css';       /* Used by many other components */
 @import './primitives/badge.css';        /* Simple, standalone */
@@ -20,4 +17,6 @@
 @import './primitives/pagination.css';   /* Uses buttons, form inputs - NEXT */
 @import './primitives/FlippableCard.css';   /* Uses buttons, form inputs - NEXT */
 
-/* NOTE: Only pagination.css remains to be created */
+/* 4. Basic Components*/
+@import './components/monsterCard.css';
+@import './components/MonsterCardViewer.css'
