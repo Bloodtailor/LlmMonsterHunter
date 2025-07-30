@@ -4,9 +4,10 @@
 
 import React, { useState, useEffect } from 'react';
 import ApiServicesTestScreen from './screens/ApiServicesTestScreen';
-import HooksTestScreen from './screens/HooksTestScreen';
+import StyleTestScreen from './screens/StyleTestScreen';
 import MyCurrentTestScreen from './screens/MyCurrentTestScreen';
 import { PartyProvider } from './app/contexts/PartyContext';
+import BYOComponentTestScreen from './screens/BYOComponentTestScreen';
 
 function App() {
   // Application state
@@ -40,10 +41,10 @@ function App() {
             </button>
 
             <button 
-              className={`nav-button ${currentScreen === 'hook-tests' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('hook-tests')}
+              className={`nav-button ${currentScreen === 'style-test' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('style-test')}
             >
-              🧪 Hook Tests
+              🧪 Style Test
             </button>
 
             <button 
@@ -51,6 +52,13 @@ function App() {
               onClick={() => setCurrentScreen('current-test')}
             >
               🧪 Current Test
+            </button>
+
+            <button 
+              className={`nav-button ${currentScreen === 'byoc-test' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('byoc-test')}
+            >
+              🧪 BYOC Test
             </button>
 
           </nav>
@@ -64,12 +72,16 @@ function App() {
             <ApiServicesTestScreen />
           )}
 
-          {currentScreen === 'hook-tests' && (
-            <HooksTestScreen />
+          {currentScreen === 'style-test' && (
+            <StyleTestScreen />
           )}
 
           {currentScreen === 'current-test' && (
             <MyCurrentTestScreen />
+          )}
+
+          {currentScreen === 'byoc-test' && (
+            <BYOComponentTestScreen />
           )}
 
         </main>
