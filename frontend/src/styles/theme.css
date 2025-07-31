@@ -7,6 +7,92 @@
   /* App wide constraints */
   --app-max-width: 1200px;
 
+  /* ===== COLOR PALETTE ===== */
+  /* Comprehensive color system using hue + visual/emotional qualities */
+  /* Usage: var(--color-red-intense) - autocomplete friendly with --color prefix */
+
+  /* RED FAMILY - Power, energy, destruction */
+  --color-red-intense: #ff2d2d;        /* Bright, aggressive red */
+  --color-red-warm: #ff4757;           /* Friendly, inviting red */
+  --color-red-deep: #c44569;           /* Rich, dark red */
+  --color-red-crimson: #dc143c;        /* Classic deep crimson */
+  --color-red-cherry: #e55039;         /* Bright cherry red */
+
+  /* ORANGE FAMILY - Fire, energy, treasure */
+  --color-orange-vibrant: #ff6348;     /* Electric, energetic orange */
+  --color-orange-warm: #ff7675;        /* Cozy, sunset orange */
+  --color-orange-golden: #f39c12;      /* Rich, treasure-like orange */
+  --color-orange-flame: #ff6b35;       /* Hot flame orange */
+  --color-orange-amber: #ff9f43;       /* Glowing amber */
+
+  /* YELLOW FAMILY - Light, treasure, lightning */
+  --color-yellow-bright: #ffd700;      /* Pure gold, sun-like */
+  --color-yellow-golden: #f1c40f;      /* Rich golden yellow */
+  --color-yellow-electric: #fffa65;    /* Bright, electric yellow */
+  --color-yellow-warm: #ffeaa7;        /* Soft, warm yellow */
+  --color-yellow-citrus: #fdcb6e;      /* Fresh, zesty yellow */
+
+  /* GREEN FAMILY - Nature, poison, energy */
+  --color-green-nature: #00b894;       /* Natural, earthy green */
+  --color-green-electric: #00ff88;     /* Bright, energy green */
+  --color-green-forest: #27ae60;       /* Deep forest green */
+  --color-green-mint: #55efc4;         /* Fresh, cool mint */
+  --color-green-emerald: #2ecc71;      /* Rich emerald green */
+
+  /* BLUE FAMILY - Ice, water, magic */
+  --color-blue-electric: #0984e3;      /* Bright, energetic blue */
+  --color-blue-cool: #74b9ff;          /* Calm, soothing blue */
+  --color-blue-deep: #2d3436;          /* Dark, mysterious blue */
+  --color-blue-ice: #81ecec;           /* Cool, icy blue */
+  --color-blue-ocean: #00cec9;         /* Deep ocean blue */
+  --color-blue-sky: #87ceeb;           /* Light, airy blue */
+
+  /* PURPLE FAMILY - Magic, mystery, royalty */
+  --color-purple-mystic: #a29bfe;      /* Magical, ethereal purple */
+  --color-purple-deep: #6c5ce7;        /* Rich, royal purple */
+  --color-purple-soft: #dda0dd;        /* Light, dreamy purple */
+  --color-purple-electric: #8e44ad;    /* Vibrant, electric purple */
+  --color-purple-cosmic: #9b59b6;      /* Deep space purple */
+
+  /* PINK FAMILY - Magic, charm, energy */
+  --color-pink-vibrant: #fd79a8;       /* Bright, energetic pink */
+  --color-pink-soft: #fab1a0;          /* Gentle, warm pink */
+  --color-pink-electric: #e84393;      /* Bold, electric pink */
+  --color-pink-rose: #ff7675;          /* Classic rose pink */
+
+  /* WHITE FAMILY - Light, holy, pure */
+  --color-white-pure: #ffffff;         /* Clean, pure white */
+  --color-white-soft: #f8f9fa;         /* Gentle, off-white */
+  --color-white-pearl: #f1f2f6;        /* Pearlescent white */
+  --color-white-silver: #dcdde1;       /* Silvery white */
+
+  /* GRAY FAMILY - Neutral, smoke, shadow */
+  --color-gray-light: #b2bec3;         /* Light, airy gray */
+  --color-gray-medium: #636e72;        /* Balanced gray */
+  --color-gray-dark: #2d3436;          /* Deep, shadow gray */
+  --color-gray-smoke: #74b9ff;         /* Smoky, ethereal gray */
+
+  /* BLACK FAMILY - Shadow, void, contrast */
+  --color-black-pure: #000000;         /* Pure black */
+  --color-black-soft: #2d3436;         /* Softer black */
+  --color-black-void: #1a1a1a;         /* Deep void black */
+
+  /* SPECIAL EFFECTS - Unique colors for special cases */
+  --color-rainbow-1: #ff6b6b;          /* Rainbow segment 1 */
+  --color-rainbow-2: #4ecdc4;          /* Rainbow segment 2 */
+  --color-rainbow-3: #45b7d1;          /* Rainbow segment 3 */
+  --color-rainbow-4: #96ceb4;          /* Rainbow segment 4 */
+  --color-rainbow-5: #ffeaa7;          /* Rainbow segment 5 */
+  --color-rainbow-6: #dda0dd;          /* Rainbow segment 6 */
+
+  /* METALLIC EFFECTS - Shimmering, treasure-like */
+  --color-gold-bright: #ffd700;        /* Bright gold */
+  --color-gold-rich: #b8860b;          /* Rich, deep gold */
+  --color-silver-bright: #c0c0c0;      /* Bright silver */
+  --color-silver-chrome: #a8a8a8;      /* Chrome silver */
+  --color-copper-bright: #b87333;      /* Bright copper */
+  --color-copper-warm: #cd7f32;        /* Warm copper */
+
   /* ===== FOUNDATION COLORS ===== */
   /* Core brand and UI colors */
   --primary-color: #2c5aa0;
