@@ -1,62 +1,217 @@
 /* Loading States - Spinners, containers, and skeleton placeholders */
 /* Foundation styles used by buttons, components, and loading screens */
+/* Updated to use comprehensive design token system and pure CSS spinners */
 
-/* ===== LOADING SPINNER ===== */
+/* ===== LOADING SPINNER FOUNDATION ===== */
 
 .loading-spinner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  line-height: 1;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-tight);
 }
 
-/* Spinner sizes */
-.loading-spinner-xs { font-size: 12px; }
-.loading-spinner-sm { font-size: 14px; }
-.loading-spinner-md { font-size: 16px; }
-.loading-spinner-lg { font-size: 20px; }
-.loading-spinner-xl { font-size: 24px; }
+/* ===== SPINNER SIZE VARIANTS ===== */
+/* Inline/proportional sizes - scale with font-size for cohesive component sizing */
+.loading-spinner-xs { font-size: var(--font-size-xs); }
+.loading-spinner-sm { font-size: var(--font-size-sm); }
+.loading-spinner-md { font-size: var(--font-size-md); }
+.loading-spinner-lg { font-size: var(--font-size-lg); }
+.loading-spinner-xl { font-size: var(--font-size-xl); }
 
-/* Spinner colors */
+/* Standalone sizes - explicit sizing for prominent loading states */
+.loading-spinner-card { font-size: 32px; }     /* Individual cards */
+.loading-spinner-section { font-size: 48px; }  /* Content sections */
+.loading-spinner-screen { font-size: 64px; }   /* Full-screen loading */
+
+/* ===== SPINNER COLOR VARIANTS ===== */
 .loading-spinner-primary { color: var(--primary-color); }
 .loading-spinner-secondary { color: var(--secondary-color); }
-.loading-spinner-light { color: var(--text-light); }
-.loading-spinner-dark { color: var(--text-dim); }
+.loading-spinner-light { color: var(--color-text-primary); }
+.loading-spinner-dark { color: var(--color-text-muted); }
 .loading-spinner-success { color: var(--success-color); }
 .loading-spinner-warning { color: var(--warning-color); }
 .loading-spinner-error { color: var(--error-color); }
 
-/* Animation types */
-.loading-spinner-spin {
+/* ===== PURE CSS SPINNER ELEMENTS ===== */
+
+/* Spinning ring spinner */
+.spinner-ring {
+  width: 1em;
+  height: 1em;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: var(--radius-full);
+  display: inline-block;
+}
+
+/* Thicker borders for larger standalone spinners */
+.loading-spinner-card .spinner-ring {
+  border-width: 3px;
+  border-top-width: 3px;
+}
+
+.loading-spinner-section .spinner-ring {
+  border-width: 4px;  
+  border-top-width: 4px;
+}
+
+.loading-spinner-screen .spinner-ring {
+  border-width: 5px;
+  border-top-width: 5px;
+}
+
+.loading-spinner-spin .spinner-ring {
   animation: spin 1s linear infinite;
 }
 
-.loading-spinner-pulse {
+/* Pulsing circle spinner */
+.spinner-circle {
+  width: 0.8em;
+  height: 0.8em;
+  background: currentColor;
+  border-radius: var(--radius-full);
+  display: inline-block;
+}
+
+.loading-spinner-pulse .spinner-circle {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-.loading-spinner-bounce {
+/* Bouncing element spinner */
+.spinner-bounce {
+  width: 0.6em;
+  height: 0.6em;
+  background: currentColor;
+  border-radius: var(--radius-full);
+  display: inline-block;
+}
+
+.loading-spinner-bounce .spinner-bounce {
   animation: bounce 1.4s ease-in-out infinite both;
 }
 
-/* Dots animation */
+/* ===== 3D CARD FLIP SPINNER ===== */
+.spinner-card-flip {
+  width: 3em;
+  height: 4em;
+  perspective: 1000px;
+  display: inline-block;
+}
+
+.spinner-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.loading-spinner-cardFlip .spinner-card-inner {
+  animation: cardFlip 2s linear infinite;
+}
+
+.spinner-card-front,
+.spinner-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid currentColor;
+  padding: 0.3em;
+  box-sizing: border-box;
+}
+
+.spinner-card-front {
+  background: var(--color-surface-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.spinner-card-back {
+  background: var(--color-surface-secondary);
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card front elements */
+.card-image-area {
+  width: 100%;
+  height: 50%;
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  opacity: 0.7;
+}
+
+.card-title-line {
+  width: 80%;
+  height: 0.4em;
+  background: currentColor;
+  border-radius: var(--radius-sm);
+  opacity: 0.6;
+}
+
+.card-text-line {
+  width: 100%;
+  height: 0.25em;
+  background: currentColor;
+  border-radius: var(--radius-sm);
+  opacity: 0.4;
+}
+
+.card-text-line.short {
+  width: 60%;
+}
+
+/* Card back pattern */
+.card-back-pattern {
+  width: 60%;
+  height: 60%;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 0.1em,
+    currentColor 0.1em,
+    currentColor 0.2em
+  );
+  opacity: 0.3;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes cardFlip {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* ===== DOTS ANIMATION ===== */
 .loading-spinner-dots .loading-dots-container {
   display: flex;
-  gap: 2px;
+  gap: var(--spacing-2xs);
 }
 
 .loading-spinner-dots .loading-dot {
+  width: 0.25em;
+  height: 0.25em;
+  background: currentColor;
+  border-radius: var(--radius-full);
   animation: loading-dot 1.4s ease-in-out infinite both;
 }
 
-.loading-spinner-dots .loading-dot:nth-child(1) { animation-delay: -0.32s; }
-.loading-spinner-dots .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+.loading-spinner-dots .loading-dot:nth-child(1) { 
+  animation-delay: -0.32s; 
+}
+.loading-spinner-dots .loading-dot:nth-child(2) { 
+  animation-delay: -0.16s; 
+}
 
 @keyframes loading-dot {
   0%, 80%, 100% { 
-    transform: scale(0.8);
-    opacity: 0.5;
+    transform: scale(0.6);
+    opacity: var(--opacity-muted);
   }
   40% { 
     transform: scale(1);
@@ -64,18 +219,19 @@
   }
 }
 
-/* Bars animation */
+/* ===== BARS ANIMATION ===== */
 .loading-spinner-bars .loading-bars-container {
   display: flex;
-  gap: 2px;
+  gap: var(--spacing-2xs);
   align-items: center;
   height: 1em;
 }
 
 .loading-spinner-bars .loading-bar {
-  width: 2px;
-  height: 40%;
+  width: 0.15em;
+  height: 60%;
   background: currentColor;
+  border-radius: var(--radius-sm);
   animation: loading-bar 1.2s infinite ease-in-out;
 }
 
@@ -89,6 +245,21 @@
   }
   20% { 
     transform: scaleY(1.0);
+  }
+}
+
+/* ===== CORE ANIMATION KEYFRAMES ===== */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1;
+  }
+  50% { 
+    opacity: var(--opacity-muted);
   }
 }
 
@@ -119,7 +290,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-surface-overlay);
   z-index: var(--z-index-modal);
   backdrop-filter: blur(4px);
 }
@@ -139,7 +310,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-md);
-  background: var(--background-medium);
+  background: var(--color-surface-primary);
   padding: var(--spacing-xl);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -147,30 +318,40 @@
 }
 
 .loading-message {
-  color: var(--text-light);
-  font-size: 16px;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
   text-align: center;
+  line-height: var(--line-height-normal);
 }
 
 .loading-extra {
-  color: var(--text-medium);
-  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
   text-align: center;
+  line-height: var(--line-height-normal);
 }
 
 .loading-cancel-button {
-  background: var(--background-light);
-  color: var(--text-light);
-  border: 1px solid var(--text-dim);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  border: var(--border-width-thin) solid var(--color-text-muted);
   padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .loading-cancel-button:hover {
-  background: var(--background-dark);
-  border-color: var(--text-medium);
+  background: var(--color-surface-elevated);
+  border-color: var(--color-text-secondary);
+  transform: translateY(-1px);
+}
+
+.loading-cancel-button:active {
+  transform: translateY(0);
 }
 
 /* ===== LOADING SKELETON ===== */
@@ -182,8 +363,8 @@
 }
 
 .loading-skeleton {
-  background: var(--background-light);
-  border-radius: var(--radius-sm);
+  background: var(--color-surface-secondary);
+  border-radius: var(--radius-md);
   overflow: hidden;
   position: relative;
 }
@@ -198,11 +379,22 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.1) 50%,
+    var(--color-hover-overlay) 50%,
     transparent 100%
   );
   animation: shimmer 1.5s ease-in-out infinite;
 }
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ===== SKELETON VARIANTS ===== */
 
 /* Text skeleton */
 .text-skeleton {
@@ -219,30 +411,76 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  border-radius: var(--radius-lg);
 }
 
 .skeleton-image {
   width: 100%;
   height: 200px;
-  background: var(--background-dark);
-  border-radius: var(--radius-sm);
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
   margin-bottom: var(--spacing-sm);
 }
 
 .skeleton-title {
   height: 24px;
   width: 80%;
-  background: var(--background-dark);
+  background: var(--color-surface-elevated);
   border-radius: var(--radius-sm);
 }
 
 .skeleton-line {
   height: 16px;
-  background: var(--background-dark);
+  background: var(--color-surface-elevated);
   border-radius: var(--radius-sm);
   margin: var(--spacing-xs) 0;
 }
 
 .skeleton-line:last-child {
   width: 60%;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 768px) {
+  .loading-content {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-md);
+  }
+  
+  .monster-card-skeleton {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .loading-container {
+    padding: var(--spacing-md);
+  }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner-spin .spinner-ring,
+  .loading-spinner-pulse .spinner-circle,
+  .loading-spinner-bounce .spinner-bounce,
+  .loading-spinner-cardFlip .spinner-card-inner,
+  .loading-dot,
+  .loading-bar,
+  .loading-skeleton.animated::before {
+    animation: none;
+  }
+  
+  /* Provide static visual feedback when animations are disabled */
+  .loading-spinner-pulse .spinner-circle {
+    opacity: var(--opacity-loading);
+  }
+  
+  .loading-spinner-bounce .spinner-bounce {
+    transform: translateY(-2px);
+  }
+  
+  .loading-spinner-cardFlip .spinner-card-inner {
+    transform: rotateY(25deg);
+  }
 }

@@ -1,0 +1,429 @@
+/* Explosions - Epic particle explosion system */
+/* Configurable, reusable explosions for any game event */
+
+/* ===== EXPLOSION FOUNDATION ===== */
+
+.explosion {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1000;
+  width: 1px; /* Center point */
+  height: 1px;
+}
+
+/* ===== CORE FLASH EFFECT ===== */
+
+.explosion-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4em;
+  height: 4em;
+  background: radial-gradient(circle, 
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.8) 20%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 80%
+  );
+  border-radius: var(--radius-full);
+  opacity: 0;
+  z-index: 3;
+}
+
+.explosion-active .explosion-flash {
+  animation: explosionFlash calc(var(--explosion-duration) * 0.3) ease-out;
+}
+
+@keyframes explosionFlash {
+  0% { 
+    opacity: 0; 
+    transform: translate(-50%, -50%) scale(0.2); 
+  }
+  30% { 
+    opacity: 1; 
+    transform: translate(-50%, -50%) scale(1.5); 
+  }
+  100% { 
+    opacity: 0; 
+    transform: translate(-50%, -50%) scale(3); 
+  }
+}
+
+/* ===== SHOCKWAVE RING ===== */
+
+.explosion-shockwave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2em;
+  height: 2em;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-full);
+  opacity: 0;
+  z-index: 2;
+}
+
+.explosion-active .explosion-shockwave {
+  animation: shockwave calc(var(--explosion-duration) * 0.6) ease-out;
+}
+
+@keyframes shockwave {
+  0% { 
+    opacity: 0; 
+    transform: translate(-50%, -50%) scale(0.1); 
+  }
+  10% { 
+    opacity: 0.8; 
+    transform: translate(-50%, -50%) scale(0.3); 
+  }
+  50% { 
+    opacity: 0.4; 
+    transform: translate(-50%, -50%) scale(2); 
+  }
+  100% { 
+    opacity: 0; 
+    transform: translate(-50%, -50%) scale(4); 
+  }
+}
+
+/* ===== PARTICLE SYSTEM ===== */
+
+.explosion-particles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 1px;
+}
+
+.explosion-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  border-radius: var(--radius-full);
+  opacity: 0;
+  transform-origin: center;
+}
+
+.explosion-active .explosion-particle {
+  animation: particleExplode var(--explosion-duration) ease-out forwards;
+  animation-delay: calc(var(--particle-index) * 0.02s); /* Stagger particles */
+}
+
+@keyframes particleExplode {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(var(--particle-angle)) 
+               translateX(0px) 
+               scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(var(--particle-angle)) 
+               translateX(20px) 
+               scale(1.2);
+  }
+  70% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) 
+               rotate(var(--particle-angle)) 
+               translateX(60px) 
+               scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(var(--particle-angle)) 
+               translateX(100px) 
+               scale(0);
+  }
+}
+
+/* ===== SIZE VARIANTS ===== */
+
+.explosion-sm {
+  font-size: 12px;
+}
+
+.explosion-sm .explosion-flash {
+  width: 3em;
+  height: 3em;
+}
+
+.explosion-sm .explosion-particle {
+  width: 6px;
+  height: 6px;
+}
+
+.explosion-md {
+  font-size: 16px;
+}
+
+.explosion-lg {
+  font-size: 20px;
+}
+
+.explosion-lg .explosion-flash {
+  width: 5em;
+  height: 5em;
+}
+
+.explosion-lg .explosion-particle {
+  width: 10px;
+  height: 10px;
+}
+
+.explosion-xl {
+  font-size: 24px;
+}
+
+.explosion-xl .explosion-flash {
+  width: 6em;
+  height: 6em;
+}
+
+.explosion-xl .explosion-particle {
+  width: 12px;
+  height: 12px;
+}
+
+.explosion-massive {
+  font-size: 32px;
+}
+
+.explosion-massive .explosion-flash {
+  width: 8em;
+  height: 8em;
+}
+
+.explosion-massive .explosion-particle {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== COLOR THEMES ===== */
+
+.explosion-primary .explosion-particle {
+  background: var(--primary-color);
+  box-shadow: 0 0 8px var(--primary-color);
+}
+
+.explosion-fire .explosion-particle {
+  background: linear-gradient(45deg, #ff6b35, #f39c12);
+  box-shadow: 0 0 12px #ff6b35;
+}
+
+.explosion-ice .explosion-particle {
+  background: linear-gradient(45deg, #74b9ff, #0984e3);
+  box-shadow: 0 0 12px #74b9ff;
+}
+
+.explosion-lightning .explosion-particle {
+  background: linear-gradient(45deg, #fdcb6e, #f39c12);
+  box-shadow: 0 0 15px #fdcb6e;
+}
+
+.explosion-magic .explosion-particle {
+  background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+  box-shadow: 0 0 12px #a29bfe;
+}
+
+.explosion-treasure .explosion-particle {
+  background: linear-gradient(45deg, #f1c40f, #e67e22);
+  box-shadow: 0 0 15px #f1c40f;
+}
+
+/* ===== EXPLOSION TYPE EFFECTS ===== */
+
+/* SPARKLE TYPE - Magical twinkling stars */
+.explosion-sparkle .sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+.explosion-sparkle .sparkle::before,
+.explosion-sparkle .sparkle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.explosion-sparkle .sparkle::before {
+  width: 12px;
+  height: 2px;
+}
+
+.explosion-sparkle .sparkle::after {
+  width: 2px;
+  height: 12px;
+}
+
+.explosion-active.explosion-sparkle .sparkle {
+  animation: sparkleAnimation var(--explosion-duration) ease-out forwards;
+}
+
+.explosion-sparkle .sparkle-1 { 
+  top: -20px; left: -30px; 
+  animation-delay: 0.2s;
+}
+.explosion-sparkle .sparkle-2 { 
+  top: -30px; left: 20px; 
+  animation-delay: 0.3s;
+}
+.explosion-sparkle .sparkle-3 { 
+  top: 10px; left: -25px; 
+  animation-delay: 0.4s;
+}
+.explosion-sparkle .sparkle-4 { 
+  top: 25px; left: 15px; 
+  animation-delay: 0.5s;
+}
+.explosion-sparkle .sparkle-5 { 
+  top: -10px; left: 35px; 
+  animation-delay: 0.6s;
+}
+.explosion-sparkle .sparkle-6 { 
+  top: 30px; left: -15px; 
+  animation-delay: 0.7s;
+}
+
+@keyframes sparkleAnimation {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.5) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0) rotate(360deg);
+  }
+}
+
+/* FIRE TYPE - Flame effects */
+.explosion-fire .flame {
+  position: absolute;
+  width: 8px;
+  height: 16px;
+  background: linear-gradient(to top, 
+    #ff6b35 0%, 
+    #f39c12 50%, 
+    #fdcb6e 100%
+  );
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform: translate(-50%, -100%);
+  opacity: 0;
+}
+
+.explosion-active.explosion-fire .flame {
+  animation: flameAnimation calc(var(--explosion-duration) * 0.8) ease-out forwards;
+}
+
+.explosion-fire .flame-1 { 
+  top: -10px; left: -15px; 
+  animation-delay: 0.1s;
+}
+.explosion-fire .flame-2 { 
+  top: -15px; left: 10px; 
+  animation-delay: 0.2s;
+}
+.explosion-fire .flame-3 { 
+  top: -5px; left: -20px; 
+  animation-delay: 0.15s;
+}
+.explosion-fire .flame-4 { 
+  top: -20px; left: 5px; 
+  animation-delay: 0.25s;
+}
+
+@keyframes flameAnimation {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.5) scaleY(0.3);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1) scaleY(1.5);
+  }
+  70% {
+    opacity: 0.8;
+    transform: translate(-50%, -100%) scale(1.2) scaleY(2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.8) scaleY(0.5);
+  }
+}
+
+/* ===== ADVANCED PARTICLE EFFECTS ===== */
+
+/* Lightning particles - jagged and electric */
+.explosion-lightning .explosion-particle {
+  border-radius: 2px;
+  transform: rotate(var(--particle-angle));
+}
+
+.explosion-lightning .explosion-particle::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 12px;
+  background: inherit;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* Ice particles - crystalline shapes */
+.explosion-ice .explosion-particle {
+  border-radius: 0;
+  transform: rotate(var(--particle-angle));
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+/* Magic particles - ethereal glow */
+.explosion-magic .explosion-particle {
+  background: radial-gradient(circle, 
+    rgba(162, 155, 254, 1) 0%, 
+    rgba(108, 92, 231, 0.8) 70%, 
+    transparent 100%
+  );
+  box-shadow: 
+    0 0 8px rgba(162, 155, 254, 0.6),
+    0 0 16px rgba(162, 155, 254, 0.3);
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .explosion-particle,
+  .explosion-flash,
+  .explosion-shockwave,
+  .sparkle,
+  .flame {
+    animation: none !important;
+  }
+  
+  .explosion-active .explosion-flash {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
