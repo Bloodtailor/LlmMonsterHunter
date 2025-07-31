@@ -131,9 +131,7 @@ export const BADGE_VARIANTS = {
   SUCCESS: 'success',
   ERROR: 'error',
   WARNING: 'warning',
-  INFO: 'info',
-  LIGHT: 'light',
-  DARK: 'dark'
+  INFO: 'info'
 };
 
 // Size constants for easy imports

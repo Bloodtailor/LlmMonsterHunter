@@ -8,6 +8,8 @@ import StyleTestScreen from './screens/StyleTestScreen';
 import MyCurrentTestScreen from './screens/MyCurrentTestScreen';
 import { PartyProvider } from './app/contexts/PartyContext';
 import BYOComponentTestScreen from './screens/BYOComponentTestScreen';
+import MagicOrbDemo from './screens/MagicOrbDemo';
+import ExplosionDemo from './screens/ExplosionDemo';
 
 function App() {
   // Application state
@@ -41,6 +43,20 @@ function App() {
             </button>
 
             <button 
+              className={`nav-button ${currentScreen === 'magic-orb-demo' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('magic-orb-demo')}
+            >
+              ❄️ Magic Orb Demo
+            </button>
+
+            <button 
+              className={`nav-button ${currentScreen === 'explosion-demo' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('explosion-demo')}
+            >
+              ❄️ Explosion Demo
+            </button>
+
+            <button 
               className={`nav-button ${currentScreen === 'style-test' ? 'active' : ''}`}
               onClick={() => setCurrentScreen('style-test')}
             >
@@ -70,6 +86,15 @@ function App() {
 
           {currentScreen === 'api-services' && (
             <ApiServicesTestScreen />
+          )}
+
+          
+          {currentScreen === 'magic-orb-demo' && (
+            <MagicOrbDemo />
+          )}
+
+          {currentScreen === 'explosion-demo' && (
+            <ExplosionDemo />
           )}
 
           {currentScreen === 'style-test' && (
