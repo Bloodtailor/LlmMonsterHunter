@@ -13,7 +13,7 @@ body {
   background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-medium) 100%);
   color: var(--text-light);
   min-height: 100vh;
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
 }
 
 /* App Container */
@@ -21,43 +21,6 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-/* Loading and Error Screen Layouts */
-.loading-screen, .error-screen {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  text-align: center;
-  padding: var(--spacing-xl);
-}
-
-
-
-.error-message {
-  background: var(--background-medium);
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  max-width: 600px;
-}
-
-.error-help {
-  margin-top: var(--spacing-lg);
-  text-align: left;
-}
-
-.error-help ol {
-  margin-left: var(--spacing-lg);
-}
-
-.error-help code {
-  background: var(--background-dark);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-family-mono);
 }
 
 /* App Header */
@@ -75,7 +38,7 @@ body {
 
 .app-header h1 {
   color: var(--accent-color);
-  font-size: 24px;
+  font-size: var(--font-size-2xl);
   margin: 0;
 }
 
@@ -83,7 +46,7 @@ body {
 .app-main {
   flex: 1;
   padding: var(--spacing-xl);
-  max-width: 1200px;
+  max-width: var(--app-max-width);
   margin: 0 auto;
   width: 100%;
 }
@@ -96,17 +59,4 @@ body {
   text-align: center;
   color: var(--text-dim);
   margin-top: auto;
-}
-
-/* Global Responsive Design */
-@media (max-width: 768px) {
-  .app-header {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    text-align: center;
-  }
-  
-  .app-main {
-    padding: var(--spacing-md);
-  }
 }
