@@ -4,7 +4,7 @@
 // Perfect for rare collectibles found in dungeons
 
 import React, { useState } from 'react';
-import { Explosion, EXPLOSION_TYPES, EXPLOSION_COLORS, EXPLOSION_SIZES } from '../Explosion';
+import { Explosion } from '../Explosion';
 import './MagicOrb.css';
 
 /**
@@ -46,25 +46,6 @@ function TreasureCard({
   };
 
   const orbEmoji = emoji || defaultEmojis[type] || '✨';
-
-  // Default explosion mappings for each type
-  const getExplosionProps = () => {
-    const explosionMap = {
-      health: { type: EXPLOSION_TYPES.SPARKLE, color: EXPLOSION_COLORS.TREASURE },
-      fire: { type: EXPLOSION_TYPES.FIRE, color: EXPLOSION_COLORS.FIRE },
-      ice: { type: EXPLOSION_TYPES.ICE, color: EXPLOSION_COLORS.ICE },
-      lightning: { type: EXPLOSION_TYPES.LIGHTNING, color: EXPLOSION_COLORS.LIGHTNING },
-      magic: { type: EXPLOSION_TYPES.MAGIC, color: EXPLOSION_COLORS.MAGIC },
-      poison: { type: EXPLOSION_TYPES.BURST, color: EXPLOSION_COLORS.MAGIC },
-      shield: { type: EXPLOSION_TYPES.BURST, color: EXPLOSION_COLORS.PRIMARY },
-      strength: { type: EXPLOSION_TYPES.BURST, color: EXPLOSION_COLORS.FIRE },
-      speed: { type: EXPLOSION_TYPES.SPARKLE, color: EXPLOSION_COLORS.ICE }
-    };
-    
-    return explosionMap[type] || { type: EXPLOSION_TYPES.BURST, color: EXPLOSION_COLORS.PRIMARY };
-  };
-
-  const explosionProps = getExplosionProps();
 
   // Handle orb click - trigger the full animation sequence
   const handleClick = async () => {
@@ -125,14 +106,7 @@ function TreasureCard({
       
       {/* EPIC Explosion effect using new Explosion component! */}
       {isExploding && (
-        <Explosion 
-          type={explosionProps.type}
-          size={EXPLOSION_SIZES.LG}
-          color={explosionProps.color}
-          duration={1500}
-          particleCount={20}
-          onComplete={() => {}} // Callback already handled in setTimeout
-        />
+        <Explosion />
       )}
     </div>
   );
