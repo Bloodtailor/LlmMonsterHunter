@@ -1,429 +1,595 @@
-/* Explosions - Epic particle explosion system */
-/* Configurable, reusable explosions for any game event */
+/* Ultimate Explosion Engine - One CSS file for 8 completely unique explosion types */
+/* Reusable primitives combined in different ways for maximum visual variety */
 
-/* ===== EXPLOSION FOUNDATION ===== */
-
-.explosion {
+.ultimate-explosion {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 1000;
-  width: 1px; /* Center point */
+  z-index: var(--z-index-notification, 1300);
+  width: 1px;
   height: 1px;
 }
 
-/* ===== CORE FLASH EFFECT ===== */
+/* ===== REUSABLE PRIMITIVES ===== */
 
+/* CENTER FLASH - Bright initial burst */
 .explosion-flash {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 4em;
-  height: 4em;
+  width: calc(40px * var(--size-multiplier));
+  height: calc(40px * var(--size-multiplier));
   background: radial-gradient(circle, 
     rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.8) 20%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 80%
+    var(--color-primary) 30%,
+    transparent 70%
   );
-  border-radius: var(--radius-full);
+  border-radius: 50%;
   opacity: 0;
-  z-index: 3;
+  box-shadow: 
+    0 0 calc(30px * var(--size-multiplier)) rgba(255, 255, 255, 0.8),
+    0 0 calc(60px * var(--size-multiplier)) var(--color-primary);
 }
 
 .explosion-active .explosion-flash {
-  animation: explosionFlash calc(var(--explosion-duration) * 0.3) ease-out;
+  animation: flash calc(var(--explosion-duration) * 0.2) ease-out;
 }
 
-@keyframes explosionFlash {
-  0% { 
-    opacity: 0; 
-    transform: translate(-50%, -50%) scale(0.2); 
-  }
-  30% { 
-    opacity: 1; 
-    transform: translate(-50%, -50%) scale(1.5); 
-  }
-  100% { 
-    opacity: 0; 
-    transform: translate(-50%, -50%) scale(3); 
-  }
+@keyframes flash {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(var(--explosion-intensity)); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 3)); }
 }
 
-/* ===== SHOCKWAVE RING ===== */
-
+/* SHOCKWAVE - Expanding ring */
 .explosion-shockwave {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 2em;
-  height: 2em;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: var(--radius-full);
+  width: calc(20px * var(--size-multiplier));
+  height: calc(20px * var(--size-multiplier));
+  border: calc(4px * var(--size-multiplier)) solid var(--color-primary);
+  border-radius: 50%;
   opacity: 0;
-  z-index: 2;
+  box-shadow: 0 0 calc(20px * var(--size-multiplier)) var(--color-primary);
 }
 
 .explosion-active .explosion-shockwave {
-  animation: shockwave calc(var(--explosion-duration) * 0.6) ease-out;
+  animation: shockwave calc(var(--explosion-duration) * 0.7) ease-out;
 }
 
 @keyframes shockwave {
-  0% { 
-    opacity: 0; 
-    transform: translate(-50%, -50%) scale(0.1); 
-  }
-  10% { 
-    opacity: 0.8; 
-    transform: translate(-50%, -50%) scale(0.3); 
-  }
-  50% { 
-    opacity: 0.4; 
-    transform: translate(-50%, -50%) scale(2); 
-  }
-  100% { 
-    opacity: 0; 
-    transform: translate(-50%, -50%) scale(4); 
-  }
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.1); }
+  70% { opacity: 0.4; transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 4)); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 8)); }
 }
 
-/* ===== PARTICLE SYSTEM ===== */
-
-.explosion-particles {
+/* PARTICLES - Main explosion elements */
+.explosion-particle {
   position: absolute;
   top: 50%;
   left: 50%;
+  width: calc(8px * var(--size-multiplier));
+  height: calc(8px * var(--size-multiplier));
+  background: var(--element-color);
+  border-radius: 50%;
   transform: translate(-50%, -50%);
-  width: 1px;
-  height: 1px;
+  opacity: 0;
+  box-shadow: 0 0 calc(10px * var(--size-multiplier)) var(--element-color);
 }
 
-.explosion-particle {
+/* STREAKS - Lightning and energy trails */
+.explosion-streak {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  background: currentColor;
-  border-radius: var(--radius-full);
+  top: 50%;
+  left: 50%;
+  width: calc(4px * var(--size-multiplier));
+  height: calc(25px * var(--size-multiplier));
+  background: linear-gradient(to bottom, 
+    rgba(255, 255, 255, 1) 0%,
+    var(--element-color) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
   opacity: 0;
-  transform-origin: center;
+  box-shadow: 0 0 calc(15px * var(--size-multiplier)) rgba(255, 255, 255, 0.8);
 }
+
+/* RINGS - Expanding circles */
+.explosion-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: calc(3px * var(--size-multiplier)) solid var(--element-color);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  box-shadow: 0 0 calc(15px * var(--size-multiplier)) var(--element-color);
+}
+
+/* FRAGMENTS - Angular pieces */
+.explosion-fragment {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(12px * var(--size-multiplier));
+  height: calc(6px * var(--size-multiplier));
+  background: var(--element-color);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  clip-path: polygon(0% 0%, 80% 0%, 100% 100%, 20% 100%);
+}
+
+/* WAVES - Energy waves */
+.explosion-wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: calc(2px * var(--size-multiplier)) solid var(--element-color);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  background: radial-gradient(circle, 
+    transparent 70%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent 90%
+  );
+}
+
+/* SPARKS - Small bright flashes */
+.explosion-spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(3px * var(--size-multiplier));
+  height: calc(3px * var(--size-multiplier));
+  background: rgba(255, 255, 255, 1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  box-shadow: 
+    0 0 calc(8px * var(--size-multiplier)) var(--element-color),
+    0 0 calc(16px * var(--size-multiplier)) rgba(255, 255, 255, 0.5);
+}
+
+/* ===== DEFAULT ELEMENT ANIMATIONS ===== */
+/* Default animations for elements that don't have pattern-specific overrides */
 
 .explosion-active .explosion-particle {
-  animation: particleExplode var(--explosion-duration) ease-out forwards;
-  animation-delay: calc(var(--particle-index) * 0.02s); /* Stagger particles */
+  animation: default-particle var(--explosion-duration) ease-out;
+  animation-delay: var(--delay);
 }
 
-@keyframes particleExplode {
+@keyframes default-particle {
   0% {
     opacity: 1;
     transform: translate(-50%, -50%) 
-               rotate(var(--particle-angle)) 
-               translateX(0px) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(0) 
                scale(0.5);
-  }
-  20% {
-    opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(var(--particle-angle)) 
-               translateX(20px) 
-               scale(1.2);
-  }
-  70% {
-    opacity: 0.8;
-    transform: translate(-50%, -50%) 
-               rotate(var(--particle-angle)) 
-               translateX(60px) 
-               scale(1);
   }
   100% {
     opacity: 0;
     transform: translate(-50%, -50%) 
-               rotate(var(--particle-angle)) 
-               translateX(100px) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(100px * var(--explosion-intensity))) 
                scale(0);
   }
 }
 
-/* ===== SIZE VARIANTS ===== */
-
-.explosion-sm {
-  font-size: 12px;
+.explosion-active .explosion-streak {
+  animation: default-streak var(--explosion-duration) ease-out;
+  animation-delay: var(--delay);
 }
 
-.explosion-sm .explosion-flash {
-  width: 3em;
-  height: 3em;
-}
-
-.explosion-sm .explosion-particle {
-  width: 6px;
-  height: 6px;
-}
-
-.explosion-md {
-  font-size: 16px;
-}
-
-.explosion-lg {
-  font-size: 20px;
-}
-
-.explosion-lg .explosion-flash {
-  width: 5em;
-  height: 5em;
-}
-
-.explosion-lg .explosion-particle {
-  width: 10px;
-  height: 10px;
-}
-
-.explosion-xl {
-  font-size: 24px;
-}
-
-.explosion-xl .explosion-flash {
-  width: 6em;
-  height: 6em;
-}
-
-.explosion-xl .explosion-particle {
-  width: 12px;
-  height: 12px;
-}
-
-.explosion-massive {
-  font-size: 32px;
-}
-
-.explosion-massive .explosion-flash {
-  width: 8em;
-  height: 8em;
-}
-
-.explosion-massive .explosion-particle {
-  width: 16px;
-  height: 16px;
-}
-
-/* ===== COLOR THEMES ===== */
-
-.explosion-primary .explosion-particle {
-  background: var(--primary-color);
-  box-shadow: 0 0 8px var(--primary-color);
-}
-
-.explosion-fire .explosion-particle {
-  background: linear-gradient(45deg, #ff6b35, #f39c12);
-  box-shadow: 0 0 12px #ff6b35;
-}
-
-.explosion-ice .explosion-particle {
-  background: linear-gradient(45deg, #74b9ff, #0984e3);
-  box-shadow: 0 0 12px #74b9ff;
-}
-
-.explosion-lightning .explosion-particle {
-  background: linear-gradient(45deg, #fdcb6e, #f39c12);
-  box-shadow: 0 0 15px #fdcb6e;
-}
-
-.explosion-magic .explosion-particle {
-  background: linear-gradient(45deg, #a29bfe, #6c5ce7);
-  box-shadow: 0 0 12px #a29bfe;
-}
-
-.explosion-treasure .explosion-particle {
-  background: linear-gradient(45deg, #f1c40f, #e67e22);
-  box-shadow: 0 0 15px #f1c40f;
-}
-
-/* ===== EXPLOSION TYPE EFFECTS ===== */
-
-/* SPARKLE TYPE - Magical twinkling stars */
-.explosion-sparkle .sparkle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.9);
-  transform: translate(-50%, -50%);
-  opacity: 0;
-}
-
-.explosion-sparkle .sparkle::before,
-.explosion-sparkle .sparkle::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.explosion-sparkle .sparkle::before {
-  width: 12px;
-  height: 2px;
-}
-
-.explosion-sparkle .sparkle::after {
-  width: 2px;
-  height: 12px;
-}
-
-.explosion-active.explosion-sparkle .sparkle {
-  animation: sparkleAnimation var(--explosion-duration) ease-out forwards;
-}
-
-.explosion-sparkle .sparkle-1 { 
-  top: -20px; left: -30px; 
-  animation-delay: 0.2s;
-}
-.explosion-sparkle .sparkle-2 { 
-  top: -30px; left: 20px; 
-  animation-delay: 0.3s;
-}
-.explosion-sparkle .sparkle-3 { 
-  top: 10px; left: -25px; 
-  animation-delay: 0.4s;
-}
-.explosion-sparkle .sparkle-4 { 
-  top: 25px; left: 15px; 
-  animation-delay: 0.5s;
-}
-.explosion-sparkle .sparkle-5 { 
-  top: -10px; left: 35px; 
-  animation-delay: 0.6s;
-}
-.explosion-sparkle .sparkle-6 { 
-  top: 30px; left: -15px; 
-  animation-delay: 0.7s;
-}
-
-@keyframes sparkleAnimation {
+@keyframes default-streak {
   0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0) rotate(0deg);
-  }
-  50% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.5) rotate(180deg);
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(5px);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0) rotate(360deg);
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(120px * var(--explosion-intensity)));
   }
 }
 
-/* FIRE TYPE - Flame effects */
-.explosion-fire .flame {
-  position: absolute;
-  width: 8px;
-  height: 16px;
-  background: linear-gradient(to top, 
-    #ff6b35 0%, 
-    #f39c12 50%, 
-    #fdcb6e 100%
-  );
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  transform: translate(-50%, -100%);
-  opacity: 0;
+.explosion-active .explosion-ring {
+  animation: default-ring calc(var(--explosion-duration) * 1.2) ease-out;
+  animation-delay: var(--delay);
 }
 
-.explosion-active.explosion-fire .flame {
-  animation: flameAnimation calc(var(--explosion-duration) * 0.8) ease-out forwards;
+@keyframes default-ring {
+  0% {
+    width: calc(5px * var(--size-multiplier));
+    height: calc(5px * var(--size-multiplier));
+    opacity: 1;
+  }
+  100% {
+    width: calc(200px * var(--size-multiplier) * var(--explosion-intensity));
+    height: calc(200px * var(--size-multiplier) * var(--explosion-intensity));
+    opacity: 0;
+  }
 }
 
-.explosion-fire .flame-1 { 
-  top: -10px; left: -15px; 
-  animation-delay: 0.1s;
-}
-.explosion-fire .flame-2 { 
-  top: -15px; left: 10px; 
-  animation-delay: 0.2s;
-}
-.explosion-fire .flame-3 { 
-  top: -5px; left: -20px; 
-  animation-delay: 0.15s;
-}
-.explosion-fire .flame-4 { 
-  top: -20px; left: 5px; 
-  animation-delay: 0.25s;
+.explosion-active .explosion-fragment {
+  animation: default-fragment var(--explosion-duration) ease-out;
+  animation-delay: var(--delay);
 }
 
-@keyframes flameAnimation {
+@keyframes default-fragment {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(0) 
+               rotateZ(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(100px * var(--explosion-intensity))) 
+               rotateZ(calc(var(--element-index) * 180deg));
+  }
+}
+
+.explosion-active .explosion-wave {
+  animation: default-wave calc(var(--explosion-duration) * 1.3) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes default-wave {
+  0% {
+    width: calc(10px * var(--size-multiplier));
+    height: calc(10px * var(--size-multiplier));
+    opacity: 0.8;
+  }
+  100% {
+    width: calc(150px * var(--size-multiplier) * var(--explosion-intensity));
+    height: calc(150px * var(--size-multiplier) * var(--explosion-intensity));
+    opacity: 0;
+  }
+}
+
+.explosion-active .explosion-spark {
+  animation: default-spark calc(var(--explosion-duration) * 1.1) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes default-spark {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(10px + var(--element-index) * 3px));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(80px * var(--explosion-intensity) + var(--element-index) * 5px));
+  }
+}
+
+/* ===== EXPLOSION PATTERN ANIMATIONS ===== */
+
+/* RADIAL PATTERN - Massive radial burst */
+.explosion-radial .explosion-particle {
+  animation: particle-storm var(--explosion-duration) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes particle-storm {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(0) 
+               scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(120px * var(--explosion-intensity))) 
+               scale(0);
+  }
+}
+
+.explosion-radial .explosion-streak {
+  animation: streak-radial var(--explosion-duration) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes streak-radial {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(10px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(150px * var(--explosion-intensity)));
+  }
+}
+
+/* LIGHTNING PATTERN - Jagged electric bolts */
+.explosion-lightning .explosion-streak {
+  animation: lightning-bolt var(--explosion-duration) ease-out;
+  animation-delay: var(--delay);
+  height: calc(40px * var(--size-multiplier));
+}
+
+@keyframes lightning-bolt {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg))) 
+               translateX(0) 
+               scaleY(0.2);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg))) 
+               translateX(calc(50px * var(--explosion-intensity))) 
+               scaleY(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg))) 
+               translateX(calc(100px * var(--explosion-intensity))) 
+               scaleY(0.3);
+  }
+}
+
+.explosion-lightning .explosion-spark {
+  animation: lightning-spark calc(var(--explosion-duration) * 1.5) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes lightning-spark {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 12deg)) 
+               translateX(calc(20px + var(--element-index) * 5px));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 12deg)) 
+               translateX(calc(80px * var(--explosion-intensity) + var(--element-index) * 10px));
+  }
+}
+
+/* IMPLOSION PATTERN - Suck in then explode out */
+.explosion-implosion .explosion-particle {
+  animation: gravity-implosion var(--explosion-duration) ease-in-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes gravity-implosion {
   0% {
     opacity: 0;
-    transform: translate(-50%, -100%) scale(0.5) scaleY(0.3);
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(150px * var(--explosion-intensity))) 
+               scale(1);
   }
   30% {
     opacity: 1;
-    transform: translate(-50%, -100%) scale(1) scaleY(1.5);
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(0) 
+               scale(0.3);
   }
-  70% {
-    opacity: 0.8;
-    transform: translate(-50%, -100%) scale(1.2) scaleY(2);
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(0) 
+               scale(1.5);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -100%) scale(0.8) scaleY(0.5);
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(200px * var(--explosion-intensity))) 
+               scale(0);
   }
 }
 
-/* ===== ADVANCED PARTICLE EFFECTS ===== */
-
-/* Lightning particles - jagged and electric */
-.explosion-lightning .explosion-particle {
-  border-radius: 2px;
-  transform: rotate(var(--particle-angle));
+/* SPIRAL PATTERN - Spiraling energy */
+.explosion-spiral .explosion-particle {
+  animation: plasma-spiral var(--explosion-duration) ease-out;
+  animation-delay: var(--delay);
 }
 
-.explosion-lightning .explosion-particle::before {
-  content: '';
-  position: absolute;
-  width: 2px;
-  height: 12px;
-  background: inherit;
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
+@keyframes plasma-spiral {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements) + 720deg)) 
+               translateX(calc(100px * var(--explosion-intensity)));
+  }
 }
 
-/* Ice particles - crystalline shapes */
-.explosion-ice .explosion-particle {
-  border-radius: 0;
-  transform: rotate(var(--particle-angle));
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+.explosion-spiral .explosion-wave {
+  animation: plasma-wave calc(var(--explosion-duration) * 1.2) ease-out;
+  animation-delay: var(--delay);
 }
 
-/* Magic particles - ethereal glow */
-.explosion-magic .explosion-particle {
-  background: radial-gradient(circle, 
-    rgba(162, 155, 254, 1) 0%, 
-    rgba(108, 92, 231, 0.8) 70%, 
-    transparent 100%
-  );
-  box-shadow: 
-    0 0 8px rgba(162, 155, 254, 0.6),
-    0 0 16px rgba(162, 155, 254, 0.3);
+@keyframes plasma-wave {
+  0% {
+    width: calc(10px * var(--size-multiplier));
+    height: calc(10px * var(--size-multiplier));
+    opacity: 0.8;
+  }
+  100% {
+    width: calc(150px * var(--size-multiplier) * var(--explosion-intensity));
+    height: calc(150px * var(--size-multiplier) * var(--explosion-intensity));
+    opacity: 0;
+  }
+}
+
+/* DOME PATTERN - Expanding energy dome */
+.explosion-dome .explosion-ring {
+  animation: nuclear-ring calc(var(--explosion-duration) * 1.5) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes nuclear-ring {
+  0% {
+    width: calc(5px * var(--size-multiplier));
+    height: calc(5px * var(--size-multiplier));
+    opacity: 1;
+    border-width: calc(6px * var(--size-multiplier));
+  }
+  100% {
+    width: calc(300px * var(--size-multiplier) * var(--explosion-intensity));
+    height: calc(300px * var(--size-multiplier) * var(--explosion-intensity));
+    opacity: 0;
+    border-width: calc(1px * var(--size-multiplier));
+  }
+}
+
+.explosion-dome .explosion-wave {
+  animation: dome-wave calc(var(--explosion-duration) * 1.8) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes dome-wave {
+  0% {
+    width: calc(20px * var(--size-multiplier));
+    height: calc(20px * var(--size-multiplier));
+    opacity: 0.6;
+    background: radial-gradient(circle, var(--element-color) 0%, transparent 70%);
+  }
+  100% {
+    width: calc(400px * var(--size-multiplier) * var(--explosion-intensity));
+    height: calc(400px * var(--size-multiplier) * var(--explosion-intensity));
+    opacity: 0;
+    background: radial-gradient(circle, transparent 0%, var(--element-color) 80%, transparent 100%);
+  }
+}
+
+/* CHAIN PATTERN - Sequential explosions */
+.explosion-chain .explosion-particle {
+  animation: chain-burst var(--explosion-duration) ease-out;
+  animation-delay: calc(var(--delay) + (var(--element-index) * 50ms));
+}
+
+@keyframes chain-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 36deg)) 
+               translateX(calc(var(--element-index) * 8px))
+               scale(0.2);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 36deg)) 
+               translateX(calc(var(--element-index) * 12px))
+               scale(1.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 36deg)) 
+               translateX(calc(var(--element-index) * 15px))
+               scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 36deg)) 
+               translateX(calc(120px * var(--explosion-intensity)))
+               scale(0);
+  }
+}
+
+/* SHOCKWAVE PATTERN - Massive expanding waves */
+.explosion-shockwave .explosion-ring {
+  animation: massive-shockwave calc(var(--explosion-duration) * 2) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes massive-shockwave {
+  0% {
+    width: calc(10px * var(--size-multiplier));
+    height: calc(10px * var(--size-multiplier));
+    opacity: 1;
+    border-width: calc(8px * var(--size-multiplier));
+  }
+  70% {
+    opacity: 0.3;
+  }
+  100% {
+    width: calc(500px * var(--size-multiplier) * var(--explosion-intensity));
+    height: calc(500px * var(--size-multiplier) * var(--explosion-intensity));
+    opacity: 0;
+    border-width: calc(1px * var(--size-multiplier));
+  }
+}
+
+/* SHATTER PATTERN - Angular fragments */
+.explosion-shatter .explosion-fragment {
+  animation: shatter-fly var(--explosion-duration) ease-out;
+  animation-delay: var(--delay);
+}
+
+@keyframes shatter-fly {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(0) 
+               rotateZ(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) 
+               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
+               translateX(calc(120px * var(--explosion-intensity))) 
+               rotateZ(calc(var(--element-index) * 180deg));
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.ultimate-explosion * {
+  will-change: transform, opacity;
 }
 
 /* ===== ACCESSIBILITY ===== */
-
 @media (prefers-reduced-motion: reduce) {
-  .explosion-particle,
-  .explosion-flash,
-  .explosion-shockwave,
-  .sparkle,
-  .flame {
+  .ultimate-explosion * {
     animation: none !important;
   }
   
   .explosion-active .explosion-flash {
-    opacity: 0.5;
+    opacity: 0.3;
     transform: translate(-50%, -50%) scale(1);
   }
 }
