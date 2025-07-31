@@ -9,7 +9,6 @@ import DungeonScreen from './components/screens/DungeonScreen';
 import DeveloperScreen from './components/screens/DeveloperScreen';
 import StreamingDisplay from './components/streaming/StreamingDisplay';
 import { healthCheck, getGameStatus } from './services/api';
-import { PartyProvider } from './refactored/app/contexts/PartyContext';
 
 function App() {
   // Application state
@@ -111,88 +110,86 @@ function App() {
 
   // Main application - backend is connected
   return (
-    <PartyProvider>
-      <div className="App">
-        {/* Always-visible LLM Streaming Display */}
-        <StreamingDisplay />
-        
-        {/* App Header with Title Left, Navigation Centered */}
-        <header className="app-header">
-          <h1>🎮 Monster Hunter Game</h1>
-          <nav className="screen-navigation">
-            <button 
-              className={`nav-button ${currentScreen === 'homebase' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('homebase')}
-            >
-              🏠 Home Base
-            </button>
-            <button 
-              className={`nav-button ${currentScreen === 'sanctuary' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('sanctuary')}
-            >
-              🏛️ Sanctuary
-            </button>
-            <button 
-              className={`nav-button ${currentScreen === 'developer' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('developer')}
-            >
-              🔧 Developer
-            </button>
+    <div className="App">
+      {/* Always-visible LLM Streaming Display */}
+      <StreamingDisplay />
+      
+      {/* App Header with Title Left, Navigation Centered */}
+      <header className="app-header">
+        <h1>🎮 Monster Hunter Game</h1>
+        <nav className="screen-navigation">
+          <button 
+            className={`nav-button ${currentScreen === 'homebase' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('homebase')}
+          >
+            🏠 Home Base
+          </button>
+          <button 
+            className={`nav-button ${currentScreen === 'sanctuary' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('sanctuary')}
+          >
+            🏛️ Sanctuary
+          </button>
+          <button 
+            className={`nav-button ${currentScreen === 'developer' ? 'active' : ''}`}
+            onClick={() => setCurrentScreen('developer')}
+          >
+            🔧 Developer
+          </button>
 
-            {/* Dungeon button only shows when in dungeon */}
-            {currentScreen === 'dungeon' && (
-              <button className="nav-button active">
-                🏰 In Dungeon
-              </button>
-            )}
-          </nav>
-        </header>
-
-        {/* Main Content - Switch between screens */}
-        <main className="app-main">
-          {currentScreen === 'homebase' && (
-            <HomeBaseScreen 
-              onEnterDungeon={handleEnterDungeon}
-            />
-          )}
-          
-          {currentScreen === 'sanctuary' && (
-            <MonsterSanctuary 
-              gameData={appStatus.gameData}
-              onRefresh={checkBackendStatus}
-            />
-          )}
-          
-          {currentScreen === 'developer' && (
-            <DeveloperScreen 
-              gameData={appStatus.gameData}
-              onRefresh={checkBackendStatus}
-            />
-          )}
-
+          {/* Dungeon button only shows when in dungeon */}
           {currentScreen === 'dungeon' && (
-            <DungeonScreen 
-              onReturnToHomeBase={handleReturnToHomeBase}
-            />
+            <button className="nav-button active">
+              🏰 In Dungeon
+            </button>
           )}
-        </main>
+        </nav>
+      </header>
 
-        {/* App Footer */}
-        <footer className="app-footer">
-          <p>Monster Hunter Game - MVP Development Phase</p>
-          <div className="footer-info">
-            <span>Status: {appStatus.gameData?.status || 'Unknown'}</span>
-            <span>•</span>
-            <span>Current Screen: {
-              currentScreen === 'homebase' ? 'Home Base' :
-              currentScreen === 'sanctuary' ? 'Monster Sanctuary' :
-              currentScreen === 'developer' ? 'Developer Tools' :
-              currentScreen === 'dungeon' ? 'Dungeon Adventure' : 'Unknown'
-            }</span>
-          </div>
-        </footer>
-      </div>
-    </PartyProvider>
+      {/* Main Content - Switch between screens */}
+      <main className="app-main">
+        {currentScreen === 'homebase' && (
+          <HomeBaseScreen 
+            onEnterDungeon={handleEnterDungeon}
+          />
+        )}
+        
+        {currentScreen === 'sanctuary' && (
+          <MonsterSanctuary 
+            gameData={appStatus.gameData}
+            onRefresh={checkBackendStatus}
+          />
+        )}
+        
+        {currentScreen === 'developer' && (
+          <DeveloperScreen 
+            gameData={appStatus.gameData}
+            onRefresh={checkBackendStatus}
+          />
+        )}
+
+        {currentScreen === 'dungeon' && (
+          <DungeonScreen 
+            onReturnToHomeBase={handleReturnToHomeBase}
+          />
+        )}
+      </main>
+
+      {/* App Footer */}
+      <footer className="app-footer">
+        <p>Monster Hunter Game - MVP Development Phase</p>
+        <div className="footer-info">
+          <span>Status: {appStatus.gameData?.status || 'Unknown'}</span>
+          <span>•</span>
+          <span>Current Screen: {
+            currentScreen === 'homebase' ? 'Home Base' :
+            currentScreen === 'sanctuary' ? 'Monster Sanctuary' :
+            currentScreen === 'developer' ? 'Developer Tools' :
+            currentScreen === 'dungeon' ? 'Dungeon Adventure' : 'Unknown'
+          }</span>
+        </div>
+      </footer>
+    </div>
   );
 }
 

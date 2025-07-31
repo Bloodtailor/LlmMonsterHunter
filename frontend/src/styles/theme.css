@@ -1,8 +1,14 @@
-/* Monster Hunter Game - Design System Theme */
-/* CSS Variables for consistent theming across all components */
+/* Monster Hunter Game - Complete Design Token System */
+/* Comprehensive CSS variables for consistent theming across all components */
+/* Organized by category with clear naming conventions */
 
 :root {
-  /* Color Palette */
+
+  /* App wide constraints */
+  --app-max-width: 1200px;
+
+  /* ===== FOUNDATION COLORS ===== */
+  /* Core brand and UI colors */
   --primary-color: #2c5aa0;
   --secondary-color: #4a90e2;
   --accent-color: #f39c12;
@@ -10,49 +16,125 @@
   --error-color: #e74c3c;
   --warning-color: #f39c12;
   
-  /* Game-Specific Colors */
-  --background-dark: #1a1a2e;
-  --background-medium: #16213e;
-  --background-light: #0f3460;
-  --text-light: #ffffff;
-  --text-medium: #e0e0e0;
-  --text-dim: #b0b0b0;
+  /* Game-Specific Background Hierarchy */
+  --background-dark: #1a1a2e;      /* Deepest background */
+  --background-medium: #16213e;    /* Main content areas */
+  --background-light: #0f3460;     /* Elevated surfaces */
   
-  /* Spacing Scale */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  /* Text Color Hierarchy */
+  --text-light: #ffffff;           /* Primary text */
+  --text-medium: #e0e0e0;          /* Secondary text */
+  --text-dim: #b0b0b0;             /* Muted/disabled text */
   
-  /* Border Radius Scale */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* ===== TYPOGRAPHY SCALE ===== */
+  /* Font sizes based on actual component usage */
+  --font-size-xs: 12px;            /* badges-sm, button-sm */
+  --font-size-sm: 14px;            /* most components, forms */
+  --font-size-md: 16px;            /* button-lg, alerts */
+  --font-size-lg: 18px;            /* button-xl */
+  --font-size-xl: 20px;            /* card titles, headings */
+  --font-size-2xl: 24px;           /* large headings */
+  --font-size-3xl: 30px;           /* hero text */
   
-  /* Shadow Scale */
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
-  --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
-  --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+  /* Font weights based on actual usage */
+  --font-weight-normal: 400;       /* body text */
+  --font-weight-medium: 500;       /* buttons, form labels */
+  --font-weight-semibold: 600;     /* badges, headings */
+  --font-weight-bold: 700;         /* emphasis, strong headings */
   
-  /* Typography Scale */
+  /* Line heights for different text contexts */
+  --line-height-tight: 1.2;        /* badges, compact UI text */
+  --line-height-normal: 1.5;       /* most readable text */
+  --line-height-relaxed: 1.6;      /* content areas, descriptions */
+  
+  /* Font families */
   --font-family-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --font-family-mono: 'Courier New', monospace;
   
-  /* Z-Index Scale */
-  --z-index-modal: 1000;
-  --z-index-dropdown: 100;
-  --z-index-header: 10;
+  /* ===== SPACING SCALE ===== */
+  /* Base spacing scale with micro additions */
+  --spacing-2xs: 2px;              /* micro spacing, badge gaps */
+  --spacing-xs: 4px;               /* tight spacing */
+  --spacing-sm: 8px;               /* small spacing */
+  --spacing-md: 16px;              /* standard spacing */
+  --spacing-lg: 24px;              /* large spacing */
+  --spacing-xl: 32px;              /* extra large spacing */
+  --spacing-2xl: 48px;             /* section spacing */
+  --spacing-3xl: 64px;             /* page-level spacing */
   
-  /* Animation Timing */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
-}
+  /* ===== STATE TOKENS ===== */
+  /* Opacity values for consistent state representation */
+  --opacity-disabled: 0.6;         /* disabled buttons, cards */
+  --opacity-loading: 0.7;          /* loading states */
+  --opacity-hover: 0.8;            /* subtle hover effects */
+  --opacity-muted: 0.5;            /* secondary/muted elements */
+  --opacity-overlay: 0.85;         /* modal overlays */
+  
+  /* Border widths for consistent borders */
+  --border-width-thin: 1px;        /* default borders */
+  --border-width-thick: 2px;       /* focus states, outlined variants */
+  --border-width-heavy: 3px;       /* emphasis borders */
+  
+  /* ===== BORDER RADIUS SCALE ===== */
+  --radius-sm: 4px;                /* small elements */
+  --radius-md: 8px;                /* standard elements */
+  --radius-lg: 12px;               /* cards, larger elements */
+  --radius-xl: 16px;               /* prominent elements */
+  --radius-full: 999px;            /* pill shapes, circular elements */
+  
+  /* ===== SHADOWS & EFFECTS ===== */
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+  --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+  --shadow-xl: 0 16px 32px rgba(0,0,0,0.25);
+  
+  /* ===== RESPONSIVE BREAKPOINTS ===== */
+  /* Standardized breakpoint values */
+  --breakpoint-mobile: 480px;      /* small mobile devices */
+  --breakpoint-tablet: 768px;      /* tablets and large mobile */
+  --breakpoint-desktop: 1024px;    /* desktop and larger */
 
-/* Dark theme color overrides (for future light/dark toggle) */
-[data-theme="dark"] {
-  --background-dark: #0d1117;
-  --background-medium: #161b22;
-  --background-light: #21262d;
+  
+  /* ===== ANIMATION & TRANSITIONS ===== */
+  /* Timing functions for consistent motion */
+  --transition-instant: 0.1s ease;                    /* micro interactions */
+  --transition-fast: 0.15s ease;                      /* quick feedback */
+  --transition-normal: 0.3s ease;                     /* standard animations */
+  --transition-slow: 0.5s ease;                       /* dramatic effects */
+  --transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* Animation delays for staggered effects */
+  --delay-short: 0.1s;
+  --delay-medium: 0.2s;
+  --delay-long: 0.3s;
+  
+  /* ===== Z-INDEX SCALE ===== */
+  /* Layering system for proper stacking */
+  --z-index-dropdown: 100;
+  --z-index-sticky: 200;
+  --z-index-header: 300;
+  --z-index-modal: 1000;
+  --z-index-popover: 1100;
+  --z-index-tooltip: 1200;
+  --z-index-notification: 1300;
+  
+  /* ===== SEMANTIC COLOR TOKENS ===== */
+  /* Purpose-based color assignments for better maintainability */
+  
+  /* Text colors */
+  --color-text-primary: var(--text-light);
+  --color-text-secondary: var(--text-medium);
+  --color-text-muted: var(--text-dim);
+  --color-text-disabled: var(--text-dim);
+  
+  /* Surface colors */
+  --color-surface-primary: var(--background-medium);
+  --color-surface-secondary: var(--background-light);
+  --color-surface-elevated: var(--background-dark);
+  --color-surface-overlay: rgba(0, 0, 0, var(--opacity-overlay));
+  
+  /* Interactive state colors */
+  --color-hover-overlay: rgba(255, 255, 255, 0.1);
+  --color-active-overlay: rgba(255, 255, 255, 0.2);
+  --color-focus-ring: rgba(44, 90, 160, 0.3);
 }
