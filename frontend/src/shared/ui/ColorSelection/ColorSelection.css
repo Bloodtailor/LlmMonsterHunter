@@ -1,0 +1,51 @@
+/* ColorSelection Component Styles - Essential styles for color selection components */
+
+/* Basic Color Selection Container */
+.basic-color-selection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.basic-color-selection-container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.basic-color-selection-select {
+  flex: 1;
+}
+
+/* Color Preview Box */
+.basic-color-preview {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.color-preview-box {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--background-light);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-fast);
+}
+
+.color-preview-box:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+/* Empty state for preview */
+.color-preview-empty {
+  background: linear-gradient(
+    45deg, 
+    transparent 40%, 
+    var(--text-dim) 40%, 
+    var(--text-dim) 60%, 
+    transparent 60%
+  );
+  background-size: 8px 8px;
+}

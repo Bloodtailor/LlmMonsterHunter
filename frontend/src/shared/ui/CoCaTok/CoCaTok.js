@@ -1,15 +1,15 @@
-// TreasureCard Component - Interactive 3D spinning magical treasure cards
+// CoCaTok Component - Interactive 3D spinning Collectable Card Tokens
 // Always spinning, bouncing cards that stop and face you on hover
 // Click to spin fast, face forward, explode dramatically, and disappear forever
 // Perfect for rare collectibles found in dungeons
 
 import React, { useState } from 'react';
 import { Explosion } from '../Explosion';
-import './MagicOrb.css';
+import './CoCaTok.css';
 
 /**
- * Interactive magical treasure card that spins in 3D space
- * @param {object} props - TreasureCard props
+ * Interactive collectable card token that spins in 3D space
+ * @param {object} props - CoCaTok props
  * @param {string} props.type - Card type ('health', 'fire', 'ice', 'lightning', 'magic', 'poison')
  * @param {string} props.size - Size variant ('sm', 'md', 'lg', 'xl')
  * @param {string} props.emoji - Emoji to display on the back (defaults based on type)
@@ -17,9 +17,9 @@ import './MagicOrb.css';
  * @param {boolean} props.disabled - Disable interaction
  * @param {string} props.className - Additional CSS classes
  * @param {object} props.style - Inline styles
- * @returns {React.ReactElement} TreasureCard component
+ * @returns {React.ReactElement} CoCaTok component
  */
-function TreasureCard({
+function CoCaTok({
   type = 'magic',
   size = 'md',
   emoji = null,
@@ -45,9 +45,9 @@ function TreasureCard({
     speed: '💨'
   };
 
-  const orbEmoji = emoji || defaultEmojis[type] || '✨';
+  const cardEmoji = emoji || defaultEmojis[type] || '✨';
 
-  // Handle orb click - trigger the full animation sequence
+  // Handle card click - trigger the full animation sequence
   const handleClick = async () => {
     if (disabled || isSpinning) return;
 
@@ -66,32 +66,32 @@ function TreasureCard({
   };
 
   // Build CSS classes
-  const orbClasses = [
-    'magic-orb',
-    `magic-orb-${type}`,
-    `magic-orb-${size}`,
-    isSpinning && 'magic-orb-spinning',
-    isExploding && 'magic-orb-exploding',
-    disabled && 'magic-orb-disabled',
+  const cardClasses = [
+    'cocatok',
+    `cocatok-${type}`,
+    `cocatok-${size}`,
+    isSpinning && 'cocatok-spinning',
+    isExploding && 'cocatok-exploding',
+    disabled && 'cocatok-disabled',
     className
   ].filter(Boolean).join(' ');
 
   return (
     <div
-      className={orbClasses}
+      className={cardClasses}
       style={style}
       onClick={handleClick}
       role="button"
       tabIndex={disabled ? -1 : 0}
-      aria-label={`${type} treasure card`}
+      aria-label={`${type} collectible card token`}
       onKeyDown={(e) => e.key === 'Enter' && handleClick()}
       {...rest}
     >
-      <div className="magic-orb-inner">
+      <div className="cocatok-inner">
         {/* Front side - card layout like loading spinner + bouncing emoji in image */}
-        <div className="magic-orb-front">
+        <div className="cocatok-front">
           <div className="card-image-area">
-            <div className="front-emoji">{orbEmoji}</div>
+            <div className="front-emoji">{cardEmoji}</div>
           </div>
           <div className="card-title-line"></div>
           <div className="card-text-line"></div>
@@ -99,12 +99,12 @@ function TreasureCard({
         </div>
         
         {/* Back side - emoji instead of diagonal pattern */}
-        <div className="magic-orb-back">
-          <div className="orb-emoji">{orbEmoji}</div>
+        <div className="cocatok-back">
+          <div className="cocatok-emoji">{cardEmoji}</div>
         </div>
       </div>
       
-      {/* EPIC Explosion effect using new Explosion component! */}
+      {/* EPIC Explosion effect using Explosion component! */}
       {isExploding && (
         <Explosion />
       )}
@@ -113,7 +113,7 @@ function TreasureCard({
 }
 
 // Size constants
-export const TREASURE_SIZES = {
+export const COCATOK_SIZES = {
   SM: 'sm',
   MD: 'md', 
   LG: 'lg',
@@ -121,7 +121,7 @@ export const TREASURE_SIZES = {
 };
 
 // Type constants  
-export const TREASURE_TYPES = {
+export const COCATOK_TYPES = {
   HEALTH: 'health',
   FIRE: 'fire',
   ICE: 'ice', 
@@ -133,4 +133,4 @@ export const TREASURE_TYPES = {
   SPEED: 'speed'
 };
 
-export default TreasureCard;
+export default CoCaTok;
