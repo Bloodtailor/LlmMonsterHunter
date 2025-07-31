@@ -1,9 +1,9 @@
-/* Treasure Cards - Interactive 3D spinning magical treasure cards */
+/* CoCaTok (Collectable Card Tokens) - Interactive 3D spinning collectible cards */
 /* Always spinning, bouncing cards that explode dramatically and disappear forever */
 
-/* ===== TREASURE CARD FOUNDATION ===== */
+/* ===== COCATOK FOUNDATION ===== */
 
-.magic-orb {
+.cocatok {
   width: 3em;
   height: 4em;
   perspective: 1000px;
@@ -14,7 +14,7 @@
 }
 
 /* Card bouncing - stops when exploding */
-.magic-orb:not(.magic-orb-exploding) {
+.cocatok:not(.cocatok-exploding) {
   animation: cardBounce 4s ease-in-out infinite;
 }
 
@@ -29,7 +29,7 @@
 }
 
 /* Whole card fades out after explosion */
-.magic-orb-exploding {
+.cocatok-exploding {
   animation: cardDisappear 1s ease-out forwards;
 }
 
@@ -45,11 +45,11 @@
   }
 }
 
-.magic-orb:hover:not(.magic-orb-disabled):not(.magic-orb-spinning):not(.magic-orb-exploding) {
+.cocatok:hover:not(.cocatok-disabled):not(.cocatok-spinning):not(.cocatok-exploding) {
   animation: hoverEffect 0.6s ease-out forwards; /* Smooth lift that matches turn-around */
 }
 
-.magic-orb:active:not(.magic-orb-disabled):not(.magic-orb-spinning) {
+.cocatok:active:not(.cocatok-disabled):not(.cocatok-spinning) {
   transform: translateY(-6px) scale(0.95);
 }
 
@@ -63,7 +63,7 @@
   }
 }
 
-.magic-orb-inner {
+.cocatok-inner {
   position: relative;
   width: 100%;
   height: 100%;
@@ -72,12 +72,12 @@
 }
 
 /* Default gentle spinning animation - always active unless spinning fast, hovering, or exploding */
-.magic-orb:not(.magic-orb-spinning):not(:hover):not(.magic-orb-exploding) .magic-orb-inner {
+.cocatok:not(.cocatok-spinning):not(:hover):not(.cocatok-exploding) .cocatok-inner {
   animation: gentleSpin 4s linear infinite;
 }
 
 /* On hover - instantly face away, then quickly turn to face forward */
-.magic-orb:hover:not(.magic-orb-spinning):not(.magic-orb-exploding) .magic-orb-inner {
+.cocatok:hover:not(.cocatok-spinning):not(.cocatok-exploding) .cocatok-inner {
   animation: turnToFaceYou 0.6s ease-out forwards;
 }
 
@@ -97,8 +97,8 @@
 
 /* ===== CARD FACES (like loading spinner) ===== */
 
-.magic-orb-front,
-.magic-orb-back {
+.cocatok-front,
+.cocatok-back {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -109,13 +109,13 @@
   box-sizing: border-box;
 }
 
-.magic-orb-front {
+.cocatok-front {
   display: flex;
   flex-direction: column;
   gap: 0.2em;
 }
 
-.magic-orb-back {
+.cocatok-back {
   transform: rotateY(180deg);
   display: flex;
   align-items: center;
@@ -158,7 +158,7 @@
 
 /* ===== CARD BACK ELEMENTS ===== */
 
-.orb-emoji {
+.cocatok-emoji {
   font-size: 1.5em;
   z-index: 2;
   position: relative;
@@ -186,123 +186,123 @@
 
 /* ===== SIZE VARIANTS ===== */
 
-.magic-orb-sm { 
+.cocatok-sm { 
   width: 2.5em; 
   height: 3.3em;
   font-size: 12px;
 }
 
-.magic-orb-sm .orb-emoji {
+.cocatok-sm .cocatok-emoji {
   font-size: 1.2em;
 }
 
-.magic-orb-md { 
+.cocatok-md { 
   width: 3em; 
   height: 4em;
   font-size: 16px;
 }
 
-.magic-orb-lg { 
+.cocatok-lg { 
   width: 3.5em; 
   height: 4.7em;
   font-size: 20px;
 }
 
-.magic-orb-md .front-emoji {
+.cocatok-md .front-emoji {
   font-size: 1.2em;
 }
 
-.magic-orb-lg .orb-emoji {
+.cocatok-lg .cocatok-emoji {
   font-size: 1.8em;
 }
 
-.magic-orb-xl { 
+.cocatok-xl { 
   width: 4em; 
   height: 5.3em;
   font-size: 24px;
 }
 
-.magic-orb-xl .orb-emoji {
+.cocatok-xl .cocatok-emoji {
   font-size: 2em;
 }
 
 /* ===== COLOR THEMES ===== */
 
-/* Health Orb - Red/Pink */
-.magic-orb-health .magic-orb-front,
-.magic-orb-health .magic-orb-back {
+/* Health CoCaTok - Red/Pink */
+.cocatok-health .cocatok-front,
+.cocatok-health .cocatok-back {
   background: #e74c3c;
   border-color: #c0392b;
   color: #c0392b;
   box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
 }
 
-/* Fire Orb - Orange/Red */
-.magic-orb-fire .magic-orb-front,
-.magic-orb-fire .magic-orb-back {
+/* Fire CoCaTok - Orange/Red */
+.cocatok-fire .cocatok-front,
+.cocatok-fire .cocatok-back {
   background: linear-gradient(135deg, #ff6b35 0%, #f39c12 100%);
   border-color: #e67e22;
   color: #e67e22;
   box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
 }
 
-/* Ice Orb - Light Blue/Cyan */
-.magic-orb-ice .magic-orb-front,
-.magic-orb-ice .magic-orb-back {
+/* Ice CoCaTok - Light Blue/Cyan */
+.cocatok-ice .cocatok-front,
+.cocatok-ice .cocatok-back {
   background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
   border-color: #2980b9;
   color: #2980b9;
   box-shadow: 0 4px 8px rgba(116, 185, 255, 0.3);
 }
 
-/* Lightning Orb - Yellow/Electric */
-.magic-orb-lightning .magic-orb-front,
-.magic-orb-lightning .magic-orb-back {
+/* Lightning CoCaTok - Yellow/Electric */
+.cocatok-lightning .cocatok-front,
+.cocatok-lightning .cocatok-back {
   background: linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%);
   border-color: #e17055;
   color: #e17055;
   box-shadow: 0 4px 8px rgba(253, 203, 110, 0.3);
 }
 
-/* Magic Orb - Purple/Mystical */
-.magic-orb-magic .magic-orb-front,
-.magic-orb-magic .magic-orb-back {
+/* Magic CoCaTok - Purple/Mystical */
+.cocatok-magic .cocatok-front,
+.cocatok-magic .cocatok-back {
   background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
   border-color: #5f27cd;
   color: #5f27cd;
   box-shadow: 0 4px 8px rgba(162, 155, 254, 0.3);
 }
 
-/* Poison Orb - Green/Toxic */
-.magic-orb-poison .magic-orb-front,
-.magic-orb-poison .magic-orb-back {
+/* Poison CoCaTok - Green/Toxic */
+.cocatok-poison .cocatok-front,
+.cocatok-poison .cocatok-back {
   background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
   border-color: #008f7a;
   color: #008f7a;
   box-shadow: 0 4px 8px rgba(0, 184, 148, 0.3);
 }
 
-/* Shield Orb - Silver/Metallic */
-.magic-orb-shield .magic-orb-front,
-.magic-orb-shield .magic-orb-back {
+/* Shield CoCaTok - Silver/Metallic */
+.cocatok-shield .cocatok-front,
+.cocatok-shield .cocatok-back {
   background: linear-gradient(135deg, #b2bec3 0%, #636e72 100%);
   border-color: #2d3436;
   color: #2d3436;
   box-shadow: 0 4px 8px rgba(178, 190, 195, 0.3);
 }
 
-/* Strength Orb - Dark Red/Power */
-.magic-orb-strength .magic-orb-front,
-.magic-orb-strength .magic-orb-back {
+/* Strength CoCaTok - Dark Red/Power */
+.cocatok-strength .cocatok-front,
+.cocatok-strength .cocatok-back {
   background: linear-gradient(135deg, #d63031 0%, #74b9ff 100%);
   border-color: #2d3436;
   color: #2d3436;
   box-shadow: 0 4px 8px rgba(214, 48, 49, 0.3);
 }
 
-/* Speed Orb - Light Green/Wind */
-.magic-orb-speed .magic-orb-front,
-.magic-orb-speed .magic-orb-back {
+/* Speed CoCaTok - Light Green/Wind */
+.cocatok-speed .cocatok-front,
+.cocatok-speed .cocatok-back {
   background: linear-gradient(135deg, #00b894 0%, #55a3ff 100%);
   border-color: #0984e3;
   color: #0984e3;
@@ -311,7 +311,7 @@
 
 /* ===== FAST SPINNING ANIMATION (when clicked) ===== */
 
-.magic-orb-spinning .magic-orb-inner {
+.cocatok-spinning .cocatok-inner {
   animation: fastSpin 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -328,7 +328,7 @@
 }
 
 /* Scale effect during explosion + card fade out */
-.magic-orb-exploding .magic-orb-inner {
+.cocatok-exploding .cocatok-inner {
   animation: explodeAndDisappear 1s ease-out forwards;
 }
 
@@ -352,11 +352,11 @@
 }
 
 /* Make emojis disappear during explosion */
-.magic-orb-exploding .front-emoji {
+.cocatok-exploding .front-emoji {
   animation: frontEmojiDisappear 1s ease-out forwards;
 }
 
-.magic-orb-exploding .orb-emoji {
+.cocatok-exploding .cocatok-emoji {
   animation: emojiDisappear 1s ease-out forwards;
 }
 
@@ -390,49 +390,49 @@
 
 /* ===== DISABLED STATE ===== */
 
-.magic-orb-disabled {
+.cocatok-disabled {
   opacity: var(--opacity-disabled);
   cursor: not-allowed;
   filter: grayscale(0.5);
   animation: none; /* No bouncing when disabled */
 }
 
-.magic-orb-disabled:hover {
+.cocatok-disabled:hover {
   transform: none;
   animation: none;
 }
 
-.magic-orb-disabled .magic-orb-inner {
+.cocatok-disabled .cocatok-inner {
   animation: none;
 }
 
-.magic-orb-disabled .front-emoji {
+.cocatok-disabled .front-emoji {
   animation: none;
 }
 
 /* ===== ACCESSIBILITY ===== */
 
 @media (prefers-reduced-motion: reduce) {
-  .magic-orb,
-  .magic-orb-inner,
+  .cocatok,
+  .cocatok-inner,
   .front-emoji {
     animation: none !important;
   }
   
-  .magic-orb:hover:not(.magic-orb-spinning) .magic-orb-inner {
+  .cocatok:hover:not(.cocatok-spinning) .cocatok-inner {
     transform: rotateY(0deg);
   }
   
-  .magic-orb-spinning .magic-orb-inner {
+  .cocatok-spinning .cocatok-inner {
     transform: rotateY(180deg);
   }
   
-  .magic-orb-exploding .magic-orb-inner {
+  .cocatok-exploding .cocatok-inner {
     transform: rotateY(180deg) scale(1.1);
   }
   
-  .magic-orb-exploding .orb-emoji,
-  .magic-orb-exploding .front-emoji {
+  .cocatok-exploding .cocatok-emoji,
+  .cocatok-exploding .front-emoji {
     opacity: 0;
   }
 }

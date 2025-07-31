@@ -9,7 +9,7 @@
  */
 export const getColor = (colorName) => {
   return getComputedStyle(document.documentElement)
-    .getPropertyValue(`--color-${colorName}`)
+    .getPropertyValue(`--base-color-${colorName}`)
     .trim();
 };
 
@@ -23,24 +23,144 @@ export const getColorVar = (colorName) => {
 };
 
 /**
- * Color structure for organizing colors by families
- * This maps to what's defined in theme.css
+ * Dynamically generate COLOR_FAMILIES from CSS custom properties
+ * Reads all --color-* properties and builds the family structure
+ * @returns {Object} Color families object organized by hue
  */
-export const COLOR_FAMILIES = {
-  red: ['intense', 'warm', 'deep', 'crimson', 'cherry'],
-  orange: ['vibrant', 'warm', 'golden', 'flame', 'amber'],
-  yellow: ['bright', 'golden', 'electric', 'warm', 'citrus'],
-  green: ['nature', 'electric', 'forest', 'mint', 'emerald'],
-  blue: ['electric', 'cool', 'deep', 'ice', 'ocean', 'sky'],
-  purple: ['mystic', 'deep', 'soft', 'electric', 'cosmic'],
-  pink: ['vibrant', 'soft', 'electric', 'rose'],
-  white: ['pure', 'soft', 'pearl', 'silver'],
-  gray: ['light', 'medium', 'dark', 'smoke'],
-  black: ['pure', 'soft', 'void'],
-  rainbow: ['1', '2', '3', '4', '5', '6'],
-  gold: ['bright', 'rich'],
-  silver: ['bright', 'chrome'],
-  copper: ['bright', 'warm']
+const generateColorFamilies = () => {
+  const families = {};
+  
+  try {
+    // Get all stylesheets from the document
+    const styleSheets = Array.from(document.styleSheets);
+    
+    styleSheets.forEach(styleSheet => {
+      try {
+        // Get CSS rules from each stylesheet
+        const rules = Array.from(styleSheet.cssRules || styleSheet.rules || []);
+        
+        rules.forEach(rule => {
+          // Look for :root rules (where CSS custom properties are defined)
+          if (rule.selectorText === ':root' && rule.style) {
+            // Iterate through all style properties
+            for (let i = 0; i < rule.style.length; i++) {
+              const propertyName = rule.style[i];
+              
+              // Check if it's a color custom property
+              if (propertyName.startsWith('--base-color-')) {
+                // Extract the color name (remove --color- prefix)
+                const colorName = propertyName.replace('--base-color-', '');
+                
+                // Split into hue and variant
+                const parts = colorName.split('-');
+                if (parts.length >= 2) {
+                  const hue = parts[0];
+                  const variant = parts.slice(1).join('-'); // Handle multi-part variants like 'bright-electric'
+                  
+                  // Initialize hue array if needed
+                  if (!families[hue]) {
+                    families[hue] = [];
+                  }
+                  
+                  // Add variant if not already present
+                  if (!families[hue].includes(variant)) {
+                    families[hue].push(variant);
+                  }
+                }
+              }
+            }
+          }
+        });
+      } catch (e) {
+        // Skip stylesheets that can't be accessed (CORS issues, etc.)
+        console.warn('Could not access stylesheet:', e);
+      }
+    });
+  } catch (e) {
+    console.error('Error generating color families:', e);
+  }
+  
+  return families;
+};
+
+/**
+ * Alternative approach using getComputedStyle
+ * Less reliable but simpler - use as fallback
+ * @returns {Object} Color families object
+ */
+const generateColorFamiliesFromComputed = () => {
+  const families = {};
+  const computedStyles = getComputedStyle(document.documentElement);
+  
+  // This approach tries to iterate through computed styles
+  // Note: This may not capture all custom properties reliably
+  for (const propertyName in computedStyles) {
+    if (typeof propertyName === 'string' && propertyName.startsWith('--base-color-')) {
+      const colorName = propertyName.replace('--base-color-', '');
+      const parts = colorName.split('-');
+      
+      if (parts.length >= 2) {
+        const hue = parts[0];
+        const variant = parts.slice(1).join('-');
+        
+        if (!families[hue]) {
+          families[hue] = [];
+        }
+        
+        if (!families[hue].includes(variant)) {
+          families[hue].push(variant);
+        }
+      }
+    }
+  }
+  
+  return families;
+};
+
+/**
+ * Robust color families generator with fallback
+ * Tries multiple approaches to ensure reliability
+ * @returns {Object} Color families object
+ */
+const getColorFamiliesFromCSS = () => {
+  // Try the stylesheet approach first (most reliable)
+  let families = generateColorFamilies();
+  
+  // If no families found, try the computed style approach
+  if (Object.keys(families).length === 0) {
+    families = generateColorFamiliesFromComputed();
+  }
+  
+  // If still no families, return empty object (don't fall back to hardcoded)
+  if (Object.keys(families).length === 0) {
+    console.warn('No color families could be generated from CSS');
+  }
+  
+  return families;
+};
+
+// Lazy-loaded color families - only generated when first accessed
+let _colorFamilies = null;
+
+/**
+ * Get color families dynamically from CSS
+ * Cached after first call for performance
+ * @returns {Object} Color families object organized by hue
+ */
+export const getColorFamilies = () => {
+  if (!_colorFamilies) {
+    _colorFamilies = getColorFamiliesFromCSS();
+  }
+  return _colorFamilies;
+};
+
+/**
+ * Force refresh of color families cache
+ * Useful if CSS has been modified dynamically
+ */
+export const refreshColorFamilies = () => {
+  _colorFamilies = null;
+  return getColorFamilies();
 };
 
 /**
@@ -50,8 +170,9 @@ export const COLOR_FAMILIES = {
  */
 export const getAllColors = () => {
   const colors = [];
+  const colorFamilies = getColorFamilies();
   
-  Object.entries(COLOR_FAMILIES).forEach(([hue, variants]) => {
+  Object.entries(colorFamilies).forEach(([hue, variants]) => {
     variants.forEach(variant => {
       const colorName = `${hue}-${variant}`;
       const displayName = `${capitalize(hue)} ${capitalize(variant)}`;
@@ -80,8 +201,9 @@ export const getAllColors = () => {
  */
 export const getColorsByFamily = () => {
   const families = [];
+  const colorFamilies = getColorFamilies();
   
-  Object.entries(COLOR_FAMILIES).forEach(([hue, variants]) => {
+  Object.entries(colorFamilies).forEach(([hue, variants]) => {
     const colors = variants.map(variant => {
       const colorName = `${hue}-${variant}`;
       const hex = getColor(colorName);
@@ -112,7 +234,8 @@ export const getColorsByFamily = () => {
  * @returns {Array} Array of color variants for that hue
  */
 export const getColorsInFamily = (hue) => {
-  const variants = COLOR_FAMILIES[hue] || [];
+  const colorFamilies = getColorFamilies();
+  const variants = colorFamilies[hue] || [];
   
   return variants.map(variant => {
     const colorName = `${hue}-${variant}`;
@@ -155,6 +278,17 @@ export const getRandomColor = (hue = null) => {
  */
 export const setColor = (colorName, hexValue) => {
   document.documentElement.style.setProperty(`--color-${colorName}`, hexValue);
+  // Refresh color families cache since CSS has changed
+  refreshColorFamilies();
+};
+
+/**
+ * Get all available hue names from CSS
+ * @returns {Array} Array of hue names
+ */
+export const getHueNames = () => {
+  const colorFamilies = getColorFamilies();
+  return Object.keys(colorFamilies);
 };
 
 // Utility function to capitalize strings
@@ -162,8 +296,11 @@ const capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
-// Export common hue names for easy access
-export const HUE_NAMES = Object.keys(COLOR_FAMILIES);
+// Export hue names for backward compatibility
+export const HUE_NAMES = getHueNames();
+
+// Backward compatibility - expose COLOR_FAMILIES as getter
+export const COLOR_FAMILIES = getColorFamilies();
 
 export default {
   getColor,
@@ -174,6 +311,9 @@ export default {
   colorExists,
   getRandomColor,
   setColor,
-  HUE_NAMES,
-  COLOR_FAMILIES
+  getColorFamilies,
+  refreshColorFamilies,
+  getHueNames,
+  get HUE_NAMES() { return getHueNames(); },
+  get COLOR_FAMILIES() { return getColorFamilies(); }
 };
