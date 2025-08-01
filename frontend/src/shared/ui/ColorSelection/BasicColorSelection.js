@@ -3,8 +3,8 @@
 // Perfect for monster color selection, theme picking, etc.
 
 import React, { useMemo, useState } from 'react';
-import { Select } from '../Form';
-import { getAllColors, getColor } from '../../utils/color.js';
+import { Select } from '../primitives/Form/index.js';
+import { getAllColors, getColor } from '../../styles/color.js';
 import './ColorSelection.css';
 
 /**

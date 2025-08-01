@@ -12,7 +12,7 @@ import {
   getPrevPage,
   createPaginationInfo,
   normalizePage
-} from '../utils/pagination.js';
+} from './paginationUtils.js';
 
 /**
  * Hook for pagination state management with utility-based calculations

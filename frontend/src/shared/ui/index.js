@@ -12,7 +12,7 @@ export {
   BUTTON_GROUP_ORIENTATIONS,
   BUTTON_GROUP_SPACING,
   BUTTON_GROUP_ALIGNMENT
-} from './Button/index.js';
+} from './primitives/Button/index.js';
 
 // ===== BADGE COMPONENTS =====
 export {
@@ -23,7 +23,7 @@ export {
   BADGE_SIZES,
   STATUS_TYPES,
   COUNT_FORMATS
-} from './Badge/index.js';
+} from './primitives/Badge/index.js';
 
 // ===== LOADING COMPONENTS =====
 export {
@@ -33,7 +33,7 @@ export {
   LOADING_SIZES,
   LOADING_COLORS,
   LOADING_TYPES
-} from './LoadingStates/index.js';
+} from './primitives/LoadingStates/index.js';
 
 // ===== FEEDBACK COMPONENTS =====
 export {
@@ -44,7 +44,7 @@ export {
   EMPTY_STATE_SIZES,
   EMPTY_STATE_VARIANTS,
   EMPTY_STATE_PRESETS
-} from './Feedback/index.js';
+} from './primitives/Feedback/index.js';
 
 // ===== CARD COMPONENTS =====
 export {
@@ -56,7 +56,7 @@ export {
   CARD_BACKGROUNDS,
   CARD_SECTION_TYPES,
   CARD_SECTION_ALIGNMENT
-} from './Card/index.js';
+} from './primitives/Card/index.js';
 
 // ===== FORM COMPONENTS (CORRECTED) =====
 export {
@@ -66,7 +66,7 @@ export {
   SearchInput,
   FormField,
   Form
-} from './Form/index.js';
+} from './primitives/Form/index.js';
 
 // ===== PAGINATION COMPONENTS =====
 export {

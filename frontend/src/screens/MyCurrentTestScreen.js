@@ -3,9 +3,9 @@
 // Simple and focused - just pagination with monster cards + beautiful modal viewer
 
 import React, { useState, useEffect, useCallback } from "react";
-import { usePagination } from "../shared/hooks/usePagination.js";
+import { usePagination } from "../shared/ui/Pagination/usePagination.js";
 import { useMonsterCollection } from "../app/hooks/useMonsters.js";
-import FullPagination, { PAGINATION_LAYOUTS } from "../shared/components/Pagination.js";
+import FullPagination, { PAGINATION_LAYOUTS } from "../shared/ui/Pagination/PaginationPresets.js";
 import { 
   Select,
   Alert,

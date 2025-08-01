@@ -3,7 +3,7 @@
 
 import React from 'react';
 import ExplosionEngine from './ExplosionEngine.js';
-import { getColorsInFamily, getRandomColor } from '../../utils/color.js';
+import { getColorsInFamily, getRandomColor } from '../../../styles/color.js';
 
 /**
  * Explosion component that uses all color variants from a specific hue family

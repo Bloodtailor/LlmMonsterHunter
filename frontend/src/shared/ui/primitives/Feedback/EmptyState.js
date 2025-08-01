@@ -3,7 +3,7 @@
 // Perfect for empty lists, no search results, empty collections
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../../shared/constants.js';
+import { IS_DEVELOPMENT } from '../../../constants/constants.js';
 
 /**
  * EmptyState component for displaying "no data" states

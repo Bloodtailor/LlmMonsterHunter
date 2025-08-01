@@ -3,7 +3,7 @@
 // Supports closeable alerts, custom icons, and action buttons
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../../shared/constants.js';
+import { IS_DEVELOPMENT } from '../../../constants/constants.js';
 
 /**
  * Alert component for displaying important messages to users

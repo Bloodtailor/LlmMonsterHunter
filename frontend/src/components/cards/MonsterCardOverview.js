@@ -11,9 +11,9 @@ import {
   Badge,
   EmptyState
 } from '../../shared/ui/index.js';
-import { CARD_SIZES } from '../../shared/constants.js';
+import { CARD_SIZES } from '../../shared/constants/constants.js';
 import { useParty } from '../../app/contexts/PartyContext/index.js';
-import ToggleButton from '../../shared/components/toggleButton.js';
+import ToggleButton from '../../shared/ui/ToggleButton/toggleButton.js';
 
 function MonsterCardOverview({
   monster,

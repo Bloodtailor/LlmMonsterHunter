@@ -4,8 +4,8 @@
 // Perfect for rare collectibles found in dungeons
 
 import React, { useState } from 'react';
-import HueBasedExplosion from '../Explosion/HueBasedExplosion';
-import { getColor, getColorVar } from '../../utils/color';
+import HueBasedExplosion from '../primitives/Explosion/HueBasedExplosion';
+import { getColor, getColorVar } from '../../styles/color';
 import './CoCaTok.css';
 
 /**

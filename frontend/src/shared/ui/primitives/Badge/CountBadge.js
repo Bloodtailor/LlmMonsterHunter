@@ -4,7 +4,7 @@
 
 import React from 'react';
 import Badge from './Badge.js';
-import { IS_DEVELOPMENT } from '../../../shared/constants.js';
+import { IS_DEVELOPMENT } from '../../../constants/constants.js';
 
 /**
  * Count/numeric badge with intelligent formatting and state indication
