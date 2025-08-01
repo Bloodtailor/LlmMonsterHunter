@@ -26,65 +26,52 @@ function MagicOrbDemo() {
       {/* Different Types */}
       <div>
         <CoCaTok 
-          type={COCATOK_TYPES.HEALTH} 
+          color='red-intense' 
+          emoji='🔥'
           size={COCATOK_SIZES.LG}
-          onActivate={handleHeal}
         />
         
         <CoCaTok 
-          type={COCATOK_TYPES.FIRE} 
+          color='rainbow-6'
           size={COCATOK_SIZES.LG}
-          onActivate={handleFireSpell}
+          emoji="🌈"
         />
         
         <CoCaTok 
-          type={COCATOK_TYPES.ICE} 
+          color='blue-electric'
           size={COCATOK_SIZES.LG}
           emoji="❄️"
         />
         
         <CoCaTok 
-          type={COCATOK_TYPES.LIGHTNING} 
           size={COCATOK_SIZES.LG}
+          color='gold-bright'
+          emoji='🔮'
         />
         
         <CoCaTok 
-          type={COCATOK_TYPES.MAGIC} 
           size={COCATOK_SIZES.LG}
+          color='green-forest'
+          emoji='=D'
         />
         
         <CoCaTok 
-          type={COCATOK_TYPES.POISON} 
           size={COCATOK_SIZES.LG}
+          color='white-pearl'
+          emoji=''
         />
       </div>
 
       {/* Different Sizes */}
       <div >
-        <CoCaTok type="health" size={COCATOK_SIZES.SM} />
-        <CoCaTok type="health" size={COCATOK_SIZES.MD} />
-        <CoCaTok type="health" size={COCATOK_SIZES.LG} />
-        <CoCaTok type="health" size={COCATOK_SIZES.XL} />
-      </div>
-
-      {/* Custom Cards */}
-      <div >
-        <CoCaTok 
-          type="speed" 
-          emoji="🏃‍♂️" 
-          onActivate={handleSpeedBoost}
-        />
-        
-        <CoCaTok 
-          type="shield" 
-          emoji="🛡️" 
-          onActivate={() => console.log('🛡️ Shield activated!')}
-        />
+        <CoCaTok size={COCATOK_SIZES.SM} />
+        <CoCaTok size={COCATOK_SIZES.MD} />
+        <CoCaTok size={COCATOK_SIZES.LG} />
+        <CoCaTok size={COCATOK_SIZES.XL} />
       </div>
 
       {/* Disabled State */}
       <CoCaTok 
-        type="magic" 
         disabled 
         size={COCATOK_SIZES.LG}
       />
