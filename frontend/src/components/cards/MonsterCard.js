@@ -4,10 +4,10 @@
 // Uses callback pattern for clean separation of concerns
 
 import React from 'react';
-import FlippableCard from '../../shared/ui/primitives/Card/FlippableCard.js'
+import FlippableCard from '../../shared/ui/Card/FlippableCard.js'
 import MonsterCardOverview from './MonsterCardOverview.js';
 import MonsterCardDetails from './MonsterCardDetails.js';
-import '../../styles/components/monsterCard.css';
+import './monsterCard.css';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 
 function MonsterCard({ 

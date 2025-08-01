@@ -5,6 +5,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import MonsterCard from './MonsterCard.js';
+import './monsterCardViewer.css'
 import { IconButton } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 

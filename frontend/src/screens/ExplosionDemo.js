@@ -2,7 +2,7 @@
 // Test the full flexibility of the modular explosion system
 
 import React, { useState } from 'react';
-import { ExplosionEngine, ExplosionPreset, EXPLOSION_TYPES } from '../shared/ui/primitives/Explosion/index.js';
+import { ExplosionEngine, ExplosionPreset, EXPLOSION_TYPES } from '../shared/ui/Explosion/index.js';
 import { COLOR_THEMES } from '../shared/constants/constants.js';
 import color from '../shared/styles/color.js';
 
