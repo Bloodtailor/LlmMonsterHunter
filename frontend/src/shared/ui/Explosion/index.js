@@ -5,6 +5,7 @@
 export { default as ExplosionEngine } from './ExplosionEngine.js';     // Raw granular control
 export { default as ExplosionPreset } from './ExplosionPreset.js';     // High-level presets
 export { default as Explosion } from './ExplosionPreset.js';           // Default to preset version
+export { default as HueBasedExplosion } from './HueBasedExplosion.js'; // Hue family explosions
 
 // Constants
 export { 

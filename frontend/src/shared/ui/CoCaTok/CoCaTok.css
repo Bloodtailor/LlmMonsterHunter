@@ -4,8 +4,6 @@
 /* ===== COCATOK FOUNDATION ===== */
 
 .cocatok {
-  width: 3em;
-  height: 4em;
   perspective: 1000px;
   display: inline-block;
   cursor: pointer;
@@ -95,7 +93,7 @@
   100% { transform: rotateY(360deg); }
 }
 
-/* ===== CARD FACES (like loading spinner) ===== */
+/* ===== CARD FACES ===== */
 
 .cocatok-front,
 .cocatok-back {
@@ -122,7 +120,7 @@
   justify-content: center;
 }
 
-/* ===== CARD FRONT ELEMENTS (like loading spinner) ===== */
+/* ===== CARD FRONT ELEMENTS ===== */
 
 .card-image-area {
   width: 100%;
@@ -185,128 +183,62 @@
 }
 
 /* ===== SIZE VARIANTS ===== */
+/* New sizing: what was lg is now sm, and scale up from there */
 
 .cocatok-sm { 
-  width: 2.5em; 
-  height: 3.3em;
-  font-size: 12px;
-}
-
-.cocatok-sm .cocatok-emoji {
-  font-size: 1.2em;
-}
-
-.cocatok-md { 
-  width: 3em; 
-  height: 4em;
-  font-size: 16px;
-}
-
-.cocatok-lg { 
   width: 3.5em; 
   height: 4.7em;
   font-size: 20px;
 }
 
-.cocatok-md .front-emoji {
-  font-size: 1.2em;
-}
-
-.cocatok-lg .cocatok-emoji {
+.cocatok-sm .cocatok-emoji {
   font-size: 1.8em;
 }
 
-.cocatok-xl { 
-  width: 4em; 
-  height: 5.3em;
+.cocatok-sm .front-emoji {
+  font-size: 1.4em;
+}
+
+.cocatok-md { 
+  width: 4.5em; 
+  height: 6em;
   font-size: 24px;
 }
 
+.cocatok-md .cocatok-emoji {
+  font-size: 2.2em;
+}
+
+.cocatok-md .front-emoji {
+  font-size: 1.8em;
+}
+
+.cocatok-lg { 
+  width: 5.5em; 
+  height: 7.3em;
+  font-size: 28px;
+}
+
+.cocatok-lg .cocatok-emoji {
+  font-size: 2.6em;
+}
+
+.cocatok-lg .front-emoji {
+  font-size: 2.2em;
+}
+
+.cocatok-xl { 
+  width: 6.5em; 
+  height: 8.7em;
+  font-size: 32px;
+}
+
 .cocatok-xl .cocatok-emoji {
-  font-size: 2em;
+  font-size: 3em;
 }
 
-/* ===== COLOR THEMES ===== */
-
-/* Health CoCaTok - Red/Pink */
-.cocatok-health .cocatok-front,
-.cocatok-health .cocatok-back {
-  background: #e74c3c;
-  border-color: #c0392b;
-  color: #c0392b;
-  box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
-}
-
-/* Fire CoCaTok - Orange/Red */
-.cocatok-fire .cocatok-front,
-.cocatok-fire .cocatok-back {
-  background: linear-gradient(135deg, #ff6b35 0%, #f39c12 100%);
-  border-color: #e67e22;
-  color: #e67e22;
-  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
-}
-
-/* Ice CoCaTok - Light Blue/Cyan */
-.cocatok-ice .cocatok-front,
-.cocatok-ice .cocatok-back {
-  background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
-  border-color: #2980b9;
-  color: #2980b9;
-  box-shadow: 0 4px 8px rgba(116, 185, 255, 0.3);
-}
-
-/* Lightning CoCaTok - Yellow/Electric */
-.cocatok-lightning .cocatok-front,
-.cocatok-lightning .cocatok-back {
-  background: linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%);
-  border-color: #e17055;
-  color: #e17055;
-  box-shadow: 0 4px 8px rgba(253, 203, 110, 0.3);
-}
-
-/* Magic CoCaTok - Purple/Mystical */
-.cocatok-magic .cocatok-front,
-.cocatok-magic .cocatok-back {
-  background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
-  border-color: #5f27cd;
-  color: #5f27cd;
-  box-shadow: 0 4px 8px rgba(162, 155, 254, 0.3);
-}
-
-/* Poison CoCaTok - Green/Toxic */
-.cocatok-poison .cocatok-front,
-.cocatok-poison .cocatok-back {
-  background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
-  border-color: #008f7a;
-  color: #008f7a;
-  box-shadow: 0 4px 8px rgba(0, 184, 148, 0.3);
-}
-
-/* Shield CoCaTok - Silver/Metallic */
-.cocatok-shield .cocatok-front,
-.cocatok-shield .cocatok-back {
-  background: linear-gradient(135deg, #b2bec3 0%, #636e72 100%);
-  border-color: #2d3436;
-  color: #2d3436;
-  box-shadow: 0 4px 8px rgba(178, 190, 195, 0.3);
-}
-
-/* Strength CoCaTok - Dark Red/Power */
-.cocatok-strength .cocatok-front,
-.cocatok-strength .cocatok-back {
-  background: linear-gradient(135deg, #d63031 0%, #74b9ff 100%);
-  border-color: #2d3436;
-  color: #2d3436;
-  box-shadow: 0 4px 8px rgba(214, 48, 49, 0.3);
-}
-
-/* Speed CoCaTok - Light Green/Wind */
-.cocatok-speed .cocatok-front,
-.cocatok-speed .cocatok-back {
-  background: linear-gradient(135deg, #00b894 0%, #55a3ff 100%);
-  border-color: #0984e3;
-  color: #0984e3;
-  box-shadow: 0 4px 8px rgba(0, 184, 148, 0.3);
+.cocatok-xl .front-emoji {
+  font-size: 2.6em;
 }
 
 /* ===== FAST SPINNING ANIMATION (when clicked) ===== */
