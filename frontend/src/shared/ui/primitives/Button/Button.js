@@ -3,7 +3,7 @@
 // Replaces scattered btn classes with a clean, reusable API
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../../shared/constants.js';
+import { IS_DEVELOPMENT } from '../../../constants/constants.js';
 
 /**
  * Primary Button component with variants, sizes, and states

@@ -3,8 +3,8 @@
 // Handles all visual states: add, remove, full, loading, error
 
 import React from 'react';
-import { IconButton, LoadingSpinner } from '../ui/index.js';
-import { IS_DEVELOPMENT } from '../constants.js';
+import { IconButton, LoadingSpinner } from '../index.js';
+import { IS_DEVELOPMENT } from '../../constants/constants.js';
 
 /**
  * Generic toggle button for collection management

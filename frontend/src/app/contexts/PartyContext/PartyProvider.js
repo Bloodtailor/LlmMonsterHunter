@@ -3,7 +3,7 @@
 
 import React, { useEffect } from 'react';
 import { PartyContext } from './PartyContext.js';
-import { GAME_RULES } from '../../../shared/constants.js';
+import { GAME_RULES } from '../../../shared/constants/constants.js';
 import { 
   useFollowingMonsters, 
   useActiveParty, 

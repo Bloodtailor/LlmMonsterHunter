@@ -6,7 +6,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import MonsterCard from './MonsterCard.js';
 import { IconButton } from '../../shared/ui/index.js';
-import { CARD_SIZES } from '../../shared/constants.js';
+import { CARD_SIZES } from '../../shared/constants/constants.js';
 
 function MonsterCardViewer({ 
   isOpen = true, // Default to open since parent controls visibility

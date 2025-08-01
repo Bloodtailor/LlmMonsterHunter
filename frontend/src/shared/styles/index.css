@@ -1,0 +1,8 @@
+/* Monster Hunter Game - Refactored Styles Entry Point */
+/* Imports all styles in the correct dependency order */
+
+/* 1. FOUNDATION - CSS Variables and Design Tokens */
+@import './theme.css';
+
+/* 2. GLOBAL STYLES - Reset, base styles, app layout */
+@import './globals.css';

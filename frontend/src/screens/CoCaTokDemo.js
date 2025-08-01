@@ -3,7 +3,7 @@
 import React from 'react';
 import CoCaTok, {COCATOK_SIZES, COCATOK_TYPES} from '../shared/ui/CoCaTok/CoCaTok';
 
-function MagicOrbDemo() {
+function CoCaTokDemo() {
   const handleHeal = () => {
     console.log('💚 Player healed for 50 HP!');
     // Trigger healing logic
@@ -79,4 +79,4 @@ function MagicOrbDemo() {
   );
 }
 
-export default MagicOrbDemo;
+export default CoCaTokDemo;

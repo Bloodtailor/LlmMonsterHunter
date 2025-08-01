@@ -2,7 +2,7 @@
 // Eliminates the scattered loading/error/data patterns throughout the codebase
 
 import { useState, useCallback } from 'react';
-import { APP_STATES} from '../constants';
+import { APP_STATES} from '../constants/constants';
 
 /**
  * Hook for managing async operation state consistently

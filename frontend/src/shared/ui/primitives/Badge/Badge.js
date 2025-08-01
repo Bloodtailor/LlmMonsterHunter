@@ -3,7 +3,7 @@
 // Provides consistent styling and behavior for small informational elements
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../../shared/constants.js';
+import { IS_DEVELOPMENT } from '../../../constants/constants.js';
 
 /**
  * Base Badge component for labels, tags, and indicators

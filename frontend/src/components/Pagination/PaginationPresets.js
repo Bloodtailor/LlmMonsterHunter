@@ -8,7 +8,7 @@ import {
   PaginationInfo,
   PageJumper,
   ItemsPerPageSelector
-} from '../ui/Pagination/index.js';
+} from './index.js';
 
 /**
  * Complete pagination component with clean layout options

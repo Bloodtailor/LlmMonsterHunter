@@ -8,7 +8,7 @@ import StyleTestScreen from './screens/StyleTestScreen';
 import MyCurrentTestScreen from './screens/MyCurrentTestScreen';
 import { PartyProvider } from './app/contexts/PartyContext';
 import BYOComponentTestScreen from './screens/BYOComponentTestScreen';
-import MagicOrbDemo from './screens/MagicOrbDemo';
+import CoCaTokDemo from './screens/CoCaTokDemo';
 import ExplosionDemo from './screens/ExplosionDemo';
 
 function App() {
@@ -43,10 +43,10 @@ function App() {
             </button>
 
             <button 
-              className={`nav-button ${currentScreen === 'magic-orb-demo' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('magic-orb-demo')}
+              className={`nav-button ${currentScreen === 'cocatok-demo' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('cocatok-demo')}
             >
-              ❄️ Magic Orb Demo
+              ❄️ CoCaTok Demo
             </button>
 
             <button 
@@ -89,8 +89,8 @@ function App() {
           )}
 
           
-          {currentScreen === 'magic-orb-demo' && (
-            <MagicOrbDemo />
+          {currentScreen === 'cocatok-demo' && (
+            <CoCaTokDemo />
           )}
 
           {currentScreen === 'explosion-demo' && (

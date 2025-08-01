@@ -3,7 +3,7 @@
 // Perfect for organized layouts with proper spacing and styling
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../../shared/constants.js';
+import { IS_DEVELOPMENT } from '../../../constants/constants.js';
 
 /**
  * Card section component for structured card layouts

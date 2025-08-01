@@ -5,8 +5,8 @@
 import React from 'react';
 import ExplosionEngine from './ExplosionEngine.js';
 import { EXPLOSION_TYPES, EXPLOSION_CONFIGS } from './ExplosionConstants.js';
-import { COLOR_THEMES } from '../../constants.js';
-import { getColor, getColorsInFamily, getRandomColor } from '../../utils/color.js';
+import { COLOR_THEMES } from '../../../constants/constants.js';
+import { getColor, getColorsInFamily, getRandomColor } from '../../../styles/color.js';
 
 /**
  * High-level preset-based explosion component
