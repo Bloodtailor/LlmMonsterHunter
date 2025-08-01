@@ -3,7 +3,7 @@
 // "At-a-glance" information
 
 import React from 'react';
-import '../../styles/components/monsterCard.css';
+import './monsterCard.css';
 import { 
   IconButton, 
   CountBadge, 
@@ -13,7 +13,7 @@ import {
 } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 import { useParty } from '../../app/contexts/PartyContext/index.js';
-import ToggleButton from '../../shared/ui/ToggleButton/toggleButton.js';
+import ToggleButton from '../../shared/ui/ToggleButton/ToggleButton.js';
 
 function MonsterCardOverview({
   monster,

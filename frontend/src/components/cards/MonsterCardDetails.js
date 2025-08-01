@@ -3,7 +3,7 @@
 // "Everything about this monster"
 
 import React from 'react';
-import '../../styles/components/monsterCard.css';
+import './monsterCard.css';
 import { 
   Card,
   CardSection,

@@ -5,6 +5,7 @@
 import React from 'react';
 import { IconButton, LoadingSpinner } from '../index.js';
 import { IS_DEVELOPMENT } from '../../constants/constants.js';
+import './toggleButton.css';
 
 /**
  * Generic toggle button for collection management
