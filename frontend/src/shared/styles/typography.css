@@ -1,0 +1,223 @@
+/* Typography Classes - Semantic typography scaling for cards */
+/* Used with useTypographyScale hook for consistent text sizing across all card types */
+
+/* HIERARCHY:
+ * title > header > subtitle > body > caption
+ * title: Page-level headings (20px → 30px)
+ * header: Section/card headings (14px → 20px)  
+ * subtitle: Secondary headings (12px → 18px)
+ * body: Main content (12px → 18px)
+ * caption: Small labels (12px → 14px)
+ * overlay: Text over images (14px → 20px)
+ */
+
+/* ===== TITLE CLASSES ===== */
+/* For page-level headings, main page titles */
+
+.title-sm {
+  font-size: var(--font-size-lg);   
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.title-md {
+  font-size: var(--font-size-xl);   
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.title-lg {
+  font-size: var(--font-size-2xl);  
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.title-xl {
+  font-size: var(--font-size-3xl);   
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+/* ===== HEADER CLASSES ===== */
+/* For section headings, card titles, component headers */
+
+.header-sm {
+  font-size: var(--font-size-md);    
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.header-md {
+  font-size: var(--font-size-lg);    
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.header-lg {
+  font-size: var(--font-size-xl);   
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.header-xl {
+  font-size: var(--font-size-2xl);    
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+/* ===== SUBTITLE CLASSES ===== */
+/* For secondary headings, species, type labels */
+
+.subtitle-sm {
+  font-size: var(--font-size-xs);    /* 12px */
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+.subtitle-md {
+  font-size: var(--font-size-sm);    /* 14px */
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+.subtitle-lg {
+  font-size: var(--font-size-md);    /* 16px */
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+.subtitle-xl {
+  font-size: var(--font-size-lg);    /* 18px */
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+/* ===== BODY CLASSES ===== */
+/* For descriptions, main content, paragraphs */
+
+.body-sm {
+  font-size: var(--font-size-xs);    /* 12px */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+.body-md {
+  font-size: var(--font-size-sm);    /* 14px */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+.body-lg {
+  font-size: var(--font-size-md);    /* 16px */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+.body-xl {
+  font-size: var(--font-size-lg);    /* 18px */
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-primary);
+}
+
+/* ===== CAPTION CLASSES ===== */
+/* For small labels, level indicators, meta info */
+
+.caption-sm {
+  font-size: var(--font-size-xs);    /* 12px */
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-muted);
+}
+
+.caption-md {
+  font-size: var(--font-size-xs);    /* 12px - stays small */
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-muted);
+}
+
+.caption-lg {
+  font-size: var(--font-size-sm);    /* 14px */
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-muted);
+}
+
+.caption-xl {
+  font-size: var(--font-size-sm);    /* 14px - conservative scaling */
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-muted);
+}
+
+/* ===== OVERLAY CLASSES ===== */
+/* For text displayed over images (white text with shadows) */
+
+.overlay-sm {
+  font-size: var(--font-size-sm);    /* 14px */
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.overlay-md {
+  font-size: var(--font-size-md);    /* 16px */
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.overlay-lg {
+  font-size: var(--font-size-lg);    /* 18px */
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.overlay-xl {
+  font-size: var(--font-size-xl);    /* 20px */
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+/* Scale down typography on smaller screens for better readability */
+
+@media (max-width: var(--breakpoint-tablet)) {
+  /* Reduce xl typography by one step on tablets */
+  .title-xl, .header-xl, .subtitle-xl, .body-xl, .overlay-xl {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (max-width: var(--breakpoint-mobile)) {
+  /* More aggressive scaling on mobile */
+  .title-lg, .header-lg, .subtitle-lg, .body-lg, .overlay-lg {
+    font-size: var(--font-size-md);
+  }
+  
+  .title-xl, .header-xl, .subtitle-xl, .body-xl, .overlay-xl {
+    font-size: var(--font-size-md);
+  }
+}
