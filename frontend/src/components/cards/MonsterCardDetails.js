@@ -1,6 +1,6 @@
 // MonsterCardDetails.js - Details side of monster card
 // Full information view: stats, description, backstory, personality traits
-// Uses CardSection automatic typography scaling - NO manual size classes!
+// Uses new CardSection system and useTypographyScale hook for consistent typography
 
 import React from 'react';
 import './monsterCard.css';
@@ -13,6 +13,7 @@ import {
   EmptyState
 } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
+import { useTypographyScale } from '../../shared/hooks/useTypographyScale.js';
 
 function MonsterCardDetails({
   monster,
@@ -21,6 +22,12 @@ function MonsterCardDetails({
   // Ability generation
   onAbilityGenerate = null
 }) {
+
+
+  const classType = 'monster';
+  
+  // Get typography scaling functions
+  const { getTextSize } = useTypographyScale(size, classType);
 
   // Handle ability generation
   const handleAbilityGenerate = async (e) => {
@@ -52,67 +59,126 @@ function MonsterCardDetails({
     }
   };
 
+  // Helper to get ability count based on card size
+  const getMaxAbilities = () => {
+    switch (size) {
+      case CARD_SIZES.SM: return 2;
+      case CARD_SIZES.MD: return 3;
+      case CARD_SIZES.LG: return 4;
+      case CARD_SIZES.XL: return undefined; // Show all
+      default: return 3;
+    }
+  };
+
+  // Helper to get trait count based on card size
+  const getMaxTraits = () => {
+    switch (size) {
+      case CARD_SIZES.SM: return 0; // Hide on small
+      case CARD_SIZES.MD: return 3;
+      case CARD_SIZES.LG: return 5;
+      case CARD_SIZES.XL: return 99; // Show all
+      default: return 3;
+    }
+  };
+
+  const maxAbilities = getMaxAbilities();
+  const maxTraits = getMaxTraits();
+
   return (
     <Card variant="flat" padding="md" className="monster-card-details">
       
-      {/* Header - CardSection handles title typography automatically */}
-      <CardSection type="header" title={monster.name} size={size}>
+      {/* Header - CardSection automatically handles title typography */}
+      <CardSection 
+        type="header" 
+        size={size} 
+        classType={classType}
+        title={monster.name}
+        alignment='center'
+      >
         <Badge variant="info" size={getBadgeSize()}>
           {monster.species}
         </Badge>
       </CardSection>
 
-      {/* Description - CardSection handles paragraph typography automatically */}
-      <CardSection type="content" size={size}>
-        <p>{monster.description}</p>
+      {/* Description - CardSection handles content typography */}
+      <CardSection type="content" size={size} classType={classType}>
+        <p className={getTextSize('body')}>{monster.description}</p>
       </CardSection>
 
-      {/* Backstory - Hide on small size, CardSection handles typography */}
+      {/* Backstory - Hide on small size */}
       {size !== CARD_SIZES.SM && monster.backstory && (
-        <CardSection type="content" title="📖 Backstory" size={size}>
-          <p>{monster.backstory}</p>
+        <CardSection 
+          type="content" 
+          size={size} 
+          classType={classType}
+          title="📖 Backstory"
+        >
+          <p className={getTextSize('body')}>{monster.backstory}</p>
         </CardSection>
       )}
 
-      {/* Stats - CardSection handles typography automatically */}
-      <CardSection type="content" title="Stats" alignment='left' size={size}>
+      {/* Stats */}
+      <CardSection 
+        type="content" 
+        size={size} 
+        classType={classType}
+        title="Stats"
+      >
         <div className="monster-card-stats-grid">
           <div className="stat-item">
-            <span>Health: {monster.health}</span>
-            <span className="stat-value"></span>
+            <span className={getTextSize('caption')}>Health:</span>
+            <span className={`stat-value ${getTextSize('caption')}`}>
+              {monster.stats?.currentHealth || 0}/{monster.stats?.maxHealth || 0}
+            </span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Attack:</span>
-            <span className="stat-value">{monster.attack}</span>
+            <span className={getTextSize('caption')}>Attack:</span>
+            <span className={`stat-value ${getTextSize('caption')}`}>
+              {monster.stats?.attack || 0}
+            </span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Defense:</span>
-            <span className="stat-value">{monster.defense}</span>
+            <span className={getTextSize('caption')}>Defense:</span>
+            <span className={`stat-value ${getTextSize('caption')}`}>
+              {monster.stats?.defense || 0}
+            </span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Speed:</span>
-            <span className="stat-value">{monster.speed}</span>
+            <span className={getTextSize('caption')}>Speed:</span>
+            <span className={`stat-value ${getTextSize('caption')}`}>
+              {monster.stats?.speed || 0}
+            </span>
           </div>
         </div>
       </CardSection>
 
-      {/* Abilities - CardSection handles typography automatically */}
-      <CardSection type="content" title="Abilities" alignment='left' size={size}>
+      {/* Abilities */}
+      <CardSection 
+        type="content" 
+        size={size} 
+        classType={classType}
+        title="Abilities"
+        action={onAbilityGenerate && (
+          <IconButton
+            icon="⚡"
+            variant="ghost"
+            size={getButtonSize()}
+            onClick={handleAbilityGenerate}
+            ariaLabel="Generate new ability"
+          />
+        )}
+      >
         {monster.abilities && monster.abilities.length > 0 ? (
           <div className="monster-card-abilities-list">
             {/* Show limited abilities based on card size */}
             {monster.abilities
-              .slice(0, 
-                size === CARD_SIZES.SM ? 2 :
-                size === CARD_SIZES.MD ? 3 :
-                size === CARD_SIZES.LG ? 4 : 3
-              )
+              .slice(0, maxAbilities)
               .map((ability, index) => (
                 <div key={index} className="monster-card-ability-item">
-                  <div className="monster-card-ability-name">
+                  <div className={`monster-card-ability-name ${getTextSize('subtitle')}`}>
                     {ability.name}
                   </div>
-                  <div className="monster-card-ability-description">
+                  <div className={`monster-card-ability-description ${getTextSize('caption')}`}>
                     {ability.description}
                   </div>
                 </div>
@@ -120,17 +186,9 @@ function MonsterCardDetails({
             }
             
             {/* Show "more abilities" indicator if there are more */}
-            {size !== CARD_SIZES.XL && monster.abilities.length > (
-              size === CARD_SIZES.SM ? 2 :
-              size === CARD_SIZES.MD ? 3 :
-              size === CARD_SIZES.LG ? 4 : 3
-            ) && (
-              <div className={`more-abilities-indicator more-abilities-indicator-${size}`}>
-                +{monster.abilities.length - (
-                  size === CARD_SIZES.SM ? 2 :
-                  size === CARD_SIZES.MD ? 3 :
-                  size === CARD_SIZES.LG ? 4 : 3
-                )} more abilities
+            {maxAbilities && monster.abilities.length > maxAbilities && (
+              <div className={`more-abilities-indicator ${getTextSize('caption')}`}>
+                +{monster.abilities.length - maxAbilities} more abilities
               </div>
             )}
           </div>
@@ -144,16 +202,17 @@ function MonsterCardDetails({
         )}
       </CardSection>
 
-      {/* Personality Traits - Hide on small, CardSection handles typography */}
-      {size !== CARD_SIZES.SM && monster.personalityTraits && monster.personalityTraits.length > 0 && (
-        <CardSection type="footer" title="Personality" size={size}>
+      {/* Personality Traits - Hide on small size */}
+      {maxTraits > 0 && monster.personalityTraits && monster.personalityTraits.length > 0 && (
+        <CardSection 
+          type="content" 
+          size={size} 
+          classType={classType}
+          title="Personality"
+        >
           <div className="monster-card-traits-list">
             {monster.personalityTraits
-              .slice(0, 
-                size === CARD_SIZES.MD ? 3 :
-                size === CARD_SIZES.LG ? 5 :
-                size === CARD_SIZES.XL ? undefined : 3 // XL shows all
-              )
+              .slice(0, maxTraits)
               .map((trait, index) => (
                 <Badge key={index} variant="secondary" size={getBadgeSize()}>
                   {trait}
@@ -162,20 +221,16 @@ function MonsterCardDetails({
             }
             
             {/* Show "more traits" indicator if there are more */}
-            {size !== CARD_SIZES.XL && monster.personalityTraits.length > (
-              size === CARD_SIZES.MD ? 3 :
-              size === CARD_SIZES.LG ? 5 : 3
-            ) && (
-              <span className={`more-traits-indicator more-traits-indicator-${size}`}>
-                +{monster.personalityTraits.length - (
-                  size === CARD_SIZES.MD ? 3 :
-                  size === CARD_SIZES.LG ? 5 : 3
-                )} more
+            {maxTraits && monster.personalityTraits.length > maxTraits && (
+              <span className={`more-traits-indicator ${getTextSize('caption')}`}>
+                +{monster.personalityTraits.length - maxTraits} more
               </span>
             )}
           </div>
         </CardSection>
       )}
+
+      <CardSection type="footer" size={size} classType={classType}></CardSection>
       
     </Card>
   );

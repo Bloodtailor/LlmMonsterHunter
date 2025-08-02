@@ -6,3 +6,5 @@
 
 /* 2. GLOBAL STYLES - Reset, base styles, app layout */
 @import './globals.css';
+
+@import './typography.css';

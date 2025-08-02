@@ -1,0 +1,122 @@
+/* CardSection Component - Simplified layout system */
+/* Clear structure: Header(title) → Content(optional title) → Footer(no title) */
+
+/* ===== BASE CARD SECTION ===== */
+/* Size-based spacing - larger cards get more spacing between sections */
+
+.card-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-section-sm {
+  gap: var(--spacing-xs);
+}
+
+.card-section-md {
+  gap: var(--spacing-sm);
+}
+
+.card-section-lg {
+  gap: var(--spacing-md);
+}
+
+.card-section-xl {
+  gap: var(--spacing-lg);
+}
+
+/* ===== SECTION TYPES - SIMPLIFIED ===== */
+
+/* Header: Always has title, gets bottom border */
+.card-section-header {
+  border-bottom: 1px solid var(--background-light);
+  padding-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Content: May have title, gets flexible spacing */
+.card-section-content {
+  flex: 1;
+}
+
+/* Content with title gets top margin for separation */
+.card-section-content.card-section-has-title {
+  margin-top: var(--spacing-md);
+}
+
+/* Footer: Never has title, gets top border and margin */
+.card-section-footer {
+  border-top: 1px solid var(--background-light);
+  padding-top: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+}
+
+/* ===== DEBUG MODIFIERS ===== */
+/* Visual debugging aids only - no layout changes */
+
+.card-section-bordered {
+  outline: 2px dashed red;
+  outline-offset: 2px;
+}
+
+.card-section-highlighted {
+  background: rgba(255, 255, 0, 0.1);
+}
+
+/* ===== SECTION ALIGNMENT ===== */
+
+.card-section-align-left {
+  text-align: left;
+  align-items: flex-start;
+}
+
+.card-section-align-center {
+  text-align: center;
+  align-items: center;
+}
+
+.card-section-align-right {
+  text-align: right;
+  align-items: flex-end;
+}
+
+/* ===== SECTION HEADER LAYOUT ===== */
+/* Title + optional action layout */
+
+.card-section-title-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.card-section-title {
+  flex: 1;
+  margin: 0;
+}
+
+.card-section-action {
+  flex-shrink: 0;
+}
+
+.card-section-content-area {
+  color: var(--color-text-primary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+
+@media (max-width: 768px) {
+  .card-section-title-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+  
+  .card-section-align-right,
+  .card-section-align-center {
+    text-align: left;
+    align-items: flex-start;
+  }
+}
