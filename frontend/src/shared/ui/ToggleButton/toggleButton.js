@@ -69,13 +69,14 @@ function ToggleButton({
   // LOADING STATE - Show spinner, not clickable
   if (isLoading) {
     return (
-      <div className={toggleClasses} {...rest}>
-        <LoadingSpinner 
-          size={size}
-          type="spin"
-          ariaLabel={`Updating ${collectionName}...`}
-        />
-      </div>
+      <IconButton
+      icon={ <LoadingSpinner size={size} type="spin" color="secondary"/> }
+      variant="primary"
+      size={size}
+      disabled={true}
+      className={toggleClasses}
+      {...rest}
+      />
     );
   }
 

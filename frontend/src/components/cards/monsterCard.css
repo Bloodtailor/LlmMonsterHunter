@@ -128,7 +128,7 @@
 
 .monster-card-abilities-list {
   overflow-y: auto;
-  max-height: 120px;
+  max-height: 400px;
 }
 
 .monster-card-ability-item {

@@ -65,9 +65,6 @@ function MonsterCardViewer({
           <MonsterCard
             monster={monster}
             size={CARD_SIZES.XL} // Updated to use new constant instead of "full"
-            showPartyToggle={false} // Keep viewer simple
-            onAbilityGenerate={null} // Disable ability generation in viewer
-            onExpandCard={null} // Disable expand in viewer (already expanded)
           />
         </div>
       </div>

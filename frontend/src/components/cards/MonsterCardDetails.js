@@ -14,17 +14,17 @@ import {
 } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 import { useTypographyScale } from '../../shared/hooks/useTypographyScale.js';
+import useCooldown from '../../shared/hooks/useButtonCooldown.js';
+import { useAbilityGeneration } from '../../app/hooks/useMonsters.js';
 
 function MonsterCardDetails({
   monster,
   size = 'md',
-  
-  // Ability generation
-  onAbilityGenerate = null
 }) {
-
-
   const classType = 'monster';
+
+  const { generate: generateAbility, isGenerating: isGeneratingAbility } = useAbilityGeneration();
+  const { isOnCooldown, startCooldown } = useCooldown();
   
   // Get typography scaling functions
   const { getTextSize } = useTypographyScale(size, classType);
@@ -32,9 +32,8 @@ function MonsterCardDetails({
   // Handle ability generation
   const handleAbilityGenerate = async (e) => {
     e.stopPropagation();
-    if (onAbilityGenerate) {
-      await onAbilityGenerate(monster.id);
-    }
+    startCooldown();
+    generateAbility(monster.id);
   };
 
   // Determine badge size based on card size
@@ -73,10 +72,10 @@ function MonsterCardDetails({
   // Helper to get trait count based on card size
   const getMaxTraits = () => {
     switch (size) {
-      case CARD_SIZES.SM: return 0; // Hide on small
+      case CARD_SIZES.SM: return 2;
       case CARD_SIZES.MD: return 3;
-      case CARD_SIZES.LG: return 5;
-      case CARD_SIZES.XL: return 99; // Show all
+      case CARD_SIZES.LG: return 4;
+      case CARD_SIZES.XL: return 5; 
       default: return 3;
     }
   };
@@ -158,15 +157,17 @@ function MonsterCardDetails({
         size={size} 
         classType={classType}
         title="Abilities"
-        action={onAbilityGenerate && (
+        action={
           <IconButton
             icon="⚡"
             variant="ghost"
             size={getButtonSize()}
             onClick={handleAbilityGenerate}
+            disabled={isOnCooldown}
+            loading={isGeneratingAbility}
             ariaLabel="Generate new ability"
           />
-        )}
+        }
       >
         {monster.abilities && monster.abilities.length > 0 ? (
           <div className="monster-card-abilities-list">
