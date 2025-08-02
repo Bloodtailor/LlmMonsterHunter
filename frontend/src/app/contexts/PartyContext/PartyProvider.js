@@ -108,6 +108,10 @@ function PartyProvider({ children }) {
     }
   };
 
+  const isFollowing = (monsterId) => {
+  return followingHook.ids.includes(monsterId);
+  };
+
   // Simple loading state - loading if any write operation is happening
   const isLoading = setPartyHook.isLoading || partyHook.isLoading;
 
@@ -124,6 +128,7 @@ function PartyProvider({ children }) {
     
     // Helper functions
     isInParty,
+    isFollowing,
     canAddToParty,
     
     // Actions

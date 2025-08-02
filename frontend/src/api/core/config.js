@@ -5,7 +5,7 @@
 // Base configuration
 export const API_CONFIG = {
   BASE_URL: 'http://localhost:5000',
-  DEFAULT_TIMEOUT: 5000, // 5 seconds
+  DEFAULT_TIMEOUT: 50000, // 50 seconds
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',
   }

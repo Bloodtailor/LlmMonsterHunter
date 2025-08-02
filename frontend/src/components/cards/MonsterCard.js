@@ -16,13 +16,6 @@ function MonsterCard({
   
   // Party management (optional)
   showPartyToggle = false,
-  isInParty = false,
-  isPartyFull = false,
-  onPartyToggle = null,
-  partyDisabled = false,
-  
-  // Ability generation (optional)
-  onAbilityGenerate = null,
   
   // Card viewer (callback pattern - no circular dependencies!)
   onExpandCard = null
@@ -34,47 +27,23 @@ function MonsterCard({
     return `http://localhost:5000/api/monsters/card-art/${monster.cardArt.relativePath}`;
   };
 
-  // Handle party toggle - just call parent callback
-  const handlePartyToggle = (e) => {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation();
-    }
-    if (onPartyToggle && !partyDisabled) {
-      onPartyToggle(monster, isInParty);
-    }
-  };
-
   // Handle expand card - just call parent callback
-  const handleExpandCard = (e) => {
-    // Safely handle event if it exists and has stopPropagation
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation();
-    }
-    if (onExpandCard) {
+  const handleExpandCard = onExpandCard
+  ? (e) => {
+      if (e && typeof e.stopPropagation === 'function') {
+        e.stopPropagation();
+      }
       onExpandCard(monster);
     }
-  };
+  : null;
 
-  // Handle ability generation
-  const handleAbilityGenerate = async (e) => {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation();
-    }
-    if (onAbilityGenerate) {
-      await onAbilityGenerate(monster.id);
-    }
-  };
 
   // Front of card - Use Overview component
   const frontContent = (
     <MonsterCardOverview
       monster={monster}
       size={size}
-      showPartyToggle={true}
-      isInParty={isInParty}
-      isPartyFull={isPartyFull}
-      onPartyToggle={handlePartyToggle}
-      partyDisabled={partyDisabled}
+      showPartyToggle={showPartyToggle}
       onExpandCard={handleExpandCard}
       getCardArtUrl={getCardArtUrl}
     />
@@ -85,7 +54,6 @@ function MonsterCard({
     <MonsterCardDetails
       monster={monster}
       size={size}
-      onAbilityGenerate={handleAbilityGenerate}
     />
   );
 

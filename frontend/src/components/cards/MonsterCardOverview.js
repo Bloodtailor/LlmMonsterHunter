@@ -32,12 +32,14 @@ function MonsterCardOverview({
     // NEW: Get party data from context instead of props
   const { 
     isInParty, 
+    isFollowing,
     isPartyFull, 
     toggleParty, 
     isLoading: partyDisabled 
   } = useParty();
 
   const monsterIsInParty = isInParty(monster.id);
+  const monsterIsFollowing = isFollowing(monster.id);
 
 
   // Handle party toggle - just call parent callback
@@ -88,21 +90,36 @@ function MonsterCardOverview({
     }
   };
 
+  // Helper to get ability count based on card size
+  const getMaxAbilities = () => {
+    switch (size) {
+      case CARD_SIZES.SM: return 0;
+      case CARD_SIZES.MD: return 2;
+      case CARD_SIZES.LG: return 2;
+      case CARD_SIZES.XL: return 3; 
+      default: return 1;
+    }
+  };
+
+  const maxAbilities = getMaxAbilities();
+
   return (
     <div className="monster-card-overview">
       {/* Party Toggle Button - Clean and simple with ToggleButton */}
-      <div className="monster-card-party-toggle">
-        <ToggleButton
-          isInCollection={monsterIsInParty}
-          isCollectionFull={isPartyFull}
-          isLoading={partyDisabled}
-          onToggle={handlePartyToggle}
-          itemName={monster.name}
-          collectionName="party"
-          size={getButtonSize()}
-          maxItems={4}
-        />
-      </div>
+      { showPartyToggle && monsterIsFollowing && (
+        <div className="monster-card-party-toggle">
+          <ToggleButton
+            isInCollection={monsterIsInParty}
+            isCollectionFull={isPartyFull}
+            isLoading={partyDisabled}
+            onToggle={handlePartyToggle}
+            itemName={monster.name}
+            collectionName="party"
+            size={getButtonSize()}
+            maxItems={4}
+          />
+        </div>
+      )}
       {/* Main Art Section - Full Card Coverage */}
       <div className="monster-art-section">
         {getCardArtUrl() ? (
@@ -113,15 +130,17 @@ function MonsterCardOverview({
               className="monster-art-image"
             />
             {/* Expand Button Overlay */}
-            <div className="monster-card-expand-button">
-              <IconButton
-                icon="🔍"
-                variant="secondary"
-                size={getButtonSize()}
-                onClick={handleExpandCard}
-                ariaLabel="View full-size monster card"
-              />
-            </div>
+            {onExpandCard != null && (
+              <div className="monster-card-expand-button">
+                <IconButton
+                  icon="🔍"
+                  variant="secondary"
+                  size={getButtonSize()}
+                  onClick={handleExpandCard}
+                  ariaLabel="View full-size monster card"
+                />
+              </div>
+            )}
           </>
         ) : (
           <div className="monster-art-placeholder">
@@ -145,7 +164,7 @@ function MonsterCardOverview({
         </div>
 
         {/* Ability Preview - Adapt content based on size */}
-        {size !== CARD_SIZES.SM && (
+        {maxAbilities > 0 && (
           <div className="abilities-preview">
             <CountBadge
               count={monster.abilityCount}
@@ -160,11 +179,7 @@ function MonsterCardOverview({
               <div className="ability-preview-chips">
                 {/* NORMAL: 1 chip, LARGE: 2 chips, FULL: 3 chips */}
                 {monster.abilities
-                  .slice(0, 
-                    size === CARD_SIZES.MD ? 1 : 
-                    size === CARD_SIZES.LG ? 2 : 
-                    size === CARD_SIZES.XL ? 3 : 0
-                  )
+                  .slice(0, maxAbilities)
                   .map((ability, index) => (
                     <Badge 
                       key={index} 
@@ -178,17 +193,9 @@ function MonsterCardOverview({
                 }
                 
                 {/* Show "more" indicator if there are additional abilities */}
-                {monster.abilities.length > (
-                  size === CARD_SIZES.MD ? 1 : 
-                  size === CARD_SIZES.LG ? 2 : 
-                  size === CARD_SIZES.XL ? 3 : 0
-                ) && (
+                {monster.abilities.length > maxAbilities && (
                   <span className={`more-abilities-indicator more-abilities-indicator-${size}`}>
-                    +{monster.abilities.length - (
-                      size === CARD_SIZES.MD ? 1 : 
-                      size === CARD_SIZES.LG ? 2 : 
-                      size === CARD_SIZES.XL ? 3 : 0
-                    )} more
+                    +{monster.abilities.length - maxAbilities} more
                   </span>
                 )}
               </div>

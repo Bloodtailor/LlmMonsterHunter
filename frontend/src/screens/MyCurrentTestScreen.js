@@ -184,11 +184,7 @@ function MyCurrentTestScreen() {
               key={monster.id}
               monster={monster} // ← Clean domain object!
               size={cardSize}
-              showPartyToggle={false} // Keep it simple for this test
-              onAbilityGenerate={(monsterId) => {
-                console.log('🔮 Generate ability for monster:', monsterId);
-                // TODO: Implement with useAbilityGeneration hook
-              }}
+              showPartyToggle={true} // Keep it simple for this test
             />
           ))}
         </div>
