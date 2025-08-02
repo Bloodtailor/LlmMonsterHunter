@@ -223,4 +223,26 @@
   --color-hover-overlay: rgba(255, 255, 255, 0.1);
   --color-active-overlay: rgba(255, 255, 255, 0.2);
   --color-focus-ring: rgba(44, 90, 160, 0.3);
+
+  /* ===== CARD DIMENSIONS ===== */
+  /* Unified card sizing system for both game cards and UI cards */
+  /* Used by Card, FlippableCard, and any card-based components */
+
+  /* Card widths */
+  --card-width-sm: 200px;
+  --card-width-md: 300px;
+  --card-width-lg: 400px;
+  --card-width-xl: 600px;
+
+  /* Card heights */  
+  --card-height-sm: 280px;
+  --card-height-md: 420px;
+  --card-height-lg: 560px;
+  --card-height-xl: 840px;
+
+  /* Card max-widths (for UI cards that don't need fixed aspect ratios) */
+  --card-max-width-sm: var(--card-max-width-sm);
+  --card-max-width-md: var(--card-max-width-md);
+  --card-max-width-lg: var(--card-max-width-lg);
+  --card-max-width-xl: var(--card-max-width-xl);
 }

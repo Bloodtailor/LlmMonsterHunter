@@ -21,7 +21,7 @@ function MyCurrentTestScreen() {
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('newest');
   const [limit, setLimit] = useState(12);
-  const [cardSize, setCardSize] = useState('normal');
+  const [cardSize, setCardSize] = useState('md');
 
   const { MonsterCard, viewer } = useMonsterCardViewer();
 
@@ -126,7 +126,7 @@ function MyCurrentTestScreen() {
         <label>
           Size:
           <Select
-            options={['small', 'normal', 'large']}
+            options={['sm', 'md', 'lg', 'xl']}
             value={cardSize}
             onChange={(e) => handleCardSizeChange(e.target.value)}
           />

@@ -1,8 +1,10 @@
 // Flippable Card Component - REUSABLE FOR MONSTERS, ITEMS, AND MORE
 // 3D flip animation with customizable front and back content
 // Supports multiple "sides" that can be expanded later
+// Uses unified CARD_SIZES system (sm, md, lg, xl)
 
 import React, { useState } from 'react';
+import { CARD_SIZES } from '../../../shared/constants/constants.js';
 import './flippableCard.css';
 
 function FlippableCard({ 
@@ -12,7 +14,7 @@ function FlippableCard({
   cardId = null,
   onFlip = null,
   disabled = false,
-  size = 'normal' // 'small', 'normal', 'large'
+  size = 'md' // Updated to use unified CARD_SIZES system
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [currentSide, setCurrentSide] = useState(0); // For future multi-side support
