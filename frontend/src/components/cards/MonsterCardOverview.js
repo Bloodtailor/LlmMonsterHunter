@@ -59,13 +59,13 @@ function MonsterCardOverview({
   // Get badge size based on card size
   const getBadgeSize = () => {
     switch (size) {
-      case CARD_SIZES.SMALL:
+      case CARD_SIZES.SM:
         return "sm";
-      case CARD_SIZES.NORMAL:
-        return "sm";
-      case CARD_SIZES.LARGE:
+      case CARD_SIZES.MD:
         return "md";
-      case CARD_SIZES.FULL:
+      case CARD_SIZES.LG:
+        return "md";
+      case CARD_SIZES.XL:
         return "lg";
       default:
         return "sm";
@@ -75,14 +75,14 @@ function MonsterCardOverview({
   // Get button size based on card size
   const getButtonSize = () => {
     switch (size) {
-      case CARD_SIZES.SMALL:
+      case CARD_SIZES.SM:
         return "sm";
-      case CARD_SIZES.NORMAL:
-        return "sm";
-      case CARD_SIZES.LARGE:
+      case CARD_SIZES.MD:
         return "md";
-      case CARD_SIZES.FULL:
+      case CARD_SIZES.LG:
         return "md";
+      case CARD_SIZES.XL:
+        return "lg";
       default:
         return "sm";
     }
@@ -145,7 +145,7 @@ function MonsterCardOverview({
         </div>
 
         {/* Ability Preview - Adapt content based on size */}
-        {size !== CARD_SIZES.SMALL && (
+        {size !== CARD_SIZES.SM && (
           <div className="abilities-preview">
             <CountBadge
               count={monster.abilityCount}
@@ -161,9 +161,9 @@ function MonsterCardOverview({
                 {/* NORMAL: 1 chip, LARGE: 2 chips, FULL: 3 chips */}
                 {monster.abilities
                   .slice(0, 
-                    size === CARD_SIZES.NORMAL ? 1 : 
-                    size === CARD_SIZES.LARGE ? 2 : 
-                    size === CARD_SIZES.FULL ? 3 : 0
+                    size === CARD_SIZES.MD ? 1 : 
+                    size === CARD_SIZES.LG ? 2 : 
+                    size === CARD_SIZES.XL ? 3 : 0
                   )
                   .map((ability, index) => (
                     <Badge 
@@ -179,15 +179,15 @@ function MonsterCardOverview({
                 
                 {/* Show "more" indicator if there are additional abilities */}
                 {monster.abilities.length > (
-                  size === CARD_SIZES.NORMAL ? 1 : 
-                  size === CARD_SIZES.LARGE ? 2 : 
-                  size === CARD_SIZES.FULL ? 3 : 0
+                  size === CARD_SIZES.MD ? 1 : 
+                  size === CARD_SIZES.LG ? 2 : 
+                  size === CARD_SIZES.XL ? 3 : 0
                 ) && (
                   <span className={`more-abilities-indicator more-abilities-indicator-${size}`}>
                     +{monster.abilities.length - (
-                      size === CARD_SIZES.NORMAL ? 1 : 
-                      size === CARD_SIZES.LARGE ? 2 : 
-                      size === CARD_SIZES.FULL ? 3 : 0
+                      size === CARD_SIZES.MD ? 1 : 
+                      size === CARD_SIZES.LG ? 2 : 
+                      size === CARD_SIZES.XL ? 3 : 0
                     )} more
                   </span>
                 )}

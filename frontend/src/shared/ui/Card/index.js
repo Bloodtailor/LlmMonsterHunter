@@ -3,8 +3,7 @@
 
 export { 
   default as Card, 
-  CARD_VARIANTS, 
-  CARD_SIZES, 
+  CARD_VARIANTS,
   CARD_PADDING,
   CARD_BACKGROUNDS 
 } from './Card.js';

@@ -3,6 +3,7 @@
 // Perfect for content sections, stat displays, and organized layouts
 
 import React from 'react';
+import { CARD_SIZES } from '../../constants/constants.js';
 import './card.css';
 
 /**
@@ -10,7 +11,8 @@ import './card.css';
  * @param {object} props - Card props
  * @param {React.ReactNode} props.children - Card content
  * @param {string} props.variant - Card style variant (default, outlined, elevated, flat)
- * @param {string} props.size - Card size (sm, md, lg, xl)
+ * @param {string} props.size - Card size (sm, md, lg, xl) - used for sizing and CardSection typography
+ * @param {boolean} props.fullWidth - Make card span full width of container (overrides size max-width)
  * @param {string} props.padding - Padding variant (none, sm, md, lg)
  * @param {boolean} props.interactive - Make card clickable/hoverable
  * @param {Function} props.onClick - Click handler (makes card interactive)
@@ -26,7 +28,8 @@ function Card({
   children,
   variant = 'default',
   size = 'md',
-  padding = 'md',
+  fullWidth = false,
+  padding = null, // Will auto-set based on size if not provided
   interactive = false,
   onClick = null,
   disabled = false,
@@ -37,15 +40,19 @@ function Card({
   ...rest
 }) {
   
+  // Auto-set padding based on card size if not specified
+  const effectivePadding = padding || size;
+  
   // Build CSS classes based on props
   const cardClasses = [
     'card', // Base card class
     `card-${variant}`, // Variant styling
-    `card-${size}`, // Size styling
-    `card-padding-${padding}`, // Padding styling
+    !fullWidth && `card-${size}`, // Size styling (skip if fullWidth)
+    `card-padding-${effectivePadding}`, // Padding styling (auto or manual)
     `card-background-${background}`, // Background styling
     (interactive || onClick) && 'card-interactive', // Interactive styling
     disabled && 'card-disabled', // Disabled styling
+    fullWidth && 'card-full-width', // Full width styling
     className // Additional classes
   ].filter(Boolean).join(' ');
 
@@ -64,60 +71,73 @@ function Card({
   // Determine element type and props based on interactivity
   const isClickable = (interactive || onClick) && !disabled;
   
-  const elementProps = {
-    className: cardClasses,
-    style,
-    ...rest
-  };
+  // Enhanced children to pass size prop to CardSections
+  const enhancedChildren = React.Children.map(children, (child) => {
+    // Pass size prop to CardSection components for typography scaling
+    if (React.isValidElement(child) && child.type?.name === 'CardSection') {
+      return React.cloneElement(child, {
+        size: child.props.size || size, // Allow CardSection to override size if needed
+        ...child.props
+      });
+    }
+    return child;
+  });
 
-  // Interactive card (button element for accessibility)
+  // Render as button if clickable, div otherwise
   if (isClickable) {
     return (
       <button
         type="button"
+        className={cardClasses}
+        style={style}
         onClick={handleClick}
         disabled={disabled}
         aria-label={ariaLabel}
-        {...elementProps}
+        {...rest}
       >
-        {children}
+        {enhancedChildren}
       </button>
     );
   }
 
-  // Non-interactive card (div element)
   return (
-    <div {...elementProps}>
-      {children}
+    <div
+      className={cardClasses}
+      style={style}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick(e);
+        }
+      } : undefined}
+      aria-label={ariaLabel}
+      {...rest}
+    >
+      {enhancedChildren}
     </div>
   );
 }
 
-// Variant constants for easy imports
+// Card variant constants for easy imports
 export const CARD_VARIANTS = {
   DEFAULT: 'default',
-  OUTLINED: 'outlined',
+  OUTLINED: 'outlined', 
   ELEVATED: 'elevated',
   FLAT: 'flat'
 };
 
-// Size constants for easy imports
-export const CARD_SIZES = {
-  SM: 'sm',
-  MD: 'md',
-  LG: 'lg',
-  XL: 'xl'
-};
-
-// Padding constants for easy imports
+// Card padding constants for easy imports
 export const CARD_PADDING = {
   NONE: 'none',
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
+  XL: 'xl' // Added XL to match CARD_SIZES
 };
 
-// Background constants for easy imports
+// Card background constants for easy imports
 export const CARD_BACKGROUNDS = {
   DEFAULT: 'default',
   LIGHT: 'light',

@@ -12,7 +12,7 @@ import { CARD_SIZES } from '../../shared/constants/constants.js';
 
 function MonsterCard({ 
   monster, 
-  size = 'normal',
+  size = 'md', // Updated to use new CARD_SIZES
   
   // Party management (optional)
   showPartyToggle = false,

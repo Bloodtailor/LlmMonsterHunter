@@ -51,7 +51,6 @@ export {
   Card,
   CardSection,
   CARD_VARIANTS,
-  CARD_SIZES,
   CARD_PADDING,
   CARD_BACKGROUNDS,
   CARD_SECTION_TYPES,
