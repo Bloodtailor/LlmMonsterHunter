@@ -280,18 +280,6 @@ Serves image files directly.
 #### GET /streaming/llm-events
 Server-Sent Events endpoint. Returns event stream with 30-second keep-alive pings. Supports both LLM and image generation events.
 
-#### GET /streaming/connections
-**Success:**
-```json
-{
-  "active_connections": number,
-  "event_types": string[],
-  "streaming_method": "event_driven_blocking",
-  "efficiency": "Only sends data when events occur (no polling!)",
-  "supported_generation_types": ["llm", "image"]
-}
-```
-
 ## Testing & System
 
 #### GET /health
