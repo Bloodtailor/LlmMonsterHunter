@@ -3,7 +3,6 @@
 // Replaces scattered btn classes with a clean, reusable API
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../constants/constants.js';
 import './button.css';
 
 /**
@@ -119,16 +118,6 @@ function Button({
     // Text-only button
     return <span className="btn-text">{children}</span>;
   };
-
-  // Development warnings
-  if (IS_DEVELOPMENT) {
-    if (!children && !icon) {
-      console.warn('Button: Button should have either children or icon prop');
-    }
-    if (loading && !children) {
-      console.warn('Button: Loading state should have text to show what is loading');
-    }
-  }
 
   return (
     <button

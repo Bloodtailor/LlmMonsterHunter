@@ -36,13 +36,6 @@ function StreamingDisplay() {
     return null;
   }
 
-  // Get status for badge
-  const getStatus = () => {
-    if (!isConnected) return 'error';
-    if (isGenerating) return 'loading';
-    return 'success';
-  };
-
   const getStatusText = () => {
     if (!isConnected) return 'Disconnected';
     if (isGenerating) return 'Generating...';
@@ -57,7 +50,6 @@ function StreamingDisplay() {
       {/* Header */}
       <div className="streaming-header" onClick={() => setIsMinimized(!isMinimized)}>
         <div className="streaming-status">
-          <StatusBadge status={getStatus()} size="md" />
           <span>{getStatusText()}</span>
         </div>
         

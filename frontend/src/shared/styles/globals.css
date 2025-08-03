@@ -28,10 +28,6 @@ body {
   background: var(--background-medium);
   padding: var(--spacing-md) var(--spacing-xl);
   border-bottom: 2px solid var(--primary-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
   box-shadow: var(--shadow-md);
   z-index: var(--z-index-header);
 }

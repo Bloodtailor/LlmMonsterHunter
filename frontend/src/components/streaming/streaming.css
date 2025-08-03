@@ -1,26 +1,27 @@
-/* StreamingDisplay Styles - MINIMAL VERSION
- * Just the essentials: positioning, layout, auto-scroll, cursor animation
+/* StreamingDisplay Styles - FIXED VERSION
+ * Now uses proper theme.css variables for consistent styling
+ * Positioning, layout, auto-scroll, cursor animation with correct theming
  */
 
 /* ===== MAIN OVERLAY ===== */
 .streaming-display {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 450px;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  width: 360px;
   max-width: 90vw;
   z-index: 1000;
   
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  background: var(--background-medium);
+  border: var(--border-width-thin) solid var(--background-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   
-  transition: width 0.3s ease;
+  transition: width var(--transition-normal);
 }
 
 .streaming-display.minimized {
-  width: 320px;
+  width: 160px;
 }
 
 /* ===== HEADER ===== */
@@ -28,39 +29,46 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: var(--border-width-thin) solid var(--background-light);
   cursor: pointer;
-  background: var(--color-background-secondary);
-  border-radius: 8px 8px 0 0;
+  background: var(--background-light);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  transition: var(--transition-fast);
+}
+
+.streaming-header:hover {
+  background: var(--primary-color);
+  color: var(--text-light);
 }
 
 .streaming-display.minimized .streaming-header {
   border-bottom: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .streaming-status {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--spacing-sm);
 }
 
 .streaming-status span {
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
+  color: var(--text-light);
   font-size: var(--font-size-sm);
 }
 
 /* ===== CONTENT ===== */
 .streaming-content {
-  padding: 1rem;
+  padding: var(--spacing-md);
+  background: var(--background-medium);
 }
 
 .streaming-generation {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--spacing-sm);
 }
 
 .generation-info {
@@ -68,14 +76,16 @@
   justify-content: space-between;
   align-items: center;
   font-size: var(--font-size-sm);
+  color: var(--text-light);
 }
 
 .generation-info span:first-child {
   font-weight: var(--font-weight-medium);
+  color: var(--text-light);
 }
 
 .generation-info span:last-child {
-  color: var(--color-text-muted);
+  color: var(--text-dim);
   font-size: var(--font-size-xs);
 }
 
@@ -83,26 +93,42 @@
 .streaming-output {
   max-height: 200px;
   overflow-y: auto;
-  background: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0.75rem;
+  background: var(--background-dark);
+  border: var(--border-width-thin) solid var(--background-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
   
-  font-family: var(--font-family-mono, monospace);
+  font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
+  color: var(--text-light);
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Custom scrollbar for streaming output */
+.streaming-output::-webkit-scrollbar {
+  width: 6px;
+}
+
+.streaming-output::-webkit-scrollbar-track {
+  background: var(--background-medium);
+  border-radius: var(--radius-sm);
+}
+
+.streaming-output::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: var(--radius-sm);
+}
+
+.streaming-output::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
 }
 
 /* ===== CURSOR ANIMATION ===== */
 .cursor {
   animation: blink 1s infinite;
-  color: var(--color-primary);
+  color: var(--primary-color);
   margin-left: 1px;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  font-weight: var(--font-weight-bold);
 }

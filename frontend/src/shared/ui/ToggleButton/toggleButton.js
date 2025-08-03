@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { IconButton, LoadingSpinner } from '../index.js';
-import { IS_DEVELOPMENT } from '../../constants/constants.js';
 import './toggleButton.css';
 
 /**
@@ -38,16 +37,6 @@ function ToggleButton({
   className = '',
   ...rest
 }) {
-
-  // Development warnings
-  if (IS_DEVELOPMENT) {
-    if (!onToggle) {
-      console.warn('ToggleButton: onToggle function is required');
-    }
-    if (isInCollection && isCollectionFull) {
-      console.warn('ToggleButton: Item cannot be both in collection and collection be full');
-    }
-  }
 
   // Handle toggle click
   const handleToggle = (event) => {
