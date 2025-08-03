@@ -1,0 +1,108 @@
+/* StreamingDisplay Styles - MINIMAL VERSION
+ * Just the essentials: positioning, layout, auto-scroll, cursor animation
+ */
+
+/* ===== MAIN OVERLAY ===== */
+.streaming-display {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 450px;
+  max-width: 90vw;
+  z-index: 1000;
+  
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  
+  transition: width 0.3s ease;
+}
+
+.streaming-display.minimized {
+  width: 320px;
+}
+
+/* ===== HEADER ===== */
+.streaming-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  background: var(--color-background-secondary);
+  border-radius: 8px 8px 0 0;
+}
+
+.streaming-display.minimized .streaming-header {
+  border-bottom: none;
+  border-radius: 8px;
+}
+
+.streaming-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.streaming-status span {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+/* ===== CONTENT ===== */
+.streaming-content {
+  padding: 1rem;
+}
+
+.streaming-generation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.generation-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+}
+
+.generation-info span:first-child {
+  font-weight: var(--font-weight-medium);
+}
+
+.generation-info span:last-child {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ===== STREAMING OUTPUT (Auto-scroll) ===== */
+.streaming-output {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.75rem;
+  
+  font-family: var(--font-family-mono, monospace);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* ===== CURSOR ANIMATION ===== */
+.cursor {
+  animation: blink 1s infinite;
+  color: var(--color-primary);
+  margin-left: 1px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}

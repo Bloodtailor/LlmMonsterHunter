@@ -61,8 +61,6 @@ export const API_ENDPOINTS = {
   
   // ===== STREAMING & REAL-TIME =====
   STREAMING_EVENTS: '/api/streaming/llm-events',
-  STREAMING_CONNECTIONS: '/api/streaming/connections',
-  STREAMING_TEST: '/api/streaming/test/simple',
   
   // ===== TESTING & DEBUG =====
   GAME_TESTER_TESTS: '/api/game_tester/tests',

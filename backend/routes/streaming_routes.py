@@ -49,17 +49,3 @@ def stream_events():
     response.headers['Access-Control-Allow-Origin'] = '*'
     
     return response
-
-
-@streaming_bp.route('/connections')
-def get_connections():
-    """Get SSE connection info for debugging"""
-    sse_service = get_sse_service()
-    
-    return jsonify({
-        'active_connections': sse_service.get_connection_count(),
-        'event_types': sse_service._event_service.get_all_event_types(),
-        'streaming_method': 'event_driven_blocking',
-        'efficiency': 'Only sends data when events occur (no polling!)',
-        'supported_generation_types': ['llm', 'image']  # 🔧 NEW: both types supported
-    })

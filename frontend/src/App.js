@@ -7,9 +7,12 @@ import ApiServicesTestScreen from './screens/ApiServicesTestScreen';
 import StyleTestScreen from './screens/StyleTestScreen';
 import MyCurrentTestScreen from './screens/MyCurrentTestScreen';
 import { PartyProvider } from './app/contexts/PartyContext';
+import { StreamingProvider } from './app/contexts/streamingContext';
 import BYOComponentTestScreen from './screens/BYOComponentTestScreen';
 import CoCaTokDemo from './screens/CoCaTokDemo';
 import ExplosionDemo from './screens/ExplosionDemo';
+import StreamingDisplay from './components/streaming/StreamingDisplay.js';
+import StreamingTestScreen from './screens/StreamingTextScreen.js';
 
 function App() {
   // Application state
@@ -27,96 +30,111 @@ function App() {
 
   // Main application - backend is connected
   return (
-    <PartyProvider>
-      <div className="App">
-        
-        {/* App Header with Title Left, Navigation Centered */}
-        <header className="app-header">
-          <h1>🎮 Monster Hunter Game</h1>
-          <nav className="screen-navigation">
+    <StreamingProvider>
+      <PartyProvider>
+        <div className="App">
+          
+          {/* App Header with Title Left, Navigation Centered */}
+          <header className="app-header">
+            <h1>🎮 Monster Hunter Game</h1>
+            <nav className="screen-navigation">
+              
+              <button 
+                className={`nav-button ${currentScreen === 'api-services' ? 'active' : ''}`}
+                onClick={() => setCurrentScreen('api-services')}
+              >
+                🧪 API Tests
+              </button>
+
+              <button 
+                className={`nav-button ${currentScreen === 'streaming' ? 'active' : ''}`}
+                onClick={() => setCurrentScreen('streaming')}
+              >
+                🧪 Streaming Context Test
+              </button>
+
+              <button 
+                className={`nav-button ${currentScreen === 'cocatok-demo' ? 'active' : ''}`}
+                onClick={() => setCurrentScreen('cocatok-demo')}
+              >
+                ❄️ CoCaTok Demo
+              </button>
+
+              <button 
+                className={`nav-button ${currentScreen === 'explosion-demo' ? 'active' : ''}`}
+                onClick={() => setCurrentScreen('explosion-demo')}
+              >
+                ❄️ Explosion Demo
+              </button>
+
+              <button 
+                className={`nav-button ${currentScreen === 'style-test' ? 'active' : ''}`}
+                onClick={() => setCurrentScreen('style-test')}
+              >
+                🧪 Style Test
+              </button>
+
+              <button 
+                className={`nav-button ${currentScreen === 'current-test' ? 'active' : ''}`}
+                onClick={() => setCurrentScreen('current-test')}
+              >
+                🧪 Current Test
+              </button>
+
+              <button 
+                className={`nav-button ${currentScreen === 'byoc-test' ? 'active' : ''}`}
+                onClick={() => setCurrentScreen('byoc-test')}
+              >
+                🧪 BYOC Test
+              </button>
+
+            </nav>
+          </header>
+
+          {/* Main Content - Switch between screens */}
+          <main className="app-main">
+
+            <StreamingDisplay />
             
-            <button 
-              className={`nav-button ${currentScreen === 'api-services' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('api-services')}
-            >
-              🧪 API Tests
-            </button>
 
-            <button 
-              className={`nav-button ${currentScreen === 'cocatok-demo' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('cocatok-demo')}
-            >
-              ❄️ CoCaTok Demo
-            </button>
+            {currentScreen === 'api-services' && (
+              <ApiServicesTestScreen />
+            )}
 
-            <button 
-              className={`nav-button ${currentScreen === 'explosion-demo' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('explosion-demo')}
-            >
-              ❄️ Explosion Demo
-            </button>
+            {currentScreen === 'streaming' && (
+              <StreamingTestScreen />
+            )}
 
-            <button 
-              className={`nav-button ${currentScreen === 'style-test' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('style-test')}
-            >
-              🧪 Style Test
-            </button>
+            
+            {currentScreen === 'cocatok-demo' && (
+              <CoCaTokDemo />
+            )}
 
-            <button 
-              className={`nav-button ${currentScreen === 'current-test' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('current-test')}
-            >
-              🧪 Current Test
-            </button>
+            {currentScreen === 'explosion-demo' && (
+              <ExplosionDemo />
+            )}
 
-            <button 
-              className={`nav-button ${currentScreen === 'byoc-test' ? 'active' : ''}`}
-              onClick={() => setCurrentScreen('byoc-test')}
-            >
-              🧪 BYOC Test
-            </button>
+            {currentScreen === 'style-test' && (
+              <StyleTestScreen />
+            )}
 
-          </nav>
-        </header>
+            {currentScreen === 'current-test' && (
+              <MyCurrentTestScreen />
+            )}
 
-        {/* Main Content - Switch between screens */}
-        <main className="app-main">
-          
+            {currentScreen === 'byoc-test' && (
+              <BYOComponentTestScreen />
+            )}
 
-          {currentScreen === 'api-services' && (
-            <ApiServicesTestScreen />
-          )}
+          </main>
 
-          
-          {currentScreen === 'cocatok-demo' && (
-            <CoCaTokDemo />
-          )}
-
-          {currentScreen === 'explosion-demo' && (
-            <ExplosionDemo />
-          )}
-
-          {currentScreen === 'style-test' && (
-            <StyleTestScreen />
-          )}
-
-          {currentScreen === 'current-test' && (
-            <MyCurrentTestScreen />
-          )}
-
-          {currentScreen === 'byoc-test' && (
-            <BYOComponentTestScreen />
-          )}
-
-        </main>
-
-        {/* App Footer */}
-        <footer className="app-footer">
-          <p>Monster Hunter Game - MVP Development Phase</p>
-        </footer>
-      </div>
-    </PartyProvider>
+          {/* App Footer */}
+          <footer className="app-footer">
+            <p>Monster Hunter Game - MVP Development Phase</p>
+          </footer>
+        </div>
+      </PartyProvider>
+    </StreamingProvider>
   );
 }
 
