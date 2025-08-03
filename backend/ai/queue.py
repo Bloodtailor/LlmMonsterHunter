@@ -1,4 +1,4 @@
-# AI Generation Queue - CLEANED UP
+# AI Generation Queue - UPDATED TO USE EVENT REGISTRY
 # Handles both LLM text generation and ComfyUI image generation
 # Uses normalized generation_log database structure
 print(f"🔍 Loading {__file__}")
@@ -10,11 +10,24 @@ from queue import Queue, Empty
 from dataclasses import dataclass
 from enum import Enum
 from backend.core.utils import print_error
-from backend.core.event_bus import emit_event
 from backend.models.generation_log import GenerationLog
 from backend.ai.llm.processor import process_llm_request
 from backend.ai.llm.core import unload_model
 from backend.ai.comfyui.processor import process_image_request
+
+# Import event emission functions from registry
+from backend.core.event_registry import (
+    emit_llm_generation_started,
+    emit_llm_generation_update,
+    emit_llm_generation_completed,
+    emit_llm_generation_failed,
+    emit_llm_queue_update,
+    emit_image_generation_started,
+    emit_image_generation_update,
+    emit_image_generation_completed,
+    emit_image_generation_failed,
+    emit_image_queue_update
+)
 
 _global_queue = None
 _queue_lock = threading.Lock()
@@ -110,12 +123,19 @@ class AIGenerationQueue:
                 # Priority queue: lower number = higher priority
                 self._queue.put((log_entry.priority, generation_id))
             
-            # Emit event using event service
-            self._emit_event(f'{log_entry.generation_type}.queue.update', {
-                "action": "added", 
-                "item": item.to_dict(),
-                "queue_size": self._queue.qsize()
-            })
+            # Emit queue update event using registry functions
+            if log_entry.generation_type == 'llm':
+                emit_llm_queue_update(
+                    action="added",
+                    item=item.to_dict(),
+                    queue_size=self._queue.qsize()
+                )
+            elif log_entry.generation_type == 'image':
+                emit_image_queue_update(
+                    action="added",
+                    item=item.to_dict(),
+                    queue_size=self._queue.qsize()
+                )
             
             return True
             
@@ -154,32 +174,26 @@ class AIGenerationQueue:
                 "worker_running": self._running
             }
     
-    def _emit_event(self, event_type: str, data: Dict[str, Any]):
-        """Emit event using event service"""
-        try:
-            emit_event(event_type, data)
-        except Exception:
-            pass
-    
     def _process_item(self, item: QueueItem):
         """Process a queue item by delegating to appropriate processor"""
         
         try:
             # Create streaming callback that emits events
-            def on_stream(partial_data):
+            def on_stream(streaming_data):
                 if item.generation_type == 'llm':
                     # For LLM, partial_data is partial text
-                    self._emit_event('llm.generation.update', {
-                        "generation_id": item.generation_id,
-                        "partial_text": partial_data,
-                        "tokens_so_far": len(partial_data.split()) if partial_data else 0
-                    })
+                    emit_llm_generation_update(
+                        generation_id=item.generation_id,
+                        partial_text=streaming_data,
+                        tokens_so_far=len(streaming_data.split()) if streaming_data else 0
+                    )
                 elif item.generation_type == 'image':
-                    # For images, partial_data is progress message
-                    self._emit_event('image.generation.update', {
-                        "generation_id": item.generation_id,
-                        "progress_message": partial_data
-                    })
+                    emit_image_generation_update(
+                        item=item.to_dict(),
+                        generation_id=item.generation_id,
+                        comfyui_queue_status_response=streaming_data
+                    )
+                    pass
             
             # Ensure Flask app context for database operations
             if not self._app:
@@ -198,29 +212,56 @@ class AIGenerationQueue:
             
             if result['success']:
                 item.status = QueueItemStatus.COMPLETED
-                self._emit_event(f'{item.generation_type}.generation.completed', {
-                    "item": item.to_dict(),
-                    "generation_id": item.generation_id,
-                    "result": result
-                })
+                
+                # Emit completion event using registry functions
+                if item.generation_type == 'llm':
+                    emit_llm_generation_completed(
+                        item=item.to_dict(),
+                        generation_id=item.generation_id,
+                        result=result
+                    )
+                elif item.generation_type == 'image':
+                    emit_image_generation_completed(
+                        item=item.to_dict(),
+                        generation_id=item.generation_id,
+                        result=result
+                    )
             else:
                 item.status = QueueItemStatus.FAILED
                 item.error = result.get('error', 'Unknown error')
-                self._emit_event(f'{item.generation_type}.generation.failed', {
-                    "item": item.to_dict(), 
-                    "generation_id": item.generation_id,
-                    "error": item.error
-                })
+                
+                # Emit failure event using registry functions
+                if item.generation_type == 'llm':
+                    emit_llm_generation_failed(
+                        item=item.to_dict(),
+                        generation_id=item.generation_id,
+                        error=item.error
+                    )
+                elif item.generation_type == 'image':
+                    emit_image_generation_failed(
+                        item=item.to_dict(),
+                        generation_id=item.generation_id,
+                        error=item.error
+                    )
                 
         except Exception as e:
             item.status = QueueItemStatus.FAILED
             item.error = str(e)
             item.completed_at = datetime.utcnow()
-            self._emit_event(f'{item.generation_type}.generation.failed', {
-                "item": item.to_dict(),
-                "generation_id": item.generation_id, 
-                "error": item.error
-            })
+            
+            # Emit failure event using registry functions
+            if item.generation_type == 'llm':
+                emit_llm_generation_failed(
+                    item=item.to_dict(),
+                    generation_id=item.generation_id,
+                    error=item.error
+                )
+            elif item.generation_type == 'image':
+                emit_image_generation_failed(
+                    item=item.to_dict(),
+                    generation_id=item.generation_id,
+                    error=item.error
+                )
     
     def _process_llm_item(self, item: QueueItem, callback) -> Dict[str, Any]:
         """Process LLM generation using the LLM processor"""
@@ -252,10 +293,17 @@ class AIGenerationQueue:
                 item.started_at = datetime.utcnow()
                 self._current_item = item
                 
-                self._emit_event(f'{item.generation_type}.generation.started', {
-                    "item": item.to_dict(),
-                    "generation_id": generation_id
-                })
+                # Emit started event using registry functions
+                if item.generation_type == 'llm':
+                    emit_llm_generation_started(
+                        item=item.to_dict(),
+                        generation_id=generation_id
+                    )
+                elif item.generation_type == 'image':
+                    emit_image_generation_started(
+                        item=item.to_dict(),
+                        generation_id=generation_id
+                    )
                 
                 self._process_item(item)
                 self._current_item = None

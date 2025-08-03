@@ -141,29 +141,14 @@ class SSEService:
             for conn_id in dead_connections:
                 del self._connections[conn_id]
                 # Removed verbose cleanup message
-    
+
     def _setup_event_subscriptions(self):
-        """Subscribe to relevant events from event_service"""
+        """Subscribe only to frontend events"""
+        from backend.core.event_registry import get_sse_events
         
-        # Subscribe to all LLM events
-        llm_events = [
-            'llm.generation.started',
-            'llm.generation.update',
-            'llm.generation.completed', 
-            'llm.generation.failed',
-            'llm.queue.update'
-        ]
+        frontend_events = get_sse_events()  # Only gets send_to_frontend=True events
         
-        for event_type in llm_events:
-            self._event_service.subscribe(event_type, self.broadcast_event)
-            # Removed verbose subscription messages
-
-        #subscribe to all dungeon events
-        dungeon_events = [
-            'dungeon.main.ready'
-        ]
-
-        for event_type in dungeon_events:
+        for event_type in frontend_events:
             self._event_service.subscribe(event_type, self.broadcast_event)
             
     def _convert_to_sse_format(self, event: Dict[str, Any]) -> Dict[str, Any]:

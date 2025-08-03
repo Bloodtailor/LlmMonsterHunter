@@ -1,27 +1,42 @@
-// StreamingDisplay Component - MINIMAL VERSION
-// Just the core functionality from original, using your UI primitives
+// StreamingDisplay Component - REVERTED TO ORIGINAL + DEBUG SECTION
+// Back to the simple version with added expandable debug info section
+// Shows raw streaming context data for development and debugging
 
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StatusBadge, Button, Alert } from '../../shared/ui/index.js';
 import { useStreaming } from '../../app/contexts/streamingContext/useStreamingContext.js';
 import './streaming.css';
 
 function StreamingDisplay() {
   
-  // Get streaming data from context
-  const { 
-    currentGeneration, 
-    streamingText, 
-    isGenerating,
-    isConnected, 
+  // Get raw streaming state from context
+  const streamingState = useStreaming();
+  
+  // Destructure the core streaming data (same as original)
+  const {
+    isConnected,
     connectionError,
-    isMinimized, 
-    setIsMinimized,
+    currentGeneration,
+    streamingText,
     lastActivity
-  } = useStreaming();
+  } = streamingState;
 
+  // UI state managed locally (moved from provider)
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isDebugExpanded, setIsDebugExpanded] = useState(false);
+  
   // Auto-scroll ref
   const outputRef = useRef(null);
+
+  // Derived state
+  const isGenerating = currentGeneration?.status === 'generating';
+
+  // Auto-expand when generation starts
+  useEffect(() => {
+    if (isGenerating) {
+      setIsMinimized(false);
+    }
+  }, [isGenerating]);
 
   // Auto-scroll when text updates
   useEffect(() => {
@@ -42,6 +57,38 @@ function StreamingDisplay() {
     if (currentGeneration?.status === 'completed') return 'Completed';
     if (currentGeneration?.status === 'failed') return 'Failed';
     return 'Ready';
+  };
+
+  // Prepare debug data (clean version for display)
+  const debugData = {
+    // Connection info
+    connection: {
+      isConnected,
+      connectionError,
+      lastActivity: lastActivity?.toISOString() || null
+    },
+    
+    // Current generation
+    currentGeneration: currentGeneration ? {
+      ...currentGeneration,
+      // Convert dates to strings for JSON display
+      startedAt: currentGeneration.startedAt || null,
+      completedAt: currentGeneration.completedAt || null
+    } : null,
+    
+    // Text data
+    streaming: {
+      textLength: streamingText?.length || 0,
+      hasText: !!streamingText,
+      isGenerating
+    },
+
+    // All raw state (truncated for readability)
+    rawState: {
+      ...streamingState,
+      streamingText: streamingText ? `${streamingText.substring(0, 100)}...` : null,
+      lastActivity: lastActivity?.toISOString() || null
+    }
   };
 
   return (
@@ -93,6 +140,54 @@ function StreamingDisplay() {
               </div>
             </div>
           )}
+
+          {/* Debug Info Section */}
+          <div className="debug-section">
+            <div 
+              className="debug-header" 
+              onClick={() => setIsDebugExpanded(!isDebugExpanded)}
+            >
+              <span className="debug-title">🐛 Debug Info</span>
+              <Button variant="ghost" size="sm">
+                {isDebugExpanded ? '▼' : '▶'}
+              </Button>
+            </div>
+
+            {isDebugExpanded && (
+              <div className="debug-content">
+                <div className="debug-summary">
+                  <div className="debug-stat">
+                    <span className="debug-label">Connected:</span>
+                    <span className="debug-value">{isConnected ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="debug-stat">
+                    <span className="debug-label">Generating:</span>
+                    <span className="debug-value">{isGenerating ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="debug-stat">
+                    <span className="debug-label">Text Length:</span>
+                    <span className="debug-value">{streamingText?.length || 0}</span>
+                  </div>
+                  {lastActivity && (
+                    <div className="debug-stat">
+                      <span className="debug-label">Last Activity:</span>
+                      <span className="debug-value">{lastActivity.toLocaleTimeString()}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="debug-raw-data">
+                  <div className="debug-subsection">
+                    <h5>Raw Streaming State:</h5>
+                    <pre className="debug-json">
+                      {JSON.stringify(debugData, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       )}
     </div>

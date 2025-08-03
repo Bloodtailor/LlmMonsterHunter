@@ -6,7 +6,7 @@ import requests
 import json
 import time
 import uuid
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable
 from pathlib import Path
 
 class ComfyUIClient:
@@ -187,8 +187,9 @@ class ComfyUIClient:
             return False
     
     def wait_for_completion(self, prompt_id: str, 
-                          timeout: int = 300,
-                          poll_interval: float = 2.0) -> Dict[str, Any]:
+                      timeout: int = 300,
+                      poll_interval: float = 2.0,
+                      callback: Optional[Callable[[Dict[str, Any]], None]] = None) -> Dict[str, Any]:
         """
         Wait for a prompt to complete generation
         
@@ -196,6 +197,7 @@ class ComfyUIClient:
             prompt_id (str): Prompt ID to wait for
             timeout (int): Maximum wait time in seconds
             poll_interval (float): Time between status checks
+            callback (callable): Optional callback to receive ComfyUI queue status updates
             
         Returns:
             dict: Completion status and results
@@ -209,6 +211,13 @@ class ComfyUIClient:
         while time.time() - start_time < timeout:
             # Check if prompt is still in queue
             queue_status = self.get_queue_status()
+            
+            # Send ComfyUI queue status to callback if provided
+            if callback:
+                try:
+                    callback(queue_status)
+                except Exception as e:
+                    print(f"⚠️ Callback error during image generation: {e}")
             
             running = any(item[1] == prompt_id for item in queue_status.get("queue_running", []))
             pending = any(item[1] == prompt_id for item in queue_status.get("queue_pending", []))
@@ -254,7 +263,7 @@ class ComfyUIClient:
         
         # Timeout reached
         raise TimeoutError(f"Generation timed out after {timeout} seconds")
-    
+
     def get_system_stats(self) -> Dict[str, Any]:
         """
         Get ComfyUI system statistics (if available)
