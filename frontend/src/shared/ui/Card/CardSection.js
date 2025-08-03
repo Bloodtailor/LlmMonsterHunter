@@ -3,7 +3,6 @@
 // Typography: Header titles use 'title', Content titles use 'header'
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../constants/constants';
 import { useTypographyScale } from '../../hooks/useTypographyScale';
 import './cardSection.css';
 
@@ -41,19 +40,6 @@ function CardSection({
   
   // Get typography scaling
   const { getTextSize } = useTypographyScale(size, classType);
-  
-  // Development warnings for proper usage
-  if (IS_DEVELOPMENT) {
-    if (type === 'header' && !title) {
-      console.warn('CardSection: Header sections must have a title');
-    }
-    if (type === 'footer' && title) {
-      console.warn('CardSection: Footer sections should not have titles');
-    }
-    if (!children && !title) {
-      console.warn('CardSection: Section should have either content or title');
-    }
-  }
 
   // Determine typography for titles based on section type
   const getTitleTypography = () => {

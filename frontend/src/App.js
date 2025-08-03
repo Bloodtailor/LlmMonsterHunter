@@ -1,5 +1,5 @@
-// Main React application component - UPDATED WITH HOME BASE SCREEN
-// Now includes screen switching between Sanctuary, Home Base, Developer, and Dungeon
+// Main React application component - UPDATED WITH BUTTON GROUP UI COMPONENT
+// Now uses ButtonGroup and Button components from shared UI library
 // Clean navigation with Home Base as the new game preparation hub
 
 import React, { useState, useEffect } from 'react';
@@ -14,21 +14,47 @@ import ExplosionDemo from './screens/ExplosionDemo';
 import StreamingDisplay from './components/streaming/StreamingDisplay.js';
 import StreamingTestScreen from './screens/StreamingTextScreen.js';
 
+// Import NavButtons component from shared UI library
+import NavButtons from './shared/ui/Button/NavButtons.js';
+
 function App() {
-  // Application state
-  const [appStatus, setAppStatus] = useState({
-    backendConnected: false,
-    databaseConnected: false,
-    gameData: null,
-    loading: true,
-    error: null
-  });
 
   // Navigation state - Home Base is the main game screen
-  const [currentScreen, setCurrentScreen] = useState('homebase'); 
+  const [currentScreen, setCurrentScreen] = useState('current-test'); 
   
+  // Navigation button configurations
+  const navigationButtons = [
+    {
+      screen: 'api-services',
+      label: '🧪 API Tests'
+    },
+    {
+      screen: 'streaming',
+      label: '🧪 Streaming Context Test'
+    },
+    {
+      screen: 'cocatok-demo',
+      label: '❄️ CoCaTok Demo'
+    },
+    {
+      screen: 'explosion-demo', 
+      label: '💥 Explosion Demo'
+    },
+    {
+      screen: 'style-test',
+      label: '🧪 Style Test'
+    },
+    {
+      screen: 'current-test',
+      label: '🔬 Current Test'
+    },
+    {
+      screen: 'byo-component',
+      label: '🧱 BYO Component'
+    }
+  ];
 
-  // Main application - backend is connected
+  // Main application
   return (
     <StreamingProvider>
       <PartyProvider>
@@ -37,101 +63,32 @@ function App() {
           {/* App Header with Title Left, Navigation Centered */}
           <header className="app-header">
             <h1>🎮 Monster Hunter Game</h1>
-            <nav className="screen-navigation">
-              
-              <button 
-                className={`nav-button ${currentScreen === 'api-services' ? 'active' : ''}`}
-                onClick={() => setCurrentScreen('api-services')}
-              >
-                🧪 API Tests
-              </button>
+            
+            {/* Navigation using NavButtons component */}
+            <NavButtons 
+              buttons={navigationButtons}
+              activeScreen={currentScreen}
+              onScreenChange={setCurrentScreen}
+              spacing="tight"
+              alignment="left"
+            />
 
-              <button 
-                className={`nav-button ${currentScreen === 'streaming' ? 'active' : ''}`}
-                onClick={() => setCurrentScreen('streaming')}
-              >
-                🧪 Streaming Context Test
-              </button>
-
-              <button 
-                className={`nav-button ${currentScreen === 'cocatok-demo' ? 'active' : ''}`}
-                onClick={() => setCurrentScreen('cocatok-demo')}
-              >
-                ❄️ CoCaTok Demo
-              </button>
-
-              <button 
-                className={`nav-button ${currentScreen === 'explosion-demo' ? 'active' : ''}`}
-                onClick={() => setCurrentScreen('explosion-demo')}
-              >
-                ❄️ Explosion Demo
-              </button>
-
-              <button 
-                className={`nav-button ${currentScreen === 'style-test' ? 'active' : ''}`}
-                onClick={() => setCurrentScreen('style-test')}
-              >
-                🧪 Style Test
-              </button>
-
-              <button 
-                className={`nav-button ${currentScreen === 'current-test' ? 'active' : ''}`}
-                onClick={() => setCurrentScreen('current-test')}
-              >
-                🧪 Current Test
-              </button>
-
-              <button 
-                className={`nav-button ${currentScreen === 'byoc-test' ? 'active' : ''}`}
-                onClick={() => setCurrentScreen('byoc-test')}
-              >
-                🧪 BYOC Test
-              </button>
-
-            </nav>
+            {/* Global Streaming Display */}
+            <StreamingDisplay />
           </header>
 
-          {/* Main Content - Switch between screens */}
+          {/* Main Content Area */}
           <main className="app-main">
-
-            <StreamingDisplay />
-            
-
-            {currentScreen === 'api-services' && (
-              <ApiServicesTestScreen />
-            )}
-
-            {currentScreen === 'streaming' && (
-              <StreamingTestScreen />
-            )}
-
-            
-            {currentScreen === 'cocatok-demo' && (
-              <CoCaTokDemo />
-            )}
-
-            {currentScreen === 'explosion-demo' && (
-              <ExplosionDemo />
-            )}
-
-            {currentScreen === 'style-test' && (
-              <StyleTestScreen />
-            )}
-
-            {currentScreen === 'current-test' && (
-              <MyCurrentTestScreen />
-            )}
-
-            {currentScreen === 'byoc-test' && (
-              <BYOComponentTestScreen />
-            )}
-
+            {currentScreen === 'api-services' && <ApiServicesTestScreen />}
+            {currentScreen === 'streaming' && <StreamingTestScreen />}
+            {currentScreen === 'cocatok-demo' && <CoCaTokDemo />}
+            {currentScreen === 'explosion-demo' && <ExplosionDemo />}
+            {currentScreen === 'style-test' && <StyleTestScreen />}
+            {currentScreen === 'current-test' && <MyCurrentTestScreen />}
+            {currentScreen === 'byo-component' && <BYOComponentTestScreen />}
           </main>
 
-          {/* App Footer */}
-          <footer className="app-footer">
-            <p>Monster Hunter Game - MVP Development Phase</p>
-          </footer>
+          
         </div>
       </PartyProvider>
     </StreamingProvider>

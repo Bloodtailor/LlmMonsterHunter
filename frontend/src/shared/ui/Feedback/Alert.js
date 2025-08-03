@@ -3,7 +3,6 @@
 // Supports closeable alerts, custom icons, and action buttons
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../constants/constants.js';
 import './feedback.css';
 
 /**
@@ -159,16 +158,6 @@ function Alert({
       </div>
     );
   };
-
-  // Development warnings
-  if (IS_DEVELOPMENT) {
-    if (!children && !title) {
-      console.warn('Alert: Alert should have either title or content');
-    }
-    if (closeable && !onClose) {
-      console.warn('Alert: Closeable alert should have onClose handler');
-    }
-  }
 
   return (
     <div

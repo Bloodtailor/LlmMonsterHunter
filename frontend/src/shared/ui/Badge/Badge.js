@@ -3,7 +3,6 @@
 // Provides consistent styling and behavior for small informational elements
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../constants/constants';
 import './badge.css';
 
 /**
@@ -83,16 +82,6 @@ function Badge({
       </button>
     );
   };
-
-  // Development warnings
-  if (IS_DEVELOPMENT) {
-    if (!children) {
-      console.warn('Badge: Badge should have content in children prop');
-    }
-    if (removable && !onRemove) {
-      console.warn('Badge: removable Badge should have onRemove handler');
-    }
-  }
 
   // Determine element type and props
   const elementProps = {

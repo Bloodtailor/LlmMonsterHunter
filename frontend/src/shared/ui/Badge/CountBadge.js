@@ -4,7 +4,6 @@
 
 import React from 'react';
 import Badge from './Badge.js';
-import { IS_DEVELOPMENT } from '../../constants/constants';
 import './badge.css';
 
 /**
@@ -36,16 +35,6 @@ function CountBadge({
   className = '',
   ...rest
 }) {
-  
-  // Validation
-  if (IS_DEVELOPMENT) {
-    if (typeof count !== 'number') {
-      console.warn('CountBadge: count prop should be a number');
-    }
-    if (max !== null && typeof max !== 'number') {
-      console.warn('CountBadge: max prop should be a number or null');
-    }
-  }
 
   // Determine badge variant based on count and thresholds
   const getBadgeVariant = () => {

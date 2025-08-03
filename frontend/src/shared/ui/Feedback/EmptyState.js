@@ -3,7 +3,6 @@
 // Perfect for empty lists, no search results, empty collections
 
 import React from 'react';
-import { IS_DEVELOPMENT } from '../../constants/constants.js';
 import './feedback.css';
 
 /**
@@ -108,16 +107,6 @@ function EmptyState({
       </div>
     );
   };
-
-  // Development warnings
-  if (IS_DEVELOPMENT) {
-    if (!title && !message) {
-      console.warn('EmptyState: Should have either title or message for clarity');
-    }
-    if (!icon && !illustration) {
-      console.warn('EmptyState: Consider adding an icon or illustration for better visual appeal');
-    }
-  }
 
   return (
     <div
