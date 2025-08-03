@@ -1,15 +1,17 @@
-// MyCurrentTestScreen - FOCUSED ARCHITECTURE TEST WITH CARD VIEWER
-// Tests our complete refactored architecture: useMonsterCollection + Full Pagination + MonsterCard + MonsterCardViewer
-// Simple and focused - just pagination with monster cards + beautiful modal viewer
+// MyCurrentTestScreen - FOCUSED ARCHITECTURE TEST WITH MONSTER GENERATION
+// Tests our complete refactored architecture: useMonsterCollection + useMonsterGeneration + Full Pagination + MonsterCard + MonsterCardViewer
+// Added big generate monster button using useMonsterGeneration hook
 
 import React, { useState, useEffect, useCallback } from "react";
 import { usePagination } from "../shared/ui/Pagination/usePagination.js";
-import { useMonsterCollection } from "../app/hooks/useMonsters.js";
+import { useMonsterCollection, useMonsterGeneration } from "../app/hooks/useMonsters.js";
 import FullPagination, { PAGINATION_LAYOUTS } from "../shared/ui/Pagination/PaginationPresets.js";
 import { 
   Select,
   Alert,
   EmptyState,
+  Button,
+  StatusBadge,
   EMPTY_STATE_PRESETS
 } from "../shared/ui/index.js";
 
@@ -35,6 +37,16 @@ function MyCurrentTestScreen() {
     error,
     loadMonsters
   } = useMonsterCollection();
+
+  // Monster generation hook
+  const {
+    generationResult,
+    monster: generatedMonster,
+    isGenerating,
+    isError: isGenerationError,
+    error: generationError,
+    generate
+  } = useMonsterGeneration();
 
   // Pagination hook
   const pagination = usePagination({ 
@@ -65,6 +77,25 @@ function MyCurrentTestScreen() {
     loadMonstersWithPagination();
   }, [loadMonstersWithPagination]);
 
+  // Refresh monster list after successful generation
+  useEffect(() => {
+    if (generationResult?.success && generatedMonster) {
+      console.log('✅ Monster generated successfully, refreshing list...');
+      // Go to first page to see the new monster (newest first)
+      pagination.firstPage();
+      // Reload will happen automatically due to pagination change
+    }
+  }, [generationResult?.success, generatedMonster, pagination.firstPage]);
+
+  // Handle monster generation
+  const handleGenerateMonster = useCallback(async () => {
+    console.log('🎲 Generating new monster...');
+    await generate({
+      prompt_name: 'detailed_monster',
+      generate_card_art: true
+    });
+  }, [generate]);
+
   // Handle limit change (updates pagination)
   const handleLimitChange = useCallback((newLimit) => {
     setLimit(newLimit);
@@ -92,7 +123,65 @@ function MyCurrentTestScreen() {
       {/* Header */}
       <div style={{ marginBottom: '30px', textAlign: 'center' }}>
         <h1>🧪 Monster Collection Architecture Test</h1>
-        <p>Testing: useMonsterCollection + Full-Featured Pagination + Refactored MonsterCard + MonsterCardViewer</p>
+        <p>Testing: useMonsterCollection + useMonsterGeneration + Full-Featured Pagination + Refactored MonsterCard + MonsterCardViewer</p>
+      </div>
+
+      {/* Big Generate Monster Button */}
+      <div style={{ 
+        marginBottom: '40px', 
+        textAlign: 'center',
+        padding: '30px',
+        backgroundColor: '#2a3441ff',
+        borderRadius: '12px',
+        border: '2px solid #40558fff'
+      }}>
+        <h2 style={{ marginBottom: '20px', color: '#e2e8f0' }}>🎲 Generate New Monster</h2>
+        
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={handleGenerateMonster}
+          disabled={isGenerating}
+          style={{
+            fontSize: '18px',
+            padding: '16px 32px',
+            minWidth: '250px'
+          }}
+        >
+          {isGenerating ? (
+            <>
+              <span style={{ marginRight: '10px' }}>🔄</span>
+              Generating Monster...
+            </>
+          ) : (
+            <>
+              <span style={{ marginRight: '10px' }}>✨</span>
+              Generate New Monster
+            </>
+          )}
+        </Button>
+
+        {/* Generation Status */}
+        <div style={{ marginTop: '20px' }}>
+          {isGenerating && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+              <StatusBadge status="warning" size="md" />
+              <span style={{ color: '#e2e8f0' }}>Creating your monster with AI...</span>
+            </div>
+          )}
+
+          {generationResult?.success && generatedMonster && (
+            <Alert type="success" size="md" style={{ maxWidth: '500px', margin: '0 auto' }}>
+              <strong>🎉 Success!</strong> Generated "{generatedMonster.name}" - {generatedMonster.species}
+            </Alert>
+          )}
+
+          {isGenerationError && (
+            <Alert type="error" size="md" style={{ maxWidth: '500px', margin: '0 auto' }}>
+              <strong>❌ Generation Failed:</strong> {generationError?.message || 'Unknown error occurred'}
+            </Alert>
+          )}
+        </div>
       </div>
 
       {/* Controls */}
@@ -219,6 +308,7 @@ function MyCurrentTestScreen() {
             <strong>Clean Architecture Status:</strong>
             <ul>
               <li>✅ useMonsterCollection hook</li>
+              <li>✅ useMonsterGeneration hook</li>
               <li>✅ Clean domain objects</li>
               <li>✅ Full-featured pagination</li>
               <li>✅ MonsterCard with callback pattern</li>
@@ -234,6 +324,8 @@ function MyCurrentTestScreen() {
               <li>Filter: {filter}</li>
               <li>Sort: {sort}</li>
               <li>Card Size: {cardSize}</li>
+              <li>Generating: {isGenerating ? 'Yes' : 'No'}</li>
+              {generatedMonster && <li>Last Generated: {generatedMonster.name}</li>}
             </ul>
           </div>
         </div>

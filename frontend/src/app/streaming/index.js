@@ -1,5 +1,5 @@
 // Streaming Module Exports - Clean imports for streaming domain logic
-// Follows the established pattern from other domain modules
+// UPDATED: Now exports all transformers to match API reference
 
 // ===== EVENT REGISTRY =====
 export { 
@@ -11,12 +11,25 @@ export {
 
 // ===== TRANSFORMERS =====
 export {
+  // Core transformers
   transformGenerationItem,
-  transformQueueStatus,
-  transformGenerationUpdate,
+  
+  // LLM Generation event transformers
+  transformQueueUpdate,
   transformGenerationStarted,
+  transformGenerationUpdate,
   transformGenerationCompleted,
-  transformGenerationFailed
+  transformGenerationFailed,
+  
+  // Image Generation event transformers
+  transformImageGenerationStarted,
+  transformImageGenerationUpdate,
+  transformImageGenerationCompleted,
+  transformImageGenerationFailed,
+  
+  // Connection event transformers
+  transformSseConnected,
+  transformPing
 } from './transformers.js';
 
 // ===== DEFAULT EXPORT =====

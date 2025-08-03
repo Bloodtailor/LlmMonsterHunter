@@ -1,6 +1,6 @@
-/* StreamingDisplay Styles - FIXED VERSION
- * Now uses proper theme.css variables for consistent styling
- * Positioning, layout, auto-scroll, cursor animation with correct theming
+/* StreamingDisplay Styles - ENHANCED VERSION
+ * Updated with expandable sections, queue status, and improved organization
+ * Uses proper theme.css variables for consistent styling
  */
 
 /* ===== MAIN OVERLAY ===== */
@@ -8,7 +8,7 @@
   position: fixed;
   top: var(--spacing-md);
   right: var(--spacing-md);
-  width: 360px;
+  width: 600px;
   max-width: 90vw;
   z-index: 1000;
   
@@ -21,7 +21,7 @@
 }
 
 .streaming-display.minimized {
-  width: 160px;
+  width: 180px;
 }
 
 /* ===== HEADER ===== */
@@ -63,30 +63,78 @@
 .streaming-content {
   padding: var(--spacing-md);
   background: var(--background-medium);
+  max-height: 600px;
+  overflow-y: auto;
 }
 
-.streaming-generation {
+/* ===== SECTIONS ===== */
+.streaming-section {
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+  border-bottom: var(--border-width-thin) solid var(--background-light);
+}
+
+.streaming-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-light);
+  margin: 0 0 var(--spacing-sm) 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== QUEUE STATUS ===== */
+.queue-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.queue-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-dim);
+  font-weight: var(--font-weight-medium);
+}
+
+.stat-value {
+  font-size: var(--font-size-xs);
+  color: var(--text-light);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ===== GENERATION INFO ===== */
+.generation-info {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
 }
 
-.generation-info {
+.generation-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.generation-stat {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: var(--font-size-sm);
-  color: var(--text-light);
 }
 
-.generation-info span:first-child {
-  font-weight: var(--font-weight-medium);
-  color: var(--text-light);
-}
-
-.generation-info span:last-child {
-  color: var(--text-dim);
-  font-size: var(--font-size-xs);
+.generation-output {
+  margin-top: var(--spacing-sm);
 }
 
 /* ===== STREAMING OUTPUT (Auto-scroll) ===== */
@@ -104,6 +152,11 @@
   color: var(--text-light);
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.placeholder-text {
+  color: var(--text-dim);
+  font-style: italic;
 }
 
 /* Custom scrollbar for streaming output */
@@ -125,10 +178,78 @@
   background: var(--accent-color);
 }
 
+/* ===== CONNECTION CONTROLS ===== */
+.connection-controls {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* ===== IMAGE PROGRESS ===== */
+.image-progress {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--background-dark);
+  border: var(--border-width-thin) solid var(--background-light);
+  border-radius: var(--radius-sm);
+}
+
+.progress-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-light);
+  font-family: var(--font-family-mono);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ===== LAST ACTIVITY ===== */
+.last-activity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: var(--border-width-thin) solid var(--background-light);
+  font-size: var(--font-size-xs);
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.activity-label {
+  color: var(--text-dim);
+  font-weight: var(--font-weight-medium);
+}
+
+.activity-time {
+  color: var(--text-light);
+  font-weight: var(--font-weight-normal);
+  font-family: var(--font-family-mono);
+}
+
 /* ===== CURSOR ANIMATION ===== */
 .cursor {
   animation: blink 1s infinite;
   color: var(--primary-color);
   margin-left: 1px;
   font-weight: var(--font-weight-bold);
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 480px) {
+  .streaming-display {
+    width: calc(100vw - var(--spacing-lg));
+    right: var(--spacing-sm);
+    top: var(--spacing-sm);
+  }
+  
+  .streaming-display.minimized {
+    width: 160px;
+  }
 }

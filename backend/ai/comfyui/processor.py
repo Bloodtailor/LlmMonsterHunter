@@ -36,9 +36,6 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
         generation_log.mark_started()
         generation_log.save()
         
-        if callback:
-            callback("Initializing image generation...")
-        
         # Check ComfyUI server availability
         from .client import ComfyUIClient
         from backend.core.config.comfyui_config import get_server_url, get_timeout
@@ -55,9 +52,6 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
                 help='Start ComfyUI with: python main.py --listen'
             )
         
-        if callback:
-            callback("ComfyUI server connected")
-        
         # Load workflow
         from .workflow import get_workflow_manager
         
@@ -69,9 +63,6 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
             generation_log.mark_failed(error_msg)
             generation_log.save()
             return error_response(error_msg, generation_id=generation_id)
-        
-        if callback:
-            callback(f"Loaded workflow: {workflow_name}")
         
         # Build complete positive prompt
         from backend.core.config.comfyui_config import get_base_positive_prompt, get_all_generation_defaults
@@ -95,21 +86,12 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
             seed=random.randint(1, 1000000)
         )
         
-        if callback:
-            callback("Workflow configured")
-        
-        # Queue and wait for generation
-        if callback:
-            callback("Queuing generation...")
-        
         prompt_id = client.queue_prompt(modified_workflow)
-        
-        if callback:
-            callback("Generation in progress...")
         
         result = client.wait_for_completion(
             prompt_id=prompt_id,
-            timeout=config['timeout']
+            timeout=config['timeout'],
+            callback=callback
         )
         
         if not result.get("images"):
@@ -117,9 +99,6 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
             generation_log.mark_failed(error_msg)
             generation_log.save()
             return error_response(error_msg, generation_id=generation_id)
-        
-        if callback:
-            callback("Downloading image...")
         
         # Download and organize image
         image_info = result["images"][0]
@@ -135,9 +114,6 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
         
         image_log.save()
         generation_log.save()
-        
-        if callback:
-            callback("Image generation completed!")
 
         # Clean up ComfyUI memory
         client.unload_models()
