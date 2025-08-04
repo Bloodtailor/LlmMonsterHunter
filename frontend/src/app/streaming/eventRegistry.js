@@ -6,12 +6,11 @@ import {
   transformLlmGenerationUpdate,
   transformLlmGenerationCompleted,
   transformLlmGenerationFailed,
-  transformLlmQueueUpdate,
+  transformAiQueueUpdate,
   transformImageGenerationStarted,
   transformImageGenerationUpdate,
   transformImageGenerationCompleted,
-  transformImageGenerationFailed,
-  transformImageQueueUpdate
+  transformImageGenerationFailed
 } from './transformers.js';
 
 /**
@@ -24,18 +23,16 @@ export const initialStreamingState = {
   llmGenerationUpdate: null,
   llmGenerationCompleted: null,
   llmGenerationFailed: null,
-  llmQueueUpdate: null,
+  AiQueueUpdate: null,
   
   // Image events
   imageGenerationStarted: null,
   imageGenerationUpdate: null,
   imageGenerationCompleted: null,
   imageGenerationFailed: null,
-  imageQueueUpdate: null,
   
   // Connection events
-  connected: null,
-  ping: null,
+  ping: null
 };
 
 /**
@@ -119,13 +116,13 @@ export const streamingEventRegistry = {
     }
   },
 
-  'llm.queue.update': {
-    transform: transformLlmQueueUpdate,
+  'ai.queue.update': {
+    transform: transformAiQueueUpdate,
     updateState: (state, transformed) => {
-      console.log('📥 LLM Queue Update:', transformed.action, 'Queue size:', transformed.queueSize);
+      console.log('📥 AI Queue Update:');
       return {
         ...state,
-        llmQueueUpdate: transformed,
+        AiQueueUpdate: transformed,
         lastActivity: new Date()
       };
     }
@@ -178,18 +175,6 @@ export const streamingEventRegistry = {
         lastActivity: new Date()
       };
     }
-  },
-
-  'image.queue.update': {
-    transform: transformImageQueueUpdate,
-    updateState: (state, transformed) => {
-      console.log('📥 Image Queue Update:', transformed.action, 'Queue size:', transformed.queueSize);
-      return {
-        ...state,
-        imageQueueUpdate: transformed,
-        lastActivity: new Date()
-      };
-    }
   }
 };
 
@@ -198,24 +183,6 @@ export const streamingEventRegistry = {
  */
 export function getSupportedEventTypes() {
   return Object.keys(streamingEventRegistry);
-}
-
-/**
- * Get list of LLM-specific event types
- */
-export function getLlmEventTypes() {
-  return Object.keys(streamingEventRegistry).filter(eventType => 
-    eventType.startsWith('llm.')
-  );
-}
-
-/**
- * Get list of Image-specific event types
- */
-export function getImageEventTypes() {
-  return Object.keys(streamingEventRegistry).filter(eventType => 
-    eventType.startsWith('image.')
-  );
 }
 
 /**
