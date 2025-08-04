@@ -297,8 +297,6 @@ function StreamingContextDiagnostic() {
         </Card>
       ))}
 
-      {JSON.stringify(streamingState, null, 2)}
-
     </div>
   );
 }

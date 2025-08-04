@@ -8,7 +8,7 @@ import threading
 from typing import Dict, Any, Set, Optional
 from queue import Queue, Empty
 import threading
-from ..core.event_bus import get_event_service
+from backend.core.events import get_event_service, get_sse_events
 
 class SSEConnection:
     """
@@ -144,7 +144,6 @@ class SSEService:
 
     def _setup_event_subscriptions(self):
         """Subscribe only to frontend events"""
-        from backend.core.event_registry import get_sse_events
         
         frontend_events = get_sse_events()  # Only gets send_to_frontend=True events
 

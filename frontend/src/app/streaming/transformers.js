@@ -2,6 +2,9 @@
 // Only transforms the exact fields that exist in each event
 // No made-up fields, no shared helpers, just clean transformation
 
+
+import { transformAiQueueItem, transformAiQueueItems, transformImageGenerationResult, transformLlmGenerationResult } from "../transformers/ai";
+
 // ===== LLM EVENT TRANSFORMERS =====
 
 /**
@@ -10,7 +13,7 @@
  */
 export function transformLlmGenerationStarted(eventData) {
   return {
-    item: eventData.item || null,
+    aiQueueItem: transformAiQueueItem(eventData.item),
     generationId: eventData.generation_id || null
   };
 }
@@ -33,9 +36,9 @@ export function transformLlmGenerationUpdate(eventData) {
  */
 export function transformLlmGenerationCompleted(eventData) {
   return {
-    item: eventData.item || null,
+    aiQueueItem: transformAiQueueItem(eventData.item),
     generationId: eventData.generation_id || null,
-    result: eventData.result || null
+    result: transformLlmGenerationResult(eventData.result)
   };
 }
 
@@ -45,21 +48,20 @@ export function transformLlmGenerationCompleted(eventData) {
  */
 export function transformLlmGenerationFailed(eventData) {
   return {
-    item: eventData.item || null,
+    aiQueueItem: transformAiQueueItem(eventData.item),
     generationId: eventData.generation_id || null,
     error: eventData.error || null
   };
 }
 
 /**
- * Transform llm.queue.update event
- * Event data: { action, item, queue_size }
+ * Transform ai.queue.update event
+ * Event data: { trigger, all_items }
  */
-export function transformLlmQueueUpdate(eventData) {
+export function transformAiQueueUpdate(eventData) {
   return {
-    action: eventData.action || null,
-    item: eventData.item || null,
-    queueSize: eventData.queue_size || 0
+    trigger: eventData.trigger || null,
+    allAiQueueItems: transformAiQueueItems(eventData.all_items)
   };
 }
 
@@ -71,7 +73,7 @@ export function transformLlmQueueUpdate(eventData) {
  */
 export function transformImageGenerationStarted(eventData) {
   return {
-    item: eventData.item || null,
+    aiQueueItem: transformAiQueueItem(eventData.item),
     generationId: eventData.generation_id || null
   };
 }
@@ -82,9 +84,9 @@ export function transformImageGenerationStarted(eventData) {
  */
 export function transformImageGenerationUpdate(eventData) {
   return {
-    item: eventData.item || null,
+    aiQueueItem: transformAiQueueItem(eventData.item),
     generationId: eventData.generation_id || null,
-    elapsed_seconds: eventData.elapsed_seconds || null
+    elapsedSeconds: eventData.elapsed_seconds || null
   };
 }
 
@@ -94,9 +96,9 @@ export function transformImageGenerationUpdate(eventData) {
  */
 export function transformImageGenerationCompleted(eventData) {
   return {
-    item: eventData.item || null,
+    aiQueueItem: transformAiQueueItem(eventData.item),
     generationId: eventData.generation_id || null,
-    result: eventData.result || null
+    result: transformImageGenerationResult(eventData.result)
   };
 }
 
@@ -106,20 +108,8 @@ export function transformImageGenerationCompleted(eventData) {
  */
 export function transformImageGenerationFailed(eventData) {
   return {
-    item: eventData.item || null,
+    aiQueueItem: transformAiQueueItem(eventData.item),
     generationId: eventData.generation_id || null,
     error: eventData.error || null
-  };
-}
-
-/**
- * Transform image.queue.update event
- * Event data: { action, item, queue_size }
- */
-export function transformImageQueueUpdate(eventData) {
-  return {
-    action: eventData.action || null,
-    item: eventData.item || null,
-    queueSize: eventData.queue_size || 0
   };
 }

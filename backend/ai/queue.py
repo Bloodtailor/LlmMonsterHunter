@@ -1,6 +1,6 @@
-# AI Generation Queue - UPDATED TO USE EVENT REGISTRY
+# AI Generation Queue - UPDATED WITH UNIFIED QUEUE EVENTS
 # Handles both LLM text generation and ComfyUI image generation
-# Uses normalized generation_log database structure
+# Uses normalized generation_log database structure with unified queue events
 print(f"🔍 Loading {__file__}")
 import threading
 import time
@@ -15,18 +15,17 @@ from backend.ai.llm.processor import process_llm_request
 from backend.ai.llm.core import unload_model
 from backend.ai.comfyui.processor import process_image_request
 
-# Import event emission functions from registry
-from backend.core.event_registry import (
+# Import event emission functions from new events package
+from backend.core.events import (
     emit_llm_generation_started,
     emit_llm_generation_update,
     emit_llm_generation_completed,
     emit_llm_generation_failed,
-    emit_llm_queue_update,
     emit_image_generation_started,
     emit_image_generation_update,
     emit_image_generation_completed,
     emit_image_generation_failed,
-    emit_image_queue_update
+    emit_ai_queue_update
 )
 
 _global_queue = None
@@ -40,9 +39,11 @@ class QueueItemStatus(Enum):
 
 @dataclass
 class QueueItem:
-    """Queue item representing a generation request"""
+    """Queue item representing a generation request - ENHANCED with prompt details"""
     generation_id: int  # References generation_logs.id
     generation_type: str  # 'llm' or 'image'
+    prompt_type: str  # From GenerationLog.prompt_type
+    prompt_name: str  # From GenerationLog.prompt_name
     priority: int
     created_at: datetime
     status: QueueItemStatus
@@ -55,6 +56,8 @@ class QueueItem:
         return {
             'generation_id': self.generation_id,
             'generation_type': self.generation_type,
+            'prompt_type': self.prompt_type,
+            'prompt_name': self.prompt_name,
             'priority': self.priority,
             'created_at': self.created_at.isoformat(),
             'status': self.status.value,
@@ -109,10 +112,12 @@ class AIGenerationQueue:
             if not log_entry:
                 return False
             
-            # Create queue item
+            # Create queue item with enhanced data
             item = QueueItem(
                 generation_id=generation_id,
                 generation_type=log_entry.generation_type,
+                prompt_type=log_entry.prompt_type,
+                prompt_name=log_entry.prompt_name,
                 priority=log_entry.priority,
                 created_at=datetime.utcnow(),
                 status=QueueItemStatus.PENDING
@@ -123,19 +128,8 @@ class AIGenerationQueue:
                 # Priority queue: lower number = higher priority
                 self._queue.put((log_entry.priority, generation_id))
             
-            # Emit queue update event using registry functions
-            if log_entry.generation_type == 'llm':
-                emit_llm_queue_update(
-                    action="added",
-                    item=item.to_dict(),
-                    queue_size=self._queue.qsize()
-                )
-            elif log_entry.generation_type == 'image':
-                emit_image_queue_update(
-                    action="added",
-                    item=item.to_dict(),
-                    queue_size=self._queue.qsize()
-                )
+            # Emit unified queue update event
+            self._emit_queue_update('added')
             
             return True
             
@@ -173,6 +167,17 @@ class AIGenerationQueue:
                 "current_item": self._current_item.to_dict() if self._current_item else None,
                 "worker_running": self._running
             }
+    
+    def _emit_queue_update(self, trigger: str):
+        """Emit unified queue update with only active items (pending or processing)"""
+        with self._lock:
+            # Filter to only active queue items
+            active_items = [
+                item.to_dict() for item in self._items.values() 
+                if item.status in [QueueItemStatus.PENDING, QueueItemStatus.PROCESSING]
+            ]
+        
+        emit_ai_queue_update(all_items=active_items, trigger=trigger)
     
     def _process_item(self, item: QueueItem):
         """Process a queue item by delegating to appropriate processor"""
@@ -226,6 +231,9 @@ class AIGenerationQueue:
                         generation_id=item.generation_id,
                         result=result
                     )
+                
+                # Emit unified queue update
+                self._emit_queue_update('completed')
             else:
                 item.status = QueueItemStatus.FAILED
                 item.error = result.get('error', 'Unknown error')
@@ -243,6 +251,9 @@ class AIGenerationQueue:
                         generation_id=item.generation_id,
                         error=item.error
                     )
+                
+                # Emit unified queue update
+                self._emit_queue_update('failed')
                 
         except Exception as e:
             item.status = QueueItemStatus.FAILED
@@ -262,6 +273,9 @@ class AIGenerationQueue:
                     generation_id=item.generation_id,
                     error=item.error
                 )
+            
+            # Emit unified queue update
+            self._emit_queue_update('failed')
     
     def _process_llm_item(self, item: QueueItem, callback) -> Dict[str, Any]:
         """Process LLM generation using the LLM processor"""
@@ -305,6 +319,9 @@ class AIGenerationQueue:
                         generation_id=generation_id
                     )
                 
+                # Emit unified queue update
+                self._emit_queue_update('started')
+                
                 self._process_item(item)
                 self._current_item = None
                 
@@ -313,6 +330,7 @@ class AIGenerationQueue:
                 if self._current_item:
                     self._current_item.status = QueueItemStatus.FAILED
                     self._current_item.error = str(e)
+                    self._emit_queue_update('failed')
                     self._current_item = None
 
 def get_ai_queue() -> AIGenerationQueue:
