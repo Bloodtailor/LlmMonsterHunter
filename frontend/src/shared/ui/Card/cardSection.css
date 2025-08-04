@@ -103,20 +103,5 @@
 .card-section-content-area {
   color: var(--color-text-primary);
   line-height: var(--line-height-relaxed);
-}
-
-/* ===== RESPONSIVE ADJUSTMENTS ===== */
-
-@media (max-width: 768px) {
-  .card-section-title-container {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-sm);
-  }
-  
-  .card-section-align-right,
-  .card-section-align-center {
-    text-align: left;
-    align-items: flex-start;
-  }
+  width: 100%;
 }

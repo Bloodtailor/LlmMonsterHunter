@@ -1,6 +1,6 @@
-// StreamingDisplay Component - REVERTED TO ORIGINAL + DEBUG SECTION
-// Back to the simple version with added expandable debug info section
-// Shows raw streaming context data for development and debugging
+// StreamingDisplay Component - Conservative approach using only known fields
+// Only uses the exact fields from the EventSchema definitions provided
+// Everything else goes in debug info for discovery
 
 import React, { useState, useRef, useEffect } from 'react';
 import { StatusBadge, Button, Alert } from '../../shared/ui/index.js';
@@ -9,86 +9,79 @@ import './streaming.css';
 
 function StreamingDisplay() {
   
-  // Get raw streaming state from context
+  // Get streaming state from context
   const streamingState = useStreaming();
   
-  // Destructure the core streaming data (same as original)
+  // Destructure the event-based state structure
   const {
     isConnected,
     connectionError,
-    currentGeneration,
-    streamingText,
+    llmGenerationStarted,
+    llmGenerationUpdate,
+    llmGenerationCompleted,
+    llmGenerationFailed,
+    llmQueueUpdate,
+    imageGenerationStarted,
+    imageGenerationUpdate,
+    imageGenerationCompleted,
+    imageGenerationFailed,
+    imageQueueUpdate,
     lastActivity
   } = streamingState;
 
-  // UI state managed locally (moved from provider)
+  // UI state managed locally
   const [isMinimized, setIsMinimized] = useState(false);
   const [isDebugExpanded, setIsDebugExpanded] = useState(false);
   
   // Auto-scroll ref
   const outputRef = useRef(null);
 
-  // Derived state
-  const isGenerating = currentGeneration?.status === 'generating';
+  // Only use fields I know exist for certain
+  const llmGenerationId = llmGenerationStarted?.generationId || null;
+  const streamingText = llmGenerationUpdate?.partialText || '';
+  const tokenCount = llmGenerationUpdate?.tokensSoFar || null;
+  const llmError = llmGenerationFailed?.error || null;
+  const llmQueueSize = llmQueueUpdate?.queueSize || null;
+  
+  const imageGenerationId = imageGenerationStarted?.generationId || null;
+  const imageError = imageGenerationFailed?.error || null;
+  const imageQueueSize = imageQueueUpdate?.queueSize || null;
+
+  // Simple derived state
+  const hasLlmGeneration = !!llmGenerationId;
+  const hasImageGeneration = !!imageGenerationId;
+  const isLlmGenerating = hasLlmGeneration && !llmGenerationCompleted && !llmGenerationFailed;
+  const isImageGenerating = hasImageGeneration && !imageGenerationCompleted && !imageGenerationFailed;
 
   // Auto-expand when generation starts
   useEffect(() => {
-    if (isGenerating) {
+    if (isLlmGenerating || isImageGenerating) {
       setIsMinimized(false);
     }
-  }, [isGenerating]);
+  }, [isLlmGenerating, isImageGenerating]);
 
   // Auto-scroll when text updates
   useEffect(() => {
-    if (outputRef.current && streamingText && isGenerating) {
+    if (outputRef.current && streamingText && isLlmGenerating) {
       const outputElement = outputRef.current;
       outputElement.scrollTop = outputElement.scrollHeight;
     }
-  }, [streamingText, isGenerating]);
+  }, [streamingText, isLlmGenerating]);
 
   // Don't render if no activity
-  if (!isConnected && !currentGeneration && !lastActivity) {
+  if (!isConnected && !hasLlmGeneration && !hasImageGeneration && !lastActivity) {
     return null;
   }
 
   const getStatusText = () => {
     if (!isConnected) return 'Disconnected';
-    if (isGenerating) return 'Generating...';
-    if (currentGeneration?.status === 'completed') return 'Completed';
-    if (currentGeneration?.status === 'failed') return 'Failed';
+    if (isLlmGenerating) return 'Generating LLM...';
+    if (isImageGenerating) return 'Generating Image...';
+    if (llmGenerationCompleted) return 'LLM Completed';
+    if (imageGenerationCompleted) return 'Image Completed';
+    if (llmError) return 'LLM Failed';
+    if (imageError) return 'Image Failed';
     return 'Ready';
-  };
-
-  // Prepare debug data (clean version for display)
-  const debugData = {
-    // Connection info
-    connection: {
-      isConnected,
-      connectionError,
-      lastActivity: lastActivity?.toISOString() || null
-    },
-    
-    // Current generation
-    currentGeneration: currentGeneration ? {
-      ...currentGeneration,
-      // Convert dates to strings for JSON display
-      startedAt: currentGeneration.startedAt || null,
-      completedAt: currentGeneration.completedAt || null
-    } : null,
-    
-    // Text data
-    streaming: {
-      textLength: streamingText?.length || 0,
-      hasText: !!streamingText,
-      isGenerating
-    },
-
-    // All raw state (truncated for readability)
-    rawState: {
-      ...streamingState,
-      streamingText: streamingText ? `${streamingText.substring(0, 100)}...` : null,
-      lastActivity: lastActivity?.toISOString() || null
-    }
   };
 
   return (
@@ -98,6 +91,9 @@ function StreamingDisplay() {
       <div className="streaming-header" onClick={() => setIsMinimized(!isMinimized)}>
         <div className="streaming-status">
           <span>{getStatusText()}</span>
+          {(isLlmGenerating || isImageGenerating) && (
+            <StatusBadge status="processing" size="sm" />
+          )}
         </div>
         
         <Button variant="ghost" size="sm">
@@ -116,13 +112,16 @@ function StreamingDisplay() {
             </Alert>
           )}
 
-          {/* Generation Output */}
-          {currentGeneration && (
+          {/* LLM Generation - Only show what I know for certain */}
+          {hasLlmGeneration && (
             <div className="streaming-generation">
               <div className="generation-info">
-                <span>{currentGeneration.promptType || 'Generation'}</span>
-                {isGenerating && currentGeneration.tokensSoFar && (
-                  <span>{currentGeneration.tokensSoFar} tokens</span>
+                <span>🤖 LLM Generation</span>
+                {llmGenerationId && (
+                  <span className="generation-id">ID: {llmGenerationId}</span>
+                )}
+                {tokenCount && (
+                  <span className="tokens">Tokens: {tokenCount}</span>
                 )}
               </div>
               
@@ -130,24 +129,75 @@ function StreamingDisplay() {
                 {streamingText ? (
                   <div>
                     {streamingText}
-                    {isGenerating && <span className="cursor">|</span>}
+                    {isLlmGenerating && <span className="cursor">|</span>}
                   </div>
-                ) : isGenerating ? (
+                ) : isLlmGenerating ? (
                   <div>Generating...</div>
+                ) : llmGenerationCompleted ? (
+                  <div>✅ Generation completed</div>
+                ) : llmError ? (
+                  <div>❌ Error: {llmError}</div>
                 ) : (
-                  <div>No output</div>
+                  <div>⏳ Started...</div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Debug Info Section */}
+          {/* Image Generation - Only show what I know for certain */}
+          {hasImageGeneration && (
+            <div className="streaming-generation image-generation">
+              <div className="generation-info">
+                <span>🎨 Image Generation</span>
+                {imageGenerationId && (
+                  <span className="generation-id">ID: {imageGenerationId}</span>
+                )}
+              </div>
+              
+              <div className="image-status">
+                {imageGenerationCompleted ? (
+                  <div>✅ Image completed</div>
+                ) : imageError ? (
+                  <div>❌ Error: {imageError}</div>
+                ) : imageGenerationUpdate ? (
+                  <div>🔄 Processing...</div>
+                ) : (
+                  <div>⏳ Starting...</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Queue Status - Only show what I know for certain */}
+          {(llmQueueSize !== null || imageQueueSize !== null) && (
+            <div className="queue-summary">
+              <h4>Queue Status</h4>
+              {llmQueueSize !== null && (
+                <div className="queue-info">
+                  <span>🤖 LLM Queue: {llmQueueSize} items</span>
+                  {llmQueueUpdate?.action && (
+                    <span className="last-action">Last: {llmQueueUpdate.action}</span>
+                  )}
+                </div>
+              )}
+              {imageQueueSize !== null && (
+                <div className="queue-info">
+                  <span>🎨 Image Queue: {imageQueueSize} items</span>
+                  {imageQueueUpdate?.action && (
+                    <span className="last-action">Last: {imageQueueUpdate.action}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Debug Info Section - Everything unknown goes here */}
           <div className="debug-section">
             <div 
               className="debug-header" 
               onClick={() => setIsDebugExpanded(!isDebugExpanded)}
             >
-              <span className="debug-title">🐛 Debug Info</span>
+              <span className="debug-title">🐛 Raw Event Data (for discovery)</span>
               <Button variant="ghost" size="sm">
                 {isDebugExpanded ? '▼' : '▶'}
               </Button>
@@ -155,17 +205,23 @@ function StreamingDisplay() {
 
             {isDebugExpanded && (
               <div className="debug-content">
+                
+                {/* Quick Stats */}
                 <div className="debug-summary">
                   <div className="debug-stat">
                     <span className="debug-label">Connected:</span>
                     <span className="debug-value">{isConnected ? 'Yes' : 'No'}</span>
                   </div>
                   <div className="debug-stat">
-                    <span className="debug-label">Generating:</span>
-                    <span className="debug-value">{isGenerating ? 'Yes' : 'No'}</span>
+                    <span className="debug-label">LLM Generating:</span>
+                    <span className="debug-value">{isLlmGenerating ? 'Yes' : 'No'}</span>
                   </div>
                   <div className="debug-stat">
-                    <span className="debug-label">Text Length:</span>
+                    <span className="debug-label">Image Generating:</span>
+                    <span className="debug-value">{isImageGenerating ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="debug-stat">
+                    <span className="debug-label">Streaming Text Length:</span>
                     <span className="debug-value">{streamingText?.length || 0}</span>
                   </div>
                   {lastActivity && (
@@ -176,14 +232,46 @@ function StreamingDisplay() {
                   )}
                 </div>
 
-                <div className="debug-raw-data">
+                {/* LLM Events Raw Data */}
+                {(llmGenerationStarted || llmGenerationUpdate || llmGenerationCompleted || llmGenerationFailed || llmQueueUpdate) && (
                   <div className="debug-subsection">
-                    <h5>Raw Streaming State:</h5>
+                    <h5>LLM Events (Raw Data):</h5>
                     <pre className="debug-json">
-                      {JSON.stringify(debugData, null, 2)}
+                      {JSON.stringify({
+                        started: llmGenerationStarted,
+                        update: llmGenerationUpdate,
+                        completed: llmGenerationCompleted,
+                        failed: llmGenerationFailed,
+                        queueUpdate: llmQueueUpdate
+                      }, null, 2)}
                     </pre>
                   </div>
+                )}
+
+                {/* Image Events Raw Data */}
+                {(imageGenerationStarted || imageGenerationUpdate || imageGenerationCompleted || imageGenerationFailed || imageQueueUpdate) && (
+                  <div className="debug-subsection">
+                    <h5>Image Events (Raw Data):</h5>
+                    <pre className="debug-json">
+                      {JSON.stringify({
+                        started: imageGenerationStarted,
+                        update: imageGenerationUpdate,
+                        completed: imageGenerationCompleted,
+                        failed: imageGenerationFailed,
+                        queueUpdate: imageQueueUpdate
+                      }, null, 2)}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Complete Raw State */}
+                <div className="debug-subsection">
+                  <h5>Complete Streaming State:</h5>
+                  <pre className="debug-json">
+                    {JSON.stringify(streamingState, null, 2)}
+                  </pre>
                 </div>
+
               </div>
             )}
           </div>

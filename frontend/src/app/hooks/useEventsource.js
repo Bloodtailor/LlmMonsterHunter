@@ -46,6 +46,8 @@ export function useEventSource(url, eventRegistry, options = {}) {
       return;
     }
 
+    console.warn(`Recieved event type: ${eventType}`);
+
     try {
       // Parse raw SSE data
       const rawData = JSON.parse(rawEvent.data);
@@ -115,6 +117,7 @@ export function useEventSource(url, eventRegistry, options = {}) {
 
       // Register all events from registry automatically
       Object.keys(eventRegistry).forEach(eventType => {
+        console.warn('registering event type: ', eventType)
         eventSource.addEventListener(eventType, (rawEvent) => {
           processEvent(eventType, rawEvent);
         });
