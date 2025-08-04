@@ -76,7 +76,7 @@ EVENT_REGISTRY = {
         data_fields={
             'item': 'Complete queue item data (from item.to_dict())',
             'generation_id': 'Database generation ID',
-            'comfyui_queue_status_response': 'The response of the /queue endpoint from the comfyui server (from response.json())'
+            'elapsed_seconds': 'The number of seconds the image has been generating (int)'
         },
         send_to_frontend=True
 
@@ -280,12 +280,12 @@ def emit_image_generation_started(item: Dict[str, Any], generation_id: int) -> b
         generation_id=generation_id
     )
 
-def emit_image_generation_update(item: Dict[str, Any], generation_id: int, comfyui_queue_status_response: Dict[str, Any]) -> bool:
+def emit_image_generation_update(item: Dict[str, Any], generation_id: int, elapsed_seconds: int) -> bool:
     """Emit streaming updates durring image generation"""
     return _emit_from_schema('image.generation.update',
                              item=item,
                              generation_id=generation_id,
-                             comfyui_queue_status_response=comfyui_queue_status_response
+                             elapsed_seconds=elapsed_seconds
     )
 
 def emit_image_generation_completed(item: Dict[str, Any], generation_id: int, result: Dict[str, Any]) -> bool:

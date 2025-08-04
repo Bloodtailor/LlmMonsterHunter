@@ -1,37 +1,33 @@
-// Streaming Module Exports - Clean imports for streaming domain logic
-// UPDATED: Now exports all transformers to match API reference
+// Streaming Module Exports - Clean exports for streaming domain logic
+// Only exports the real transformers that match backend events
 
 // ===== EVENT REGISTRY =====
 export { 
   streamingEventRegistry, 
   initialStreamingState,
   getSupportedEventTypes,
+  getLlmEventTypes,
+  getImageEventTypes,
   validateEventRegistry 
 } from './eventRegistry.js';
 
-// ===== TRANSFORMERS =====
+// ===== LLM EVENT TRANSFORMERS =====
 export {
-  // Core transformers
-  transformGenerationItem,
-  
-  // LLM Generation event transformers
-  transformQueueUpdate,
-  transformGenerationStarted,
-  transformGenerationUpdate,
-  transformGenerationCompleted,
-  transformGenerationFailed,
-  
-  // Image Generation event transformers
+  transformLlmGenerationStarted,
+  transformLlmGenerationUpdate,
+  transformLlmGenerationCompleted,
+  transformLlmGenerationFailed,
+  transformLlmQueueUpdate
+} from './transformers.js';
+
+// ===== IMAGE EVENT TRANSFORMERS =====
+export {
   transformImageGenerationStarted,
   transformImageGenerationUpdate,
   transformImageGenerationCompleted,
   transformImageGenerationFailed,
-  
-  // Connection event transformers
-  transformSseConnected,
-  transformPing
+  transformImageQueueUpdate
 } from './transformers.js';
 
 // ===== DEFAULT EXPORT =====
-// Default to the event registry for easy import
 export { streamingEventRegistry as default } from './eventRegistry.js';

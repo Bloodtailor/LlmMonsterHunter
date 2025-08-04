@@ -1,222 +1,249 @@
-// Streaming Event Registry - Configuration for all SSE events
-// UPDATED TO MATCH BACKEND API REFERENCE EXACTLY
-// Each event defines its transformation and state update logic
+// Streaming Event Registry - Simple state mapping
+// Each event stores its transformed data under its own state variable name
 
 import {
-  transformQueueUpdate,
-  transformGenerationStarted,
-  transformGenerationUpdate,
-  transformGenerationCompleted,
-  transformGenerationFailed,
+  transformLlmGenerationStarted,
+  transformLlmGenerationUpdate,
+  transformLlmGenerationCompleted,
+  transformLlmGenerationFailed,
+  transformLlmQueueUpdate,
   transformImageGenerationStarted,
   transformImageGenerationUpdate,
   transformImageGenerationCompleted,
   transformImageGenerationFailed,
-  transformSseConnected,
-  transformPing
+  transformImageQueueUpdate
 } from './transformers.js';
 
 /**
  * Initial state structure for streaming events
- * This defines what data the streaming system manages
+ * Each event gets its own state variable
  */
 export const initialStreamingState = {
-  currentGeneration: null,
-  streamingText: '',
-  queueStatus: null,
-  imageGeneration: null,
-  imageProgress: '',
-  lastPing: null
+  // LLM events
+  llmGenerationStarted: null,
+  llmGenerationUpdate: null,
+  llmGenerationCompleted: null,
+  llmGenerationFailed: null,
+  llmQueueUpdate: null,
+  
+  // Image events
+  imageGenerationStarted: null,
+  imageGenerationUpdate: null,
+  imageGenerationCompleted: null,
+  imageGenerationFailed: null,
+  imageQueueUpdate: null,
+  
+  // Connection events
+  connected: null,
+  ping: null,
+  
+  // Last activity timestamp
+  lastActivity: null,
+  
+  // Connection status
+  isConnected: false,
+  connectionError: null
 };
 
 /**
  * Registry of all streaming events and their processing logic
- * Each event defines:
- * - transform: function to convert raw data to camelCase
- * - updateState: function to update the streaming state
  */
 export const streamingEventRegistry = {
   
-  /**
-   * SSE connection established
-   */
-  'sse.connected': {
-    transform: transformSseConnected,
+  // ===== CONNECTION EVENTS =====
+  
+  'connected': {
+    transform: (data) => ({
+      message: data.message || 'Connected to streaming'
+    }),
     updateState: (state, transformed) => {
       console.log('✅ SSE Connected:', transformed.message);
-      return state; // No state change needed, just logging
+      return {
+        ...state,
+        connected: transformed,
+        isConnected: true,
+        connectionError: null,
+        lastActivity: new Date()
+      };
     }
   },
 
-  /**
-   * Keep-alive ping events
-   */
   'ping': {
-    transform: transformPing,
+    transform: (data) => ({}),
     updateState: (state, transformed) => ({
       ...state,
-      lastPing: transformed
+      ping: transformed,
+      lastActivity: new Date()
     })
   },
 
-  /**
-   * Queue update events (action, item, queue_size)
-   */
-  'queue_update': {
-    transform: transformQueueUpdate,
-    updateState: (state, transformed) => ({
-      ...state,
-      queueStatus: transformed
-    })
+  // ===== LLM GENERATION EVENTS =====
+
+  'llm.generation.started': {
+    transform: transformLlmGenerationStarted,
+    updateState: (state, transformed) => {
+      console.log('🚀 LLM Generation Started:', transformed.generationId);
+      return {
+        ...state,
+        llmGenerationStarted: transformed,
+        lastActivity: new Date()
+      };
+    }
   },
 
-  /**
-   * LLM Generation started event
-   */
-  'generation_started': {
-    transform: transformGenerationStarted,
-    updateState: (state, transformed) => ({
-      ...state,
-      currentGeneration: transformed,
-      streamingText: '' // Reset streaming text for new generation
-    })
+  'llm.generation.update': {
+    transform: transformLlmGenerationUpdate,
+    updateState: (state, transformed) => {
+      return {
+        ...state,
+        llmGenerationUpdate: transformed,
+        lastActivity: new Date()
+      };
+    }
   },
 
-  /**
-   * LLM Generation update (streaming text)
-   */
-  'generation_update': {
-    transform: transformGenerationUpdate,
-    updateState: (state, transformed) => ({
-      ...state,
-      streamingText: transformed.partialText,
-      currentGeneration: state.currentGeneration ? {
-        ...state.currentGeneration,
-        tokensSoFar: transformed.tokensSoFar,
-        generationId: transformed.generationId
-      } : null
-    })
+  'llm.generation.completed': {
+    transform: transformLlmGenerationCompleted,
+    updateState: (state, transformed) => {
+      console.log('✅ LLM Generation Completed:', transformed.generationId);
+      return {
+        ...state,
+        llmGenerationCompleted: transformed,
+        lastActivity: new Date()
+      };
+    }
   },
 
-  /**
-   * LLM Generation completed event
-   */
-  'generation_completed': {
-    transform: transformGenerationCompleted,
-    updateState: (state, transformed) => ({
-      ...state,
-      currentGeneration: transformed,
-      streamingText: transformed.result?.final_text || state.streamingText
-    })
+  'llm.generation.failed': {
+    transform: transformLlmGenerationFailed,
+    updateState: (state, transformed) => {
+      console.error('❌ LLM Generation Failed:', transformed.error);
+      return {
+        ...state,
+        llmGenerationFailed: transformed,
+        lastActivity: new Date()
+      };
+    }
   },
 
-  /**
-   * LLM Generation failed event
-   */
-  'generation_failed': {
-    transform: transformGenerationFailed,
-    updateState: (state, transformed) => ({
-      ...state,
-      currentGeneration: transformed
-    })
+  'llm.queue.update': {
+    transform: transformLlmQueueUpdate,
+    updateState: (state, transformed) => {
+      console.log('📥 LLM Queue Update:', transformed.action, 'Queue size:', transformed.queueSize);
+      return {
+        ...state,
+        llmQueueUpdate: transformed,
+        lastActivity: new Date()
+      };
+    }
   },
 
-  /**
-   * Image Generation started event
-   */
+  // ===== IMAGE GENERATION EVENTS =====
+
   'image.generation.started': {
     transform: transformImageGenerationStarted,
-    updateState: (state, transformed) => ({
-      ...state,
-      imageGeneration: transformed,
-      imageProgress: 'Starting image generation...'
-    })
+    updateState: (state, transformed) => {
+      console.log('🎨 Image Generation Started:', transformed.generationId);
+      return {
+        ...state,
+        imageGenerationStarted: transformed,
+        lastActivity: new Date()
+      };
+    }
   },
 
-  /**
-   * Image Generation update (progress)
-   */
   'image.generation.update': {
     transform: transformImageGenerationUpdate,
-    updateState: (state, transformed) => ({
-      ...state,
-      imageProgress: transformed.progressMessage,
-      imageGeneration: state.imageGeneration ? {
-        ...state.imageGeneration,
-        generationId: transformed.generationId
-      } : null
-    })
+    updateState: (state, transformed) => {
+      return {
+        ...state,
+        imageGenerationUpdate: transformed,
+        lastActivity: new Date()
+      };
+    }
   },
 
-  /**
-   * Image Generation completed event
-   */
   'image.generation.completed': {
     transform: transformImageGenerationCompleted,
-    updateState: (state, transformed) => ({
-      ...state,
-      imageGeneration: transformed,
-      imageProgress: 'Image generation completed!'
-    })
+    updateState: (state, transformed) => {
+      console.log('✅ Image Generation Completed:', transformed.generationId);
+      return {
+        ...state,
+        imageGenerationCompleted: transformed,
+        lastActivity: new Date()
+      };
+    }
   },
 
-  /**
-   * Image Generation failed event
-   */
   'image.generation.failed': {
     transform: transformImageGenerationFailed,
-    updateState: (state, transformed) => ({
-      ...state,
-      imageGeneration: transformed,
-      imageProgress: `Image generation failed: ${transformed.error}`
-    })
+    updateState: (state, transformed) => {
+      console.error('❌ Image Generation Failed:', transformed.error);
+      return {
+        ...state,
+        imageGenerationFailed: transformed,
+        lastActivity: new Date()
+      };
+    }
+  },
+
+  'image.queue.update': {
+    transform: transformImageQueueUpdate,
+    updateState: (state, transformed) => {
+      console.log('📥 Image Queue Update:', transformed.action, 'Queue size:', transformed.queueSize);
+      return {
+        ...state,
+        imageQueueUpdate: transformed,
+        lastActivity: new Date()
+      };
+    }
   }
 };
 
 /**
- * Get all supported event types
- * @returns {string[]} Array of supported event type names
+ * Get list of all supported event types
  */
 export function getSupportedEventTypes() {
   return Object.keys(streamingEventRegistry);
 }
 
 /**
- * Validate that event registry is properly configured
- * @returns {boolean} True if valid, throws error if invalid
+ * Get list of LLM-specific event types
+ */
+export function getLlmEventTypes() {
+  return Object.keys(streamingEventRegistry).filter(eventType => 
+    eventType.startsWith('llm.')
+  );
+}
+
+/**
+ * Get list of Image-specific event types
+ */
+export function getImageEventTypes() {
+  return Object.keys(streamingEventRegistry).filter(eventType => 
+    eventType.startsWith('image.')
+  );
+}
+
+/**
+ * Validate that all events in registry have required properties
  */
 export function validateEventRegistry() {
-  const requiredEvents = [
-    'sse.connected',
-    'ping', 
-    'queue_update',
-    'generation_started',
-    'generation_update', 
-    'generation_completed',
-    'generation_failed',
-    'image.generation.started',
-    'image.generation.update',
-    'image.generation.completed',
-    'image.generation.failed'
-  ];
-
-  const registeredEvents = getSupportedEventTypes();
-  const missingEvents = requiredEvents.filter(event => !registeredEvents.includes(event));
-
-  if (missingEvents.length > 0) {
-    throw new Error(`Missing required event types in registry: ${missingEvents.join(', ')}`);
-  }
-
-  // Validate each event has required functions
-  for (const [eventType, config] of Object.entries(streamingEventRegistry)) {
-    if (typeof config.transform !== 'function') {
-      throw new Error(`Event '${eventType}' missing transform function`);
+  const errors = [];
+  
+  Object.entries(streamingEventRegistry).forEach(([eventType, config]) => {
+    if (!config.transform || typeof config.transform !== 'function') {
+      errors.push(`Event '${eventType}' missing transform function`);
     }
-    if (typeof config.updateState !== 'function') {
-      throw new Error(`Event '${eventType}' missing updateState function`);
+    if (!config.updateState || typeof config.updateState !== 'function') {
+      errors.push(`Event '${eventType}' missing updateState function`);
     }
+  });
+  
+  if (errors.length > 0) {
+    console.error('Event Registry Validation Errors:', errors);
+    return false;
   }
-
-  console.log('✅ Event registry validation passed');
+  
   return true;
 }

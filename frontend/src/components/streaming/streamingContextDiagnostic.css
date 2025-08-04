@@ -1,0 +1,83 @@
+/* StreamingContextDiagnostic Component Styles */
+/* Minimal CSS - main fix is for CardSection design system issue */
+
+.connection-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.object-property {
+  margin-bottom: 0.5rem;
+}
+
+.object-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.property-count {
+  color: gray;
+}
+
+.nested-object-container {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--background-light);
+  border-radius: 4px;
+  background: var(--background-dark);
+}
+
+.nested-property {
+  margin-bottom: 0.25rem;
+}
+
+.nested-property-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.property-key {
+  color: var(--text-dim);
+  min-width: 100px;
+}
+
+.value-null {
+  color: gray;
+  font-style: italic;
+}
+
+.value-string-long-content {
+  font-size: 12px;
+  max-height: 150px;
+  overflow: auto;
+}
+
+.card-spacing {
+  margin-bottom: 1rem;
+}
+
+.section-spacing {
+  margin-bottom: 2rem;
+}
+
+.raw-json-pre {
+  font-size: 12px;
+  max-height: 460px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+

@@ -215,7 +215,8 @@ class ComfyUIClient:
             # Send ComfyUI queue status to callback if provided
             if callback:
                 try:
-                    callback(queue_status)
+                    seconds_elapsed = int(time.time() - start_time)
+                    callback(seconds_elapsed)
                 except Exception as e:
                     print(f"⚠️ Callback error during image generation: {e}")
             

@@ -147,9 +147,15 @@ class SSEService:
         from backend.core.event_registry import get_sse_events
         
         frontend_events = get_sse_events()  # Only gets send_to_frontend=True events
+
+        print()
+        print("Registering SSE events:")
         
         for event_type in frontend_events:
             self._event_service.subscribe(event_type, self.broadcast_event)
+            print(f"    {event_type}")
+
+        print()
             
     def _convert_to_sse_format(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """

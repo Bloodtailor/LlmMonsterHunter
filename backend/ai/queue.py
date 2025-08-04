@@ -191,7 +191,7 @@ class AIGenerationQueue:
                     emit_image_generation_update(
                         item=item.to_dict(),
                         generation_id=item.generation_id,
-                        comfyui_queue_status_response=streaming_data
+                        elapsed_seconds=streaming_data
                     )
                     pass
             
