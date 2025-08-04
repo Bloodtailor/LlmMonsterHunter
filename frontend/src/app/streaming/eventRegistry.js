@@ -36,13 +36,6 @@ export const initialStreamingState = {
   // Connection events
   connected: null,
   ping: null,
-  
-  // Last activity timestamp
-  lastActivity: null,
-  
-  // Connection status
-  isConnected: false,
-  connectionError: null
 };
 
 /**

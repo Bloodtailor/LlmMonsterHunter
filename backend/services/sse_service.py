@@ -169,20 +169,8 @@ class SSEService:
             dict: SSE-formatted event
         """
         
-        # Map new event types to old frontend format
-        event_type_mapping = {
-            'llm.generation.started': 'generation_started',
-            'llm.generation.update': 'generation_update',
-            'llm.generation.completed': 'generation_completed',
-            'llm.generation.failed': 'generation_failed',
-            'llm.queue.update': 'queue_update'
-        }
-        
-        # Get mapped event type (fallback to original)
-        mapped_type = event_type_mapping.get(event['type'], event['type'])
-        
         return {
-            'event': mapped_type,
+            'event': event['type'],
             'data': event['data'],
             'timestamp': event.get('timestamp', time.time())
         }

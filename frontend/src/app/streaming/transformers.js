@@ -23,7 +23,7 @@ export function transformLlmGenerationUpdate(eventData) {
   return {
     generationId: eventData.generation_id || null,
     partialText: eventData.partial_text || '',
-    tokensSoFar: eventData
+    tokensSoFar: eventData.tokens_so_far  || ''
   };
 }
 
