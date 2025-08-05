@@ -1,9 +1,11 @@
-// StreamingDisplay Component - Conservative approach using only known fields
-// Only uses the exact fields from the EventSchema definitions provided
-// Everything else goes in debug info for discovery
+// StreamingDisplay Component - Clean rewrite with Card and CardSection structure
+// Real-time AI generation monitoring with collapsible sections
+// Uses shared UI components for consistent styling and behavior
 
-import React, { useState, useRef, useEffect } from 'react';
-import { StatusBadge, Button, Alert } from '../../shared/ui/index.js';
+import React, { useState } from 'react';
+import { Badge, Button, Card, CardSection } from '../../shared/ui/index.js';
+import { Table } from '../../shared/ui/Table/index.js';
+import { Scroll } from '../../shared/ui/Scroll/index.js';
 import { useStreaming } from '../../app/contexts/streamingContext/useStreamingContext.js';
 import './streaming.css';
 
@@ -20,263 +22,383 @@ function StreamingDisplay() {
     llmGenerationUpdate,
     llmGenerationCompleted,
     llmGenerationFailed,
-    llmQueueUpdate,
     imageGenerationStarted,
     imageGenerationUpdate,
     imageGenerationCompleted,
     imageGenerationFailed,
-    imageQueueUpdate,
-    lastActivity
+    AiQueueUpdate,
+    lastActivity,
+    activeGeneration,
+    currentActivity
   } = streamingState;
 
-  // UI state managed locally
+  // UI state for collapsible sections and main card
   const [isMinimized, setIsMinimized] = useState(false);
-  const [isDebugExpanded, setIsDebugExpanded] = useState(false);
-  
-  // Auto-scroll ref
-  const outputRef = useRef(null);
+  const [collapsedSections, setCollapsedSections] = useState({
+    activeGeneration: false,
+    queueStatus: false,
+    llmGeneration: false,
+    imageGeneration: false
+  });
 
-  // Only use fields I know exist for certain
-  const llmGenerationId = llmGenerationStarted?.generationId || null;
-  const streamingText = llmGenerationUpdate?.partialText || '';
-  const tokenCount = llmGenerationUpdate?.tokensSoFar || null;
-  const llmError = llmGenerationFailed?.error || null;
-  const llmQueueSize = llmQueueUpdate?.queueSize || null;
-  
-  const imageGenerationId = imageGenerationStarted?.generationId || null;
-  const imageError = imageGenerationFailed?.error || null;
-  const imageQueueSize = imageQueueUpdate?.queueSize || null;
+  // Toggle section collapse
+  const toggleSection = (sectionName) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionName]: !prev[sectionName]
+    }));
+  };
 
-  // Simple derived state
-  const hasLlmGeneration = !!llmGenerationId;
-  const hasImageGeneration = !!imageGenerationId;
-  const isLlmGenerating = hasLlmGeneration && !llmGenerationCompleted && !llmGenerationFailed;
-  const isImageGenerating = hasImageGeneration && !imageGenerationCompleted && !imageGenerationFailed;
+  // Helper functions
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '--';
+    return new Date(timestamp).toLocaleTimeString();
+  };
 
-  // Auto-expand when generation starts
-  useEffect(() => {
-    if (isLlmGenerating || isImageGenerating) {
-      setIsMinimized(false);
+  const formatDuration = (seconds) => {
+    if (!seconds) return '--';
+    return `${seconds.toFixed(2)}s`;
+  };
+
+  // Get status variant for badges
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'generating': 
+      case 'processing': return 'info';
+      case 'failed': return 'error';
+      default: return 'secondary';
     }
-  }, [isLlmGenerating, isImageGenerating]);
-
-  // Auto-scroll when text updates
-  useEffect(() => {
-    if (outputRef.current && streamingText && isLlmGenerating) {
-      const outputElement = outputRef.current;
-      outputElement.scrollTop = outputElement.scrollHeight;
-    }
-  }, [streamingText, isLlmGenerating]);
-
-  // Don't render if no activity
-  if (!isConnected && !hasLlmGeneration && !hasImageGeneration && !lastActivity) {
-    return null;
-  }
-
-  const getStatusText = () => {
-    if (!isConnected) return 'Disconnected';
-    if (isLlmGenerating) return 'Generating LLM...';
-    if (isImageGenerating) return 'Generating Image...';
-    if (llmGenerationCompleted) return 'LLM Completed';
-    if (imageGenerationCompleted) return 'Image Completed';
-    if (llmError) return 'LLM Failed';
-    if (imageError) return 'Image Failed';
-    return 'Ready';
   };
 
   return (
-    <div className={`streaming-display ${isMinimized ? 'minimized' : 'expanded'}`}>
+    <div className="streaming-display">
       
-      {/* Header */}
-      <div className="streaming-header" onClick={() => setIsMinimized(!isMinimized)}>
+      {/* Header - Always visible with activity status */}
+      <div 
+        className="streaming-header"
+        onClick={() => setIsMinimized(!isMinimized)}
+      >
         <div className="streaming-status">
-          <span>{getStatusText()}</span>
-          {(isLlmGenerating || isImageGenerating) && (
-            <StatusBadge status="processing" size="sm" />
+          <span className="streaming-title">🔄 Streaming Monitor</span>
+          
+          {/* Activity Badge */}
+          {currentActivity?.type ? (
+            <Badge variant="info">
+              {`${currentActivity.label}: ${currentActivity.progress}`}
+            </Badge>
+          ) : currentActivity?.label === 'Idle' ? (
+            <Badge variant="secondary">🟢 Idle</Badge>
+          ) : isConnected ? (
+            <Badge variant="success">🟢 Connected</Badge>
+          ) : (
+            <Badge variant="error">🔴 Disconnected</Badge>
           )}
         </div>
         
-        <Button variant="ghost" size="sm">
-          {isMinimized ? '▲' : '▼'}
+        <Button 
+          variant="ghost" 
+          size="sm"
+          aria-label={isMinimized ? 'Expand' : 'Minimize'}
+        >
+          {isMinimized ? '▶' : '▼'}
         </Button>
       </div>
 
-      {/* Content (only when expanded) */}
+      {/* Scrollable Card Content - hidden when minimized */}
       {!isMinimized && (
-        <div className="streaming-content">
-          
-          {/* Error */}
-          {connectionError && (
-            <Alert type="error" size="sm">
-              {connectionError}
-            </Alert>
-          )}
+        <Card 
+          size="md" 
+          variant="elevated"
+          className="streaming-card-content"
+        >
+            
+            {/* 🚀 Active Generation Section */}
+            {activeGeneration.queueItem && (
+              <CardSection 
+                type="content"
+                title="🚀 Active Generation"
+                action={
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => toggleSection('activeGeneration')}
+                  >
+                    {collapsedSections.activeGeneration ? '▶' : '▼'}
+                  </Button>
+                }
+              >
+                {!collapsedSections.activeGeneration && (
+                  <Table
+                    columns={[
+                      { key: 'generationId', header: 'ID', width: '15%' },
+                      { key: 'generationType', header: 'Type', width: '12%' },
+                      { key: 'promptType', header: 'Prompt Type', width: '25%' },
+                      { key: 'promptName', header: 'Prompt Name', width: '33%' },
+                      { key: 'status', header: 'Status', width: '15%',
+                        render: (status) => (
+                          <Badge variant={getStatusVariant(status)}>
+                            {status}
+                          </Badge>
+                        )
+                      }
+                    ]}
+                    data={[{
+                      ...activeGeneration.queueItem,
+                      status: activeGeneration.state
+                    }]}
+                    size="sm"
+                    striped
+                  />
+                )}
+              </CardSection>
+            )}
 
-          {/* LLM Generation - Only show what I know for certain */}
-          {hasLlmGeneration && (
-            <div className="streaming-generation">
-              <div className="generation-info">
-                <span>🤖 LLM Generation</span>
-                {llmGenerationId && (
-                  <span className="generation-id">ID: {llmGenerationId}</span>
-                )}
-                {tokenCount && (
-                  <span className="tokens">Tokens: {tokenCount}</span>
-                )}
-              </div>
-              
-              <div ref={outputRef} className="streaming-output">
-                {streamingText ? (
-                  <div>
-                    {streamingText}
-                    {isLlmGenerating && <span className="cursor">|</span>}
-                  </div>
-                ) : isLlmGenerating ? (
-                  <div>Generating...</div>
-                ) : llmGenerationCompleted ? (
-                  <div>✅ Generation completed</div>
-                ) : llmError ? (
-                  <div>❌ Error: {llmError}</div>
-                ) : (
-                  <div>⏳ Started...</div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Image Generation - Only show what I know for certain */}
-          {hasImageGeneration && (
-            <div className="streaming-generation image-generation">
-              <div className="generation-info">
-                <span>🎨 Image Generation</span>
-                {imageGenerationId && (
-                  <span className="generation-id">ID: {imageGenerationId}</span>
-                )}
-              </div>
-              
-              <div className="image-status">
-                {imageGenerationCompleted ? (
-                  <div>✅ Image completed</div>
-                ) : imageError ? (
-                  <div>❌ Error: {imageError}</div>
-                ) : imageGenerationUpdate ? (
-                  <div>🔄 Processing...</div>
-                ) : (
-                  <div>⏳ Starting...</div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Queue Status - Only show what I know for certain */}
-          {(llmQueueSize !== null || imageQueueSize !== null) && (
-            <div className="queue-summary">
-              <h4>Queue Status</h4>
-              {llmQueueSize !== null && (
-                <div className="queue-info">
-                  <span>🤖 LLM Queue: {llmQueueSize} items</span>
-                  {llmQueueUpdate?.action && (
-                    <span className="last-action">Last: {llmQueueUpdate.action}</span>
-                  )}
-                </div>
-              )}
-              {imageQueueSize !== null && (
-                <div className="queue-info">
-                  <span>🎨 Image Queue: {imageQueueSize} items</span>
-                  {imageQueueUpdate?.action && (
-                    <span className="last-action">Last: {imageQueueUpdate.action}</span>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Debug Info Section - Everything unknown goes here */}
-          <div className="debug-section">
-            <div 
-              className="debug-header" 
-              onClick={() => setIsDebugExpanded(!isDebugExpanded)}
+            {/* 📋 Queue Status Section */}
+            <CardSection 
+              type="content"
+              title={`📋 Queue Status (${AiQueueUpdate?.allAiQueueItems?.length || 0} items)`}
+              action={
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => toggleSection('queueStatus')}
+                >
+                  {collapsedSections.queueStatus ? '▶' : '▼'}
+                </Button>
+              }
             >
-              <span className="debug-title">🐛 Raw Event Data (for discovery)</span>
-              <Button variant="ghost" size="sm">
-                {isDebugExpanded ? '▼' : '▶'}
-              </Button>
-            </div>
-
-            {isDebugExpanded && (
-              <div className="debug-content">
-                
-                {/* Quick Stats */}
-                <div className="debug-summary">
-                  <div className="debug-stat">
-                    <span className="debug-label">Connected:</span>
-                    <span className="debug-value">{isConnected ? 'Yes' : 'No'}</span>
-                  </div>
-                  <div className="debug-stat">
-                    <span className="debug-label">LLM Generating:</span>
-                    <span className="debug-value">{isLlmGenerating ? 'Yes' : 'No'}</span>
-                  </div>
-                  <div className="debug-stat">
-                    <span className="debug-label">Image Generating:</span>
-                    <span className="debug-value">{isImageGenerating ? 'Yes' : 'No'}</span>
-                  </div>
-                  <div className="debug-stat">
-                    <span className="debug-label">Streaming Text Length:</span>
-                    <span className="debug-value">{streamingText?.length || 0}</span>
-                  </div>
-                  {lastActivity && (
-                    <div className="debug-stat">
-                      <span className="debug-label">Last Activity:</span>
-                      <span className="debug-value">{lastActivity.toLocaleTimeString()}</span>
+              {!collapsedSections.queueStatus && (
+                <>
+                  {AiQueueUpdate?.allAiQueueItems?.length > 0 ? (
+                    <Table
+                      columns={[
+                        { key: 'generationId', header: 'ID', width: '12%' },
+                        { key: 'generationType', header: 'Type', width: '10%' },
+                        { key: 'promptType', header: 'Prompt Type', width: '20%' },
+                        { key: 'promptName', header: 'Prompt Name', width: '22%' },
+                        { key: 'priority', header: 'Priority', width: '10%' },
+                        { key: 'createdAt', header: 'Created', width: '14%',
+                          render: (timestamp) => formatTime(timestamp)
+                        },
+                        { key: 'status', header: 'Status', width: '12%',
+                          render: (status) => (
+                            <Badge variant={getStatusVariant(status)}>
+                              {status}
+                            </Badge>
+                          )
+                        }
+                      ]}
+                      data={AiQueueUpdate.allAiQueueItems}
+                      size="sm"
+                      striped
+                      hover
+                    />
+                  ) : (
+                    <div className="empty-queue">
+                      <p>✅ Queue is empty</p>
+                      {AiQueueUpdate?.trigger && (
+                        <p className="queue-trigger">Last trigger: {AiQueueUpdate.trigger}</p>
+                      )}
                     </div>
                   )}
-                </div>
+                </>
+              )}
+            </CardSection>
 
-                {/* LLM Events Raw Data */}
-                {(llmGenerationStarted || llmGenerationUpdate || llmGenerationCompleted || llmGenerationFailed || llmQueueUpdate) && (
-                  <div className="debug-subsection">
-                    <h5>LLM Events (Raw Data):</h5>
-                    <pre className="debug-json">
-                      {JSON.stringify({
-                        started: llmGenerationStarted,
-                        update: llmGenerationUpdate,
-                        completed: llmGenerationCompleted,
-                        failed: llmGenerationFailed,
-                        queueUpdate: llmQueueUpdate
-                      }, null, 2)}
-                    </pre>
-                  </div>
+            {/* 🤖 LLM Generation Section */}
+            {(llmGenerationStarted || llmGenerationUpdate || llmGenerationCompleted || llmGenerationFailed) && (
+              <CardSection 
+                type="content"
+                title="🤖 LLM Generation"
+                action={
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => toggleSection('llmGeneration')}
+                  >
+                    {collapsedSections.llmGeneration ? '▶' : '▼'}
+                  </Button>
+                }
+              >
+                {!collapsedSections.llmGeneration && (
+                  <>
+                    
+                    {/* Streaming Text Display - Primary Focus */}
+                    {(llmGenerationUpdate?.partialText || llmGenerationCompleted?.result?.text) && (
+                      <div className="streaming-text-section">
+                        <h4>📝 Streaming Text</h4>
+                        <Scroll 
+                          maxHeight="200px" 
+                          className="scroll-streaming"
+                        >
+                          {llmGenerationUpdate?.partialText || llmGenerationCompleted?.result?.text}
+                          {llmGenerationUpdate?.partialText && !llmGenerationCompleted && (
+                            <span className="cursor">|</span>
+                          )}
+                        </Scroll>
+                      </div>
+                    )}
+
+                    {/* LLM Completion Results */}
+                    {llmGenerationCompleted && (
+                      <div className="completion-section">
+                        <h4>✅ Generation Completed</h4>
+                        <Table
+                          columns={[
+                            { key: 'generationId', header: 'ID', width: '12%' },
+                            { key: 'promptType', header: 'Prompt Type', width: '20%' },
+                            { key: 'promptName', header: 'Prompt Name', width: '20%' },
+                            { key: 'tokens', header: 'Tokens', width: '8%' },
+                            { key: 'duration', header: 'Duration', width: '10%' },
+                            { key: 'tokensPerSecond', header: 'Tokens/Sec', width: '10%' },
+                            { key: 'attempt', header: 'Attempt', width: '8%' },
+                            { key: 'parsingSuccess', header: 'Parsing', width: '12%',
+                              render: (success) => success ? '✅' : '❌'
+                            }
+                          ]}
+                          data={[{
+                            generationId: llmGenerationCompleted.aiQueueItem?.generationId,
+                            promptType: llmGenerationCompleted.aiQueueItem?.promptType,
+                            promptName: llmGenerationCompleted.aiQueueItem?.promptName,
+                            tokens: llmGenerationCompleted.result?.tokens,
+                            duration: formatDuration(llmGenerationCompleted.result?.duration),
+                            tokensPerSecond: llmGenerationCompleted.result?.tokensPerSecond,
+                            attempt: llmGenerationCompleted.result?.attempt,
+                            parsingSuccess: llmGenerationCompleted.result?.parsingSuccess
+                          }]}
+                          size="sm"
+                          striped
+                        />
+
+                        {/* Generated Game Content */}
+                        {llmGenerationCompleted.result?.parsedData && (
+                          <div className="game-content-section">
+                            <h4>🎮 Generated Game Content</h4>
+                            <Scroll 
+                              maxHeight="150px"
+                              className="scroll-code"
+                            >
+                              {JSON.stringify(llmGenerationCompleted.result.parsedData, null, 2)}
+                            </Scroll>
+                          </div>
+                        )}
+
+                        {/* Parsing Error */}
+                        {llmGenerationCompleted.result?.parsingError && (
+                          <div className="parsing-error">
+                            <h4>⚠️ Parsing Error</h4>
+                            <div className="error-text">
+                              {llmGenerationCompleted.result.parsingError}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* LLM Error */}
+                    {llmGenerationFailed && (
+                      <div className="error-section">
+                        <h4>❌ LLM Generation Failed</h4>
+                        <div className="error-text">
+                          {llmGenerationFailed.error}
+                        </div>
+                      </div>
+                    )}
+                    
+                  </>
                 )}
-
-                {/* Image Events Raw Data */}
-                {(imageGenerationStarted || imageGenerationUpdate || imageGenerationCompleted || imageGenerationFailed || imageQueueUpdate) && (
-                  <div className="debug-subsection">
-                    <h5>Image Events (Raw Data):</h5>
-                    <pre className="debug-json">
-                      {JSON.stringify({
-                        started: imageGenerationStarted,
-                        update: imageGenerationUpdate,
-                        completed: imageGenerationCompleted,
-                        failed: imageGenerationFailed,
-                        queueUpdate: imageQueueUpdate
-                      }, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {/* Complete Raw State */}
-                <div className="debug-subsection">
-                  <h5>Complete Streaming State:</h5>
-                  <pre className="debug-json">
-                    {JSON.stringify(streamingState, null, 2)}
-                  </pre>
-                </div>
-
-              </div>
+              </CardSection>
             )}
-          </div>
 
-        </div>
+            {/* 🎨 Image Generation Section */}
+            {(imageGenerationStarted || imageGenerationUpdate || imageGenerationCompleted || imageGenerationFailed) && (
+              <CardSection 
+                type="content"
+                title="🎨 Image Generation"
+                action={
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => toggleSection('imageGeneration')}
+                  >
+                    {collapsedSections.imageGeneration ? '▶' : '▼'}
+                  </Button>
+                }
+              >
+                {!collapsedSections.imageGeneration && (
+                  <>
+                    
+                    {/* Image Generation Progress */}
+                    {imageGenerationUpdate && !imageGenerationCompleted && (
+                      <div className="image-progress">
+                        <p>🔄 Processing... ({imageGenerationUpdate.elapsedSeconds}s elapsed)</p>
+                      </div>
+                    )}
+
+                    {/* Image Completion Results */}
+                    {imageGenerationCompleted && (
+                      <div className="completion-section">
+                        <h4>✅ Image Generated</h4>
+                        <Table
+                          columns={[
+                            { key: 'generationId', header: 'ID', width: '15%' },
+                            { key: 'promptType', header: 'Prompt Type', width: '25%' },
+                            { key: 'promptName', header: 'Prompt Name', width: '25%' },
+                            { key: 'imagePath', header: 'Image Path', width: '20%' },
+                            { key: 'executionTime', header: 'Execution Time', width: '15%' }
+                          ]}
+                          data={[{
+                            generationId: imageGenerationCompleted.aiQueueItem?.generationId,
+                            promptType: imageGenerationCompleted.aiQueueItem?.promptType,
+                            promptName: imageGenerationCompleted.aiQueueItem?.promptName,
+                            imagePath: imageGenerationCompleted.result?.imagePath,
+                            executionTime: formatDuration(imageGenerationCompleted.result?.executionTime)
+                          }]}
+                          size="sm"
+                          striped
+                        />
+
+                        {/* Generated Image Display */}
+                        {imageGenerationCompleted.result?.imagePath && (
+                          <div className="image-display">
+                            <h4>🖼️ Generated Image</h4>
+                            <div className="image-container">
+                              <img 
+                                src={`http://localhost:5000/api/monsters/card-art/${imageGenerationCompleted.result.imagePath}`}
+                                alt="Generated monster card art"
+                                className="generated-image"
+                                onError={(e) => {
+                                  console.error('Failed to load image:', e.target.src);
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                              <div className="image-meta">
+                                <p><strong>Dimensions:</strong> {imageGenerationCompleted.result?.imageDimensions}</p>
+                                <p><strong>Workflow:</strong> {imageGenerationCompleted.result?.workflowUsed}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Image Error */}
+                    {imageGenerationFailed && (
+                      <div className="error-section">
+                        <h4>❌ Image Generation Failed</h4>
+                        <div className="error-text">
+                          {imageGenerationFailed.error}
+                        </div>
+                      </div>
+                    )}
+                    
+                  </>
+                )}
+              </CardSection>
+            )}
+
+        </Card>
       )}
     </div>
   );
