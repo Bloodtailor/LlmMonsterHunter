@@ -1,0 +1,160 @@
+/* Scroll Components - Custom scrollable containers with clean styling
+ * Perfect for streaming content, lists, and constrained text areas
+ * Features custom scrollbars and natural scroll behavior
+ */
+
+/* ===== BASE SCROLL CONTAINER ===== */
+
+.scroll-container {
+  position: relative;
+  border-radius: var(--radius-sm);
+  background: var(--background-dark);
+  border: var(--border-width-thin) solid var(--background-light);
+}
+
+.scroll-content {
+  width: 100%;
+  height: 100%;
+  padding: var(--spacing-sm);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--text-light);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* ===== SCROLL DIRECTIONS ===== */
+
+.scroll-vertical {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.scroll-horizontal {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.scroll-both {
+  overflow: auto;
+}
+
+/* ===== SCROLL SIZES ===== */
+
+.scroll-sm {
+  font-size: var(--font-size-xs);
+}
+
+.scroll-sm .scroll-content {
+  padding: var(--spacing-xs);
+}
+
+.scroll-md {
+  font-size: var(--font-size-sm);
+}
+
+.scroll-md .scroll-content {
+  padding: var(--spacing-sm);
+}
+
+.scroll-lg {
+  font-size: var(--font-size-base);
+}
+
+.scroll-lg .scroll-content {
+  padding: var(--spacing-md);
+}
+
+/* ===== CUSTOM SCROLLBARS ===== */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.scroll-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: var(--background-medium);
+  border-radius: var(--radius-sm);
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: var(--background-light);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+
+.scroll-container::-webkit-scrollbar-corner {
+  background: var(--background-medium);
+}
+
+/* Small scrollbars */
+.scroll-sm::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Large scrollbars */
+.scroll-lg::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Firefox scrollbars */
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--background-light) var(--background-medium);
+}
+
+/* ===== SPECIAL CONTENT TYPES ===== */
+
+/* Streaming text content */
+.scroll-streaming {
+  background: var(--background-dark);
+}
+
+.scroll-streaming .scroll-content {
+  font-family: var(--font-family-mono);
+  color: var(--text-light);
+}
+
+/* Code/JSON content */
+.scroll-code {
+  background: var(--background-dark);
+}
+
+.scroll-code .scroll-content {
+  font-family: var(--font-family-mono);
+  color: var(--text-light);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* List content */
+.scroll-list .scroll-content {
+  padding: 0;
+}
+
+/* ===== EMPTY STATE ===== */
+
+.scroll-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  color: var(--text-dim);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ===== FOCUS STATES ===== */
+
+.scroll-container:focus-within {
+  outline: var(--border-width-thin) solid var(--primary-color);
+  outline-offset: 1px;
+}
