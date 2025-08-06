@@ -9,4 +9,4 @@ import { API_ENDPOINTS } from '../core/config.js';
  * SSE endpoint URL for real-time streaming events
  * Use with EventSource, not fetch/axios
  */
-export const STREAMING_EVENTS_URL = `http://localhost:5000${API_ENDPOINTS.STREAMING_EVENTS}`;
+export const EVENTS_URL = `http://localhost:5000${API_ENDPOINTS.STREAMING_EVENTS}`;

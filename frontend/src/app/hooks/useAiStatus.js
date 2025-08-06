@@ -3,7 +3,7 @@
 // Uses explicit status tracking and clean event destructuring
 
 import { useState, useEffect, useMemo } from 'react';
-import { useStreaming } from '../contexts/streamingContext/useStreamingContext';
+import { useEventContext } from '../contexts/EventContext';
 
 /**
  * Comprehensive hook for all AI status information
@@ -25,7 +25,7 @@ export function useAiStatus() {
     eventImageGenerationFailed,
     eventAiQueueUpdate,
     lastActivity
-  } = useStreaming();
+  } = useEventContext();
   
   // Helper state for tracking current streaming (resets on new generation)
   const [streamingText, setStreamingText] = useState({

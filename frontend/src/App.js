@@ -7,12 +7,12 @@ import ApiServicesTestScreen from './screens/ApiServicesTestScreen';
 import StyleTestScreen from './screens/StyleTestScreen';
 import MonsterSanctuaryScreen from './screens/MonsterSanctuaryScreen.js';
 import { PartyProvider } from './app/contexts/PartyContext';
-import { StreamingProvider } from './app/contexts/streamingContext';
+import { EventProvider } from './app/contexts/EventContext'
 import BYOComponentTestScreen from './screens/BYOComponentTestScreen';
 import CoCaTokDemo from './screens/CoCaTokDemo';
 import ExplosionDemo from './screens/ExplosionDemo';
 import StreamingDisplay from './components/streaming/StreamingDisplay.js';
-import StreamingTestScreen from './screens/StreamingTextScreen.js';
+import EventTestScreen from './screens/EventTestScreen.js';
 
 // Import NavButtons component from shared UI library
 import NavButtons from './shared/ui/Button/NavButtons.js';
@@ -29,8 +29,8 @@ function App() {
       label: '🧪 API Tests'
     },
     {
-      screen: 'streaming',
-      label: '🧪 Streaming Context Test'
+      screen: 'event-test',
+      label: '🧪 Event Context Test'
     },
     {
       screen: 'cocatok-demo',
@@ -56,7 +56,7 @@ function App() {
 
   // Main application
   return (
-    <StreamingProvider>
+    <EventProvider>
       <PartyProvider>
         <div className="App">
           
@@ -80,7 +80,7 @@ function App() {
           {/* Main Content Area */}
           <main className="app-main">
             {currentScreen === 'api-services' && <ApiServicesTestScreen />}
-            {currentScreen === 'streaming' && <StreamingTestScreen />}
+            {currentScreen === 'event-test' && <EventTestScreen />}
             {currentScreen === 'cocatok-demo' && <CoCaTokDemo />}
             {currentScreen === 'explosion-demo' && <ExplosionDemo />}
             {currentScreen === 'style-test' && <StyleTestScreen />}
@@ -93,7 +93,7 @@ function App() {
           
         </div>
       </PartyProvider>
-    </StreamingProvider>
+    </EventProvider>
   );
 }
 

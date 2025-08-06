@@ -3,7 +3,7 @@
 // No made-up fields, no shared helpers, just clean transformation
 
 
-import { transformAiQueueItem, transformAiQueueItems, transformImageGenerationResult, transformLlmGenerationResult } from "../transformers/ai";
+import { transformAiQueueItem, transformAiQueueItems, transformImageGenerationResult, transformLlmGenerationResult } from "../../transformers/ai";
 
 // ===== LLM EVENT TRANSFORMERS =====
 

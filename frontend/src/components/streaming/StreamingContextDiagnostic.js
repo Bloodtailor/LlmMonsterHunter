@@ -4,13 +4,13 @@
 
 import React, { useState } from 'react';
 import { Button, StatusBadge, Alert, Card, CardSection } from '../../shared/ui/index.js';
-import { useStreaming } from '../../app/contexts/streamingContext/useStreamingContext.js';
+import { useEventContext } from '../../app/contexts/EventContext/useEventContext.js';
 import './streamingContextDiagnostic.css';
 
 function StreamingContextDiagnostic() {
   
   // Get all streaming data from context
-  const streamingState = useStreaming();
+  const streamingState = useEventContext();
   
   // Connection controls
   const { connect, disconnect } = streamingState;
