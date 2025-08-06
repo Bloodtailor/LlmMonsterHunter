@@ -1,5 +1,6 @@
 // Streaming Event Registry - Simple state mapping
 // Each event stores its transformed data under its own state variable name
+// Updated with "event" prefix for clarity
 
 import {
   transformLlmGenerationStarted,
@@ -15,24 +16,24 @@ import {
 
 /**
  * Initial state structure for streaming events
- * Each event gets its own state variable
+ * Each event gets its own state variable with "event" prefix
  */
 export const initialStreamingState = {
   // LLM events
-  llmGenerationStarted: null,
-  llmGenerationUpdate: null,
-  llmGenerationCompleted: null,
-  llmGenerationFailed: null,
-  AiQueueUpdate: null,
+  eventLlmGenerationStarted: null,
+  eventLlmGenerationUpdate: null,
+  eventLlmGenerationCompleted: null,
+  eventLlmGenerationFailed: null,
+  eventAiQueueUpdate: null,
   
   // Image events
-  imageGenerationStarted: null,
-  imageGenerationUpdate: null,
-  imageGenerationCompleted: null,
-  imageGenerationFailed: null,
+  eventImageGenerationStarted: null,
+  eventImageGenerationUpdate: null,
+  eventImageGenerationCompleted: null,
+  eventImageGenerationFailed: null,
   
   // Connection events
-  ping: null
+  eventPing: null
 };
 
 /**
@@ -62,7 +63,7 @@ export const streamingEventRegistry = {
     transform: (data) => ({}),
     updateState: (state, transformed) => ({
       ...state,
-      ping: transformed,
+      eventPing: transformed,
       lastActivity: new Date()
     })
   },
@@ -75,7 +76,7 @@ export const streamingEventRegistry = {
       console.log('🚀 LLM Generation Started:', transformed.generationId);
       return {
         ...state,
-        llmGenerationStarted: transformed,
+        eventLlmGenerationStarted: transformed,
         lastActivity: new Date()
       };
     }
@@ -86,7 +87,7 @@ export const streamingEventRegistry = {
     updateState: (state, transformed) => {
       return {
         ...state,
-        llmGenerationUpdate: transformed,
+        eventLlmGenerationUpdate: transformed,
         lastActivity: new Date()
       };
     }
@@ -98,7 +99,7 @@ export const streamingEventRegistry = {
       console.log('✅ LLM Generation Completed:', transformed.generationId);
       return {
         ...state,
-        llmGenerationCompleted: transformed,
+        eventLlmGenerationCompleted: transformed,
         lastActivity: new Date()
       };
     }
@@ -110,19 +111,21 @@ export const streamingEventRegistry = {
       console.error('❌ LLM Generation Failed:', transformed.error);
       return {
         ...state,
-        llmGenerationFailed: transformed,
+        eventLlmGenerationFailed: transformed,
         lastActivity: new Date()
       };
     }
   },
 
+  // ===== AI QUEUE EVENTS =====
+
   'ai.queue.update': {
     transform: transformAiQueueUpdate,
     updateState: (state, transformed) => {
-      console.log('📥 AI Queue Update:');
+      console.log('📋 AI Queue Update:', transformed.trigger);
       return {
         ...state,
-        AiQueueUpdate: transformed,
+        eventAiQueueUpdate: transformed,
         lastActivity: new Date()
       };
     }
@@ -133,10 +136,10 @@ export const streamingEventRegistry = {
   'image.generation.started': {
     transform: transformImageGenerationStarted,
     updateState: (state, transformed) => {
-      console.log('🎨 Image Generation Started:', transformed.generationId);
+      console.log('🖼️ Image Generation Started:', transformed.generationId);
       return {
         ...state,
-        imageGenerationStarted: transformed,
+        eventImageGenerationStarted: transformed,
         lastActivity: new Date()
       };
     }
@@ -147,7 +150,7 @@ export const streamingEventRegistry = {
     updateState: (state, transformed) => {
       return {
         ...state,
-        imageGenerationUpdate: transformed,
+        eventImageGenerationUpdate: transformed,
         lastActivity: new Date()
       };
     }
@@ -159,7 +162,7 @@ export const streamingEventRegistry = {
       console.log('✅ Image Generation Completed:', transformed.generationId);
       return {
         ...state,
-        imageGenerationCompleted: transformed,
+        eventImageGenerationCompleted: transformed,
         lastActivity: new Date()
       };
     }
@@ -171,7 +174,7 @@ export const streamingEventRegistry = {
       console.error('❌ Image Generation Failed:', transformed.error);
       return {
         ...state,
-        imageGenerationFailed: transformed,
+        eventImageGenerationFailed: transformed,
         lastActivity: new Date()
       };
     }
