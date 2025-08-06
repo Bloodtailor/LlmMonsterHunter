@@ -18,7 +18,7 @@ import {
  * Initial state structure for streaming events
  * Each event gets its own state variable with "event" prefix
  */
-export const initialStreamingState = {
+export const initialEventState = {
   // LLM events
   eventLlmGenerationStarted: null,
   eventLlmGenerationUpdate: null,
@@ -39,7 +39,7 @@ export const initialStreamingState = {
 /**
  * Registry of all streaming events and their processing logic
  */
-export const streamingEventRegistry = {
+export const EventRegistry = {
   
   // ===== CONNECTION EVENTS =====
   
@@ -185,7 +185,7 @@ export const streamingEventRegistry = {
  * Get list of all supported event types
  */
 export function getSupportedEventTypes() {
-  return Object.keys(streamingEventRegistry);
+  return Object.keys(EventRegistry);
 }
 
 /**
@@ -194,7 +194,7 @@ export function getSupportedEventTypes() {
 export function validateEventRegistry() {
   const errors = [];
   
-  Object.entries(streamingEventRegistry).forEach(([eventType, config]) => {
+  Object.entries(EventRegistry).forEach(([eventType, config]) => {
     if (!config.transform || typeof config.transform !== 'function') {
       errors.push(`Event '${eventType}' missing transform function`);
     }

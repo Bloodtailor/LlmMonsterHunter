@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { Badge, Button, Card, CardSection, Alert, Scroll, Table } from '../../shared/ui/index.js';
-import { useStreaming } from '../../app/contexts/streamingContext/useStreamingContext.js';
+import { useEventContext } from '../../app/contexts/EventContext/useEventContext.js';
 import { useAiStatus } from '../../app/hooks/useAiStatus.js';
 import { formatTime, formatDuration } from '../../shared/utils/time.js';
 import './streaming.css';
@@ -12,7 +12,7 @@ import './streaming.css';
 function StreamingDisplay() {
   
   // Get simple connection state from streaming context
-  const { isConnected, connect, disconnect, lastActivity } = useStreaming();
+  const { isConnected, connect, disconnect, lastActivity } = useEventContext();
   
   // Get all computed AI status from the hook
   const { currentActivity, queueStatus, llmStatus, imageStatus } = useAiStatus();

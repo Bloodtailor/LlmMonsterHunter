@@ -7,7 +7,7 @@ import { Button, Alert, StatusBadge, Card, CardSection} from '../shared/ui/index
 import { useMonsterGeneration } from '../app/hooks/useMonsters.js';
 import StreamingContextDiagnostic from '../components/streaming/StreamingContextDiagnostic.js';
 
-function StreamingTextScreen() {
+function EventTestScreen() {
   
   // Monster generation hook for testing streaming
   const {
@@ -32,8 +32,8 @@ function StreamingTextScreen() {
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       
       {/* Header */}
-      <h1>🧪 Streaming Context Test</h1>
-      <p>Test streaming context state display</p>
+      <h1>🧪 Event Context Test</h1>
+      <p>Test Event context state display</p>
 
       {/* Monster Generation Section */}
       <div>
@@ -113,4 +113,4 @@ function StreamingTextScreen() {
   );
 }
 
-export default StreamingTextScreen;
+export default EventTestScreen;

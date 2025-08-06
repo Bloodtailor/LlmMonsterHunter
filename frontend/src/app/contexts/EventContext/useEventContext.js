@@ -3,7 +3,7 @@
 // Different from app/hooks/useStreaming.js which is the domain hook
 
 import { useContext } from 'react';
-import { StreamingContext } from './StreamingContext.js';
+import { EventContext } from './EventContext.js';
 
 /**
  * Hook to access global streaming state from any component
@@ -11,13 +11,13 @@ import { StreamingContext } from './StreamingContext.js';
  * 
  * @returns {object} Streaming state and controls
  */
-export function useStreaming() {
-  const context = useContext(StreamingContext);
+export function useEventContext() {
+  const context = useContext(EventContext);
   
   if (context === null) {
     throw new Error(
-      'useStreaming must be used within a StreamingProvider. ' +
-      'Make sure your component is wrapped with <StreamingProvider>.'
+      'useEventContext must be used within a EventProvider. ' +
+      'Make sure your component is wrapped with <EventProvider>.'
     );
   }
   
