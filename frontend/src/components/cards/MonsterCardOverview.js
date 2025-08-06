@@ -134,7 +134,7 @@ function MonsterCardOverview({
               <div className="monster-card-expand-button">
                 <IconButton
                   icon="🔍"
-                  variant="secondary"
+                  variant="primary"
                   size={getButtonSize()}
                   onClick={handleExpandCard}
                   ariaLabel="View full-size monster card"
@@ -169,6 +169,7 @@ function MonsterCardOverview({
             <CountBadge
               count={monster.abilityCount}
               label="abilities"
+              variant="secondary"
               icon="⚡"
               size={getBadgeSize()}
               className="abilities-count-badge"
@@ -183,7 +184,7 @@ function MonsterCardOverview({
                   .map((ability, index) => (
                     <Badge 
                       key={index} 
-                      variant="secondary" 
+                      variant="primary" 
                       size={getBadgeSize()}
                       className="ability-preview-chip"
                     >
