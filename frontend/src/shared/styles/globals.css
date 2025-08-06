@@ -56,3 +56,27 @@ body {
   color: var(--text-dim);
   margin-top: auto;
 }
+
+/* Thin scroll bar applies to all elements in the app*/
+.App ::-webkit-scrollbar {
+  width: 8px;
+}
+
+/*fat scroll bar only applies to app screen*/
+::-webkit-scrollbar {
+  width: 12px; 
+}
+
+/* Universal scroll bar applies to all*/
+::-webkit-scrollbar-track {
+  background: var(--background-medium);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--background-light);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}

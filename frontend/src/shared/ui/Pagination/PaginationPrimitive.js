@@ -61,7 +61,7 @@ function Pagination({
     return (
       <Button
         key={itemKey}
-        variant={isCurrentPage ? 'primary' : 'secondary'}
+        variant={isCurrentPage ? 'ghost' : 'primary'}
         size="sm"
         onClick={() => pagination.goToPage(page)}
         disabled={isCurrentPage}
@@ -81,7 +81,7 @@ function Pagination({
         {showFirstLast && (
           <IconButton
             icon="⏮️"
-            variant="secondary"
+            variant="primary"
             size="sm"
             onClick={pagination.firstPage}
             disabled={isFirstPage}
@@ -94,7 +94,7 @@ function Pagination({
         {showPrevNext && (
           <IconButton
             icon="⬅️"
-            variant="secondary"
+            variant="primary"
             size="sm"
             onClick={pagination.prevPage}
             disabled={!hasPrev}
@@ -112,7 +112,7 @@ function Pagination({
         {showPrevNext && (
           <IconButton
             icon="➡️"
-            variant="secondary"
+            variant="primary"
             size="sm"
             onClick={pagination.nextPage}
             disabled={!hasNext}
@@ -125,7 +125,7 @@ function Pagination({
         {showFirstLast && (
           <IconButton
             icon="⏭️"
-            variant="secondary"
+            variant="primary"
             size="sm"
             onClick={pagination.lastPage}
             disabled={isLastPage}

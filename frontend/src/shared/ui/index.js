@@ -74,3 +74,18 @@ export {
   PageJumper,
   ItemsPerPageSelector
 } from './Pagination/index.js';
+
+// ===== Table COMPONENTS =====
+export {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeaderCell,
+  TableCell,
+  TABLE_SIZES
+} from './Table/index.js';
+
+export { 
+  Scroll 
+} from './Scroll/index.js'

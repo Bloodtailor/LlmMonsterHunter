@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import ApiServicesTestScreen from './screens/ApiServicesTestScreen';
 import StyleTestScreen from './screens/StyleTestScreen';
-import MyCurrentTestScreen from './screens/MyCurrentTestScreen';
+import MonsterSanctuaryScreen from './screens/MonsterSanctuaryScreen.js';
 import { PartyProvider } from './app/contexts/PartyContext';
 import { StreamingProvider } from './app/contexts/streamingContext';
 import BYOComponentTestScreen from './screens/BYOComponentTestScreen';
@@ -20,7 +20,7 @@ import NavButtons from './shared/ui/Button/NavButtons.js';
 function App() {
 
   // Navigation state - Home Base is the main game screen
-  const [currentScreen, setCurrentScreen] = useState('current-test'); 
+  const [currentScreen, setCurrentScreen] = useState('sanctuary'); 
   
   // Navigation button configurations
   const navigationButtons = [
@@ -45,8 +45,8 @@ function App() {
       label: '🧪 Style Test'
     },
     {
-      screen: 'current-test',
-      label: '🔬 Current Test'
+      screen: 'sanctuary',
+      label: '🏛️ Monster Sanctuary'
     },
     {
       screen: 'byo-component',
@@ -84,9 +84,11 @@ function App() {
             {currentScreen === 'cocatok-demo' && <CoCaTokDemo />}
             {currentScreen === 'explosion-demo' && <ExplosionDemo />}
             {currentScreen === 'style-test' && <StyleTestScreen />}
-            {currentScreen === 'current-test' && <MyCurrentTestScreen />}
+            {currentScreen === 'sanctuary' && <MonsterSanctuaryScreen />}
             {currentScreen === 'byo-component' && <BYOComponentTestScreen />}
           </main>
+
+          <footer className='app-footer'>LLM Monster Hunter</footer>
 
           
         </div>

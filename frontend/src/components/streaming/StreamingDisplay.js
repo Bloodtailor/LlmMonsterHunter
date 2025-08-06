@@ -3,9 +3,7 @@
 // Header + single scrollable Card with multiple CardSections
 
 import React, { useState } from 'react';
-import { Badge, Button, CardSection, Alert } from '../../shared/ui/index.js';
-import { Table } from '../../shared/ui/Table/index.js';
-import { Scroll } from '../../shared/ui/Scroll/index.js';
+import { Badge, Button, Card, CardSection, Alert, Scroll, Table } from '../../shared/ui/index.js';
 import { useStreaming } from '../../app/contexts/streamingContext/useStreamingContext.js';
 import { useAiStatus } from '../../app/hooks/useAiStatus.js';
 import { formatTime, formatDuration } from '../../shared/utils/time.js';
@@ -61,7 +59,7 @@ function StreamingDisplay() {
 
       {/* Main content - ONE CARD with scrollable content and multiple sections */}
       {!isMinimized && (
-        <Scroll maxHeight="500px">
+        <Card> 
           {/* Connection Controls Section */}
           <div className="connection-controls">
             <Badge variant={isConnected ? 'success' : 'error'} />
@@ -190,7 +188,7 @@ function StreamingDisplay() {
             )}
           </CardSection>
           <CardSection type='footer'></CardSection>
-        </Scroll>
+        </Card>
       )}
     </div>
   );
