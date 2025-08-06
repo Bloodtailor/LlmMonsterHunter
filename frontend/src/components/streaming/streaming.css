@@ -8,6 +8,11 @@
   width: 600px;
   max-width: 90vw;
   z-index: 1000;
+  transition: all 0.3s ease-in-out;
+}
+
+.streaming-display-minimized {
+  width: 300px; /* Collapsed width - adjust as needed */
 }
 
 /* ===== HEADER (ALWAYS VISIBLE) ===== */
@@ -20,7 +25,9 @@
   border: var(--border-width-thin) solid var(--background-light);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   cursor: pointer;
-  transition: var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .streaming-header:hover {
@@ -34,20 +41,6 @@
   gap: var(--spacing-md);
 }
 
-.streaming-title {
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-light);
-  font-size: var(--font-size-sm);
-}
-
-/* ===== SCROLLABLE CARD CONTENT ===== */
-.streaming-card-content {
-  max-height: 600px;
-  overflow-y: auto;
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  border-top: none;
-}
-
 /* ===== STREAMING TEXT CURSOR ===== */
 .cursor {
   display: inline-block;
@@ -57,58 +50,12 @@
   animation: blink 1s infinite;
 }
 
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-/* ===== IMAGE DISPLAY ===== */
-.image-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-sm);
-}
-
-.generated-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: var(--radius-md);
-  border: var(--border-width-thin) solid var(--background-light);
-  box-shadow: var(--shadow-md);
-}
-
-.image-meta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--text-dim);
-}
-
-.image-meta p {
-  margin: 0;
-}
-
-/* ===== PROGRESS DISPLAY ===== */
-.image-progress {
-  padding: var(--spacing-md);
-  text-align: center;
-  color: var(--text-dim);
-  font-style: italic;
-}
-
 /* ===== EMPTY STATES ===== */
-.empty-queue {
+.empty-table {
   text-align: center;
   padding: var(--spacing-md);
   color: var(--text-dim);
   font-style: italic;
-}
-
-.queue-trigger {
-  font-size: var(--font-size-sm);
-  margin-top: var(--spacing-xs);
 }
 
 /* ===== ERROR STYLING ===== */

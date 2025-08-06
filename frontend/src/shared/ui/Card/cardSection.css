@@ -37,6 +37,7 @@
 /* Content: May have title, gets flexible spacing */
 .card-section-content {
   flex: 1;
+  padding-top: var(--spacing-sm);
 }
 
 /* Content with title gets top margin for separation */
