@@ -48,6 +48,24 @@ export function transformMonster(rawMonster) {
 }
 
 /**
+ * Transform array of raw monsters into clean game objects
+ * @param {Array} rawMonsters - Array of raw monster objects from API
+ * @returns {Array} Array of clean monster objects (filters out invalid ones)
+ */
+export function transformMonsters(rawMonsters) {
+
+    if (!Array.isArray(rawMonsters)) {
+    console.warn('transformMonsters expects an array, received:', typeof rawMonsters);
+    return [];
+  }
+
+  return rawMonsters
+    .map(transformMonster)
+    .filter(Boolean); // Remove any null results from invalid abilities
+
+}
+
+/**
  * Transform raw ability object into clean game object
  * @param {object} rawAbility - Raw ability object from API
  * @returns {object|null} Clean ability object or null if invalid

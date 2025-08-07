@@ -53,13 +53,6 @@ def validate_monster_list_params(limit: int, offset: int, filter_type: str, sort
     Used in monster service
     """
     
-    # Validate limit
-    if not isinstance(limit, int) or limit < 1 or limit > 1000:
-        return {
-            'valid': False,
-            'error': 'Limit must be between 1 and 1000'
-        }
-    
     # Validate offset
     if not isinstance(offset, int) or offset < 0:
         return {

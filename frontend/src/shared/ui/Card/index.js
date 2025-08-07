@@ -13,3 +13,5 @@ export {
   CARD_SECTION_TYPES, 
   CARD_SECTION_ALIGNMENT 
 } from './CardSection.js';
+
+export { EmptyPartySlot } from './PlaceholderCard.js';

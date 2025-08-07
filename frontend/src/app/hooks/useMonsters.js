@@ -7,6 +7,7 @@ import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as monstersApi from '../../api/services/monsters.js';
 import {
   transformMonster,
+  transformMonsters,
   transformAbility,
   transformAbilities,
   transformMonsterStats
@@ -30,7 +31,7 @@ export function useMonsterCollection() {
     }
     
     return {
-      monsters: (asyncState.data.monsters || []).map(transformMonster).filter(Boolean),
+      monsters: transformMonsters(asyncState.data.monsters || []),
       total: asyncState.data.total || 0
     };
   }, [asyncState.data]);
@@ -56,24 +57,18 @@ export function useMonsterCollection() {
  * Hook for managing individual monster data
  */
 export function useMonster() {
-  const asyncState = useAsyncState();
-
   const loadMonster = useCallback(async (monsterId) => {
-    await asyncState.execute(monstersApi.getMonster, monsterId);
-  }, [asyncState.execute]);
-
-  // Transform raw monster when data changes
-  const monster = useMemo(() => {
-    if (!asyncState.data?.monster) return null;
-    return transformMonster(asyncState.data.monster);
-  }, [asyncState.data]);
+    try {
+      const rawResponse = await monstersApi.getMonster(monsterId);
+      const monster = transformMonster(rawResponse.monster);
+      return monster;
+    } catch (error) {
+      console.error(`Failed to load monster ${monsterId}:`, error);
+      return null;
+    }
+  }, []);
 
   return {
-    monster,
-    rawResponse: asyncState.data,
-    isLoading: asyncState.isLoading,
-    isError: asyncState.isError,
-    error: asyncState.error,
     loadMonster
   };
 }

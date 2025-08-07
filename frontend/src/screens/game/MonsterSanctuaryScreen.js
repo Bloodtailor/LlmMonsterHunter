@@ -1,11 +1,11 @@
-// MyCurrentTestScreen - FOCUSED ARCHITECTURE TEST WITH MONSTER GENERATION
+// Monster Sanctuary - Displays all existing monsters in the game
 // Tests our complete refactored architecture: useMonsterCollection + useMonsterGeneration + Full Pagination + MonsterCard + MonsterCardViewer
 // Added big generate monster button using useMonsterGeneration hook
 
 import React, { useState, useEffect, useCallback } from "react";
-import { usePagination } from "../shared/ui/Pagination/usePagination.js";
-import { useMonsterCollection, useMonsterGeneration } from "../app/hooks/useMonsters.js";
-import FullPagination, { PAGINATION_LAYOUTS } from "../shared/ui/Pagination/PaginationPresets.js";
+import { usePagination } from "../../shared/ui/Pagination/usePagination.js";
+import { useMonsterCollection, useMonsterGeneration } from "../../app/hooks/useMonsters.js";
+import FullPagination, { PAGINATION_LAYOUTS } from "../../shared/ui/Pagination/PaginationPresets.js";
 import { 
   Select,
   Alert,
@@ -16,10 +16,10 @@ import {
   Card,
   CardSection,
   LoadingSpinner
-} from "../shared/ui/index.js";
+} from "../../shared/ui/index.js";
 
 // Import our new components
-import { useMonsterCardViewer } from "../components/cards/useMonsterCardViewer.js";
+import { useMonsterCardViewer } from "../../components/cards/useMonsterCardViewer.js";
 
 function MonsterSanctuaryScreen() {
   // UI state
@@ -27,6 +27,7 @@ function MonsterSanctuaryScreen() {
   const [sort, setSort] = useState('newest');
   const [limit, setLimit] = useState(12);
   const [cardSize, setCardSize] = useState('md');
+  const [itemsPerPageOptions, setItemsPerPageOptions ] = useState([6, 12, 24, 48]);
 
   const { MonsterCard, viewer } = useMonsterCardViewer();
 
@@ -97,6 +98,15 @@ function MonsterSanctuaryScreen() {
 
   const handleCardSizeChange = useCallback((newCardSize) => {
     setCardSize(newCardSize);
+    
+    if (newCardSize === 'sm' ){
+        setItemsPerPageOptions([10, 20, 50, 100])
+        setLimit(10)
+
+    } else {
+        setItemsPerPageOptions([6, 12, 24, 48])
+        setLimit(12)
+    }
   }, []);
 
   return (
@@ -110,9 +120,9 @@ function MonsterSanctuaryScreen() {
           size='xl'
           alignment='center'
         >
-
           <p>Welcome to your mystical sanctuary where legendary creatures await your discovery. Each monster is unique with its own personality, abilities, and backstory.</p>
-          <div style={{marginTop: '24px'}}>
+        </CardSection>
+        <CardSection type="content" alignment="center">
             <Button 
               variant="primary"
               size="xl"
@@ -131,8 +141,7 @@ function MonsterSanctuaryScreen() {
                 </>
               )}
             </Button>
-          </div>
-        </CardSection>
+          </CardSection>
       </Card>
 
       {/* Controls */}
@@ -177,7 +186,7 @@ function MonsterSanctuaryScreen() {
           <FullPagination
             pagination={pagination}
             itemName="monsters"
-            itemsPerPageOptions={[6, 12, 24, 48]}
+            itemsPerPageOptions={itemsPerPageOptions}
             currentLimit={limit}
             onLimitChange={handleLimitChange}
             layout={PAGINATION_LAYOUTS.FULL}

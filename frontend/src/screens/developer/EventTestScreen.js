@@ -3,9 +3,9 @@
 // Includes monster generation button to test streaming with real operations
 
 import React from 'react';
-import { Button, Alert, StatusBadge, Card, CardSection} from '../shared/ui/index.js';
-import { useMonsterGeneration } from '../app/hooks/useMonsters.js';
-import StreamingContextDiagnostic from '../components/streaming/StreamingContextDiagnostic.js';
+import { Button, Alert, StatusBadge, Card, CardSection} from '../../shared/ui/index.js';
+import { useMonsterGeneration } from '../../app/hooks/useMonsters.js';
+import StreamingContextDiagnostic from '../../components/streaming/StreamingContextDiagnostic.js';
 
 function EventTestScreen() {
   

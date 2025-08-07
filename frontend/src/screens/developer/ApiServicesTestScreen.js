@@ -5,12 +5,12 @@
 import React, { useState } from 'react';
 
 // Import all API services from refactored directory
-import * as monstersApi from '../api/services/monsters.js';
-import * as gameStateApi from '../api/services/gameState.js';
-import * as dungeonApi from '../api/services/dungeon.js';
-import * as systemApi from '../api/services/system.js';
-import * as generationApi from '../api/services/generation.js';
-import * as testingApi from '../api/services/testing.js';
+import * as monstersApi from '../../api/services/monsters.js';
+import * as gameStateApi from '../../api/services/gameState.js';
+import * as dungeonApi from '../../api/services/dungeon.js';
+import * as systemApi from '../../api/services/system.js';
+import * as generationApi from '../../api/services/generation.js';
+import * as testingApi from '../../api/services/testing.js';
 
 function ApiServicesTestScreen() {
   const [testResults, setTestResults] = useState({});

@@ -1,7 +1,7 @@
 // Treasure Card Usage Examples - See the magic in action!
 
 import React from 'react';
-import CoCaTok, {COCATOK_SIZES, COCATOK_TYPES} from '../shared/ui/CoCaTok/CoCaTok';
+import CoCaTok, {COCATOK_SIZES, COCATOK_TYPES} from '../../shared/ui/CoCaTok/CoCaTok';
 
 function CoCaTokDemo() {
   const handleHeal = () => {

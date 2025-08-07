@@ -54,7 +54,8 @@ export {
   CARD_PADDING,
   CARD_BACKGROUNDS,
   CARD_SECTION_TYPES,
-  CARD_SECTION_ALIGNMENT
+  CARD_SECTION_ALIGNMENT,
+  EmptyPartySlot
 } from './Card/index.js';
 
 // ===== FORM COMPONENTS (CORRECTED) =====

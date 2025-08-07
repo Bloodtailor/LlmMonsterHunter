@@ -42,7 +42,7 @@ def get_available_templates() -> Dict[str, str]:
     """Get templates - no validation needed"""
     return _generator.get_available_templates()
 
-def get_all_monsters(limit: int = 50, offset: int = 0, 
+def get_all_monsters(limit: int = None, offset: int = 0, 
                     filter_type: str = 'all', sort_by: str = 'newest') -> Dict[str, Any]:
     """Get monsters - validate complex parameters"""
     

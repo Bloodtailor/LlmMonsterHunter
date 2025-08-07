@@ -23,7 +23,7 @@ def get_monsters():
     """Get all monsters - thin HTTP wrapper with parameter extraction"""
     
     result = monster_service.get_all_monsters(
-        limit=request.args.get('limit', 50, type=int),
+        limit=request.args.get('limit', type=int),
         offset=request.args.get('offset', 0, type=int),
         filter_type=request.args.get('filter', 'all'),
         sort_by=request.args.get('sort', 'newest')

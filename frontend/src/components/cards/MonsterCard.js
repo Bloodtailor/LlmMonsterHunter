@@ -18,7 +18,8 @@ function MonsterCard({
   showPartyToggle = false,
   
   // Card viewer (callback pattern - no circular dependencies!)
-  onExpandCard = null
+  onExpandCard = null,
+  hideFlipHint = false
 }) {
 
   // Construct card art URL using clean monster object
@@ -64,6 +65,7 @@ function MonsterCard({
       cardId={monster.id}
       className={`monster-card-container monster-card-${size}`}
       size={size}
+      hideFlipHint={hideFlipHint}
       onFlip={(isFlipped) => {
         // Optional: Analytics or behavior tracking
         if (isFlipped) {

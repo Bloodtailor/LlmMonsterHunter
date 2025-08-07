@@ -1,7 +1,8 @@
 // PartyProvider.js - The component that puts data IN the magical box
 // This manages party state and provides functions to modify it
+// UPDATED: Now fetches individual monster data for party members using useMonster hook
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { PartyContext } from './PartyContext.js';
 import { GAME_RULES } from '../../../shared/constants/constants.js';
 import { 
@@ -14,7 +15,7 @@ import {
 
 function PartyProvider({ children }) {
   // Domain hooks for game state
-  const followingHook = useFollowingMonsters();
+  const followingHook  = useFollowingMonsters();
   const partyHook = useActiveParty();
   const setPartyHook = useSetActiveParty();
   const addFollowingHook = useAddMonsterToFollowing();
@@ -109,17 +110,24 @@ function PartyProvider({ children }) {
   };
 
   const isFollowing = (monsterId) => {
-  return followingHook.ids.includes(monsterId);
+    return followingHook.ids.includes(monsterId);
   };
 
-  // Simple loading state - loading if any write operation is happening
+  // Combined loading state - loading if any write operation is happening OR fetching monsters
   const isLoading = setPartyHook.isLoading || partyHook.isLoading;
+  const loadingFollowers = followingHook.isLoading;
 
   // The value object that gets put in the magical box
   const value = {
     // State - use hook data
     party: partyHook.ids,
+    partyMonsters: partyHook.partyMonsters, // NEW: Array of full monster objects for party members
     isLoading,
+
+    followingMonsters: followingHook.followingMonsters,
+    followingSize: followingHook.count,
+    loadingFollowers,
+    
     
     // Computed values - use hook data
     partySize: partyHook.count,
