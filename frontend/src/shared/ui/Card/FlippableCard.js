@@ -14,6 +14,7 @@ function FlippableCard({
   cardId = null,
   onFlip = null,
   disabled = false,
+  hideFlipHint = false,
   size = 'md' // Updated to use unified CARD_SIZES system
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -34,9 +35,9 @@ function FlippableCard({
   const cardSizeClass = `flippable-card-${size}`;
 
   return (
-    <div className={`flippable-card-container ${cardSizeClass} ${className}`}>
+    <div className={`flippable-card-container ${className}`}>
       <div 
-        className={`flippable-card ${isFlipped ? 'flipped' : ''} ${disabled ? 'disabled' : ''}`}
+        className={`flippable-card ${cardSizeClass} ${isFlipped ? 'flipped' : ''} ${disabled ? 'disabled' : ''}`}
         onClick={handleFlip}
       >
         {/* Front Side */}
@@ -51,7 +52,7 @@ function FlippableCard({
       </div>
       
       {/* Optional flip indicator */}
-      {!disabled && (
+      {!hideFlipHint && (
         <div className="flip-indicator">
           <span className="flip-hint">
             {isFlipped ? '↻ Flip to front' : '↻ Flip for details'}

@@ -15,16 +15,13 @@ class MonsterManager:
     def get_all_monsters(self, limit: int, offset: int, filter_type: str, sort_by: str) -> Dict[str, Any]:
         """Get monsters - assumes valid parameters"""
         
-        # Start with base query
         query = Monster.query
-        
-        # Apply filtering
+
         if filter_type == 'with_art':
             query = query.filter(Monster.card_art_path.isnot(None))
         elif filter_type == 'without_art':
             query = query.filter(Monster.card_art_path.is_(None))
-        
-        # Apply sorting
+
         if sort_by == 'newest':
             query = query.order_by(Monster.created_at.desc())
         elif sort_by == 'oldest':
@@ -33,11 +30,15 @@ class MonsterManager:
             query = query.order_by(Monster.name.asc())
         elif sort_by == 'species':
             query = query.order_by(Monster.species.asc(), Monster.name.asc())
-        
-        # Get results
+
         total_count = query.count()
-        monsters = query.options(db.joinedload(Monster.abilities)).offset(offset).limit(limit).all()
+
+        query = query.options(db.joinedload(Monster.abilities)).offset(offset)
+        if limit is not None:
+            query = query.limit(limit)
         
+        monsters = query.all()
+
         return success_response({
             'monsters': [monster.to_dict() for monster in monsters],
             'total': total_count,
@@ -46,11 +47,12 @@ class MonsterManager:
                 'limit': limit,
                 'offset': offset,
                 'has_more': offset + len(monsters) < total_count,
-                'next_offset': offset + limit if offset + len(monsters) < total_count else None,
-                'prev_offset': max(0, offset - limit) if offset > 0 else None
+                'next_offset': offset + limit if limit is not None and offset + len(monsters) < total_count else None,
+                'prev_offset': max(0, offset - limit) if limit is not None and offset > 0 else None
             },
             'filters_applied': {'filter_type': filter_type, 'sort_by': sort_by}
         })
+
     
     def get_monster_stats(self, filter_type: str) -> Dict[str, Any]:
         """Get stats - assumes valid filter_type"""

@@ -3,24 +3,31 @@
 // Clean navigation with Home Base as the new game preparation hub
 
 import React, { useState, useEffect } from 'react';
-import ApiServicesTestScreen from './screens/ApiServicesTestScreen';
-import StyleTestScreen from './screens/StyleTestScreen';
-import MonsterSanctuaryScreen from './screens/MonsterSanctuaryScreen.js';
-import { PartyProvider } from './app/contexts/PartyContext';
-import { EventProvider } from './app/contexts/EventContext'
-import BYOComponentTestScreen from './screens/BYOComponentTestScreen';
-import CoCaTokDemo from './screens/CoCaTokDemo';
-import ExplosionDemo from './screens/ExplosionDemo';
-import StreamingDisplay from './components/streaming/StreamingDisplay.js';
-import EventTestScreen from './screens/EventTestScreen.js';
 
 // Import NavButtons component from shared UI library
 import NavButtons from './shared/ui/Button/NavButtons.js';
 
+// Providers
+import AppProvider from './app/AppProvider.js';
+
+// Game Screen
+import MonsterSanctuaryScreen from './screens/game/MonsterSanctuaryScreen.js';
+import HomeBaseScreen from './screens/game/HomeBaseScreen.js';
+
+// Developer Screens
+import ApiServicesTestScreen from './screens/developer/ApiServicesTestScreen';
+import StyleTestScreen from './screens/developer/StyleTestScreen';
+import BYOComponentTestScreen from './screens/developer/BYOComponentTestScreen';
+import CoCaTokDemo from './screens/developer/CoCaTokDemo';
+import ExplosionDemo from './screens/developer/ExplosionDemo';
+import StreamingDisplay from './components/streaming/StreamingDisplay.js';
+import EventTestScreen from './screens/developer/EventTestScreen.js';
+
 function App() {
 
   // Navigation state - Home Base is the main game screen
-  const [currentScreen, setCurrentScreen] = useState('sanctuary'); 
+  const [currentScreen, setCurrentScreen] = useState('homebase'); 
+
   
   // Navigation button configurations
   const navigationButtons = [
@@ -49,6 +56,10 @@ function App() {
       label: '🏛️ Monster Sanctuary'
     },
     {
+      screen: 'homebase',
+      label: '🏠 Home Base'
+    },
+    {
       screen: 'byo-component',
       label: '🧱 BYO Component'
     }
@@ -56,9 +67,10 @@ function App() {
 
   // Main application
   return (
-    <EventProvider>
-      <PartyProvider>
+    <AppProvider>
         <div className="App">
+
+
           
           {/* App Header with Title Left, Navigation Centered */}
           <header className="app-header">
@@ -85,6 +97,7 @@ function App() {
             {currentScreen === 'explosion-demo' && <ExplosionDemo />}
             {currentScreen === 'style-test' && <StyleTestScreen />}
             {currentScreen === 'sanctuary' && <MonsterSanctuaryScreen />}
+            {currentScreen === 'homebase' && <HomeBaseScreen />}
             {currentScreen === 'byo-component' && <BYOComponentTestScreen />}
           </main>
 
@@ -92,8 +105,7 @@ function App() {
 
           
         </div>
-      </PartyProvider>
-    </EventProvider>
+    </AppProvider>
   );
 }
 

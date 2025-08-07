@@ -4,12 +4,6 @@
 
 /* ===== OVERVIEW SIDE - IMAGE LAYOUT ===== */
 
-.monster-art-section {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-}
-
 .monster-art-image {
   width: 100%;
   height: 100%;
@@ -24,11 +18,6 @@
   justify-content: center;
   background: var(--background-light);
   color: var(--text-dim);
-}
-
-.fallback-icon {
-  font-size: 4em;
-  opacity: 0.5;
 }
 
 /* ===== IMAGE OVERLAY EFFECTS ===== */
@@ -53,18 +42,6 @@
   gap: var(--spacing-md);
 }
 
-/* Monster name over image - needs custom scaling since it's NOT in CardSection */
-.monster-name {
-  margin: 0;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-}
-
-.monster-name-sm { font-size: 1rem; }
-.monster-name-md { font-size: 1.125rem; }
-.monster-name-lg { font-size: 1.25rem; }
-.monster-name-xl { font-size: 1.5rem; }
-
 /* ===== POSITIONING - OVERLAY BUTTONS ===== */
 
 .monster-card-party-toggle {
@@ -80,52 +57,7 @@
   left: var(--spacing-sm);
 }
 
-/* ===== PREVIEW LAYOUTS ===== */
-
-.ability-preview-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.ability-preview-chips {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
 /* ===== DETAILS SIDE - CONTENT LAYOUTS ===== */
-
-/* TEMPORARY FIX: Make monster card details scrollable */
-.monster-card-details {
-  overflow-y: auto;
-  max-height: 100%;
-}
-
-.monster-card-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-sm);
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-xs);
-  background: var(--background-light);
-  border-radius: var(--radius-sm);
-}
-
-.stat-label {
-  color: var(--text-medium);
-}
-
-.stat-value {
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-light);
-}
-
 .monster-card-abilities-list {
   overflow-y: auto;
   max-height: 400px;
@@ -147,79 +79,4 @@
 
 .monster-card-ability-description {
   color: var(--text-medium);
-}
-
-.monster-card-traits-list {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/* ===== SMALL UI INDICATORS ===== */
-/* These need custom sizing since they're tiny UI elements */
-
-.more-abilities-indicator,
-.more-traits-indicator {
-  color: var(--text-dim);
-  font-style: italic;
-  opacity: 0.8;
-}
-
-.more-abilities-indicator-sm,
-.more-traits-indicator-sm {
-  font-size: 0.7em;
-}
-
-.more-abilities-indicator-md,
-.more-traits-indicator-md {
-  font-size: 0.75em;
-}
-
-.more-abilities-indicator-lg,
-.more-traits-indicator-lg {
-  font-size: 0.8em;
-}
-
-.more-abilities-indicator-xl,
-.more-traits-indicator-xl {
-  font-size: 0.85em;
-}
-
-/* ===== RESPONSIVE DESIGN ===== */
-
-@media (max-width: 768px) {
-  .monster-card-stats-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-xs);
-  }
-  
-  .monster-header {
-    flex-direction: column;
-    gap: var(--spacing-xs);
-    align-items: flex-start;
-  }
-  
-  .ability-preview-chips {
-    gap: var(--spacing-2xs);
-  }
-}
-
-@media (max-width: 480px) {
-  .monster-info-overlay {
-    padding: var(--spacing-xs);
-  }
-  
-  .monster-card-party-toggle,
-  .monster-card-expand-button {
-    top: var(--spacing-xs);
-  }
-  
-  .monster-card-party-toggle {
-    right: var(--spacing-xs);
-  }
-  
-  .monster-card-expand-button {
-    left: var(--spacing-xs);
-  }
 }

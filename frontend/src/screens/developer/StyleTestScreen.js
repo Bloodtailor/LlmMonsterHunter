@@ -14,7 +14,7 @@ import {
   EMPTY_STATE_SIZES, EMPTY_STATE_VARIANTS, EMPTY_STATE_PRESETS,
   CARD_VARIANTS, CARD_SIZES, CARD_PADDING, CARD_BACKGROUNDS,
   CARD_SECTION_TYPES, CARD_SECTION_ALIGNMENT
-} from '../shared/ui/index.js';
+} from '../../shared/ui/index.js';
 
 // Mock pagination data for testing
 const mockPagination = {

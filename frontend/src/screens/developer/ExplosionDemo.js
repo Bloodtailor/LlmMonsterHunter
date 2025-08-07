@@ -2,9 +2,9 @@
 // Test the full flexibility of the modular explosion system
 
 import React, { useState } from 'react';
-import { ExplosionEngine, ExplosionPreset, EXPLOSION_TYPES } from '../shared/ui/Explosion/index.js';
-import { COLOR_THEMES } from '../shared/constants/constants.js';
-import color from '../shared/styles/color.js';
+import { ExplosionEngine, ExplosionPreset, EXPLOSION_TYPES } from '../../shared/ui/Explosion/index.js';
+import { COLOR_THEMES } from '../../shared/constants/constants.js';
+import color from '../../shared/styles/color.js';
 
 function ExplosionDemo() {
   const [activeTab, setActiveTab] = useState('preset'); // 'preset' or 'engine'

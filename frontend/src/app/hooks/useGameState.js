@@ -4,6 +4,7 @@
 import { useCallback, useMemo } from 'react';
 import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as gameStateApi from '../../api/services/gameState.js';
+import { transformMonsters } from '../transformers/monsters.js';
 
 /**
  * Hook for /api/game-state/following
@@ -23,7 +24,8 @@ export function useFollowingMonsters() {
     
     return {
       ids: asyncState.data.following_monsters?.ids || [],
-      count: asyncState.data.following_monsters?.count || 0
+      count: asyncState.data.following_monsters?.count || 0,
+      followingMonsters: transformMonsters(asyncState.data.following_monsters?.details || [])
     };
   }, [asyncState.data]);
 
@@ -55,7 +57,8 @@ export function useActiveParty() {
     
     return {
       ids: asyncState.data.active_party?.ids || [],
-      count: asyncState.data.active_party?.count || 0
+      count: asyncState.data.active_party?.count || 0,
+      partyMonsters: transformMonsters(asyncState.data.active_party?.details || []),
     };
   }, [asyncState.data]);
 

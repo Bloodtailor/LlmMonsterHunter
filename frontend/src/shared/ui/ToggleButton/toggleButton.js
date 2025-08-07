@@ -90,7 +90,7 @@ function ToggleButton({
     return (
       <IconButton
         icon="➖"
-        variant="success"
+        variant="primary"
         size={size}
         onClick={handleToggle}
         disabled={disabled}
@@ -111,7 +111,7 @@ function ToggleButton({
     return (
       <IconButton
         icon="🚫"
-        variant="secondary"
+        variant="primary"
         size={size}
         disabled={true}
         ariaLabel={`${collectionName} is full`}
