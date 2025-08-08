@@ -57,7 +57,7 @@ function PartyDisplay({
             justifyContent: 'space-evenly'
           }}>
             {/* Render party monster cards */}
-            {partyMonsters.map(monster => (
+            {(partyMonsters || []).map(monster => (
               <MonsterCard
                 key={monster.id}
                 monster={monster}

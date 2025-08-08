@@ -42,6 +42,7 @@ export async function getGenerationLogs(options = {}) {
   
   // Only include non-empty parameters
   if (options.limit !== undefined) params.limit = options.limit;
+  if (options.offset !== undefined) params.offset = options.offset;
   if (options.type) params.type = options.type;
   if (options.status) params.status = options.status;
   if (options.prompt_type) params.prompt_type = options.prompt_type;
