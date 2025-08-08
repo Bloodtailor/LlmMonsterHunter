@@ -57,11 +57,14 @@ export function useMonsterCollection() {
  * Hook for managing individual monster data
  */
 export function useMonster() {
+  const asyncState = useAsyncState();
+
   const loadMonster = useCallback(async (monsterId) => {
     try {
-      const rawResponse = await monstersApi.getMonster(monsterId);
+      await asyncState.exectue(monstersApi.getMonster(monsterId));
+      const rawResponse = asyncState.data
       const monster = transformMonster(rawResponse.monster);
-      return monster;
+      return {monster, rawResponse};
     } catch (error) {
       console.error(`Failed to load monster ${monsterId}:`, error);
       return null;
@@ -69,6 +72,9 @@ export function useMonster() {
   }, []);
 
   return {
+    isLoading: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error,
     loadMonster
   };
 }

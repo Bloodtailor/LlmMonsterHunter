@@ -22,7 +22,7 @@ import './table.css';
  * <Table><TableHead>...</TableHead></Table>
  * 
  * @param {object} props - Table props
- * @param {Array} props.columns - Column definitions (for simple API)
+ * @param {Array} props.columns - Column definitions (key, header, and width%)
  * @param {Array} props.data - Row data (for simple API)
  * @param {React.ReactNode} props.children - Manual table content
  * @param {string} props.size - Table size (sm, md, lg)

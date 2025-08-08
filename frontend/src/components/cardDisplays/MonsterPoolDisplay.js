@@ -61,7 +61,7 @@ function MonsterPoolDisplay( {style = {} }) {
   }, []);
 
   // Filter the following monsters list with our settings
-  const filteredMonsters = followingMonsters.filter( (monster) => !party.includes(monster.id) ) 
+  const filteredMonsters = (followingMonsters || []).filter( (monster) => !(party || []).includes(monster.id) )
   const paginatedMonsters = filteredMonsters.slice(
     pagination.currentOffset,
     pagination.currentOffset + pagination.limit

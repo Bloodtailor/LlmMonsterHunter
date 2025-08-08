@@ -36,39 +36,68 @@ def get_status():
 
 @generation_bp.route('/logs')
 def get_logs():
-    """Get generation logs - supports filtering by type"""
+    """Get generation logs - supports filtering by type, status, limit, and offset"""
     try:
         from backend.models.generation_log import GenerationLog
-        
-        # Simple filtering
-        limit = min(int(request.args.get('limit', 20)), 100)
-        generation_type = request.args.get('type')  # 'llm', 'image', or None for all
+
+        # Parse query parameters
+        limit_arg = request.args.get('limit')
+        offset_arg = request.args.get('offset')
+        generation_type = request.args.get('type')  # 'llm', 'image', or None
         status_filter = request.args.get('status')
-        
+
+        # Convert to ints if present
+        limit = int(limit_arg) if limit_arg is not None else None
+        offset = int(offset_arg) if offset_arg is not None else None
+
+        # Hard safety cap
+        HARD_MAX_LIMIT = 1000
+
         # Build query
         query = GenerationLog.query
         if generation_type:
             query = query.filter(GenerationLog.generation_type == generation_type)
         if status_filter:
             query = query.filter(GenerationLog.status == status_filter)
-        
-        logs = query.order_by(GenerationLog.created_at.desc()).limit(limit).all()
-        
+
+        query = query.order_by(GenerationLog.created_at.desc())
+
+        # Apply offset and limit
+        if offset is not None:
+            query = query.offset(offset)
+        if limit is not None:
+            limit = min(limit, HARD_MAX_LIMIT)
+            query = query.limit(limit)
+        elif offset is not None:
+            # If only offset is provided, still cap the result set
+            query = query.limit(HARD_MAX_LIMIT)
+
+        logs = query.all()
+
+        # Optional: Truncate promptText to reduce payload size
+        def safe_to_dict(log):
+            data = log.to_dict()
+            if 'promptText' in data and data['promptText']:
+                data['promptText'] = (data['promptText'][:200] + '...') if len(data['promptText']) > 200 else data['promptText']
+            return data
+
         return jsonify({
             'success': True,
             'data': {
-                'logs': [log.to_dict() for log in logs],
+                'logs': [safe_to_dict(log) for log in logs],
                 'count': len(logs),
                 'filters': {
                     'type': generation_type,
                     'status': status_filter,
-                    'limit': limit
+                    'limit': limit,
+                    'offset': offset
                 }
             }
         })
-        
+
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @generation_bp.route('/logs/<int:generation_id>')
 def get_log_detail(generation_id):

@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 
 // Import NavButtons component from shared UI library
 import NavButtons from './shared/ui/Button/NavButtons.js';
+import { Button } from './shared/ui';
 
 // Providers
 import AppProvider from './app/AppProvider.js';
@@ -13,6 +14,7 @@ import AppProvider from './app/AppProvider.js';
 // Game Screen
 import MonsterSanctuaryScreen from './screens/game/MonsterSanctuaryScreen.js';
 import HomeBaseScreen from './screens/game/HomeBaseScreen.js';
+import AppLoadingScreen from './screens/game/AppLoadingScreen.js';
 
 // Developer Screens
 import ApiServicesTestScreen from './screens/developer/ApiServicesTestScreen';
