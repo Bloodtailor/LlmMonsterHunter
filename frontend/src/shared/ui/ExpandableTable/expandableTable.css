@@ -1,0 +1,234 @@
+/* ExpandableTable Components - Styles for inline row expansion
+ * Builds on existing table.css foundation with expansion-specific styling
+ * Maintains responsive behavior and follows design system patterns
+ */
+
+/* ===== EXPANDABLE TABLE BASE ===== */
+
+.expandable-table {
+  /* Inherits all styles from .table in table.css */
+}
+
+/* ===== EXPANDABLE ROW STYLES ===== */
+
+.expandable-row {
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.expandable-row:hover {
+  background-color: var(--background-light);
+}
+
+.expandable-row:focus {
+  outline: 2px solid var(--color-blue-muted);
+  outline-offset: -2px;
+}
+
+.expandable-row-expanded {
+  background-color: var(--background-light);
+}
+
+/* ===== EXPAND ICON CELL ===== */
+
+.expandable-icon-cell {
+  position: relative;
+}
+
+.expandable-cell-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+}
+
+.expand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+}
+
+.expand-icon:hover {
+  background-color: var(--background-dark);
+  color: var(--text-light);
+}
+
+.expand-icon:focus {
+  outline: 1px solid var(--color-blue-muted);
+  outline-offset: 1px;
+}
+
+.expand-icon-expanded {
+  color: var(--text-light);
+  transform: rotate(0deg);
+}
+
+.expand-icon:not(.expand-icon-expanded) {
+  transform: rotate(0deg);
+}
+
+/* Smooth rotation animation for expand icon */
+.expandable-table-animated .expand-icon {
+  transition: transform var(--transition-medium), 
+              color var(--transition-fast),
+              background-color var(--transition-fast);
+}
+
+.cell-value {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ===== EXPANDED CONTENT ROW ===== */
+
+.expandable-content-row {
+  background-color: var(--background-dark);
+  border-top: none;
+}
+
+.expandable-content-row:hover {
+  background-color: var(--background-dark); /* Don't change on hover */
+}
+
+.expandable-content-cell {
+  padding: 0;
+  border-bottom: var(--border-width-thick) solid var(--background-light);
+}
+
+/* ===== EXPANDED CONTENT CONTAINER ===== */
+
+.expandable-content {
+  width: 100%;
+  background-color: var(--background-dark);
+}
+
+.expandable-content-inner {
+  padding: var(--spacing-md);
+  border-left: var(--border-width-thick) solid var(--color-blue-muted);
+  margin-left: var(--spacing-sm);
+}
+
+/* Animation styles for smooth expansion */
+.expandable-content-animating {
+  overflow: hidden;
+}
+
+.expandable-content-animating .expandable-content-inner {
+  /* Content is hidden during height animation to prevent jumps */
+  opacity: 0.8;
+}
+
+/* ===== ERROR STATE ===== */
+
+.expandable-content-error {
+  background-color: var(--background-medium);
+  border: var(--border-width-thin) solid var(--color-red-muted);
+  border-radius: var(--radius-sm);
+  margin: var(--spacing-sm);
+}
+
+/* ===== SIZE VARIATIONS ===== */
+
+.expandable-table-sm .expand-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+}
+
+.expandable-table-sm .expandable-content-inner {
+  padding: var(--spacing-sm);
+  margin-left: var(--spacing-xs);
+  border-left-width: var(--border-width-thin);
+}
+
+.expandable-table-lg .expand-icon {
+  width: 18px;
+  height: 18px;
+  font-size: var(--font-size-sm);
+}
+
+.expandable-table-lg .expandable-content-inner {
+  padding: var(--spacing-lg);
+  margin-left: var(--spacing-md);
+  border-left-width: var(--border-width-thick);
+}
+
+/* ===== STRIPED VARIATION ===== */
+
+.expandable-table-striped .expandable-row:nth-child(4n+1) {
+  /* Every other main row (accounting for expanded content rows) */
+  background-color: var(--background-medium);
+}
+
+.expandable-table-striped .expandable-row:nth-child(4n+1):hover,
+.expandable-table-striped .expandable-row:nth-child(4n+1).expandable-row-expanded {
+  background-color: var(--background-light);
+}
+
+.expandable-table-striped .expandable-content-row {
+  /* Expanded content always uses dark background */
+  background-color: var(--background-dark);
+}
+
+/* ===== BORDERED VARIATION ===== */
+
+.expandable-table-bordered .expandable-content-cell {
+  border-right: var(--border-width-thin) solid var(--background-light);
+}
+
+/* ===== HOVER VARIATION ===== */
+
+.expandable-table-hover .expandable-row:hover {
+  background-color: var(--background-light);
+}
+
+/* ===== RESPONSIVE BEHAVIOR ===== */
+
+@media (max-width: 768px) {
+  .expandable-content-inner {
+    padding: var(--spacing-sm);
+    margin-left: var(--spacing-xs);
+    border-left-width: var(--border-width-thin);
+  }
+  
+  .expand-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .expandable-cell-content {
+    gap: var(--spacing-2xs);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .expandable-table-animated .expand-icon,
+  .expandable-content {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .expand-icon {
+    border: 1px solid currentColor;
+  }
+  
+  .expandable-content-inner {
+    border-left-color: currentColor;
+  }
+}

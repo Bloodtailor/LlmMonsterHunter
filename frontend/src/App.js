@@ -14,7 +14,6 @@ import AppProvider from './app/AppProvider.js';
 // Game Screen
 import MonsterSanctuaryScreen from './screens/game/MonsterSanctuaryScreen.js';
 import HomeBaseScreen from './screens/game/HomeBaseScreen.js';
-import AppLoadingScreen from './screens/game/AppLoadingScreen.js';
 
 // Developer Screens
 import ApiServicesTestScreen from './screens/developer/ApiServicesTestScreen';
@@ -24,6 +23,7 @@ import CoCaTokDemo from './screens/developer/CoCaTokDemo';
 import ExplosionDemo from './screens/developer/ExplosionDemo';
 import StreamingDisplay from './components/streaming/StreamingDisplay.js';
 import EventTestScreen from './screens/developer/EventTestScreen.js';
+import GenerationLogsScreen from './screens/developer/GenerationLogsScreen.js';
 
 function App() {
 
@@ -36,6 +36,10 @@ function App() {
     {
       screen: 'api-services',
       label: '🧪 API Tests'
+    },
+    {
+      screen: 'logs',
+      label: '🧪 Generation Logs Test'
     },
     {
       screen: 'event-test',
@@ -94,6 +98,7 @@ function App() {
           {/* Main Content Area */}
           <main className="app-main">
             {currentScreen === 'api-services' && <ApiServicesTestScreen />}
+            {currentScreen === 'logs' && <GenerationLogsScreen />}
             {currentScreen === 'event-test' && <EventTestScreen />}
             {currentScreen === 'cocatok-demo' && <CoCaTokDemo />}
             {currentScreen === 'explosion-demo' && <ExplosionDemo />}

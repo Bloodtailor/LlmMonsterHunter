@@ -90,3 +90,11 @@ export {
 export { 
   Scroll 
 } from './Scroll/index.js'
+
+// ===== EXPANDABLE TABLE COMPONENTS =====
+export {
+  ExpandableTable,
+  useExpandableRows,
+  ExpandableTableRow,
+  ExpandableContent
+} from './ExpandableTable/index.js';

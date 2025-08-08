@@ -30,8 +30,8 @@ export function transformGenerationLog(rawLog) {
 
     errorMessage: rawLog.error_message ?? '',
     
-    llmLogId: rawLog.llm_log ? transformLlmLog(rawLog.llm_log) : [],
-    imageLogId: rawLog.image_log ? transformImageLog(rawLog.image_log): []
+    llmLogId: rawLog.llm_data ? transformLlmLog(rawLog.llm_data) : [],
+    imageLogId: rawLog.image_data ? transformImageLog(rawLog.image_data): []
   };
 }
 
