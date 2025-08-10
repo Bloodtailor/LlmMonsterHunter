@@ -68,6 +68,11 @@ export {
   Form
 } from './Form/index.js';
 
+// ===== FILTER COMPONENTS =====
+export {
+  FilterSelectGroup
+} from './FilterControls/index.js';
+
 // ===== PAGINATION COMPONENTS =====
 export {
   Pagination,
@@ -90,3 +95,11 @@ export {
 export { 
   Scroll 
 } from './Scroll/index.js'
+
+// ===== EXPANDABLE TABLE COMPONENTS =====
+export {
+  ExpandableTable,
+  useExpandableRows,
+  ExpandableTableRow,
+  ExpandableContent
+} from './ExpandableTable/index.js';

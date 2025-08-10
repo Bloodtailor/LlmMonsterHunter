@@ -58,6 +58,7 @@ export const API_ENDPOINTS = {
   GENERATION_LOGS: '/api/generation/logs',
   GENERATION_LOG_DETAIL: (id) => `/api/generation/logs/${id}`,
   GENERATION_STATS: '/api/generation/stats',
+  GENERATION_LOG_OPTIONS: '/api/generation/log-options',
   
   // ===== STREAMING & REAL-TIME =====
   STREAMING_EVENTS: '/api/streaming/llm-events',

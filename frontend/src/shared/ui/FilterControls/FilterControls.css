@@ -1,0 +1,49 @@
+/* FilterControls Components - Styling for filter dropdown groups */
+/* Responsive layouts for multiple filter dropdowns */
+/* Uses design tokens from theme.css for consistency */
+
+/* ===== FILTER SELECT GROUP ===== */
+
+.filter-select-group {
+  display: flex;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+/* Grid Layout (default) - Auto-sizing columns */
+.filter-select-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+/* Horizontal Layout - Inline filters */
+.filter-select-group-horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end; /* Align to bottom for consistent baseline with labels */
+}
+
+/* Vertical Layout - Stacked filters */
+.filter-select-group-vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Individual filter item */
+.filter-select-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevents overflow in grid/flex */
+}
+
+/* Filter select styling */
+.filter-select {
+  width: 100%;
+}
+
+/* Disabled state */
+.filter-select-group-disabled {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
