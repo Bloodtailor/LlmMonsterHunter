@@ -7,9 +7,9 @@ import time
 from flask import Blueprint, Response, request, jsonify
 from backend.services.sse_service import get_sse_service
 
-streaming_bp = Blueprint('streaming', __name__, url_prefix='/api/streaming')
+sse_bp = Blueprint('sse', __name__, url_prefix='/api/sse')
 
-@streaming_bp.route('/llm-events')
+@sse_bp.route('/events')
 def stream_events():
     """SSE endpoint for real-time updates - supports LLM and image events"""
     

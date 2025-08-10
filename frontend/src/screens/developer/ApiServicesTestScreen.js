@@ -12,9 +12,9 @@ function ApiServicesTestScreen() {
   const LogOptionsHook = useGenerationLogOptions();
 
   const logs = JSON.stringify(GenHook.logs);
-  const rawResponse = JSON.stringify(GenHook.rawResponse);
+  const rawResponse = JSON.stringify(LogOptionsHook.rawResponse);
   const count = GenHook.count;
-  const filterOptions = LogOptionsHook.filterOptions
+  const filterOptions = LogOptionsHook.filterOptions;
   const sortOptions = LogOptionsHook.sortOptions;
 
   const [ filterValues, setFilterValues ] = useState({});
@@ -110,8 +110,6 @@ function ApiServicesTestScreen() {
         />
       </CardSection>
       <CardSection title='Raw object and response' type='content'>
-        <div>isLoading: {GenHook.isLoading}</div>
-        <div>logs: {logs}</div>
         <div>rawResponse: {rawResponse}</div>
       </CardSection>
     </Card>

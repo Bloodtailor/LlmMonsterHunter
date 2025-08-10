@@ -163,12 +163,12 @@ def get_log_options():
         return jsonify({
             'success': True,
             'data': {
-                'filters': {
+                'filter_options': {
                     **filter_options,
                     'prompt_type': prompt_types,
                     'prompt_name': prompt_names,
                 },
-                'sort': sort_options
+                'sort_options': sort_options
             }
         })
 

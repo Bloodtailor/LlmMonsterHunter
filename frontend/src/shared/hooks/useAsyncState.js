@@ -1,17 +1,22 @@
-// useAsyncState Hook - Manages loading, error, and data state for async operations
-// Eliminates the scattered loading/error/data patterns throughout the codebase
+// useAsyncState Hook - ENHANCED VERSION with function.defaults support
+// Automatically uses function.defaults if available, falls back to explicit initialData
+// Manages loading, error, and data state for async operations with perfect pairing
 
 import { useState, useCallback } from 'react';
-import { APP_STATES} from '../constants/constants';
+import { APP_STATES } from '../constants/constants';
 
 /**
- * Hook for managing async operation state consistently
- * @param {any} initialData - Initial data value
+ * Enhanced useAsyncState - automatically uses function.defaults if available
+ * @param {Function} asyncFunction - The async function to bind to this state
+ * @param {any} initialData - Explicit initial data (optional if function has defaults)
  * @returns {object} Async state and control functions
  */
-export function useAsyncState(initialData = null) {
+export function useAsyncState(asyncFunction, initialData = null) {
+  // Use function.defaults if available, otherwise use explicit initialData
+  const resolvedInitialData = asyncFunction.defaults ?? initialData;
+  
   const [state, setState] = useState(APP_STATES.IDLE);
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState(resolvedInitialData);
   const [error, setError] = useState(null);
 
   /**
@@ -42,31 +47,30 @@ export function useAsyncState(initialData = null) {
   }, []);
 
   /**
-   * Reset to idle state
+   * Reset to idle state with initial data
    */
   const reset = useCallback(() => {
     setState(APP_STATES.IDLE);
-    setData(initialData);
+    setData(resolvedInitialData);
     setError(null);
-  }, [initialData]);
+  }, [resolvedInitialData]);
 
   /**
-   * Execute an async function with automatic state management
-   * @param {Function} asyncFn - Async function to execute
-   * @param {...any} args - Arguments to pass to the async function
+   * Execute the bound async function with automatic state management
+   * @param {...any} args - Arguments to pass to the bound async function
    * @returns {Promise<any>} Result of the async function
    */
-  const execute = useCallback(async (asyncFn, ...args) => {
+  const execute = useCallback(async (...args) => {
     try {
       setLoading();
-      const result = await asyncFn(...args);
+      const result = await asyncFunction(...args);
       setSuccess(result);
       return result;
     } catch (err) {
       setErrorState(err);
       throw err; // Re-throw so caller can handle if needed
     }
-  }, [setLoading, setSuccess, setErrorState]);
+  }, [asyncFunction, setLoading, setSuccess, setErrorState]);
 
   // Computed state flags for convenience
   const isLoading = state === APP_STATES.LOADING;
@@ -92,7 +96,7 @@ export function useAsyncState(initialData = null) {
     setError: setErrorState,
     reset,
     
-    // Main execution function
+    // Main execution function - bound to the asyncFunction
     execute
   };
 }

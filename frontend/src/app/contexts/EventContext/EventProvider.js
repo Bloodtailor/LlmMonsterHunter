@@ -5,9 +5,10 @@
 import { EventContext } from './EventContext.js';
 import { useEventSource } from './useEventsource.js';
 import { EventRegistry, initialEventState } from './EventRegistry.js';
-import { EVENTS_URL } from '../../../api/services/events.js';
 
 function EventProvider({ children, autoConnect = true }) {
+
+  const EVENTS_URL = 'http://localhost:5000/api/sse/events';
   
   // Use generic EventSource hook with streaming-specific registry
   const eventState = useEventSource(

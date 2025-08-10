@@ -8,9 +8,7 @@ import { GAME_RULES } from '../../../shared/constants/constants.js';
 import { 
   useFollowingMonsters, 
   useActiveParty, 
-  useSetActiveParty,
-  useAddMonsterToFollowing,
-  useRemoveMonsterFromFollowing
+  useSetActiveParty
 } from '../../hooks/useGameState.js';
 
 function PartyProvider({ children }) {
@@ -18,8 +16,6 @@ function PartyProvider({ children }) {
   const followingHook  = useFollowingMonsters();
   const partyHook = useActiveParty();
   const setPartyHook = useSetActiveParty();
-  const addFollowingHook = useAddMonsterToFollowing();
-  const removeFollowingHook = useRemoveMonsterFromFollowing();
 
   // Load initial data
   useEffect(() => {
