@@ -58,7 +58,7 @@ function AiLogTableView({
 
   // Expandable table functionality
   const expandableRows = useExpandableRows({
-    allowMultiple: true,
+    allowMultiple: false,
     defaultExpanded: []
   });
 

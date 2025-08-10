@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
 import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as genApi from './../../api/services/generation.js'
 import { transformGenerationLogs } from '../transformers/generation.js';
@@ -9,6 +9,7 @@ import { transformGenerationLogs } from '../transformers/generation.js';
  */
 export function useGenerationLogs() {
   const asyncState = useAsyncState();
+  const rawResponse = asyncState.data;
 
   const loadLogs = useCallback(async (options = {}) => {
     await asyncState.execute(genApi.getGenerationLogs, options);
@@ -16,22 +17,22 @@ export function useGenerationLogs() {
 
   // Transform raw data when it changes
   const transformedData = useMemo(() => {
-    if (!asyncState.data) {
+    if (!rawResponse) {
       return { logs: [], count: 0 };
     }
     
     return {
-      logs: transformGenerationLogs(asyncState.data.data?.logs || []),
-      count: asyncState.data.data?.count || 0
+      logs: transformGenerationLogs(rawResponse.data?.logs || []),
+      count: rawResponse.data?.count || 0
     };
-  }, [asyncState.data]);
+  }, [rawResponse]);
 
   return {
     // Clean transformed data
     ...transformedData,
 
     // Raw data (for debugging)
-    rawResponse: asyncState.data,
+    rawResponse,
 
     // State flags
     isLoading: asyncState.isLoading,
@@ -43,3 +44,25 @@ export function useGenerationLogs() {
   };
 }
 
+export function useGenerationLogOptions(){
+  const asyncState = useAsyncState();
+  const rawResponse = asyncState.data;
+
+  const loadLogOptions = useCallback(async() => {
+    await asyncState.execute(genApi.getGenerationLogOptions);
+  }, [asyncState.execute])
+
+  // Run the loadLogOptions function on mount
+  useEffect(() => {
+    loadLogOptions();
+  }, [loadLogOptions]);  // Only runs when loadLogOptions changes (i.e., on mount)
+
+  return {
+    filterOptions: rawResponse?.data?.filters,
+    sortOptions: rawResponse?.data?.sort,
+    rawResponse,
+    isLoading: asyncState.isLoading,
+    isError: asyncState.isError,
+    error: asyncState.error
+  };
+}

@@ -45,9 +45,18 @@ export async function getGenerationLogs(options = {}) {
   if (options.offset !== undefined) params.offset = options.offset;
   if (options.type) params.type = options.type;
   if (options.status) params.status = options.status;
-  if (options.prompt_type) params.prompt_type = options.prompt_type;
+  if (options.promptType) params.prompt_type = options.promptType;
+  if (options.promptName) params.prompt_name = options.promptName;
+  if (options.priority) params.priority = options.priority;
+  if (options.startTime) params.start_time = options.startTime;
+  if (options.sortBy) params.sort_by = options.sortBy;  // Comma-separated fields to sort by
+  if (options.sortOrder) params.sort_order = options.sortOrder; // 'asc' or 'desc'
   
   return await getWithParams(API_ENDPOINTS.GENERATION_LOGS, params);
+}
+
+export async function getGenerationLogOptions() {
+  return await get(API_ENDPOINTS.GENERATION_LOG_OPTIONS);
 }
 
 /**

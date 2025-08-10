@@ -68,6 +68,11 @@ export {
   Form
 } from './Form/index.js';
 
+// ===== FILTER COMPONENTS =====
+export {
+  FilterSelectGroup
+} from './FilterControls/index.js';
+
 // ===== PAGINATION COMPONENTS =====
 export {
   Pagination,

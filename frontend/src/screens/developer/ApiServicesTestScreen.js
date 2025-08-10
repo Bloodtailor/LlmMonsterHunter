@@ -3,16 +3,33 @@
 //
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useGenerationLogs } from '../../app/hooks/useGeneration';
-import { Button, Card, CardSection, Table} from '../../shared/ui';
+import { useGenerationLogs, useGenerationLogOptions } from '../../app/hooks/useGeneration';
+import { Button, Card, CardSection, Table, FilterSelectGroup} from '../../shared/ui';
 
 function ApiServicesTestScreen() {
 
   const GenHook = useGenerationLogs();
+  const LogOptionsHook = useGenerationLogOptions();
 
-  const logs = JSON.stringify(GenHook.logs)
-  const rawResponse = JSON.stringify(GenHook.rawResponse)
-  const count = GenHook.count
+  const logs = JSON.stringify(GenHook.logs);
+  const rawResponse = JSON.stringify(GenHook.rawResponse);
+  const count = GenHook.count;
+  const filterOptions = LogOptionsHook.filterOptions
+  const sortOptions = LogOptionsHook.sortOptions;
+
+  const [ filterValues, setFilterValues ] = useState({});
+  const [ sortValues, setSortValues ] = useState({});
+  const [ updatedFilterOptions, setUpdatedFilterOptions ] = useState({});
+
+  const handleFilterChange = (fieldName, newValue, updatedValues) => {
+    
+    // Update state with new values
+    setFilterValues(updatedValues);
+  };
+
+  const handleSortChange = (fieldName, newValue, updatedValues) => {
+    setSortValues(updatedValues);
+  };
 
   // Load monsters when filters or pagination changes
   const loadLogs = useCallback(() => {
@@ -24,11 +41,48 @@ function ApiServicesTestScreen() {
   useEffect(()=>{
     loadLogs();
   },[loadLogs])
+
+  useEffect(() => {
+  // Add "all" option to filter options and set default values
+  if (filterOptions) {
+    const updatedFilterOptions = {};
+
+    Object.keys(filterOptions).forEach((key) => {
+      updatedFilterOptions[key] = ['all', ...filterOptions[key]]; // Add "all" option
+    });
+
+    // Set default filter values to "all"
+    if (Object.keys(updatedFilterOptions).length > 0) {
+      setFilterValues(Object.fromEntries(Object.keys(updatedFilterOptions).map(key => [key, 'all'])));
+    }
+
+    setUpdatedFilterOptions(updatedFilterOptions);
+    setFilterValues(Object.fromEntries(Object.keys(updatedFilterOptions).map(key => [key, 'all'])));
+  }
+
+}, [filterOptions]);
   
 
   return(
     <Card>
       <CardSection type='header' title='useGenerationLogs test'>
+        <div>
+          Sort Options: 
+          <FilterSelectGroup
+          filterOptions={sortOptions}
+          values={sortValues}
+          onChange={handleSortChange}
+        />
+        </div>
+        <div>
+          Filter Options:
+          <FilterSelectGroup
+            filterOptions={updatedFilterOptions}
+            values={filterValues}
+            onChange={handleFilterChange}
+          />
+          
+        </div>
       </CardSection>
       <CardSection title='cleaned data' type='content'>
         count: {count}

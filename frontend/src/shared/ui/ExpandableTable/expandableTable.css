@@ -3,12 +3,6 @@
  * Maintains responsive behavior and follows design system patterns
  */
 
-/* ===== EXPANDABLE TABLE BASE ===== */
-
-.expandable-table {
-  /* Inherits all styles from .table in table.css */
-}
-
 /* ===== EXPANDABLE ROW STYLES ===== */
 
 .expandable-row {
@@ -192,43 +186,4 @@
 
 .expandable-table-hover .expandable-row:hover {
   background-color: var(--background-light);
-}
-
-/* ===== RESPONSIVE BEHAVIOR ===== */
-
-@media (max-width: 768px) {
-  .expandable-content-inner {
-    padding: var(--spacing-sm);
-    margin-left: var(--spacing-xs);
-    border-left-width: var(--border-width-thin);
-  }
-  
-  .expand-icon {
-    width: 14px;
-    height: 14px;
-  }
-  
-  .expandable-cell-content {
-    gap: var(--spacing-2xs);
-  }
-}
-
-/* ===== ACCESSIBILITY ===== */
-
-@media (prefers-reduced-motion: reduce) {
-  .expandable-table-animated .expand-icon,
-  .expandable-content {
-    transition: none;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .expand-icon {
-    border: 1px solid currentColor;
-  }
-  
-  .expandable-content-inner {
-    border-left-color: currentColor;
-  }
 }

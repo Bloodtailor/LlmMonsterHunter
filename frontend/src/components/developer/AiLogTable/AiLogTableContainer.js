@@ -23,7 +23,7 @@ function AiLogTableContainer({ className = '', style = {} }) {
   const [sortDirection, setSortDirection] = useState('desc');
 
   // Generation logs data hook
-  const { logs: generationLogs, count: logsCount, isLoading: loadingLogs, loadLogs } = useGenerationLogs();
+  const { logs: generationLogs, logsCount, isLoading: loadingLogs, loadLogs } = useGenerationLogs();
 
   // Load logs on mount and when dependencies change
   useEffect(() => {
@@ -37,33 +37,6 @@ function AiLogTableContainer({ className = '', style = {} }) {
   // Filtered and sorted logs (client-side processing)
   const filteredLogs = useMemo(() => {
     let filtered = generationLogs || [];
-
-    // Additional client-side filtering if needed
-    // (The API call already filters, but this provides immediate response for UI changes)
-
-    // Sort
-    filtered.sort((a, b) => {
-      let aVal = a[sortField];
-      let bVal = b[sortField];
-
-      // Handle date sorting
-      if (sortField === 'startTime' || sortField === 'endTime') {
-        aVal = aVal ? new Date(aVal).getTime() : 0;
-        bVal = bVal ? new Date(bVal).getTime() : 0;
-      }
-
-      // Handle numeric sorting
-      if (sortField === 'durationSeconds' || sortField === 'generationAttempt') {
-        aVal = Number(aVal) || 0;
-        bVal = Number(bVal) || 0;
-      }
-
-      if (sortDirection === 'asc') {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
-    });
 
     return filtered;
   }, [generationLogs, sortField, sortDirection]);
@@ -108,7 +81,8 @@ function AiLogTableContainer({ className = '', style = {} }) {
     loadLogs({
       limit: 100,
       type: filterType !== 'all' ? filterType : undefined,
-      status: filterStatus !== 'all' ? filterStatus : undefined
+      status: filterStatus !== 'all' ? filterStatus : undefined,
+      promptName: 'user_request'
     });
   }, [loadLogs, filterType, filterStatus]);
 
