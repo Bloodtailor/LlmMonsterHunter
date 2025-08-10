@@ -1,57 +1,66 @@
-// AiLogTableView - Pure presentational component for AI generation logs table
-// Renders ExpandableTable with controls, pagination, and expanded content
-// No data fetching or state management - all props come from container
+// AiLogTableView - UPDATED to use FilterSelectGroup and existing Pagination
+// Dramatically simplified by leveraging existing UI components
+// All manual filter/sort UI replaced with FilterSelectGroup components
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { 
   ExpandableTable,
   useExpandableRows,
-  Select,
   EmptyState,
   EMPTY_STATE_PRESETS,
   Card,
+  CardSection,
   LoadingSpinner,
-  StatusBadge,
-  Badge
+  FilterSelectGroup,
+  Pagination,
+  Button
 } from '../../../shared/ui/index.js';
-import FullPagination, { PAGINATION_LAYOUTS } from '../../../shared/ui/Pagination/PaginationPresets.js';
 import LlmLogDetails from './LlmLogDetails.js';
 import ImageLogDetails from './ImageLogDetails.js';
 
 /**
  * AiLogTableView - Presentational component for AI generation logs
+ * Now uses FilterSelectGroup and existing Pagination component
  * @param {object} props - Component props
  * @param {Array} props.logs - Array of generation logs
- * @param {boolean} props.isLoading - Loading state
- * @param {string} props.filterType - Current type filter
- * @param {string} props.filterStatus - Current status filter
- * @param {string} props.sortField - Current sort field
- * @param {string} props.sortDirection - Current sort direction
+ * @param {number} props.count - Total number of logs
+ * @param {object} props.filterOptions - Filter options for FilterSelectGroup
+ * @param {object} props.sortOptions - Sort options for FilterSelectGroup
+ * @param {object} props.filters - Current filter values
+ * @param {object} props.sortValues - Current sort values
  * @param {number} props.limit - Items per page
  * @param {object} props.pagination - Pagination state object
- * @param {Function} props.onFilterTypeChange - Type filter change handler
- * @param {Function} props.onFilterStatusChange - Status filter change handler
+ * @param {boolean} props.isLoading - Loading state
+ * @param {boolean} props.isError - Error state
+ * @param {object} props.error - Error object
+ * @param {boolean} props.isLoadingOptions - Loading options state
+ * @param {Function} props.onFilterChange - Filter change handler
  * @param {Function} props.onSortChange - Sort change handler
  * @param {Function} props.onLimitChange - Limit change handler
  * @param {Function} props.onRefresh - Refresh handler
+ * @param {Function} props.onClearFilters - Clear filters handler
  * @param {string} props.className - Additional CSS classes
  * @param {object} props.style - Inline styles
  * @returns {React.ReactElement} AiLogTableView component
  */
 function AiLogTableView({
   logs = [],
-  isLoading = false,
-  filterType = 'all',
-  filterStatus = 'all', 
-  sortField = 'startTime',
-  sortDirection = 'desc',
+  count = 0,
+  filterOptions = {},
+  sortOptions = {},
+  filters = {},
+  sortValues = {},
   limit = 20,
   pagination = null,
-  onFilterTypeChange = null,
-  onFilterStatusChange = null,
+  isLoading = false,
+  isError = false,
+  error = null,
+  isLoadingOptions = false,
+  onFilterChange = null,
   onSortChange = null,
   onLimitChange = null,
   onRefresh = null,
+  onClearFilters = null,
   className = '',
   style = {}
 }) {
@@ -67,7 +76,7 @@ function AiLogTableView({
     { 
       key: 'id', 
       header: 'ID', 
-      width: '10%',
+      width: '8%',
       render: (value) => (
         <span className="log-id" title={value}>
           #{value.toString().slice(-6)}
@@ -77,12 +86,12 @@ function AiLogTableView({
     { 
       key: 'generationType', 
       header: 'Type', 
-      width: '12%',
+      width: '10%'
     },
     { 
       key: 'promptType', 
       header: 'Prompt Type', 
-      width: '15%' 
+      width: '20%' 
     },
     { 
       key: 'promptName', 
@@ -92,40 +101,35 @@ function AiLogTableView({
     { 
       key: 'status', 
       header: 'Status', 
-      width: '12%',
+      width: '12%'
     },
     { 
       key: 'durationSeconds', 
       header: 'Duration', 
       width: '10%',
-      render: (value) => value ? `${value}s` : '-'
+      render: (value) => value ? `${value}s` : 'N/A'
     },
     { 
       key: 'generationAttempt', 
       header: 'Attempt', 
-      width: '8%',
-      render: (value, row) => `${value}/${row.maxAttempts}`
+      width: '10%',
+      render: (value, log) => {
+        if (log.generationAttempt && log.maxAttempts) {
+          return `${log.generationAttempt}/${log.maxAttempts}`;
+        }
+        return 'N/A';
+      }
     },
     { 
       key: 'startTime', 
       header: 'Date', 
-      width: '6%',
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      width: '10%',
+      render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
     },
-    { 
-      key: 'startTime', 
-      header: 'Time', 
-      width: '7%',
-      render: (value) => value ? new Date(value).toLocaleTimeString([],{
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }) : '-'
-    }
   ], []);
 
-  // Render expanded content based on generation type
-  const renderExpandedContent = useCallback((log) => {
+  // Expanded content renderer
+  const renderExpandedContent = (log) => {
     if (log.generationType === 'llm') {
       return <LlmLogDetails log={log} />;
     } else if (log.generationType === 'image') {
@@ -133,117 +137,106 @@ function AiLogTableView({
     }
     return (
       <div style={{ padding: '16px', color: 'var(--text-dim)' }}>
-        No additional details available for this generation type.
+        No details available for this log type.
       </div>
     );
-  }, []);
+  };
 
-  // Handle sort change
-  const handleSortChange = useCallback((e) => {
-    const [field, direction] = e.target.value.split('-');
-    onSortChange?.(field, direction);
-  }, [onSortChange]);
-
-  // Handle refresh
-  const handleRefresh = useCallback(() => {
-    onRefresh?.();
-    expandableRows.collapseAll();
-  }, [onRefresh, expandableRows]);
-
-  if (isLoading) {
+  // Don't render anything if options are still loading
+  if (isLoadingOptions) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px' }}>
-        <LoadingSpinner size="section" type="pulse" />
-        <p style={{ marginTop: '16px', color: 'var(--text-dim)' }}>
-          Loading generation logs...
-        </p>
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <LoadingSpinner size="md" />
+        <p style={{ marginTop: '10px', color: 'var(--text-dim)' }}>Loading filter options...</p>
       </div>
     );
   }
 
   return (
     <div className={`ai-log-table ${className}`} style={style}>
-      {/* Controls */}
-      <Card>
-        <div style={{
+      
+      {/* Filter and Sort Controls */}
+      <Card size='lg'>
+        <CardSection type="header" title="Filters & Sorting"/>
+        <div type="content" style={{
           display: 'flex',
-          flexDirection: 'row',
-          gap: '12px',
-          alignItems: 'center',
-          flexWrap: 'wrap'
+          flexDirection: 'column',
+          gap: '20px' 
         }}>
-          <label style={{ minWidth: '120px' }}>
-            Type:
-            <Select
-              value={filterType}
-              onChange={(e) => onFilterTypeChange?.(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Types' },
-                { value: 'llm', label: 'LLM Only' },
-                { value: 'image', label: 'Image Only' }
-              ]}
-            />
-          </label>
-          
-          <label style={{ minWidth: '120px' }}>
-            Status:
-            <Select
-              value={filterStatus}
-              onChange={(e) => onFilterStatusChange?.(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Status' },
-                { value: 'completed', label: 'Completed' },
-                { value: 'failed', label: 'Failed' },
-                { value: 'running', label: 'Running' }
-              ]}
-            />
-          </label>
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              onClick={onRefresh}
+              disabled={isLoading}
+            >
+              🔄 Refresh
+            </Button>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              onClick={onClearFilters}
+            >
+              🗑️ Clear Filters
+            </Button>
+          </div>
 
-          <label style={{ minWidth: '120px' }}>
-            Sort:
-            <Select
-              value={`${sortField}-${sortDirection}`}
-              onChange={handleSortChange}
-              options={[
-                { value: 'startTime-desc', label: 'Newest First' },
-                { value: 'startTime-asc', label: 'Oldest First' },
-                { value: 'durationSeconds-desc', label: 'Longest Duration' },
-                { value: 'durationSeconds-asc', label: 'Shortest Duration' },
-                { value: 'status-asc', label: 'Status A-Z' }
-              ]}
+          {/* Sort - Using FilterSelectGroup as SelectGroup */}
+          <div>
+            <FilterSelectGroup
+              filterOptions={sortOptions}
+              values={sortValues}
+              onChange={onSortChange}
+              layout="horizontal"
+              customLabels={{
+                field: 'Sort Field',
+                order: 'Sort Order'
+              }}
             />
-          </label>
+          </div>
 
-          <button
-            onClick={handleRefresh}
-            style={{
-              padding: '8px 16px',
-              background: 'var(--background-light)',
-              border: '1px solid var(--background-dark)',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--text-light)',
-              cursor: 'pointer'
-            }}
-          >
-            🔄 Refresh
-          </button>
+          {/* Filters - Using FilterSelectGroup */}
+          <div>
+            <strong>Filters:</strong>
+            <FilterSelectGroup
+              filterOptions={filterOptions}
+              values={filters}
+              onChange={onFilterChange}
+              layout="horizontal"
+            />
+          </div>
+
         </div>
       </Card>
 
       {/* Pagination (Top) */}
       {logs.length > 0 && pagination && (
-        <FullPagination
+        <Pagination
           pagination={pagination}
           itemName="logs"
-          itemsPerPageOptions={[10, 20, 50, 100]}
+          layout="full"
           currentLimit={limit}
           onLimitChange={onLimitChange}
-          layout={PAGINATION_LAYOUTS.FULL}
+          itemsPerPageOptions={[10, 20, 50, 100]}
+          style={{ marginBottom: '20px' }}
         />
       )}
 
-      {/* Expandable Table */}
-      {logs.length === 0 ? (
+      {/* Main Table */}
+      {isError ? (
+        <Card>
+          <CardSection type="content">
+            <div style={{ color: 'var(--color-red-intense)', padding: '1rem', textAlign: 'center' }}>
+              <strong>Error:</strong> {error?.message || 'Failed to load generation logs'}
+            </div>
+          </CardSection>
+        </Card>
+      ) : isLoading ? (
+          <div style={{ padding: '50px', textAlign: 'center' }}>
+            <LoadingSpinner size="screen" />
+          </div>
+      ) : logs.length === 0 ? (
         <EmptyState
           {...EMPTY_STATE_PRESETS.NO_DATA}
           title="No Generation Logs"
@@ -257,21 +250,21 @@ function AiLogTableView({
           data={logs}
           expandableRows={expandableRows}
           renderExpandedContent={renderExpandedContent}
-          emptyMessage="No logs found"
+          emptyMessage={isLoading ? "Loading..." : "No logs found"}
           size="sm"
           striped
           hover
+          loading={isLoading}
         />
       )}
 
       {/* Pagination (Bottom) */}
       {logs.length > 0 && pagination && (
-        <FullPagination
+        <Pagination
           pagination={pagination}
           itemName="logs"
-          currentLimit={limit}
-          onLimitChange={onLimitChange}
-          layout={PAGINATION_LAYOUTS.DEFAULT}
+          layout="simple"
+          style={{ marginTop: '20px' }}
         />
       )}
     </div>

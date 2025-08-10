@@ -3,6 +3,13 @@
  * Maintains responsive behavior and follows design system patterns
  */
 
+/* ===== EXPANDABLE TABLE BASE ===== */
+
+.expandable-table {
+  /* Inherits all styles from .table in table.css */
+  width: 100%;
+}
+
 /* ===== EXPANDABLE ROW STYLES ===== */
 
 .expandable-row {

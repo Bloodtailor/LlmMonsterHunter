@@ -21,9 +21,9 @@
 .loading-spinner-xl { font-size: var(--font-size-xl); }
 
 /* Standalone sizes - explicit sizing for prominent loading states */
-.loading-spinner-card { font-size: 32px; }     /* Individual cards */
-.loading-spinner-section { font-size: 48px; }  /* Content sections */
-.loading-spinner-screen { font-size: 64px; }   /* Full-screen loading */
+.loading-spinner-card { font-size: 48px; }     /* Individual cards */
+.loading-spinner-section { font-size: 64px; }  /* Content sections */
+.loading-spinner-screen { font-size: 128px; }   /* Full-screen loading */
 
 /* ===== SPINNER COLOR VARIANTS ===== */
 .loading-spinner-primary { color: var(--primary-color); }
