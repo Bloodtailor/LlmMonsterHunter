@@ -92,7 +92,7 @@ export function useEventSource(url, eventRegistry, options = {}) {
     try {
       console.log('🔗 Connecting to EventSource:', url);
       
-      const eventSource = new EventSource('http://localhost:5000/api/streaming/llm-events');
+      const eventSource = new EventSource(url);
       eventSourceRef.current = eventSource;
 
       // Standard connection handlers

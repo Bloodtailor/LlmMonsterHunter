@@ -1,41 +1,27 @@
-// Generation API Service - Complete API communication for unified generation system
-// Handles generation status, logs, streaming, and real-time functionality
-// Returns raw API responses - no business logic or data transformation
-// Updated to match complete backend API reference
+// Generation API Service - PERFECT ARCHITECTURE VERSION
+// Co-located: HTTP calls + transformations + defaults in one place  
+// 1:1 with backend routes, no separate constants needed
+// Functions carry their own defaults for perfect pairing with useAsyncState
 
 import { get, post, getWithParams } from '../core/client.js';
-import { API_ENDPOINTS } from '../core/config.js';
+import { transformGenerationLogs } from '../transformers/generation.js';
 
-// ===== GENERATION SYSTEM STATUS =====
-
-/**
- * Get generation system status
- * Includes LLM status, image status, queue info, and supported types
- * @returns {Promise<object>} Raw API response with generation system status
- */
-export async function getGenerationStatus() {
-  return await get(API_ENDPOINTS.GENERATION_STATUS);
-}
-
-/**
- * Get generation system statistics
- * Includes overall, LLM, and image generation statistics
- * @returns {Promise<object>} Raw API response with generation statistics
- */
-export async function getGenerationStats() {
-  return await get(API_ENDPOINTS.GENERATION_STATS);
-}
-
-// ===== GENERATION LOGS (New Unified System) =====
+// ===== GENERATION LOGS (UNIFIED SYSTEM) =====
 
 /**
  * Get generation logs with filtering and pagination
  * @param {object} options - Query options
  * @param {number} options.limit - Number of logs to return (1-100, default: 20)
+ * @param {number} options.offset - Offset for pagination (0+, default: 0)
  * @param {string} options.type - Filter by type ('llm', 'image')
  * @param {string} options.status - Filter by status ('pending', 'generating', 'completed', 'failed')
- * @param {string} options.prompt_type - Filter by prompt type
- * @returns {Promise<object>} Raw API response with generation logs
+ * @param {string} options.promptType - Filter by prompt type
+ * @param {string} options.promptName - Filter by prompt name
+ * @param {string} options.priority - Filter by priority
+ * @param {string} options.startTime - Filter by start time
+ * @param {string} options.sortBy - Comma-separated fields to sort by
+ * @param {string} options.sortOrder - Sort order ('asc' or 'desc')
+ * @returns {Promise<object>} Clean transformed response with generation logs
  */
 export async function getGenerationLogs(options = {}) {
   const params = {};
@@ -49,62 +35,47 @@ export async function getGenerationLogs(options = {}) {
   if (options.promptName) params.prompt_name = options.promptName;
   if (options.priority) params.priority = options.priority;
   if (options.startTime) params.start_time = options.startTime;
-  if (options.sortBy) params.sort_by = options.sortBy;  // Comma-separated fields to sort by
-  if (options.sortOrder) params.sort_order = options.sortOrder; // 'asc' or 'desc'
+  if (options.sortBy) params.sort_by = options.sortBy;
+  if (options.sortOrder) params.sort_order = options.sortOrder;
   
-  return await getWithParams(API_ENDPOINTS.GENERATION_LOGS, params);
+  const response = await getWithParams('/api/generation/logs', params);
+  
+  return {
+    logs: transformGenerationLogs(response.data?.logs ?? getGenerationLogs.defaults.logs),
+    count: response.data?.count ?? getGenerationLogs.defaults.count,
+    _raw: response
+  };
 }
 
+getGenerationLogs.defaults = {
+  logs: [],
+  count: 0
+};
+
+/**
+ * Get generation log filter and sort options
+ * @returns {Promise<object>} Clean response with available filter and sort options
+ */
 export async function getGenerationLogOptions() {
-  return await get(API_ENDPOINTS.GENERATION_LOG_OPTIONS);
+  const response = await get('/api/generation/log-options');
+  
+  return {
+    filterOptions: response.data?.filter_options ?? getGenerationLogOptions.defaults.filterOptions,
+    sortOptions: response.data?.sort_options ?? getGenerationLogOptions.defaults.sortOptions,
+    _raw: response
+  };
 }
 
-/**
- * Get detailed information about a specific generation log
- * @param {number} logId - ID of the log to retrieve
- * @returns {Promise<object>} Raw API response with detailed log data
- */
-export async function getGenerationLogDetail(logId) {
-  return await get(API_ENDPOINTS.GENERATION_LOG_DETAIL(logId));
-}
-
-// ===== STREAMING & REAL-TIME =====
-
-/**
- * Get streaming connections information
- * Shows active connections and supported event types
- * @returns {Promise<object>} Raw API response with streaming connection info
- */
-export async function getStreamingConnections() {
-  return await get(API_ENDPOINTS.STREAMING_CONNECTIONS);
-}
-
-/**
- * Test streaming functionality with simple generation
- * @param {object} options - Test options
- * @returns {Promise<object>} Raw API response with test initiation results
- */
-export async function testStreaming(options = {}) {
-  return await post(API_ENDPOINTS.STREAMING_TEST, options);
-}
-
-/**
- * Get Server-Sent Events stream URL for real-time generation updates
- * Note: This is not an API call but returns the SSE endpoint URL
- * @returns {string} SSE endpoint URL for EventSource connection
- */
-export function getStreamingEventsUrl() {
-  return `http://localhost:5000${API_ENDPOINTS.STREAMING_EVENTS}`;
-}
-
-
-// ===== UTILITY FUNCTIONS =====
-
-/**
- * Test generation API connectivity
- * Useful for debugging and health checks
- * @returns {Promise<object>} Raw API response
- */
-export async function testGenerationApi() {
-  return await get(API_ENDPOINTS.GENERATION_STATUS);
-}
+getGenerationLogOptions.defaults = {
+  filterOptions: {
+    types: [],
+    statuses: [],
+    promptTypes: [],
+    promptNames: [],
+    priorities: []
+  },
+  sortOptions: {
+    fields: [],
+    orders: []
+  }
+};

@@ -1,68 +1,66 @@
-import { useCallback, useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
-import * as genApi from './../../api/services/generation.js'
-import { transformGenerationLogs } from '../transformers/generation.js';
+import * as generationApi  from './../../api/services/generation.js'
 
 /**
  * Hook for managing monster collections
  * Provides clean monster data + loading state
  */
+/**
+ * Hook for managing generation logs
+ * Provides clean generation logs data + loading state with business logic
+ */
 export function useGenerationLogs() {
-  const asyncState = useAsyncState();
-  const rawResponse = asyncState.data;
-
-  const loadLogs = useCallback(async (options = {}) => {
-    await asyncState.execute(genApi.getGenerationLogs, options);
-  }, [asyncState.execute]);
-
-  // Transform raw data when it changes
-  const transformedData = useMemo(() => {
-    if (!rawResponse) {
-      return { logs: [], count: 0 };
-    }
-    
-    return {
-      logs: transformGenerationLogs(rawResponse.data?.logs || []),
-      count: rawResponse.data?.count || 0
-    };
-  }, [rawResponse]);
+  // ✨ SUPER CLEAN - automatically uses getGenerationLogs.defaults
+  const api = useAsyncState(generationApi.getGenerationLogs);
 
   return {
-    // Clean transformed data
-    ...transformedData,
+    // Clean transformed data (guaranteed shapes from function.defaults!)
+    logs: api.data.logs,         // Always an array
+    count: api.data.count,       // Always a number
 
     // Raw data (for debugging)
-    rawResponse,
+    rawResponse: api.data._raw,
 
     // State flags
-    isLoading: asyncState.isLoading,
-    isError: asyncState.isError,
-    error: asyncState.error,
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
 
     // Actions
-    loadLogs
+    loadLogs: api.execute,
+    reset: api.reset
   };
 }
 
-export function useGenerationLogOptions(){
-  const asyncState = useAsyncState();
-  const rawResponse = asyncState.data;
+/**
+ * Hook for generation log filter and sort options
+ * Auto-loads options on mount for immediate use
+ */
+export function useGenerationLogOptions() {
+  // ✨ Automatically uses getGenerationLogOptions.defaults
+  const api = useAsyncState(generationApi.getGenerationLogOptions);
 
-  const loadLogOptions = useCallback(async() => {
-    await asyncState.execute(genApi.getGenerationLogOptions);
-  }, [asyncState.execute])
-
-  // Run the loadLogOptions function on mount
+  // Auto-load options on mount
   useEffect(() => {
-    loadLogOptions();
-  }, [loadLogOptions]);  // Only runs when loadLogOptions changes (i.e., on mount)
+    api.execute();
+  }, [api.execute]);
 
   return {
-    filterOptions: rawResponse?.data?.filters,
-    sortOptions: rawResponse?.data?.sort,
-    rawResponse,
-    isLoading: asyncState.isLoading,
-    isError: asyncState.isError,
-    error: asyncState.error
+    // Clean transformed data (guaranteed shapes!)
+    filterOptions: api.data.filterOptions,           // Always an object with arrays
+    sortOptions: api.data.sortOptions,   // Always an object
+
+    // Raw data (for debugging)
+    rawResponse: api.data._raw,
+
+    // State flags
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    // Actions
+    loadLogOptions: api.execute,
+    reset: api.reset
   };
 }
