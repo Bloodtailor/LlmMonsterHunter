@@ -1,0 +1,11 @@
+Collecting cryptography
+  Downloading cryptography-45.0.6-cp37-abi3-win_amd64.whl (3.4 MB)
+     ---------------------------------------- 3.4/3.4 MB 16.7 MB/s eta 0:00:00
+Collecting cffi>=1.14
+  Downloading cffi-1.17.1-cp310-cp310-win_amd64.whl (181 kB)
+     ---------------------------------------- 181.3/181.3 kB ? eta 0:00:00
+Collecting pycparser
+  Downloading pycparser-2.22-py3-none-any.whl (117 kB)
+     ---------------------------------------- 117.6/117.6 kB ? eta 0:00:00
+Installing collected packages: pycparser, cffi, cryptography
+Successfully installed cffi-1.17.1 cryptography-45.0.6 pycparser-2.22
