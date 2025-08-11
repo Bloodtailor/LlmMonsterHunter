@@ -4,6 +4,7 @@
 
 import React from 'react';
 import AiLogTableContainer from '../../components/developer/AiLogTable/AiLogTableContainer.js';
+import TestRunner from '../../components/developer/testRunner/testRunner.js';
 import { Card, CardSection } from '../../shared/ui/index.js';
 
 /**
@@ -32,6 +33,8 @@ function GenerationLogsScreen() {
           </p>
         </CardSection>
       </Card>
+
+      <TestRunner/>
 
       {/* Main Log Table */}
       <AiLogTableContainer />

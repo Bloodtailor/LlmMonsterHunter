@@ -40,6 +40,7 @@ def install_basic_dependencies():
         "Flask==3.0.0",
         "Flask-SQLAlchemy==3.1.1", 
         "Flask-CORS==4.0.0",
+        "cryptography>=41.0.0",
         "PyMySQL==1.1.0",
         "python-dotenv==1.0.0",
         "requests==2.31.0"
