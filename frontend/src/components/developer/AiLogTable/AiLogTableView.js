@@ -157,7 +157,7 @@ function AiLogTableView({
       
       {/* Filter and Sort Controls */}
       <Card size='lg'>
-        <CardSection type="header" title="Filters & Sorting"/>
+        <CardSection type="header" title="Generation Logs"/>
         <div type="content" style={{
           display: 'flex',
           flexDirection: 'column',
@@ -208,65 +208,64 @@ function AiLogTableView({
           </div>
 
         </div>
-      </Card>
+        {/* Pagination (Top) */}
+        {logs.length > 0 && pagination && (
+          <Pagination
+            pagination={pagination}
+            itemName="logs"
+            layout="full"
+            currentLimit={limit}
+            onLimitChange={onLimitChange}
+            itemsPerPageOptions={[10, 20, 50, 100]}
+            style={{ marginBottom: '20px' }}
+          />
+        )}
 
-      {/* Pagination (Top) */}
-      {logs.length > 0 && pagination && (
-        <Pagination
-          pagination={pagination}
-          itemName="logs"
-          layout="full"
-          currentLimit={limit}
-          onLimitChange={onLimitChange}
-          itemsPerPageOptions={[10, 20, 50, 100]}
-          style={{ marginBottom: '20px' }}
-        />
-      )}
-
-      {/* Main Table */}
-      {isError ? (
-        <Card>
-          <CardSection type="content">
-            <div style={{ color: 'var(--color-red-intense)', padding: '1rem', textAlign: 'center' }}>
-              <strong>Error:</strong> {error?.message || 'Failed to load generation logs'}
+        {/* Main Table */}
+        {isError ? (
+          <Card>
+            <CardSection type="content">
+              <div style={{ color: 'var(--color-red-intense)', padding: '1rem', textAlign: 'center' }}>
+                <strong>Error:</strong> {error?.message || 'Failed to load generation logs'}
+              </div>
+            </CardSection>
+          </Card>
+        ) : isLoading ? (
+            <div style={{ padding: '50px', textAlign: 'center' }}>
+              <LoadingSpinner size="screen" />
             </div>
-          </CardSection>
-        </Card>
-      ) : isLoading ? (
-          <div style={{ padding: '50px', textAlign: 'center' }}>
-            <LoadingSpinner size="screen" />
-          </div>
-      ) : logs.length === 0 ? (
-        <EmptyState
-          {...EMPTY_STATE_PRESETS.NO_DATA}
-          title="No Generation Logs"
-          message="No logs match your current filters."
-          size="lg"
-          style={{ margin: '40px 0' }}
-        />
-      ) : (
-        <ExpandableTable
-          columns={columns}
-          data={logs}
-          expandableRows={expandableRows}
-          renderExpandedContent={renderExpandedContent}
-          emptyMessage={isLoading ? "Loading..." : "No logs found"}
-          size="sm"
-          striped
-          hover
-          loading={isLoading}
-        />
-      )}
+        ) : logs.length === 0 ? (
+          <EmptyState
+            {...EMPTY_STATE_PRESETS.NO_DATA}
+            title="No Generation Logs"
+            message="No logs match your current filters."
+            size="lg"
+            style={{ margin: '40px 0' }}
+          />
+        ) : (
+          <ExpandableTable
+            columns={columns}
+            data={logs}
+            expandableRows={expandableRows}
+            renderExpandedContent={renderExpandedContent}
+            emptyMessage={isLoading ? "Loading..." : "No logs found"}
+            size="sm"
+            striped
+            hover
+            loading={isLoading}
+          />
+        )}
 
-      {/* Pagination (Bottom) */}
-      {logs.length > 0 && pagination && (
-        <Pagination
-          pagination={pagination}
-          itemName="logs"
-          layout="simple"
-          style={{ marginTop: '20px' }}
-        />
-      )}
+        {/* Pagination (Bottom) */}
+        {logs.length > 0 && pagination && (
+          <Pagination
+            pagination={pagination}
+            itemName="logs"
+            layout="simple"
+            style={{ marginTop: '20px' }}
+          />
+        )}
+        </Card>
     </div>
   );
 }
