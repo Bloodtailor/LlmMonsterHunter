@@ -23,7 +23,7 @@ import CoCaTokDemo from './screens/developer/CoCaTokDemo';
 import ExplosionDemo from './screens/developer/ExplosionDemo';
 import StreamingDisplay from './components/streaming/StreamingDisplay.js';
 import EventTestScreen from './screens/developer/EventTestScreen.js';
-import GenerationLogsScreen from './screens/developer/GenerationLogsScreen.js';
+import DeveloperScreen from './screens/developer/DeveloperScreen.js';
 
 function App() {
 
@@ -38,8 +38,8 @@ function App() {
       label: '🧪 API Tests'
     },
     {
-      screen: 'logs',
-      label: '🧪 Generation Logs Test'
+      screen: 'dev',
+      label: '🧪 Developer'
     },
     {
       screen: 'event-test',
@@ -98,7 +98,7 @@ function App() {
           {/* Main Content Area */}
           <main className="app-main">
             {currentScreen === 'api-services' && <ApiServicesTestScreen />}
-            {currentScreen === 'logs' && <GenerationLogsScreen />}
+            {currentScreen === 'dev' && <DeveloperScreen />}
             {currentScreen === 'event-test' && <EventTestScreen />}
             {currentScreen === 'cocatok-demo' && <CoCaTokDemo />}
             {currentScreen === 'explosion-demo' && <ExplosionDemo />}
