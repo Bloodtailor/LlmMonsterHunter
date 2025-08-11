@@ -3,7 +3,7 @@
 // 
 
 import AiLogTableContainer from '../../components/developer/AiLogTable/AiLogTableContainer.js';
-import TestRunner from '../../components/developer/TestRunner/TestRunner.js';
+import TestRunner from '../../components/developer/GameTestRunner/GameTestRunner.js';
 import { Card, CardSection } from '../../shared/ui/index.js';
 
 function DeveloperScreen() {
