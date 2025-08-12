@@ -3,9 +3,9 @@
 // Perfect for monster color selection, theme picking, etc.
 
 import React, { useMemo, useState } from 'react';
-import { Select } from '../Form/index.js';
-import { getAllColors, getColor } from '../../styles/color.js';
-import './ColorSelection.css';
+import Select from '../Form/Select.js';
+import { getAllColors } from '../../styles/color.js';
+import './colorSelection.css';
 
 /**
  * Basic color selection dropdown component

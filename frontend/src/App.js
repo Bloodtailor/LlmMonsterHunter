@@ -24,6 +24,7 @@ import ExplosionDemo from './screens/developer/ExplosionDemo';
 import StreamingDisplay from './components/streaming/StreamingDisplay.js';
 import EventTestScreen from './screens/developer/EventTestScreen.js';
 import DeveloperScreen from './screens/developer/DeveloperScreen.js';
+import UiExamplesScreen from './screens/developer/UiExamplesScreen.js';
 
 function App() {
 
@@ -56,6 +57,10 @@ function App() {
     {
       screen: 'style-test',
       label: '🧪 Style Test'
+    },
+    {
+      screen: 'ui-examples',
+      label: '🧪 UI Examples'
     },
     {
       screen: 'sanctuary',
@@ -103,6 +108,7 @@ function App() {
             {currentScreen === 'cocatok-demo' && <CoCaTokDemo />}
             {currentScreen === 'explosion-demo' && <ExplosionDemo />}
             {currentScreen === 'style-test' && <StyleTestScreen />}
+            {currentScreen === 'ui-examples' && <UiExamplesScreen />}
             {currentScreen === 'sanctuary' && <MonsterSanctuaryScreen />}
             {currentScreen === 'homebase' && <HomeBaseScreen />}
             {currentScreen === 'byo-component' && <BYOComponentTestScreen />}
