@@ -1,6 +1,5 @@
 # Application Runner - CLEANED UP
 # Simply creates and runs the Flask app
-print(f"🔍 Loading {__file__}")
 from backend.app import create_app
 from backend.core.utils.console import print_header, print_startup_complete
 

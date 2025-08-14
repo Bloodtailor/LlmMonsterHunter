@@ -1,7 +1,7 @@
 # ComfyUI Workflow Management - CLEANED UP FOR CONSISTENCY
 # Handles loading, modifying, and validating workflows
 # Pure workflow operations with minimal output
-print(f"🔍 Loading {__file__}")
+
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List

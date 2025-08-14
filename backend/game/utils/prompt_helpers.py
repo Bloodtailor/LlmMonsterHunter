@@ -1,7 +1,6 @@
 # Prompt Helpers - UPDATED: Consistent Utility Function Usage
 # Consolidates prompt building and generation request patterns
 # Used across monster, ability, and dungeon services with consistent error handling
-print(f"🔍 Loading {__file__}")
 from typing import Dict, Any, Optional
 from backend.ai import get_template_config, build_prompt
 from backend.ai import text_generation_request

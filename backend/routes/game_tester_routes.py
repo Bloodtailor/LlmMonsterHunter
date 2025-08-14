@@ -1,4 +1,4 @@
-print(f"🔍 Loading {__file__}")
+
 from flask import Blueprint, jsonify, request
 from backend.services.game_tester_service import run_test_file, get_test_files
 

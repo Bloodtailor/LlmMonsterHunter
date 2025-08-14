@@ -1,6 +1,6 @@
 # Events Package - Clean Imports for Event System
 # Provides easy access to event bus, registry, and emission functions
-print(f"🔍 Loading {__file__}")
+print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
 # Import core event bus functionality
 from .event_bus import (

@@ -1,6 +1,5 @@
 # Flask Application Factory - CLEANED UP
 # Creates and configures the Flask application
-print(f"🔍 Loading {__file__}")
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv

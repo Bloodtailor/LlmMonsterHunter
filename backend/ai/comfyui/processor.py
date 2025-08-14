@@ -1,6 +1,6 @@
 # ComfyUI Processor - SIMPLIFIED  
 # Trusts upstream validation, focuses on image generation
-print(f"🔍 Loading {__file__}")
+
 import time
 import random
 from pathlib import Path

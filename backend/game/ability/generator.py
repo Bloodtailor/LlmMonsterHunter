@@ -1,7 +1,7 @@
 # Ability Generator - TRULY SIMPLIFIED: No Validation
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming completely
-print(f"🔍 Loading {__file__}")
+
 from typing import Dict, Any
 from backend.models.ability import Ability
 from backend.game.utils import build_and_generate

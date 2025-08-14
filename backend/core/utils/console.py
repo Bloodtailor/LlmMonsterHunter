@@ -1,6 +1,5 @@
 # Console Output Utilities
 # Centralized decorative console output for consistent formatting across the app
-print(f"🔍 Loading {__file__}")
 
 def print_header(title: str):
     """Print a major header with decorative box"""

@@ -1,1 +1,5 @@
-print(f"🔍 Loading {__file__}")
+print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
+
+from . import comfyui_config
+from . import database
+from . import llm_config

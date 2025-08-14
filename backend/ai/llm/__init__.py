@@ -1,7 +1,7 @@
 # LLM Module Package - CLEAN INTERFACE
 # Exports core LLM functionality with simplified architecture
 
-print(f"🔍 Loading {__file__}")
+print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
 # Core model operations
 from .core import (

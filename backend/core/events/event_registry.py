@@ -1,7 +1,7 @@
 # Core Event Registry - Event System Foundation
 # Provides the base event registration and emission framework
 # Individual event modules (ai_events.py, dungeon_events.py, etc.) register their events here
-print(f"🔍 Loading {__file__}")
+
 from dataclasses import dataclass
 from typing import Dict, Any, List
 from .event_bus import emit_event

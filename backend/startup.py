@@ -1,6 +1,5 @@
 # AI Systems Initialization - CLEANED UP
 # Loads LLM model and initializes unified AI generation queue
-print(f"🔍 Loading {__file__}")
 import os
 from backend.core.utils.console import print_section, print_success, print_error, print_warning, print_info
 

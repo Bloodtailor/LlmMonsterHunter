@@ -2,7 +2,7 @@
 # THE ONLY WAY to request any workflow exicution
 # Validates workflow and context before adding to queue
 
-print(f"🔍 Loading {__file__}")
+
 from typing import Dict, Any, Optional, Callable
 from .workflow_queue import get_queue
 from backend.core.utils import print_error

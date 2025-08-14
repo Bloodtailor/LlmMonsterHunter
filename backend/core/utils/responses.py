@@ -1,6 +1,5 @@
 # Response Utilities - Standardized Error/Success Patterns
 # Universal response helpers for entire backend project
-print(f"🔍 Loading {__file__}")
 from typing import Any, Dict, Optional
 from .console import print_error, print_warning
 

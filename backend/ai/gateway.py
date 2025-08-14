@@ -1,7 +1,6 @@
 # AI gateway - formerly generation_service.py
 # THE ONLY WAY to request any AI generation (LLM or Image)
 # Creates normalized generation_log entries and delegates to unified queue
-print(f"🔍 Loading {__file__}")
 import os
 import time
 from typing import Dict, Any, Optional

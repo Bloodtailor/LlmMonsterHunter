@@ -1,7 +1,7 @@
 # ComfyUI Client - API Communication
 # Handles all HTTP communication with ComfyUI server
 # No business logic, just clean API calls
-print(f"🔍 Loading {__file__}")
+
 import requests
 import json
 import time

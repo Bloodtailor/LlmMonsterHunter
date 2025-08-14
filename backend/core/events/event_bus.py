@@ -1,7 +1,7 @@
 # Event Service - Central Event Bus
 # Simple pub/sub system for real-time game events
 # Thread-safe for solo player game
-print(f"🔍 Loading {__file__}")
+
 import threading
 from typing import Dict, List, Callable, Any
 from collections import defaultdict
