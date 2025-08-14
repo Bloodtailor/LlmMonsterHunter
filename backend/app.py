@@ -2,7 +2,6 @@
 # Creates and configures the Flask application
 from flask import Flask
 from flask_cors import CORS
-from dotenv import load_dotenv
 import os
 
 def create_app(config_name='development'):
@@ -17,8 +16,8 @@ def create_app(config_name='development'):
         Flask: Configured Flask application instance
     """
     
-    # Load environment variables
-    load_dotenv()
+    # Load environment variables: load_dotenv()
+    # Already handeled in backend/__init__.py
     
     # Create and configure Flask app
     app = Flask(__name__)

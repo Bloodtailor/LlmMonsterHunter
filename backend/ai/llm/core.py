@@ -51,7 +51,7 @@ def load_model() -> bool:
             return True
         
         try:
-            print_info("Loading LLM model...")
+            print("Loading LLM model...")
             
             # Get configuration from .env
             model_path = os.getenv('LLM_MODEL_PATH')
@@ -61,9 +61,10 @@ def load_model() -> bool:
             if not model_path or not Path(model_path).exists():
                 raise FileNotFoundError(f"Model file not found: {model_path}")
             
-            print_info(f"Model: {Path(model_path).name}")
-            print_info(f"GPU Layers: {gpu_layers}")
-            print_info(f"Context Size: {context_size}")
+            print("Using the following settings:")
+            print(f"    Model: {Path(model_path).name}")
+            print(f"    GPU Layers: {gpu_layers}")
+            print(f"    Context Size: {context_size}")
             
             # Import and load model
             from llama_cpp import Llama
@@ -96,7 +97,7 @@ def load_model() -> bool:
                 'error': None
             })
             
-            print_success(f"Model loaded successfully in {load_duration:.1f} seconds")
+            print(f"Model loaded successfully in {load_duration:.1f} seconds")
             return True
             
         except Exception as e:
