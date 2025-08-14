@@ -2,8 +2,8 @@
 # Contains only LLM inference parameters, responses, and parsing data
 # Linked to GenerationLog parent table
 
-from backend.models.base import BaseModel
-from backend.core.config.database import db
+from .core import db
+from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text, JSON, Float, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from typing import Dict, Any, Optional

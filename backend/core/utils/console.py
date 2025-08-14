@@ -11,7 +11,9 @@ def print_header(title: str):
 
 def print_section(title: str):
     """Print a section header"""
+    print()
     print(f"📋 {title}")
+    print()
 
 def print_success(message: str):
     """Print a success message"""
@@ -31,12 +33,6 @@ def print_info(message: str):
 
 def print_separator():
     """Print a visual separator"""
-    print("-" * 50)
-
-def print_startup_complete():
-    """Print startup completion message"""
-    print()
-    print("🚀 System ready - Monster Hunter Game Backend is running!")
     print("-" * 50)
 
 def print_config_item(label: str, value: str):

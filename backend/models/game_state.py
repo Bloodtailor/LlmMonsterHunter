@@ -2,11 +2,10 @@
 # Single row representing current game state with proper relationships
 # Follows database normalization principles
 
-from backend.models.base import BaseModel
-from backend.core.config.database import db
+from .core import db
+from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text, Boolean
 from sqlalchemy.orm import relationship
-from typing import Dict, Any, Optional
 
 class GameState(BaseModel):
     """

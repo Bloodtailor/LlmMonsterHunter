@@ -6,7 +6,7 @@ from typing import Dict, Any
 from sqlalchemy import func
 from backend.models.monster import Monster
 from backend.models.ability import Ability
-from backend.core.config.database import db
+from backend.models.core import db
 from backend.core.utils import success_response, error_response
 
 class MonsterManager:

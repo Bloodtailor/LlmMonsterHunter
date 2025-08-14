@@ -2,8 +2,8 @@
 # Parent table for all generation types with separate child tables
 # Follows database normalization principles
 
-from backend.models.base import BaseModel
-from backend.core.config.database import db
+from .core import db
+from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text, JSON, Float, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime

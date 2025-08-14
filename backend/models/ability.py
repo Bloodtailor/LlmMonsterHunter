@@ -2,8 +2,8 @@
 # Stores AI-generated abilities for monsters
 # Each ability belongs to one monster, monsters can have unlimited abilities
 
-from backend.models.base import BaseModel
-from backend.core.config.database import db
+from .core import db
+from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text, ForeignKey
 
 class Ability(BaseModel):

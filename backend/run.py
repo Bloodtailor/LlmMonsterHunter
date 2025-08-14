@@ -1,7 +1,7 @@
 # Application Runner - CLEANED UP
 # Simply creates and runs the Flask app
 from backend.app import create_app
-from backend.core.utils.console import print_header, print_startup_complete
+from backend.core.utils.console import print_header
 
 def main():
     """Main function to start the Flask application"""
@@ -11,11 +11,8 @@ def main():
     # Create and run Flask app
     app = create_app()
     
-    print_startup_complete()
-    print(f"   Server: http://localhost:5000")
-    print(f"   Press Ctrl+C to stop")
-    print()
-    
+    print_header("🚀 System ready - Backend is running!")
+
     # Start the Flask development server
     app.run(
         host='localhost',

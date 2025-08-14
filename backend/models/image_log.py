@@ -2,8 +2,8 @@
 # Contains only the essential image generation results
 # Linked to GenerationLog parent table
 
-from backend.models.base import BaseModel
-from backend.core.config.database import db
+from .core import db
+from .base import BaseModel
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from typing import Dict, Any

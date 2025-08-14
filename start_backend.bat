@@ -18,7 +18,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo ✅ Virtual environment activated
+echo Virtual environment activated
 echo.
 
 REM Start the Flask backend

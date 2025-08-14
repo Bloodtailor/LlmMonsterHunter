@@ -2,8 +2,8 @@
 # Tracks complex multi-step game workflows through the orchestration queue
 # Stores workflow state, context, and results
 
-from backend.models.base import BaseModel
-from backend.core.config.database import db
+from .core import db
+from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text, JSON, DateTime
 from datetime import datetime
 from typing import Dict, Any, Optional

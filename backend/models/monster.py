@@ -2,12 +2,10 @@
 # Enhanced with abilities relationship, methods, and card art storage
 # Focuses only on data storage and retrieval - NO game logic
 
-from backend.models.base import BaseModel
-from backend.core.config.database import db
+from .core import db
+from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text, JSON
 from sqlalchemy.orm import relationship
-import json
-from pathlib import Path
 
 class Monster(BaseModel):
     """

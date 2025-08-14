@@ -2,7 +2,7 @@
 # Sets up the database connection and base model class
 # All other models inherit from this base for consistency
 
-from backend.core.config.database import db
+from .core import db
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 
