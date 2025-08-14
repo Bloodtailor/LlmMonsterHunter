@@ -28,16 +28,15 @@ def create_app(config_name='development'):
     CORS(app, origins=['http://localhost:3000'])
     
     # Initialize database
-    from backend.core.config.database import init_db, create_tables
-    init_db(app)
-    
-    # Register all models and create tables
-    with app.app_context():
-        create_tables()
+    from backend.startup import initialize_database
+    initialize_database(app)
     
     # Initialize AI systems
     from backend.startup import initialize_ai_systems
     initialize_ai_systems(app)
+
+    from backend.startup import initialize_workflows
+    initialize_workflows(app)
     
     # Register routes
     _register_routes(app)
@@ -86,78 +85,3 @@ def _register_routes(app):
             'message': 'Monster Hunter Game API is running',
             'api_version': '2.0'
         }
-    
-    # Game status with AI system info
-    @app.route('/api/game/status')
-    def game_status():
-        """Get comprehensive game status"""
-        
-        try:
-            from backend.startup import get_ai_status
-            ai_status = get_ai_status()
-        except Exception as e:
-            ai_status = {'error': str(e)}
-        
-        return {
-            'game_name': 'Monster Hunter Game',
-            'version': '0.1.0-mvp',
-            'status': 'development',
-            'features': {
-                'monster_generation': ai_status.get('llm_ready', False),
-                'ability_generation': ai_status.get('llm_ready', False),
-                'image_generation': ai_status.get('image_ready', False),
-                'streaming_display': True,
-                'unified_queue': True,
-                'gpu_acceleration': ai_status.get('gpu_enabled', False),
-                'battle_system': False,
-                'chat_system': False,
-                'save_system': True
-            },
-            'ai_systems': ai_status
-        }
-    
-    # Generation test endpoint
-    @app.route('/api/test/generation')
-    def test_generation():
-        """Test AI generation capabilities"""
-        
-        from backend.ai import gateway
-        
-        results = {
-            'llm_test': 'not_tested',
-            'image_test': 'not_tested',
-            'overall_success': False
-        }
-        
-        # Test LLM
-        try:
-            llm_result = gateway.text_generation_request(
-                prompt="Say 'LLM test successful'",
-                wait_for_completion=True
-            )
-            results['llm_test'] = 'success' if llm_result['success'] else 'failed'
-        except Exception as e:
-            results['llm_test'] = 'error'
-            results['llm_error'] = str(e)
-        
-        # Test image generation (if enabled)
-        image_enabled = os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true'
-        if image_enabled:
-            try:
-                image_result = gateway.image_generation_request(
-                    prompt_text="A goblin",
-                    wait_for_completion=False
-                )
-                results['image_test'] = 'queued' if image_result['success'] else 'failed'
-            except Exception as e:
-                results['image_test'] = 'error'
-                results['image_error'] = str(e)
-        else:
-            results['image_test'] = 'disabled'
-        
-        results['overall_success'] = (
-            results['llm_test'] == 'success' and 
-            results['image_test'] in ['success', 'queued', 'disabled']
-        )
-        
-        return results

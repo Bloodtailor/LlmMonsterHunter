@@ -1,10 +1,11 @@
 # Backend Utils Package
 # Common utilities for entire backend project
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
+
 from .responses import success_response, error_response, check_and_return, validate_and_continue
 from .console import (
     print_header, print_section, print_success, print_error, print_warning, 
-    print_info, print_separator, print_startup_complete, print_config_item, print_status_item
+    print_info, print_separator, print_config_item, print_status_item
 )
 
 __all__ = [
@@ -22,7 +23,6 @@ __all__ = [
     'print_warning',
     'print_info',
     'print_separator',
-    'print_startup_complete',
     'print_config_item',
     'print_status_item'
 ]
