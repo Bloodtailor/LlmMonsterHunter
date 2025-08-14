@@ -56,7 +56,7 @@ def initialize_ai_systems(app):
     """
     
     # Load LLM Model
-    print_section('Initializing LLM Systmes...')
+    print_section('Initializing LLM Systems...')
     if _load_llm_model():
         print("LLM model loaded and ready")
     else:
