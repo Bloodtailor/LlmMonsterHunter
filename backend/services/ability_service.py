@@ -1,7 +1,7 @@
 # Ability Service - GREATLY SIMPLIFIED: Minimal Trust Boundary
 # Only validates what routes absolutely cannot handle
 # Eliminates all redundant error checking
-print(f"🔍 Loading {__file__}")
+
 from typing import Dict, Any
 from backend.game.ability.generator import AbilityGenerator
 from backend.services.validators import validate_monster_exists

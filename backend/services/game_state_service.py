@@ -1,7 +1,7 @@
 # Game State Service - TRUST BOUNDARY: Validation + Delegation
 # Validates all inputs and delegates to game logic
 # Single source of truth for game state business rules
-print(f"🔍 Loading {__file__}")
+
 from typing import List, Dict, Any
 from backend.game.state import GameStateManager
 from backend.services.validators import (

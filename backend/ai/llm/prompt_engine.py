@@ -1,6 +1,5 @@
 # Prompt Engine - Template Management
 # Lean template loading and building system
-print(f"🔍 Loading {__file__}")
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List

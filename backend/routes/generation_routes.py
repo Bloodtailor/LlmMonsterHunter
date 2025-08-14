@@ -1,7 +1,7 @@
 # Generation Routes - UNIFIED FOR ALL GENERATION TYPES
 # Replaces llm_routes.py with support for both LLM and image generation
 # Thin routes for generation monitoring and debugging
-print(f"🔍 Loading {__file__}")
+
 from flask import Blueprint, jsonify, request
 
 # Create blueprint for generation routes

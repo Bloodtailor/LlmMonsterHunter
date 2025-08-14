@@ -1,7 +1,7 @@
 # Dungeon Service - TRUST BOUNDARY: Validation + Delegation
 # Validates all inputs and delegates to game logic
 # Single source of truth for dungeon business rules
-print(f"🔍 Loading {__file__}")
+
 from typing import Dict, Any
 from backend.game.dungeon import DungeonManager
 from backend.services.validators import (

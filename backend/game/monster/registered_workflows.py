@@ -1,5 +1,5 @@
 # Registers as a callable function for the game orchestration queue to use
-print(f"🔍 Loading {__file__}")
+print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
 from backend.core.workflow_registry import register_workflow
 

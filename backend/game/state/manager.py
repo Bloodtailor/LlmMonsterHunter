@@ -1,7 +1,7 @@
 # Game State Manager - DATABASE-BACKED: No Validation
 # Pure business logic using normalized database models
 # Persistent state that survives server restarts
-print(f"🔍 Loading {__file__}")
+
 from typing import List, Dict, Any, Optional
 from backend.models.game_state import GameState
 from backend.models.game_state_relations import DungeonState, DungeonDoor

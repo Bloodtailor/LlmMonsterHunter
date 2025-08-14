@@ -1,7 +1,8 @@
 # Workflow loader - Maps workflow types to existing game logic functions
 # Combs through the files in the game folder
 # Registers files named "registered_workflows.py" as callable workflows
-print(f"🔍 Loading {__file__}")
+print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
+
 from typing import Callable, Dict, Any, Optional
 import inspect
 import threading
@@ -44,6 +45,7 @@ def register_workflow(name: Optional[str] = None):
                 raise WorkflowRegistrationError(
                     f"Workflow '{workflow_name}' already registered."
                 )
+            print('Registerd workflow: ', workflow_name)
             _WORKFLOW_REGISTRY[workflow_name] = fn
 
         return fn

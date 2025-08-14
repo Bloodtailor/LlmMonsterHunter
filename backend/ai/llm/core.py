@@ -1,7 +1,7 @@
 # LLM Core Module - CLEANED UP
 # ONLY handles model loading, unloading, and status
 # No queue, no streaming, no logging - pure model operations
-print(f"🔍 Loading {__file__}")
+
 import os
 import threading
 import time

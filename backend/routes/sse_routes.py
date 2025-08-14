@@ -1,7 +1,7 @@
 # Streaming Routes - UPDATED FOR UNIFIED GENERATION SERVICE
 # Uses event-driven SSE service for maximum efficiency
 # Now supports both LLM and image generation events
-print(f"🔍 Loading {__file__}")
+
 import json
 import time
 from flask import Blueprint, Response, request, jsonify

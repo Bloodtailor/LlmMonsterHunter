@@ -1,7 +1,6 @@
 # AI Generation Queue - UPDATED WITH UNIFIED QUEUE EVENTS
 # Handles both LLM text generation and ComfyUI image generation
 # Uses normalized generation_log database structure with unified queue events
-print(f"🔍 Loading {__file__}")
 import threading
 import time
 from typing import Dict, Any, Optional

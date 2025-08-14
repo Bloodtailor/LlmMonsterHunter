@@ -1,7 +1,7 @@
 # SQLAlchemy Base Model Configuration
 # Sets up the database connection and base model class
 # All other models inherit from this base for consistency
-print(f"🔍 Loading {__file__}")
+
 from backend.core.config.database import db
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError

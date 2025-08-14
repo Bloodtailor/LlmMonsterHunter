@@ -1,6 +1,6 @@
 # LLM Configuration
 # Complete default settings for all LLM operations and llama-cpp parameters
-print(f"🔍 Loading {__file__}")
+
 import os
 
 # === Core Generation Parameters ===

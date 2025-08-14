@@ -1,7 +1,7 @@
 # AI-Specific Events - LLM and Image Generation
 # Contains all AI generation events and their emission helper functions
 # Separated from core event registry for better organization
-print(f"🔍 Loading {__file__}")
+
 from typing import Dict, Any, List
 from .event_registry import register_events, _emit_from_schema
 
