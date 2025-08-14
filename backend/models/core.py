@@ -23,8 +23,11 @@ def init_db(app):
 
 def test_connection():
   """
-  Test database connection and print status
+  Test database connection and return status
   Attempts to execute a simple query to verify connectivity
+  
+  Returns:
+      tuple: (success: bool, message: str)
   """
   
   try:
@@ -32,21 +35,19 @@ def test_connection():
     with db.engine.connect() as connection:
       result = connection.execute(text('SELECT 1 as test'))
       result.close()
-      print('Database connection successful')
-    return True
+      return True, 'Database connection successful'
       
   except SQLAlchemyError as e:
-    print(f"❌ Database connection failed: {str(e)}")
-    print("💡 Check your .env file database configuration")
-    return False
+    return False, f"Database connection failed: {str(e)}"
   except Exception as e:
-    print(f"❌ Unexpected database error: {str(e)}")
-    return False
+    return False, f"Unexpected database error: {str(e)}"
 
 def create_tables():
   """
   Create all database tables based on model definitions
-  This will be called when we have models defined
+  
+  Returns:
+      tuple: (success: bool, message: str)
   """
 
   try:
@@ -68,12 +69,29 @@ def create_tables():
     
     # Create all tables
     db.create_all()
-    print('Database tables created')
-    return True
+    return True, 'Database tables created successfully'
       
   except SQLAlchemyError as e:
-    print(f"❌ Failed to create tables: {str(e)}")
-    return False
+    return False, f"Failed to create tables: {str(e)}"
   except Exception as e:
-    print(f"❌ Unexpected error creating tables: {str(e)}")
-    return False
+    return False, f"Unexpected error creating tables: {str(e)}"
+
+def get_table_names():
+  """
+  Get names of all tables in the database
+  
+  Returns:
+      tuple: (success: bool, data: list[str] or error_message: str)
+  """
+  
+  try:
+    # Use SQLAlchemy inspector to get table names
+    from sqlalchemy import inspect
+    inspector = inspect(db.engine)
+    table_names = inspector.get_table_names()
+    return True, table_names
+      
+  except SQLAlchemyError as e:
+    return False, f"Failed to get table names: {str(e)}"
+  except Exception as e:
+    return False, f"Unexpected error getting table names: {str(e)}"

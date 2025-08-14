@@ -78,7 +78,7 @@ class WorkflowQueue:
         self._running = True
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
         self._worker_thread.start()
-        print_success("Game Orchestration Queue worker started")
+        print("Game Orchestration Queue worker started")
     
     def stop_worker(self):
         """Stop background worker thread"""
@@ -171,7 +171,7 @@ class WorkflowQueue:
     
     def _worker_loop(self):
         """Main worker loop - processes workflows sequentially"""
-        print_info("Game Orchestration Queue worker loop started")
+        print("Game Orchestration Queue worker loop started")
         
         while self._running:
             try:

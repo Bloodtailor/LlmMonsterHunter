@@ -92,6 +92,7 @@ class AIGenerationQueue:
         self._running = True
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
         self._worker_thread.start()
+        print('AI Queue worker started')
     
     def add_request(self, generation_id: int) -> bool:
         """
@@ -289,6 +290,7 @@ class AIGenerationQueue:
     
     def _worker_loop(self):
         """Main worker loop - processes queue items"""
+        print('AI Queue worker loop started')
         while self._running:
             try:
                 try:

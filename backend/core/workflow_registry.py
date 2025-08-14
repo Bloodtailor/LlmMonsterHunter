@@ -45,7 +45,6 @@ def register_workflow(name: Optional[str] = None):
                 raise WorkflowRegistrationError(
                     f"Workflow '{workflow_name}' already registered."
                 )
-            print('Registerd workflow: ', workflow_name)
             _WORKFLOW_REGISTRY[workflow_name] = fn
 
         return fn
