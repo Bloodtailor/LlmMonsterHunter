@@ -34,8 +34,17 @@ from .ai_events import (
     emit_ai_queue_update
 )
 
+from .workflow_events import (
+  emit_workflow_started,
+  emit_workflow_update,
+  emit_workflow_completed,
+  emit_workflow_failed,
+  emit_workflow_queue_update
+)
+
 # Import ai_events module to ensure events get registered
 from . import ai_events
+from . import workflow_events
 
 __all__ = [
     # Event Bus
@@ -62,5 +71,12 @@ __all__ = [
     'emit_image_generation_update',
     'emit_image_generation_completed',
     'emit_image_generation_failed',
-    'emit_ai_queue_update'
+    'emit_ai_queue_update',
+
+    # Workflow Event Emission Functions
+    'emit_workflow_started',
+    'emit_workflow_update',
+    'emit_workflow_completed',
+    'emit_workflow_failed',
+    'emit_workflow_queue_update'
 ]

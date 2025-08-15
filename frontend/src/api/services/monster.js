@@ -51,6 +51,25 @@ loadMonsters.defaults = {
   offset: 0
 };
 
+
+/**
+ * Generate a new monster using the new monnster generation workflow
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function generateMonsterWithWorkflow() {
+
+  const response = await get('/api/monsters/generate-workflow');
+  
+  return {
+    success: response.success ?? generateMonsterWithWorkflow.defaults.success,
+    workflowId: response.workflow_id ?? generateMonsterWithWorkflow.defaults.workflowId,
+  };
+}
+generateMonsterWithWorkflow.defaults = {
+  success: null,
+  workflowId: null,
+};
+
 /**
  * Generate a new monster
  * @param {object} options - Generation options
