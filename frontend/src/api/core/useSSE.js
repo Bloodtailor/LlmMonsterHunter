@@ -61,7 +61,7 @@ export const useSSE = (eventHandlers) => {
     
     // Cleanup function - disconnect on unmount
     return disconnect;
-  }, [connect, disconnect]);
+  }, []);
 
   return {
     isConnected,
