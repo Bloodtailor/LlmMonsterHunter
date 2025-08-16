@@ -3,26 +3,26 @@
 // All computation logic moved to dedicated hooks
 
 import { EventContext } from './EventContext.js';
-import { useEventSource } from './useEventsource.js';
-import { EventRegistry, initialEventState } from './EventRegistry.js';
+import { useSSE } from '../../../api/core/useSSE.js';
+import { useAiEvents } from '../../../api/events/useAiEvents.js';
 
-function EventProvider({ children, autoConnect = true }) {
-
-  const EVENTS_URL = 'http://localhost:5000/api/sse/events';
+function EventProvider({ children }) {
   
-  // Use generic EventSource hook with streaming-specific registry
-  const eventState = useEventSource(
-    EVENTS_URL, 
-    EventRegistry, 
-    { 
-      autoConnect,
-      initialState: initialEventState 
-    }
-  );
+const aiEvents = useAiEvents();
 
-  // Simple pass-through - no computation logic here
+  // Use AI event handlers
+  const combinedHandlers = aiEvents.eventHandlers;
+
+  // Call useSSE once with combined handlers
+  const { isConnected, connectionError, connect, disconnect } = useSSE(combinedHandlers);
+
+  // Create context value using spread syntax
   const contextValue = {
-    ...eventState
+    isConnected,
+    connectionError,
+    connect,
+    disconnect,
+    ...aiEvents.state
   };
 
   return (
