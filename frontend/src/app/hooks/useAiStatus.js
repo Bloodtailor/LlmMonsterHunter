@@ -225,36 +225,6 @@ export function useAiStatus() {
     }
   }, [activeGeneration, streamingText.tokensSoFar, streamingImage.elapsedSeconds, isConnected]);
 
-  const queueStatus = useMemo(() => {
-    if (!eventAiQueueUpdate || !eventAiQueueUpdate.allAiQueueItems) {
-      return {
-        total: 0,
-        pending: 0,
-        processing: 0,
-        completed: 0,
-        failed: 0,
-        items: []
-      };
-    }
-
-    const items = eventAiQueueUpdate.allAiQueueItems;
-    const statusCounts = items.reduce((acc, item) => {
-      const status = item.status || 'pending';
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {});
-
-    return {
-      total: items.length,
-      pending: statusCounts.pending || 0,
-      processing: statusCounts.processing || 0,
-      completed: statusCounts.completed || 0,
-      failed: statusCounts.failed || 0,
-      items,
-      trigger: eventAiQueueUpdate.trigger
-    };
-  }, [eventAiQueueUpdate]);
-
   const computedLlmStatus = useMemo(() => {
     return {
       generationId: streamingText.generationId,
@@ -303,7 +273,6 @@ export function useAiStatus() {
   return {
     activeGeneration,
     currentActivity,
-    queueStatus,
     llmStatus: computedLlmStatus,
     imageStatus: computedImageStatus
   };

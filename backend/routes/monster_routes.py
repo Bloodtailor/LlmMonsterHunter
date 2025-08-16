@@ -7,6 +7,14 @@ from backend.services import monster_service, ability_service
 
 monster_bp = Blueprint('monsters', __name__, url_prefix='/api/monsters')
 
+@monster_bp.route('/generate-workflow', methods=['GET'])
+def generate_monster_workflow():
+    """Generate monster using workflow system - thin HTTP wrapper"""
+    
+    result = monster_service.generate_monster_workflow()
+    
+    return jsonify(result), 200 if result['success'] else 500
+
 @monster_bp.route('/generate', methods=['POST'])
 def generate_monster():
     """Generate monster - thin HTTP wrapper"""

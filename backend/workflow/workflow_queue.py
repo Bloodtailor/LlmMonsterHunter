@@ -12,7 +12,13 @@ from enum import Enum
 from backend.core.utils import print_success, print_error, print_info
 from backend.core.workflow_registry import get_workflow, list_workflows
 from backend.models.game_workflow import GameWorkflow
-from backend.core.events.event_bus import emit_event
+from backend.core.events import (
+    emit_workflow_started,
+    emit_workflow_completed,
+    emit_workflow_failed,
+    emit_workflow_update,
+    emit_workflow_queue_update
+)
 
 _global_game_queue = None
 _game_queue_lock = threading.Lock()
@@ -122,12 +128,8 @@ class WorkflowQueue:
                 # Priority queue: lower number = higher priority
                 self._queue.put((priority, workflow.id))
             
-            # Emit event
-            self._emit_event(f'workflow.{workflow_type}.queued', {
-                "workflow_id": workflow.id,
-                "workflow_type": workflow_type,
-                "queue_size": self._queue.qsize()
-            })
+            # Emit workflow queue update
+            self._emit_queue_update("added")
             
             print_success(f"Queued {workflow_type} workflow (ID: {workflow.id})")
             return workflow.id
@@ -194,85 +196,74 @@ class WorkflowQueue:
                 
                 print_info(f"Processing workflow: {item.workflow_type} (ID: {item.workflow_id})")
                 
-                # Emit started event
-                self._emit_event(f'workflow.{item.workflow_type}.started', {
-                    "workflow_id": item.workflow_id,
-                    "workflow_type": item.workflow_type
-                })
+                # Emit workflow started event
+                emit_workflow_started(item.to_dict(), item.workflow_id)
+                self._emit_queue_update("started")
                 
                 # Process the workflow
                 self._process_workflow(item)
                 
+            except Exception as e:
+                print_error(f"Worker loop error: {e}")
+                continue
+            finally:
                 # Clear current item
                 self._current_item = None
-                
-            except Exception as e:
-                print_error(f"Workflow worker error: {e}")
-                if self._current_item:
-                    self._current_item.status = WorkflowStatus.FAILED
-                    self._current_item.error = str(e)
-                    self._current_item.completed_at = datetime.utcnow()
-                    self._current_item = None
     
     def _process_workflow(self, item: WorkflowItem):
-        """Process a single workflow by calling appropriate game logic"""
-        
+        """Process a single workflow item"""
         try:
-            # Ensure Flask app context for database operations
-            if not self._app:
-                raise Exception('No Flask app context available')
+            # Get workflow handler
+            handler = get_workflow(item.workflow_type)
+            if not handler:
+                raise Exception(f"No handler found for workflow type: {item.workflow_type}")
             
-            with self._app.app_context():
-                # Get the workflow handler
-                handler = get_workflow(item.workflow_type)
-                if not handler:
-                    raise Exception(f'No handler for workflow type: {item.workflow_type}')
-                
-                # Call the handler (this will call existing game logic)
-                result = handler(item.context)
-                
-                # Update item with result
+            # Create update callback for workflow progress
+            def on_update(step: str, data: Dict[str, Any]):
+                """Callback function for workflow progress updates"""
+                emit_workflow_update(
+                    workflow_id=item.workflow_id,
+                    workflow_type=item.workflow_type,
+                    step=step,
+                    data=data
+                )
+            
+            # Execute workflow with context and update callback
+            result = handler(item.context, on_update)
+            
+            # Check result and update item status
+            item.completed_at = datetime.utcnow()
+            
+            if result and result.get('success', False):
+                item.status = WorkflowStatus.COMPLETED
                 item.result = result
-                item.completed_at = datetime.utcnow()
                 
-                if result.get('success', False):
-                    item.status = WorkflowStatus.COMPLETED
-                    
-                    # Emit completion event
-                    self._emit_event(f'workflow.{item.workflow_type}.completed', {
-                        "workflow_id": item.workflow_id,
-                        "workflow_type": item.workflow_type,
-                        "result": result
-                    })
-                    
-                    print_success(f"Completed workflow: {item.workflow_type} (ID: {item.workflow_id})")
-                else:
-                    item.status = WorkflowStatus.FAILED
-                    item.error = result.get('error', 'Unknown error')
-                    
-                    # Emit failure event
-                    self._emit_event(f'workflow.{item.workflow_type}.failed', {
-                        "workflow_id": item.workflow_id,
-                        "workflow_type": item.workflow_type,
-                        "error": item.error
-                    })
-                    
-                    print_error(f"Failed workflow: {item.workflow_type} (ID: {item.workflow_id}) - {item.error}")
+                # Emit workflow completed event
+                emit_workflow_completed(item.to_dict(), item.workflow_id, result)
+                self._emit_queue_update("completed")
                 
-                # Update database
-                self._update_workflow_database(item)
+                print_success(f"Completed workflow: {item.workflow_type} (ID: {item.workflow_id})")
+            else:
+                item.status = WorkflowStatus.FAILED
+                item.error = result.get('error', 'Unknown error') if result else 'Handler returned None'
                 
+                # Emit workflow failed event
+                emit_workflow_failed(item.to_dict(), item.workflow_id, item.error)
+                self._emit_queue_update("failed")
+                
+                print_error(f"Failed workflow: {item.workflow_type} (ID: {item.workflow_id}) - {item.error}")
+            
+            # Update database
+            self._update_workflow_database(item)
+            
         except Exception as e:
             item.status = WorkflowStatus.FAILED
             item.error = str(e)
             item.completed_at = datetime.utcnow()
             
-            # Emit failure event
-            self._emit_event(f'workflow.{item.workflow_type}.failed', {
-                "workflow_id": item.workflow_id,
-                "workflow_type": item.workflow_type,
-                "error": item.error
-            })
+            # Emit workflow failed event
+            emit_workflow_failed(item.to_dict(), item.workflow_id, item.error)
+            self._emit_queue_update("failed")
             
             print_error(f"Workflow processing error: {e}")
             
@@ -293,12 +284,19 @@ class WorkflowQueue:
         except Exception as e:
             print_error(f"Failed to update workflow database: {e}")
     
-    def _emit_event(self, event_type: str, data: Dict[str, Any]):
-        """Emit event using event service"""
+    def _emit_queue_update(self, trigger: str):
+        """Emit workflow queue update event with all current items"""
         try:
-            emit_event(event_type, data)
+            with self._lock:
+                all_items = [
+                    item.to_dict() for item in self._items.values() 
+                    if item.status in [WorkflowStatus.PENDING, WorkflowStatus.PROCESSING]
+            ]
+            
+            emit_workflow_queue_update(all_items, trigger)
+            
         except Exception as e:
-            print_error(f"Failed to emit event {event_type}: {e}")
+            print_error(f"Failed to emit queue update: {e}")
 
 def get_queue() -> WorkflowQueue:
     """Get global game orchestration queue instance"""

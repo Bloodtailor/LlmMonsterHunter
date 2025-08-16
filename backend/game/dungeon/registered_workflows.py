@@ -4,7 +4,7 @@ print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 from backend.core.workflow_registry import register_workflow
 
 @register_workflow()
-def dungeon_entry(context: dict) -> dict:
+def dungeon_entry(context: dict, on_update) -> dict:
     """Handle dungeon entry workflow by calling existing DungeonManager"""    
     try:
         from backend.game.dungeon.manager import DungeonManager

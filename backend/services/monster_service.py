@@ -17,6 +17,24 @@ from .validators import (
 _generator = MonsterGenerator()
 _manager = MonsterManager()
 
+def generate_monster_workflow() -> Dict[str, Any]:
+    """Generate monster using workflow system - queued processing"""
+    
+    try:
+        from backend.workflow.workflow_gateway import request_workflow
+        
+        # Request workflow execution
+        success, workflow_id = request_workflow(
+            workflow_type="generate_detailed_monster")
+        
+        if success:
+            return success_response({'workflow_id': workflow_id})
+        else:
+            return error_response('Failed to queue monster generation workflow')
+            
+    except Exception as e:
+        return error_response(f'Workflow request failed: {str(e)}')
+
 def generate_monster(prompt_name: str = "detailed_monster") -> Dict[str, Any]:
     """Generate monster - only validate template exists"""
     

@@ -8,7 +8,7 @@ import inspect
 import threading
 
 # Global registry of workflow_name -> callable
-_WORKFLOW_REGISTRY: Dict[str, Callable[[dict], dict]] = {}
+_WORKFLOW_REGISTRY: Dict[str, Callable[[dict, Callable], dict]] = {}
 _REGISTRY_LOCK = threading.Lock()  # thread-safe if registering dynamically
 
 class WorkflowRegistrationError(Exception):
@@ -19,24 +19,29 @@ def register_workflow(name: Optional[str] = None):
     Decorator to register a function as an orchestration workflow step.
 
     Requirements enforced:
-      - Callable takes exactly 1 parameter: context (dict-like)
+      - Callable takes exactly 2 parameters: context (dict-like) and on_update (Callable)
       - Returns a dict (checked at runtime on first call; optional strict mode)
     """
-    def decorator(fn: Callable[[dict], dict]):
+    def decorator(fn: Callable[[dict, Callable], dict]):
         nonlocal name
         workflow_name = name or fn.__name__
 
         # Validate signature now (fail fast)
         sig = inspect.signature(fn)
         params = list(sig.parameters.values())
-        if len(params) != 1:
+        if len(params) != 2:
             raise WorkflowRegistrationError(
-                f"{fn.__name__} must take exactly one argument: context."
+                f"{fn.__name__} must take exactly two arguments: context and on_update."
             )
-        # (Optional) enforce param name == 'context'
+        
+        # Enforce parameter names for clarity
         if params[0].name != "context":
             raise WorkflowRegistrationError(
                 f"{fn.__name__} first param must be named 'context'."
+            )
+        if params[1].name != "on_update":
+            raise WorkflowRegistrationError(
+                f"{fn.__name__} second param must be named 'on_update'."
             )
 
         # Register thread-safely
@@ -50,7 +55,7 @@ def register_workflow(name: Optional[str] = None):
         return fn
     return decorator
 
-def get_workflow(name: str) -> Callable[[dict], dict] | None:
+def get_workflow(name: str) -> Callable[[dict, Callable], dict] | None:
     return _WORKFLOW_REGISTRY.get(name)
 
 def list_workflows() -> list[str]:
