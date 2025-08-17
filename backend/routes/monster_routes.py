@@ -7,22 +7,11 @@ from backend.services import monster_service, ability_service
 
 monster_bp = Blueprint('monsters', __name__, url_prefix='/api/monsters')
 
-@monster_bp.route('/generate-workflow', methods=['GET'])
-def generate_monster_workflow():
+@monster_bp.route('/generate', methods=['GET'])
+def generate_monster():
     """Generate monster using workflow system - thin HTTP wrapper"""
     
-    result = monster_service.generate_monster_workflow()
-    
-    return jsonify(result), 200 if result['success'] else 500
-
-@monster_bp.route('/generate', methods=['POST'])
-def generate_monster():
-    """Generate monster - thin HTTP wrapper"""
-    data = request.get_json() or {}
-
-    prompt_name = data.get('prompt_name', 'detailed_monster')
-    
-    result = monster_service.generate_monster(prompt_name)
+    result = monster_service.generate_monster()
     
     return jsonify(result), 200 if result['success'] else 500
 
@@ -45,12 +34,6 @@ def get_monster(monster_id):
     result = monster_service.get_monster_by_id(monster_id)
     return jsonify(result), 200 if result['success'] else 404
 
-@monster_bp.route('/templates')
-def get_templates():
-    """Get templates - thin HTTP wrapper"""
-    result = monster_service.get_available_templates()
-    return jsonify({'success': True, 'templates': result})
-
 @monster_bp.route('/stats')
 def get_stats():
     """Get monster statistics - thin HTTP wrapper"""
@@ -65,25 +48,6 @@ def generate_ability_for_monster(monster_id):
     """Generate ability - thin HTTP wrapper"""
     result = ability_service.generate_ability(monster_id=monster_id)
     return jsonify(result), 200 if result['success'] else 500
-
-@monster_bp.route('/<int:monster_id>/abilities', methods=['GET'])
-def get_monster_abilities(monster_id):
-    """Get monster abilities - thin HTTP wrapper"""
-    result = ability_service.get_abilities_for_monster(monster_id)
-    return jsonify(result), 200 if result['success'] else 404
-
-# Card art endpoints - thin HTTP wrappers
-@monster_bp.route('/<int:monster_id>/card-art', methods=['POST'])
-def generate_card_art_for_monster(monster_id):
-    """Generate card art - thin HTTP wrapper"""
-    result = monster_service.generate_card_art_for_existing_monster(monster_id=monster_id)
-    return jsonify(result), 200 if result['success'] else 500
-
-@monster_bp.route('/<int:monster_id>/card-art', methods=['GET'])
-def get_monster_card_art_info(monster_id):
-    """Get card art info - thin HTTP wrapper"""
-    result = monster_service.get_monster_card_art_info(monster_id)
-    return jsonify(result), 200 if result['success'] else 404
 
 @monster_bp.route('/card-art/<path:image_path>')
 def serve_card_art(image_path):

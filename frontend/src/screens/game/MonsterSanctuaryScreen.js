@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { usePagination } from "../../shared/ui/Pagination/usePagination.js";
-import { useMonsterCollection, useMonsterGeneration, useMonsterGenerationWithWorkflow } from "../../app/hooks/useMonsters.js";
+import { useMonsterCollection, useMonsterGeneration } from "../../app/hooks/useMonsters.js";
 import { useEventContext } from '../../app/contexts/EventContext/useEventContext.js'
 import FullPagination, { PAGINATION_LAYOUTS } from "../../shared/ui/Pagination/PaginationPresets.js";
 import { 
@@ -46,7 +46,7 @@ function MonsterSanctuaryScreen() {
   const {
     isLoading: isGenerating,
     generate
-  } = useMonsterGenerationWithWorkflow();
+  } = useMonsterGeneration();
 
   // Temporary solution to identify when a new monster is ready
   const { workflowCompletedEvent } = useEventContext();
