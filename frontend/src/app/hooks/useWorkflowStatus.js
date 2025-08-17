@@ -19,6 +19,7 @@ export function useWorkflowStatus() {
   const [activeWorkflow, setActiveWorkflow] = useState(null);
   const [workflowStatus, setWorkflowStatus] = useState('idle');
   const [currentStep, setCurrentStep] = useState(null);
+  const [isWorkflowActive, setIsWorkflowActive] = useState(false);
 
   // Handle workflow events
   useEffect(() => {
@@ -26,6 +27,7 @@ export function useWorkflowStatus() {
       setActiveWorkflow(workflowStartedEvent.workflowItem);
       setWorkflowStatus('running');
       setCurrentStep(null);
+      setIsWorkflowActive(true);
     }
   }, [workflowStartedEvent]);
 
@@ -38,22 +40,17 @@ export function useWorkflowStatus() {
 
   useEffect(() => {
     if (workflowCompletedEvent) {
-      setActiveWorkflow(null);
       setWorkflowStatus('completed');
-      setCurrentStep(null);
+      setIsWorkflowActive(false);
     }
   }, [workflowCompletedEvent]);
 
   useEffect(() => {
     if (workflowFailedEvent) {
-      setActiveWorkflow(null);
       setWorkflowStatus('failed');
-      setCurrentStep(null);
+      setIsWorkflowActive(false);
     }
   }, [workflowFailedEvent]);
-
-  // Simple computed values
-  const isWorkflowActive = useMemo(() => activeWorkflow !== null, [activeWorkflow]);
 
   const workflowQueueStatus = useMemo(() => {
     if (!workflowQueueUpdateEvent || !workflowQueueUpdateEvent.allWorkflowItems) {

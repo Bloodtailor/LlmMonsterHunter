@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { Badge, Button, Card, CardSection, Alert, Scroll, Table } from '../../shared/ui/index.js';
 import { useEventContext } from '../../app/contexts/EventContext/useEventContext.js';
 import { useAiStatus } from '../../app/hooks/useAiStatus.js';
+import { useWorkflowStatus } from '../../app/hooks/useWorkflowStatus.js';
 import { formatTime, formatDuration } from '../../shared/utils/time.js';
 import './streaming.css';
 
@@ -16,6 +17,7 @@ function StreamingDisplay() {
   
   // Get all computed AI status from the hook
   const { currentActivity, queueStatus, llmStatus, imageStatus } = useAiStatus();
+  const { workflowQueueStatus, workflowStatus, currentStep, activeWorkflow } = useWorkflowStatus();
 
   // UI state for main card minimization
   const [isMinimized, setIsMinimized] = useState(false);
@@ -59,7 +61,7 @@ function StreamingDisplay() {
 
       {/* Main content - ONE CARD with scrollable content and multiple sections */}
       {!isMinimized && (
-        <Card> 
+        <Card style={{maxHeight: '800px'}}> 
           {/* Connection Controls Section */}
           <div className="connection-controls">
             <Badge variant={isConnected ? 'success' : 'error'} />
@@ -186,6 +188,58 @@ function StreamingDisplay() {
                 {String(imageStatus.error)}
               </Alert>
             )}
+          </CardSection>
+
+          {/* Workflow Status Section */}
+          <CardSection title="Workflow Status">
+
+            {/* Current Workflow Table */}
+            <Table
+              columns={[
+                { key: 'status', header: 'Status', width: '20%' },
+                { key: 'currentStep', header: 'Current Step', width: '30%' },
+                { key: 'workflowType', header: 'Type', width: '30%' },
+                { key: 'workflowId', header: 'ID', width: '10%' }
+              ]}
+              data={[{
+                status: workflowStatus,
+                currentStep: currentStep,
+                workflowType: activeWorkflow?.workflowType,
+                workflowId: activeWorkflow?.workflowId 
+              }]}
+              maxHeight="100px"
+              emptyMessage="No workflow status available"
+            />
+          </CardSection>
+
+          <CardSection title={`Workflow Queue (${workflowQueueStatus?.total || 0} items)`}>
+            {/* Workflow Queue Table */}
+            {workflowQueueStatus?.items?.length > 0 ? (
+              <Table
+                columns={[
+                  { key: 'workflowId', header: 'ID', width: '15%' },
+                  { key: 'workflowType', header: 'Type', width: '20%' },
+                  { key: 'status', header: 'Status', width: '15%' },
+                  { key: 'priority', header: 'Priority', width: '15%' },
+                  { key: 'createdAt', header: 'Created', width: '35%' }
+                ]}
+                data={workflowQueueStatus.items.map(item => ({
+                  ...item,
+                  workflowId: item?.workflowId ? String(item.workflowId).slice(-8) : 'N/A',
+                  workflowType: item?.workflowType || 'N/A',
+                  status: item?.status || 'pending',
+                  priority: item?.priority || 'N/A',
+                  createdAt: item?.createdAt ? new Date(item.createdAt).toLocaleTimeString() : 'N/A'
+                }))}
+                maxHeight="200px"
+                emptyMessage="No workflow items in queue"
+              />
+            ) : (
+              <div style={{ marginTop: '16px' }}>
+                <div className="empty-table">No workflow items in queue</div>
+              </div>
+            )}
+
           </CardSection>
           <CardSection type='footer'></CardSection>
         </Card>

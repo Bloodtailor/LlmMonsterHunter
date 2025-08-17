@@ -63,6 +63,7 @@ export async function generateMonsterWithWorkflow() {
   return {
     success: response.success ?? generateMonsterWithWorkflow.defaults.success,
     workflowId: response.workflow_id ?? generateMonsterWithWorkflow.defaults.workflowId,
+    _raw: response
   };
 }
 generateMonsterWithWorkflow.defaults = {

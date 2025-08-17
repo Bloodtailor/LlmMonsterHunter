@@ -4,7 +4,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { usePagination } from "../../shared/ui/Pagination/usePagination.js";
-import { useMonsterCollection, useMonsterGeneration } from "../../app/hooks/useMonsters.js";
+import { useMonsterCollection, useMonsterGeneration, useMonsterGenerationWithWorkflow } from "../../app/hooks/useMonsters.js";
+import { useEventContext } from '../../app/contexts/EventContext/useEventContext.js'
 import FullPagination, { PAGINATION_LAYOUTS } from "../../shared/ui/Pagination/PaginationPresets.js";
 import { 
   Select,
@@ -43,10 +44,12 @@ function MonsterSanctuaryScreen() {
 
   // Monster generation hook
   const {
-    monster: generatedMonster,
-    isGenerating,
+    isLoading: isGenerating,
     generate
-  } = useMonsterGeneration();
+  } = useMonsterGenerationWithWorkflow();
+
+  // Temporary solution to identify when a new monster is ready
+  const { workflowCompletedEvent } = useEventContext();
 
   // Pagination hook
   const pagination = usePagination({ 
@@ -62,7 +65,7 @@ function MonsterSanctuaryScreen() {
       filter: filter !== 'all' ? filter : undefined,
       sort
     });
-  }, [filter, sort, limit, pagination.currentOffset, loadMonsters, generatedMonster]);
+  }, [filter, sort, limit, pagination.currentOffset, loadMonsters, workflowCompletedEvent]);
 
   // Auto-load on mount and when dependencies change
   useEffect(() => {

@@ -42,6 +42,36 @@ export function useMonsterCollection() {
 /**
  * Hook for monster generation (mutation)
  */
+export function useMonsterGenerationWithWorkflow() {
+  // ✨ Automatically uses generateMonster.defaults
+  const api = useAsyncState(monstersApi.generateMonsterWithWorkflow);
+
+  const generate = useCallback(async () => {
+    
+    return await api.execute();
+  }, [api.execute]);
+
+  return {
+    // Clean generation result (guaranteed shapes!)
+    success: api.data.success,           // false initially, then boolean
+    workflowId: api.data.workflowId,           // null initially, then monster object
+
+    // Raw data (for debugging)
+    rawResponse: api.data._raw,
+
+    // State flags
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    // Actions
+    generate,
+  };
+}
+
+/**
+ * Hook for monster generation (mutation)
+ */
 export function useMonsterGeneration() {
   // ✨ Automatically uses generateMonster.defaults
   const api = useAsyncState(monstersApi.generateMonster);
