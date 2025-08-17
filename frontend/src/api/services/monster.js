@@ -56,52 +56,19 @@ loadMonsters.defaults = {
  * Generate a new monster using the new monnster generation workflow
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
-export async function generateMonsterWithWorkflow() {
+export async function generateMonster() {
 
-  const response = await get('/api/monsters/generate-workflow');
-  
-  return {
-    success: response.success ?? generateMonsterWithWorkflow.defaults.success,
-    workflowId: response.workflow_id ?? generateMonsterWithWorkflow.defaults.workflowId,
-  };
-}
-generateMonsterWithWorkflow.defaults = {
-  success: null,
-  workflowId: null,
-};
-
-/**
- * Generate a new monster
- * @param {object} options - Generation options
- * @param {string} options.prompt_name - Type of prompt to use (default: 'detailed_monster')
- * @param {boolean} options.generate_card_art - Whether to generate card art (default: true)
- * @param {boolean} options.wait_for_completion - Whether to wait for generation to complete
- * @returns {Promise<object>} Clean transformed response with monster data and generation stats
- */
-export async function generateMonster(options = {}) {
-  const requestBody = {
-    prompt_name: options.prompt_name || 'detailed_monster',
-    ...options
-  };
-  
-  const response = await post('/api/monsters/generate', requestBody);
+  const response = await get('/api/monsters/generate');
   
   return {
     success: response.success ?? generateMonster.defaults.success,
-    monster: response.monster ? transformMonster(response.monster) : generateMonster.defaults.monster,
-    requestId: response.request_id ?? generateMonster.defaults.requestId,
-    logId: response.log_id ?? generateMonster.defaults.logId,
-    error: response.error ?? generateMonster.defaults.error,
+    workflowId: response.workflow_id ?? generateMonster.defaults.workflowId,
     _raw: response
   };
 }
-
 generateMonster.defaults = {
-  success: false,
-  monster: null,
-  requestId: null,
-  logId: null,
-  error: null
+  success: null,
+  workflowId: null,
 };
 
 /**

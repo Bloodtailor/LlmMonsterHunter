@@ -229,7 +229,11 @@ class WorkflowQueue:
                 )
             
             # Execute workflow with context and update callback
-            result = handler(item.context, on_update)
+            if not self._app:
+                raise Exception('No Flask app context available')
+            
+            with self._app.app_context():
+                result = handler(item.context, on_update)
             
             # Check result and update item status
             item.completed_at = datetime.utcnow()
@@ -273,13 +277,17 @@ class WorkflowQueue:
     def _update_workflow_database(self, item: WorkflowItem):
         """Update workflow status in database"""
         try:
-            workflow = GameWorkflow.query.get(item.workflow_id)
-            if workflow:
-                workflow.status = item.status.value
-                workflow.result_data = item.result
-                workflow.error_message = item.error
-                workflow.completed_at = item.completed_at
-                workflow.save()
+            if not self._app:
+                return
+            
+            with self._app.app_context():
+                workflow = GameWorkflow.query.get(item.workflow_id)
+                if workflow:
+                    workflow.status = item.status.value
+                    workflow.result_data = item.result
+                    workflow.error_message = item.error
+                    workflow.completed_at = item.completed_at
+                    workflow.save()
                 
         except Exception as e:
             print_error(f"Failed to update workflow database: {e}")

@@ -46,35 +46,26 @@ export function useMonsterGeneration() {
   // ✨ Automatically uses generateMonster.defaults
   const api = useAsyncState(monstersApi.generateMonster);
 
-  const generate = useCallback(async (options = {}) => {
-    const generationOptions = {
-      prompt_name: 'detailed_monster',
-      generate_card_art: true,
-      ...options
-    };
+  const generate = useCallback(async () => {
     
-    return await api.execute(generationOptions);
+    return await api.execute();
   }, [api.execute]);
 
   return {
     // Clean generation result (guaranteed shapes!)
     success: api.data.success,           // false initially, then boolean
-    monster: api.data.monster,           // null initially, then monster object
-    requestId: api.data.requestId,       // null initially, then string
-    logId: api.data.logId,               // null initially, then string
-    generationError: api.data.error,     // null initially, then string
+    workflowId: api.data.workflowId,           // null initially, then monster object
 
     // Raw data (for debugging)
     rawResponse: api.data._raw,
 
     // State flags
-    isGenerating: api.isLoading,
+    isLoading: api.isLoading,
     isError: api.isError,
     error: api.error,
 
     // Actions
     generate,
-    reset: api.reset
   };
 }
 
