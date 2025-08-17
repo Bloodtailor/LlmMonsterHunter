@@ -20,6 +20,12 @@ class AbilityGenerator:
 
         return ability
     
+    def generate_ability_by_id(self, monster_id ):
+
+        monster = Monster.query.get(monster_id)
+
+        return self.generate_ability(monster)
+    
     def _build_variables(self, monster_context: Dict[str, Any]) -> Dict[str, Any]:
         """Build prompt variables from monster context"""
         

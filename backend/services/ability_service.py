@@ -3,20 +3,24 @@
 # Eliminates all redundant error checking
 
 from typing import Dict, Any
-from backend.game.ability.generator import AbilityGenerator
-from backend.services.validators import validate_monster_exists
-from backend.core.utils import validate_and_continue
-
-# Create singleton generator instance
-_generator = AbilityGenerator()
+from backend.core.utils import success_response, error_response
 
 def generate_ability(monster_id: int) -> Dict[str, Any]:
     """Generate ability - only validate monster exists"""
-    
-    monster_validation = validate_monster_exists(monster_id)
-    error_check = validate_and_continue(monster_validation, {'ability': None, 'monster_id': monster_id})
-    if error_check:
-        return error_check
-    
-    ability = _generator.generate_ability(monster_id)
-    return ability.to_dict()
+
+    try:
+        from backend.workflow.workflow_gateway import request_workflow
+        
+        # Request workflow execution
+        success, workflow_id = request_workflow(
+            workflow_type="generate_ability",
+            context={"monster_id": monster_id}
+            )
+        
+        if success:
+            return success_response({'workflow_id': workflow_id})
+        else:
+            return error_response('Failed to queue ability generation workflow')
+            
+    except Exception as e:
+        return error_response(f'Workflow request failed: {str(e)}')
