@@ -15,10 +15,8 @@ def generate_detailed_monster(context: dict, on_update: Callable[[str, Dict[str,
 
     try:
         from backend.game.monster.generator import MonsterGenerator
-        from backend.game.ability.generator import AbilityGenerator
         
         monster_generator = MonsterGenerator()
-        ability_generator = AbilityGenerator()
         
         # Step 1
         step = "creating_monster"
@@ -29,13 +27,13 @@ def generate_detailed_monster(context: dict, on_update: Callable[[str, Dict[str,
         # Step 2
         step = "adding_first_ability"
         on_update(step, progress_data)
-        ability_1 = ability_generator.generate_ability(monster)
+        ability_1 = monster_generator.generate_ability(monster)
         progress_data.update({ "ability_1": ability_1.to_dict()})
 
         # Step 3
         step = "adding_second_ability"
         on_update(step, progress_data)
-        ability_2 = ability_generator.generate_ability(monster)
+        ability_2 = monster_generator.generate_ability(monster)
         progress_data.update({ "ability_2": ability_2.to_dict()})
 
         # Step 4
@@ -67,8 +65,8 @@ def generate_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], N
     progress_data = {}
 
     try:
-        from backend.game.ability.generator import AbilityGenerator
-        ability_generator = AbilityGenerator()
+        from backend.game.monster.generator import MonsterGenerator
+        monster_generator = MonsterGenerator()
 
         # Step 0 - validate required keys
         step = "validating_context"
@@ -78,7 +76,7 @@ def generate_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], N
         # Step 1
         step = "generating_ability"
         on_update(step, progress_data)
-        ability = ability_generator.generate_ability_by_id(context["monster_id"])
+        ability = monster_generator.generate_ability_by_id(context["monster_id"])
         progress_data.update({ "ability": ability.to_dict()})
 
         return success_response(progress_data)

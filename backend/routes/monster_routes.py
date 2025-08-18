@@ -3,7 +3,7 @@
 # Routes only handle: HTTP parsing → Service call → HTTP response formatting
 
 from flask import Blueprint, jsonify, request
-from backend.services import monster_service, ability_service
+from backend.services import monster_service
 
 monster_bp = Blueprint('monsters', __name__, url_prefix='/api/monsters')
 
@@ -46,7 +46,7 @@ def get_stats():
 @monster_bp.route('/<int:monster_id>/abilities', methods=['POST'])
 def generate_ability_for_monster(monster_id):
     """Generate ability - thin HTTP wrapper"""
-    result = ability_service.generate_ability(monster_id=monster_id)
+    result = monster_service.generate_ability(monster_id=monster_id)
     return jsonify(result), 200 if result['success'] else 500
 
 @monster_bp.route('/card-art/<path:image_path>')
