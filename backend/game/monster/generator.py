@@ -2,17 +2,13 @@
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming
 
-from typing import Dict, Any
 from backend.models.monster import Monster
+from backend.models.ability import Ability
 from backend.game.utils import build_and_generate
-from backend.game.ability.generator import AbilityGenerator
 from backend.ai import gateway
 
 class MonsterGenerator:
     """Pure business logic - no validation"""
-    
-    def __init__(self):
-        self.ability_generator = AbilityGenerator()
 
     def generate_base_monster(self):
         """Generate monster - assumes valid inputs"""
@@ -46,3 +42,44 @@ class MonsterGenerator:
         monster.set_card_art(image_path)
         
         return image_path
+    
+    def generate_ability(self, monster: Monster):
+        
+        variables = self._build_ability_variables(monster)
+        parsed_data = build_and_generate('generate_ability', 'ability_generation', variables)
+
+        ability = Ability.create_from_llm_data(monster.id, parsed_data)
+        ability.save()
+
+        return ability
+    
+    def _build_ability_variables(self, monster: Monster):
+
+        # Format existing abilities
+        existing_abilities = monster.abilities
+        abilities_text = "\n".join([
+            f"- {ability.name} ({ability.ability_type}): {ability.description}" 
+            for ability in existing_abilities
+        ]) if existing_abilities else "None (this will be their first ability)"
+
+
+        # Format personality
+        personality = ', '.join(monster.personality_traits)
+
+        return {
+            'monster_name': monster.name,
+            'monster_species': monster.species,
+            'monster_description': monster.description,
+            'monster_backstory': monster.backstory,
+            'monster_health': monster.max_health,
+            'monster_attack': monster.attack,
+            'monster_defense': monster.defense,
+            'monster_speed': monster.speed,
+            'monster_personality': personality,
+            'existing_abilities_text': abilities_text,
+            'ability_count': len(monster.abilities)
+        }
+    
+    def generate_ability_by_id(self, monster_id ):
+        monster = Monster.query.get(monster_id)
+        return self.generate_ability(monster)
