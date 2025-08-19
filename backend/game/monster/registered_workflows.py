@@ -14,32 +14,30 @@ def generate_detailed_monster(context: dict, on_update: Callable[[str, Dict[str,
     progress_data = {}
 
     try:
-        from backend.game.monster.generator import MonsterGenerator
-        
-        monster_generator = MonsterGenerator()
+        from backend.game.monster.generator import generate_base_monster, generate_ability, generate_card_art
         
         # Step 1
         step = "creating_monster"
         on_update(step, progress_data)
-        monster = monster_generator.generate_base_monster()
+        monster = generate_base_monster()
         progress_data.update({ "monster": monster.to_dict()})
 
         # Step 2
         step = "adding_first_ability"
         on_update(step, progress_data)
-        ability_1 = monster_generator.generate_ability(monster)
+        ability_1 = generate_ability(monster)
         progress_data.update({ "ability_1": ability_1.to_dict()})
 
         # Step 3
         step = "adding_second_ability"
         on_update(step, progress_data)
-        ability_2 = monster_generator.generate_ability(monster)
+        ability_2 = generate_ability(monster)
         progress_data.update({ "ability_2": ability_2.to_dict()})
 
         # Step 4
         step = "creating_card_art"
         on_update(step, progress_data)
-        image_path = monster_generator.generate_card_art(monster)
+        image_path = generate_card_art(monster)
         progress_data.update({ "card_art_path": image_path})
 
         return success_response(progress_data)
@@ -65,8 +63,7 @@ def generate_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], N
     progress_data = {}
 
     try:
-        from backend.game.monster.generator import MonsterGenerator
-        monster_generator = MonsterGenerator()
+        from backend.game.monster.generator import generate_ability_by_id
 
         # Step 0 - validate required keys
         step = "validating_context"
@@ -76,7 +73,7 @@ def generate_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], N
         # Step 1
         step = "generating_ability"
         on_update(step, progress_data)
-        ability = monster_generator.generate_ability_by_id(context["monster_id"])
+        ability = generate_ability_by_id(context["monster_id"])
         progress_data.update({ "ability": ability.to_dict()})
 
         return success_response(progress_data)

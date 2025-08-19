@@ -8,6 +8,8 @@
 .expandable-table {
   /* Inherits all styles from .table in table.css */
   width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
 }
 
 /* ===== EXPANDABLE ROW STYLES ===== */
