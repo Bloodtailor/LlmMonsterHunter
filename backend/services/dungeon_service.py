@@ -3,16 +3,13 @@
 # Single source of truth for dungeon business rules
 
 from typing import Dict, Any
-from backend.game.dungeon import DungeonManager
+from backend.game import dungeon
 from backend.services.validators import (
     validate_party_ready_for_dungeon,
     validate_door_choice,
     validate_in_dungeon
 )
 from backend.core.utils import error_response, success_response, validate_and_continue
-
-# Create singleton manager instance
-_manager = DungeonManager()
 
 def enter_dungeon() -> Dict[str, Any]:
     """
@@ -27,7 +24,7 @@ def enter_dungeon() -> Dict[str, Any]:
         return error_check
     
     # Delegate to game logic (no validation needed)
-    return _manager.enter_dungeon()
+    return dungeon.manager.enter_dungeon()
 
 def choose_door(door_choice: str) -> Dict[str, Any]:
     """
@@ -52,14 +49,14 @@ def choose_door(door_choice: str) -> Dict[str, Any]:
         return error_check
     
     # Delegate to game logic (no validation needed)
-    return _manager.choose_door(door_choice)
+    return dungeon.manager.choose_door(door_choice)
 
 def get_dungeon_state() -> Dict[str, Any]:
     """
     Get dungeon state - no validation needed
     Simple delegation to game logic
     """
-    return _manager.get_dungeon_state()
+    return dungeon.manager.get_dungeon_state()
 
 def get_dungeon_status() -> Dict[str, Any]:
     """
@@ -68,7 +65,7 @@ def get_dungeon_status() -> Dict[str, Any]:
     """
     
     try:
-        state_result = _manager.get_dungeon_state()
+        state_result = dungeon.manager.get_dungeon_state()
         
         if not state_result['success']:
             return error_response(

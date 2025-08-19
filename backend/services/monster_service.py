@@ -5,18 +5,15 @@
 from typing import Dict, Any
 from backend.core.utils import success_response, error_response, validate_and_continue
 from backend.workflow.workflow_gateway import request_workflow
-from backend.game.monster.manager import MonsterManager
+from backend.game import monster
 from .validators import validate_monster_list_params 
-
-_manager = MonsterManager()
 
 def generate_monster() -> Dict[str, Any]:
     """Generate monster using workflow system - queued processing"""
     
     try:
         # Request workflow execution
-        success, workflow_id = request_workflow(
-            workflow_type="generate_detailed_monster")
+        success, workflow_id = request_workflow( workflow_type="generate_detailed_monster")
         
         if success:
             return success_response({'workflow_id': workflow_id})
@@ -35,7 +32,7 @@ def get_all_monsters(limit: int = None, offset: int = 0,
     if error_check:
         return error_check
     
-    return _manager.get_all_monsters(limit, offset, filter_type, sort_by)
+    return monster.manager.get_all_monsters(limit, offset, filter_type, sort_by)
 
 def get_monster_stats(filter_type: str = 'all') -> Dict[str, Any]:
     """Get stats - validate filter parameter"""
@@ -44,11 +41,11 @@ def get_monster_stats(filter_type: str = 'all') -> Dict[str, Any]:
     if filter_type not in valid_filters:
         return error_response(f'Invalid filter parameter - must be: {", ".join(valid_filters)}')
     
-    return _manager.get_monster_stats(filter_type)
+    return monster.manager.get_monster_stats(filter_type)
 
 def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
     """Get monster - delegate directly (routes handle integer validation)"""
-    return _manager.get_monster_by_id(monster_id)
+    return monster.manager.get_monster_by_id(monster_id)
 
 def generate_ability(monster_id: int) -> Dict[str, Any]:
     """Generate ability - only validate monster exists"""

@@ -3,7 +3,7 @@
 # Single source of truth for game state business rules
 
 from typing import List, Dict, Any
-from backend.game.state import GameStateManager
+from backend.game.state import manager as _manager
 from backend.services.validators import (
     validate_party_size,
     validate_monsters_are_following,
@@ -11,9 +11,6 @@ from backend.services.validators import (
     validate_following_monster_removal
 )
 from backend.core.utils import error_response, success_response, validate_and_continue
-
-# Create singleton manager instance
-_manager = GameStateManager()
 
 def get_game_state() -> Dict[str, Any]:
     """
