@@ -198,7 +198,7 @@ function StreamingDisplay() {
               columns={[
                 { key: 'status', header: 'Status', width: '20%' },
                 { key: 'currentStep', header: 'Current Step', width: '30%' },
-                { key: 'workflowType', header: 'Type', width: '30%' },
+                { key: 'workflowType', header: 'Workflow Name', width: '30%' },
                 { key: 'workflowId', header: 'ID', width: '10%' }
               ]}
               data={[{
@@ -217,11 +217,11 @@ function StreamingDisplay() {
             {workflowQueueStatus?.items?.length > 0 ? (
               <Table
                 columns={[
-                  { key: 'workflowId', header: 'ID', width: '15%' },
-                  { key: 'workflowType', header: 'Type', width: '20%' },
+                  { key: 'workflowId', header: 'ID', width: '10%' },
+                  { key: 'workflowType', header: 'Workflow Name', width: '30%' },
                   { key: 'status', header: 'Status', width: '15%' },
                   { key: 'priority', header: 'Priority', width: '15%' },
-                  { key: 'createdAt', header: 'Created', width: '35%' }
+                  { key: 'createdAt', header: 'Created', width: '20%' }
                 ]}
                 data={workflowQueueStatus.items.map(item => ({
                   ...item,

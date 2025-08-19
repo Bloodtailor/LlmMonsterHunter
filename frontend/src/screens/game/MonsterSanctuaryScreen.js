@@ -5,14 +5,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { usePagination } from "../../shared/ui/Pagination/usePagination.js";
 import { useMonsterCollection, useMonsterGeneration } from "../../app/hooks/useMonsters.js";
-import { useEventContext } from '../../app/contexts/EventContext/useEventContext.js'
 import FullPagination, { PAGINATION_LAYOUTS } from "../../shared/ui/Pagination/PaginationPresets.js";
 import { 
   Select,
   Alert,
   EmptyState,
   Button,
-  Scroll,
   EMPTY_STATE_PRESETS,
   Card,
   CardSection,
@@ -48,9 +46,6 @@ function MonsterSanctuaryScreen() {
     generate
   } = useMonsterGeneration();
 
-  // Temporary solution to identify when a new monster is ready
-  const { workflowCompletedEvent } = useEventContext();
-
   // Pagination hook
   const pagination = usePagination({ 
     limit, 
@@ -65,7 +60,7 @@ function MonsterSanctuaryScreen() {
       filter: filter !== 'all' ? filter : undefined,
       sort
     });
-  }, [filter, sort, limit, pagination.currentOffset, loadMonsters, workflowCompletedEvent]);
+  }, [filter, sort, limit, pagination.currentOffset, loadMonsters]);
 
   // Auto-load on mount and when dependencies change
   useEffect(() => {
@@ -75,10 +70,7 @@ function MonsterSanctuaryScreen() {
   // Handle monster generation
   const handleGenerateMonster = useCallback(async () => {
     console.log('🎲 Generating new monster...');
-    await generate({
-      prompt_name: 'detailed_monster',
-      generate_card_art: true
-    });
+    await generate();
     pagination.firstPage();
   }, [generate]);
 
