@@ -1,206 +1,129 @@
-# LLM Monster Hunter Game
+# LLM Monster Hunter Game  
 
-![Project Header](docs/assets/images/moodboard/header_image.png)
+![Project Header](docs/assets/images/moodboard/header_image.png)  
 
-*An AI-powered monster-catching adventure where every creature has a story to tell*
+*An AI-powered monster-catching adventure where every creature has a story to tell*  
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![React 18+](https://img.shields.io/badge/react-18+-61dafb.svg)](https://reactjs.org/)
-[![Flask 3.0](https://img.shields.io/badge/flask-3.0-green.svg)](https://flask.palletsprojects.com/)
-
-## 🎮 **What is This?**
-
-A revolutionary text-based monster-catching game that leverages **Large Language Models (LLMs)** to create truly unique creatures. Every monster you encounter is generated from scratch with its own personality, backstory, abilities, and motivations. Chat with them, earn their trust, and watch them evolve based on your interactions.
-
-**This isn't just a game—it's a demonstration of AI in interactive entertainment.**
-
-## 🚀 **Quick Start**
-
-### Prerequisites (Install BEFORE running setup)
-
-#### ✅ **Required Software:**
-1. **Python 3.8+**
-2. **Node.js 16+** (includes npm)
-2. **MySQL Server** (any recent version)
-3. **NVIDIA GPU Drivers** (latest)
-4. **CUDA Toolkit 12.x**
-5. Visual Studio Build Tools with **C++ components**
-6. **ComfyUI (separate installation)**
-
-#### 🤖 **Required AI Modles:**
-7. **Text Model:** 7B GGUF model (kunoichi-7b recommended)
-8. **Image Model:** SDXL Turbo ([DreamShaper XL Turbo](https://civitai.com/models/112902/dreamshaper-xl) recommended) 
-
-#### 🎯 **For CUDA Support (Recommended for AI features):**
-9. **NVIDIA GPU Drivers** - [Download latest drivers](https://www.nvidia.com/drivers/)
-10. **CUDA Toolkit** - [Download CUDA 12.x](https://developer.nvidia.com/cuda-toolkit)
-11. **Visual Studio Build Tools** - [Download Build Tools](https://visualstudio.microsoft.com/downloads/)
-   - Install the "C++ build tools" workload
-
-#### 🔧 **Hardware Requirements:**
-- **NVIDIA GPU** with 8GB+ VRAM (for AI model acceleration)
-- **32GB RAM** recommended (16GB minimum)
-- **20GB+ free storage**
-- **Windows 10/11** 
-
-### Installation Steps
-
-Installation steps need to be added here. Make sure to mention that start_game bat helps you setup the enviroment, check if everything is set up correctly and can be ran multiple times safely.
-
-🎉 **The game will be available at `http://localhost:3000`**
-
-
-### Troubleshooting
-
-#### **What are Node.js and npm?**
-- **Node.js:** A JavaScript runtime that lets you run JavaScript outside web browsers
-- **npm:** Node Package Manager - comes with Node.js, manages JavaScript libraries
-- **Why we need them:** React frontend is built with JavaScript and needs these tools
-- **To verify:** Run `node --version` and `npm --version` in command prompt
-
-## ✨ **Key Features**
-
-### 🤖 **AI-Powered Everything**
-- **Dynamic Monster Generation:** Every creature created by LLM with unique personality
-- **Evolving Conversations:** Chat with monsters and influence their development
-- **Procedural Storytelling:** Emergent narratives based on your choices and relationships
-- **AI-Generated Artwork:** Custom images for each monster using ComfyUI
-
-### 🎯 **Strategic Gameplay**
-- **Turn-Based Combat:** Tactical battles where monster personalities affect fighting styles
-- **Monster Recruitment:** Convince creatures to join your party through conversation
-- **Dungeon Exploration:** Navigate procedurally generated encounters and challenges
-- **Evolution System:** Watch your monsters grow and change based on their experiences
-
-
-## 🏗️ **Project Architecture**
-
-### Tech Stack
-- **Backend:** Python 3.8+, Flask 3.0, MySQL 8.0
-- **Frontend:** React 18+, HTML5, CSS3, JavaScript ES6+
-- **AI Integration:** llama-cpp-python, ComfyUI
-- **Development:** Git, VS Code, npm/pip
-
-### System Overview
-```
-React Frontend ←→ Flask API ←→ MySQL Database
-                     ↓
-              LLM Services (Local)
-                     ↓
-              ComfyUI (Image Gen)
-```
-
-## 📚 **Documentation**
-
-This project includes comprehensive documentation following SDLC methodology:
-
-### 📋 **Core Documents**
-- **[MVP Development Strategy](docs/strategy/mvp_development_strategy.md)** - Current development approach
-- **[Technical Architecture](docs/design/technical_architecture.md)** - System design and implementation
-
-### 🗂️ **Full Documentation Structure**
-```
-docs/
-├── planning/           # Project planning and feasibility analysis
-├── design/            # System design and architecture
-├── use_cases/         # Detailed use case specifications
-├── strategy/          # Development methodology and MVP approach
-└── assets/           # Images, diagrams, and mockups
-```
-
-## 🎯 **Current Status: MVP Development**
-
-**Development Phase:** Rapid Prototyping (June 2025)  
-**Methodology:** MVP-First Development after comprehensive planning
-
-Development status needs to be updated!
-### ✅ **Completed**
-- [x] Complete SDLC planning documentation (February 2025)
-- [x] Feasibility analysis and risk assessment
-- [x] Technical architecture design
-- [x] Database schema design
-- [x] MVP scope definition and strategy pivot
-
-### 🔄 **In Progress**
-- [ ] Flask backend implementation
-- [ ] Basic LLM integration
-- [ ] Core game loop development
-- [ ] React frontend components
-
-### 🎯 **MVP Goals**
-- Home base monster and inventory management
-- Simple dungeon exploration with three-door choice system
-- Turn-based battle system with basic actions
-- Monster chat system with personality responses
-- Basic monster generation and capture mechanics
-
-## 🎮 **Gameplay Preview**
-
-### Core Game Loop
-1. **Home Base** - Manage your monster party and inventory
-2. **Enter Dungeon** - Choose from three mysterious doors
-3. **Encounter** - Face monsters, traps, treasures, or exits
-4. **Battle** - Strategic turn-based combat with unique creatures
-5. **Chat & Recruit** - Convince monsters to join your party
-6. **Return & Evolve** - Develop your monsters and prepare for the next adventure
-
-### What Makes It Special
-Every monster you meet has been created by AI with:
-- **Unique Personality** - Distinct speaking patterns and motivations
-- **Personal Backstory** - Individual history and goals
-- **Dynamic Abilities** - Skills that reflect their character
-- **Evolution Potential** - Growth based on experiences and relationships
-
-## 🎓 **Educational Objectives**
-
-This is a personal project of mine and serves as a capstone demonstrating:
-
-### **Academic Application**
-- **CSUF Information Systems & Data Science** degree knowledge
-- **SDLC Methodology** with complete documentation deliverables
-- **Database Design** with complex relational structures
-- **Systems Analysis** through comprehensive use cases
-
-### **Professional Skills Development**
-- **Full-Stack Development** - Python backend, React frontend
-- **AI Integration** - Local LLM inference and prompt engineering
-- **Project Management** - Adaptive methodology and scope management
-- **Technical Documentation** - Professional-grade system documentation
-
-### **Portfolio Demonstration**
-- **Innovation** - Novel application of AI in gaming
-- **Technical Depth** - Complex system with multiple integrated technologies
-- **Adaptability** - Methodology pivot based on practical learning
-- **Completion Focus** - MVP approach ensuring deliverable results
-
-## 🤝 **Contributing**
-
-This is primarily an educational and portfolio project, but feedback and suggestions are welcome!
-
-### **Development Principles**
-- **Documentation First** - Comprehensive planning and analysis
-- **MVP Focus** - Working software over perfect features
-- **Learning Oriented** - Educational value prioritized
-- **AI Integration** - Practical application of LLM technology
-
-## 📄 **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 **Acknowledgments**
-
-- **Open Source Community** - Flask, React, and AI model ecosystems
-- **AI Research Community** - LLM advancement enabling this type of application
-
-## **Contact**
-
-**Aaron Orelup**  
-📧 Email: Aaronjorelup@gmail.com
-📞 Text(best): (510) 695-1134 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)  
+[![React 18+](https://img.shields.io/badge/react-18+-61dafb.svg)](https://reactjs.org/)  
+[![Flask 3.0](https://img.shields.io/badge/flask-3.0-green.svg)](https://flask.palletsprojects.com/)  
 
 ---
 
-**Ready to catch some AI-generated monsters?** 🐉✨
+## 🎮 **What is This?**  
 
-*This project represents the intersection of traditional game design, modern web development, and cutting-edge AI technology - built as a demonstration of practical skills and innovative thinking.*
+At its heart, this is the archetypal fantasy adventure of capturing, training, and battling creatures. But here, every monster, every encounter, every outcome is generated in real time by AI. It’s an experiment in a new coding paradigm powered by AI where the code itself doesn’t define the gameplay—it only provides context management and data storage, while AI does the actual storytelling, balancing, and decision-making. 
+
+
+Where traditional games spend compute on rendering high-fidelity graphics, this project spends compute on LLMs and image models. Where most games ship with gigabytes of pre-made game assets, here you download a model, and the monsters, visuals, personalities, and even battle outcomes are created as you play. 
+
+
+This is a **personal project**, built solo for **educational purposes** and as part of my **portfolio**. If you’ve somehow found this repo—welcome! I even built an **interactive setup** to guide you through installation. That said, because of the number of dependencies (Python, Node, MySQL, CUDA, ComfyUI, etc.), even with the setup script it may still take a few hours to get running.  
+
+---
+
+## ✨ **Key Features**  
+
+### 🤖 **AI-Powered Everything**  
+- **Dynamic Monster Generation** – Every creature is created by an LLM with a unique persona, backstory, and abilities.
+- **Evolving Conversations** – Monsters can only be captured if they choose to join you, after a post-battle chat where persuasion matters.
+- **Emergent Storytelling** – The world runs on the idea that every monster has a wish, from reviving a loved one to seeking ultimate power. These desires shape dialogue, battles, and evolution paths.
+- **AI-Generated Artwork** – ComfyUI generates unique art for every monster  
+- **Text-Driven Battles** – Combat is turn-based but narrated by the LLM, with outcomes explained through vivid descriptions instead of raw numbers.
+- **Monster Recruitment** – Victory in battle doesn’t guarantee capture; you’ll need to negotiate with monsters in conversation.
+- **Dungeon Exploration** – Navigate through doors leading to traps, treasures, monsters, or story-driven campsite encounters.
+- **Evolution System** – Monsters evolve not just in stats and visuals, but in memories, affinities, and personality, carrying their past experiences into the future.
+
+---
+
+## 🚧 **Development Status**  
+
+We’re currently in the **early stages** of development. The focus so far has been on building infrastructure rather than gameplay. Here’s what’s working today:  
+
+- ✅ **ComfyUI integration** for AI image generation  
+- ✅ **AI queue system** to unify LLM and image generation requests  
+- ✅ **Workflow queue system** capable of chaining multiple AI requests into structured game objects  
+- ✅ **Monster generation**: create monsters with **names, personality traits, abilities, backstories, and unique images**, viewable in the frontend  
+
+**Vision for the future:**  
+- Enter dungeons and face procedurally generated encounters  
+- Battle monsters in **state-driven, AI-mediated combat**  
+- Befriend monsters through conversation  
+- Evolve monsters and unlock new abilities  
+- Eventually, **chat directly with your monsters** as companions  
+
+
+![Monster Sanctuary](docs/assets/images/monster_sanctuary.png)  
+
+---
+
+## 🏗️ **Project Architecture**  
+
+### Tech Stack  
+- **Backend:** Python 3.9+, Flask 3.0, MySQL 8.0  
+- **Frontend:** React 18+, HTML5, CSS3, JavaScript ES6+  
+- **AI Integration:** llama-cpp-python, ComfyUI  
+- **Development Tools:** Git, VS Code, npm/pip  
+
+---
+
+## 🚀 **Quick Start**  
+
+### Prerequisites  
+(You’ll need all of these installed before setup will work.)  
+
+- Python 3.8+  
+- Node.js 16+ (includes npm)  
+- MySQL Server  
+- NVIDIA GPU Drivers (latest)  
+- CUDA Toolkit 12.x  
+- Visual Studio Build Tools (with C++ components)  
+- ComfyUI (installed separately)  
+
+### Required Models  
+- **Text Model:** 7B GGUF model (recommended: *kunoichi-7b*)  
+- **Image Model:** SDXL Turbo (recommended: [DreamShaper XL Turbo](https://civitai.com/models/112902/dreamshaper-xl))  
+
+### Starting the Game  
+
+- Run **`start_game.bat`** to launch the game.  
+  - This will guide you through the setup walkthrough.  
+  - Make sure your **ComfyUI server is already running** before starting.  
+  - After the first setup, you can use `start_game.bat` to start both the backend and frontend together.  
+- Alternatively, you can run:  
+  - **`start_backend.bat`** to only start the backend  
+  - **`start_frontend.bat`** to only start the frontend  
+
+⚡ *With everything installed, run the setup script. The game will be available at:*  
+👉 `http://localhost:3000`  
+
+---
+
+## 🤝 **Contributing**  
+
+This is mostly a solo learning project, but feedback and suggestions are welcome. If you’re trying to get it running yourself—good luck, and I’d love to hear about it.  
+
+---
+
+## 📄 **License**  
+
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.  
+
+---
+
+## 🙏 **Acknowledgments**  
+
+- **Open Source Community** – Flask, React, llama.cpp, and countless others  
+- **AI Research Community** – For advancing the tech that makes this experiment possible  
+
+---
+
+## **Contact**  
+
+**Aaron Orelup**  
+📞 Text: (510) 695-1134  
+
+---
+
+**Ready to catch some AI-generated monsters?** 🐉✨  
