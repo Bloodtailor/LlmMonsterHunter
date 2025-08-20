@@ -76,42 +76,6 @@ class ImageLog(BaseModel):
             image_filename=None
         )
     
-    @classmethod
-    def get_by_generation_id(cls, generation_id: int):
-        """Get Image log by generation ID"""
-        return cls.query.filter_by(generation_id=generation_id).first()
-    
-    @classmethod
-    def get_recent_with_images(cls, limit: int = 20):
-        """Get recent image logs that have generated images"""
-        return cls.query.filter(cls.image_path.isnot(None)).order_by(cls.created_at.desc()).limit(limit).all()
-    
-    @classmethod
-    def get_successful_generations(cls):
-        """Get count of successful image generations"""
-        try:
-            return cls.query.filter(cls.image_path.isnot(None)).count()
-        except Exception as e:
-            print(f"❌ Error counting successful generations: {e}")
-            return 0
-    
-    @classmethod
-    def get_stats(cls):
-        """Get simple image generation statistics"""
-        try:
-            total_requests = cls.query.count()
-            successful_generations = cls.get_successful_generations()
-            
-            return {
-                'total_image_requests': total_requests,
-                'successful_generations': successful_generations,
-                'success_rate': round(successful_generations / total_requests * 100, 1) if total_requests > 0 else 0,
-                'failed_generations': total_requests - successful_generations
-            }
-        except Exception as e:
-            print(f"❌ Error getting image stats: {e}")
-            return {}
-    
     def __repr__(self):
         """String representation for debugging"""
         return f"<ImageLog(id={self.id}, generation_id={self.generation_id}, has_image={bool(self.image_path)})>"

@@ -68,57 +68,6 @@ class Ability(BaseModel):
         
         return ability
     
-    @classmethod
-    def get_abilities_for_monster(cls, monster_id):
-        """
-        Get all abilities for a specific monster
-        
-        Args:
-            monster_id (int): Monster ID
-            
-        Returns:
-            list: List of Ability instances
-        """
-        try:
-            return cls.query.filter_by(monster_id=monster_id).order_by(cls.created_at.asc()).all()
-        except Exception as e:
-            print(f"❌ Error fetching abilities for monster {monster_id}: {e}")
-            return []
-    
-    @classmethod
-    def get_ability_by_id(cls, ability_id):
-        """
-        Get specific ability by ID
-        
-        Args:
-            ability_id (int): Ability ID
-            
-        Returns:
-            Ability: Ability instance or None if not found
-        """
-        try:
-            return cls.query.get(ability_id)
-        except Exception as e:
-            print(f"❌ Error fetching ability {ability_id}: {e}")
-            return None
-    
-    @classmethod
-    def count_abilities_for_monster(cls, monster_id):
-        """
-        Count how many abilities a monster has
-        
-        Args:
-            monster_id (int): Monster ID
-            
-        Returns:
-            int: Number of abilities
-        """
-        try:
-            return cls.query.filter_by(monster_id=monster_id).count()
-        except Exception as e:
-            print(f"❌ Error counting abilities for monster {monster_id}: {e}")
-            return 0
-    
     def __repr__(self):
         """String representation for debugging"""
         return f"<Ability(id={self.id}, name='{self.name}', monster_id={self.monster_id})>"
