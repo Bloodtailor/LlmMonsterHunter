@@ -58,13 +58,6 @@ def create_tables():
     from .generation_log import GenerationLog  # Parent table
     from .llm_log import LLMLog              # LLM child table
     from .image_log import ImageLog          # Image child table
-    from .game_state import GameState        # Main game state
-    from .game_state_relations import (      # Relationship tables
-      FollowingMonster,
-      ActiveParty,
-      DungeonState,
-      DungeonDoor
-    )
     from .game_workflow import GameWorkflow
     
     # Create all tables
