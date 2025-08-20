@@ -183,50 +183,6 @@ class GenerationLog(BaseModel):
         
         return generation_log
     
-    @classmethod
-    def get_pending_by_type(cls, generation_type: str):
-        """Get all pending logs of a specific type"""
-        return cls.query.filter_by(
-            generation_type=generation_type,
-            status='pending'
-        ).order_by(cls.priority.asc(), cls.created_at.asc()).all()
-    
-    @classmethod
-    def get_recent_logs(cls, limit: int = 50, generation_type: Optional[str] = None):
-        """Get recent logs, optionally filtered by type"""
-        query = cls.query
-        
-        if generation_type:
-            query = query.filter_by(generation_type=generation_type)
-        
-        return query.order_by(cls.created_at.desc()).limit(limit).all()
-    
-    @classmethod
-    def get_stats(cls):
-        """Get generation statistics across all types"""
-        try:
-            total = cls.query.count()
-            completed = cls.query.filter_by(status='completed').count()
-            failed = cls.query.filter_by(status='failed').count()
-            
-            # Stats by type
-            llm_count = cls.query.filter_by(generation_type='llm').count()
-            image_count = cls.query.filter_by(generation_type='image').count()
-            
-            return {
-                'total_generations': total,
-                'completed': completed,
-                'failed': failed,
-                'success_rate': round(completed / total * 100, 1) if total > 0 else 0,
-                'by_type': {
-                    'llm': llm_count,
-                    'image': image_count
-                }
-            }
-        except Exception as e:
-            print(f"❌ Error getting generation stats: {e}")
-            return {}
-    
     def __repr__(self):
         """String representation for debugging"""
         return f"<GenerationLog(id={self.id}, type='{self.generation_type}', status='{self.status}', attempt={self.generation_attempt})>"

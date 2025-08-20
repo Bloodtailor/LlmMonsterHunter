@@ -160,28 +160,6 @@ class LLMLog(BaseModel):
         """Get LLM log by generation ID"""
         return cls.query.filter_by(generation_id=generation_id).first()
     
-    @classmethod
-    def get_recent_with_responses(cls, limit: int = 20):
-        """Get recent LLM logs that have responses"""
-        return cls.query.filter(cls.response_text.isnot(None)).order_by(cls.created_at.desc()).limit(limit).all()
-    
-    @classmethod
-    def get_parsing_stats(cls):
-        """Get parsing success statistics"""
-        try:
-            total_with_responses = cls.query.filter(cls.response_text.isnot(None)).count()
-            successful_parses = cls.query.filter_by(parse_success=True).count()
-            
-            return {
-                'total_with_responses': total_with_responses,
-                'successful_parses': successful_parses,
-                'parse_success_rate': round(successful_parses / total_with_responses * 100, 1) if total_with_responses > 0 else 0,
-                'failed_parses': total_with_responses - successful_parses
-            }
-        except Exception as e:
-            print(f"❌ Error getting parsing stats: {e}")
-            return {}
-    
     def __repr__(self):
         """String representation for debugging"""
         return f"<LLMLog(id={self.id}, generation_id={self.generation_id}, tokens={self.response_tokens}, parsed={self.parse_success})>"

@@ -6,7 +6,7 @@ from .core import db
 from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text, JSON, DateTime
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 class GameWorkflow(BaseModel):
     """
@@ -102,91 +102,6 @@ class GameWorkflow(BaseModel):
             priority=priority,
             status='pending'
         )
-    
-    @classmethod
-    def get_workflow_by_id(cls, workflow_id: int):
-        """Get workflow by ID"""
-        try:
-            return cls.query.get(workflow_id)
-        except Exception as e:
-            print(f"❌ Error fetching workflow {workflow_id}: {e}")
-            return None
-    
-    @classmethod
-    def get_recent_workflows(cls, limit: int = 50, workflow_type: Optional[str] = None):
-        """Get recent workflows, optionally filtered by type"""
-        try:
-            query = cls.query
-            
-            if workflow_type:
-                query = query.filter_by(workflow_type=workflow_type)
-            
-            return query.order_by(cls.created_at.desc()).limit(limit).all()
-        except Exception as e:
-            print(f"❌ Error fetching recent workflows: {e}")
-            return []
-    
-    @classmethod
-    def get_pending_workflows(cls):
-        """Get all pending workflows"""
-        try:
-            return cls.query.filter_by(status='pending').order_by(cls.priority.asc(), cls.created_at.asc()).all()
-        except Exception as e:
-            print(f"❌ Error fetching pending workflows: {e}")
-            return []
-    
-    @classmethod
-    def get_workflow_stats(cls):
-        """Get workflow statistics for monitoring"""
-        try:
-            total = cls.query.count()
-            completed = cls.query.filter_by(status='completed').count()
-            failed = cls.query.filter_by(status='failed').count()
-            pending = cls.query.filter_by(status='pending').count()
-            processing = cls.query.filter_by(status='processing').count()
-            
-            # Get stats by workflow type
-            from sqlalchemy import func
-            type_stats = db.session.query(
-                cls.workflow_type, 
-                func.count(cls.id).label('count')
-            ).group_by(cls.workflow_type).all()
-            
-            return {
-                'total_workflows': total,
-                'by_status': {
-                    'pending': pending,
-                    'processing': processing,
-                    'completed': completed,
-                    'failed': failed
-                },
-                'success_rate': round(completed / total * 100, 1) if total > 0 else 0,
-                'by_type': {workflow_type: count for workflow_type, count in type_stats}
-            }
-        except Exception as e:
-            print(f"❌ Error getting workflow stats: {e}")
-            return {}
-    
-    @classmethod
-    def cleanup_old_workflows(cls, days_old: int = 30):
-        """Clean up old completed workflows (for maintenance)"""
-        try:
-            from datetime import timedelta
-            cutoff_date = datetime.utcnow() - timedelta(days=days_old)
-            
-            old_workflows = cls.query.filter(
-                cls.completed_at < cutoff_date,
-                cls.status.in_(['completed', 'failed'])
-            ).all()
-            
-            count = len(old_workflows)
-            for workflow in old_workflows:
-                workflow.delete()
-            
-            return count
-        except Exception as e:
-            print(f"❌ Error cleaning up old workflows: {e}")
-            return 0
     
     def __repr__(self):
         """String representation for debugging"""

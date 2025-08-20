@@ -123,80 +123,6 @@ class Monster(BaseModel):
             print(f"❌ Error setting card art for monster {self.id}: {e}")
             return False
     
-    def get_abilities_summary(self):
-        """
-        Get a summary of abilities for UI display
-        
-        Returns:
-            dict: Summary with count and preview of ability names
-        """
-        ability_names = [ability.name for ability in self.abilities]
-        return {
-            'count': len(self.abilities),
-            'names': ability_names,
-            'preview': ', '.join(ability_names[:2]) + ('...' if len(ability_names) > 2 else '')
-        }
-    
-    def get_context_for_ability_generation(self):
-        """
-        Get monster context for ability generation prompts
-        Includes all relevant information for the LLM to create appropriate abilities
-        
-        Returns:
-            dict: Complete monster context for LLM prompts
-        """
-        existing_abilities = [
-            {
-                'name': ability.name,
-                'description': ability.description,
-                'type': ability.ability_type
-            }
-            for ability in self.abilities
-        ]
-        
-        return {
-            'name': self.name,
-            'species': self.species,
-            'description': self.description,
-            'backstory': self.backstory,
-            'stats': {
-                'health': self.max_health,
-                'attack': self.attack,
-                'defense': self.defense,
-                'speed': self.speed
-            },
-            'personality_traits': self.personality_traits or [],
-            'existing_abilities': existing_abilities,
-            'ability_count': len(existing_abilities)
-        }
-    
-    def get_context_for_image_generation(self):
-        """
-        Get monster context for image generation prompts
-        Builds a descriptive prompt text from monster data
-        
-        Returns:
-            str: Prompt text for image generation
-        """
-        prompt_parts = []
-        
-        # Add name and species
-        if self.name:
-            prompt_parts.append(self.name)
-        if self.species:
-            prompt_parts.append(self.species)
-        
-        # Add description
-        if self.description:
-            prompt_parts.append(self.description)
-        
-        # Add personality traits if available
-        if self.personality_traits:
-            traits_text = ", ".join(self.personality_traits[:3])  # Limit to 3 traits
-            prompt_parts.append(f"personality: {traits_text}")
-        
-        return ", ".join(prompt_parts)
-    
     @classmethod
     def create_from_llm_data(cls, llm_response_data):
         """
@@ -267,26 +193,6 @@ class Monster(BaseModel):
             return cls.query.options(db.joinedload(cls.abilities)).get(monster_id)
         except Exception as e:
             print(f"❌ Error fetching monster {monster_id}: {e}")
-            return None
-    
-    @classmethod
-    def find_monster_by_image_generation_id(cls, generation_id: int):
-        """
-        Find monster that was being generated when this image generation was created
-        Uses timing to match monster creation with image generation
-        
-        Args:
-            generation_id (int): Generation ID of the image
-            
-        Returns:
-            Monster: Most recently created monster or None
-        """
-        try:
-            # Get the most recently created monster
-            # This assumes monster creation and image generation happen in sequence
-            return cls.query.order_by(cls.created_at.desc()).first()
-        except Exception as e:
-            print(f"❌ Error finding monster for image generation {generation_id}: {e}")
             return None
     
     def __repr__(self):

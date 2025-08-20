@@ -18,17 +18,11 @@ def generate_random_location() -> Dict[str, Any]:
     """Generate location - no validation, fallback on any error"""
     
     try:
-        location_data = build_and_generate('random_location', 'dungeon_generation')
-        location = {
-            'name': location_data['name'],
-            'description': location_data['description']
-        }
-        return location
-            
+        location = build_and_generate('random_location', 'dungeon_generation')
     except Exception:
-        # Always succeed with fallback
-        fallback_location = _get_fallback_location()
-        return fallback_location
+        location = _get_fallback_location()
+        
+    return location
 
 def generate_location_event_text(location_name: str) -> Dict[str, Any]:
     """Generate event text - assumes valid location_name"""
