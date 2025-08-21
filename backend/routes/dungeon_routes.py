@@ -7,7 +7,7 @@ from backend.services import dungeon_service
 
 dungeon_bp = Blueprint('dungeon', __name__, url_prefix='/api/dungeon')
 
-@dungeon_bp.route('/enter', methods=['POST'])
+@dungeon_bp.route('/enter', methods=['GET'])
 def enter_dungeon():
     """Enter dungeon - thin HTTP wrapper"""
     result = dungeon_service.enter_dungeon()

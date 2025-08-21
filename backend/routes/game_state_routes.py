@@ -67,17 +67,3 @@ def get_active_party():
     """Get current active party - thin HTTP wrapper"""
     result = game_state_service.get_active_party()
     return jsonify(result), 200 if result['success'] else 500
-
-@game_state_bp.route('/party/ready', methods=['GET'])
-def check_party_ready():
-    """Check if party is ready for dungeon - thin HTTP wrapper"""
-    
-    ready = game_state_service.is_party_ready_for_dungeon()
-    summary = game_state_service.get_party_summary()
-    
-    return jsonify({
-        'success': True,
-        'ready_for_dungeon': ready,
-        'party_summary': summary,
-        'message': 'Party is ready for adventure!' if ready else 'Add monsters to your party before entering the dungeon'
-    }), 200

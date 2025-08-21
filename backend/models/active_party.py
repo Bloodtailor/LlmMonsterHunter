@@ -151,6 +151,11 @@ class ActiveParty(BaseModel):
         """Check if party has at least one monster"""
         return cls.get_party_count() > 0
     
+    @classmethod
+    def is_in_active_party(cls, monster_id: int):
+        """Check if monster is in active party"""
+        return cls.query.filter_by(monster_id=monster_id).first() is not None
+    
     def __repr__(self):
         """String representation for debugging"""
         return f"<ActiveParty(id={self.id}, monster_id={self.monster_id}, position={self.party_position})>"
