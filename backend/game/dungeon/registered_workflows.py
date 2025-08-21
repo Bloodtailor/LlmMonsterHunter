@@ -6,9 +6,10 @@ from backend.core.utils.validation import require_keys
 from typing import Callable, Dict, Any
 
 @register_workflow()
-def generate_door_choices(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
     """Generate detailed monster using AI with progress updates"""
 
+    workflow_name='enter_dungeon'
     # "context" should have the following keys:
     required_keys = []
 
@@ -17,7 +18,7 @@ def generate_door_choices(context: dict, on_update: Callable[[str, Dict[str, Any
     progress_data = {}
 
     try:
-        from backend.game.dungeon.generator import generate_random_location, build_door_choices
+        from backend.game.dungeon.generator import generate_random_location, build_door_choices, generate_entry_text
 
         # Step 0 - validate required keys
         step = "validating_context"
@@ -25,26 +26,27 @@ def generate_door_choices(context: dict, on_update: Callable[[str, Dict[str, Any
         require_keys(context, required_keys)
 
         # Step 1
-        step = "generate_location_1"
+        step = "generate_dungeon_entry_text"
         on_update(step, progress_data)
-        location_1 = generate_random_location()
-        progress_data.update({ "location_1": location_1 })
+        entry_text_generation_id = generate_entry_text(workflow_name)
+        progress_data.update({ "entry_text_generation_id": entry_text_generation_id })
 
         # Step 2
-        step = "generate_location_2"
+        step = "generate_location_1"
         on_update(step, progress_data)
-        location_2 = generate_random_location()
-        progress_data.update({ "location_2": location_2})
+        location_1 = generate_random_location(workflow_name)
+        progress_data.update({ "location_1": location_1 })
 
         # Step 3
+        step = "generate_location_2"
+        on_update(step, progress_data)
+        location_2 = generate_random_location(workflow_name)
+        progress_data.update({ "location_2": location_2})
+
+        # Step 4
         step = "assembling_door_choices"
         on_update(step, progress_data)
         door_choices = build_door_choices(location_1, location_2)
-        progress_data.update({ "door_choices": door_choices})
-
-        # Step 4
-        step = "sending_success_response"
-        on_update(step, progress_data)
 
         return success_response(door_choices)
         

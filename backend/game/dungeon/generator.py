@@ -4,39 +4,41 @@
 
 from typing import Dict, Any
 import random
-from backend.game.utils import build_and_generate
+from backend.game.utils import build_and_generate, build_and_stream
+from backend.game.state.manager import get_party_summary
     
-def generate_entry_text(party_summary: str) -> Dict[str, Any]:
+def generate_entry_text(workflow_name) -> Dict[str, Any]:
     """Generate entry text - assumes valid party_summary"""
     
+    party_summary = get_party_summary()
     variables = {'party_summary': party_summary}
-    dungeon_entry_text = build_and_generate('entry_atmosphere', 'dungeon_generation', variables)
+    entry_text_generation_id = build_and_stream('entry_atmosphere', workflow_name, variables)
     
-    return dungeon_entry_text
+    return entry_text_generation_id
 
-def generate_random_location() -> Dict[str, Any]:
+def generate_random_location(workflow_name) -> Dict[str, Any]:
     """Generate location - no validation, fallback on any error"""
     
     try:
-        location = build_and_generate('random_location', 'dungeon_generation')
+        location = build_and_generate('random_location', workflow_name)
     except Exception:
         location = _get_fallback_location()
         
     return location
 
-def generate_location_event_text(location_name: str) -> Dict[str, Any]:
+def generate_location_event_text(location_name: str, workflow_name) -> Dict[str, Any]:
     """Generate event text - assumes valid location_name"""
     
     variables = {'location_name': location_name}
-    location_event_text = build_and_generate('location_event', 'dungeon_generation', variables)
+    location_event_text = build_and_generate('location_event', workflow_name, variables)
     
     return location_event_text
 
-def generate_exit_text(party_summary: str) -> Dict[str, Any]:
+def generate_exit_text(party_summary: str, workflow_name) -> Dict[str, Any]:
     """Generate exit text - assumes valid party_summary"""
     
     variables = {'party_summary': party_summary}
-    dungeon_exit_text = build_and_generate('exit_narrative', 'dungeon_generation', variables)
+    dungeon_exit_text = build_and_generate('exit_narrative', workflow_name, variables)
     
     return dungeon_exit_text
 

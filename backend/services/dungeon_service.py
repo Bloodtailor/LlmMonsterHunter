@@ -10,6 +10,7 @@ from backend.services.validators import (
     validate_in_dungeon
 )
 from backend.core.utils import error_response, success_response, validate_and_continue
+from backend.workflow.workflow_gateway import request_workflow
 
 def enter_dungeon() -> Dict[str, Any]:
     """
@@ -23,8 +24,12 @@ def enter_dungeon() -> Dict[str, Any]:
     if error_check:
         return error_check
     
-    # Delegate to game logic (no validation needed)
-    return dungeon.manager.enter_dungeon()
+    success, workflow_id = request_workflow( workflow_type="enter_dungeon")
+
+    if success:
+        return success_response({'workflow_id': workflow_id})
+    else:
+        return error_response("Failed to queue enter dungeon workflow")
 
 def choose_door(door_choice: str) -> Dict[str, Any]:
     """
