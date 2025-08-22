@@ -9,7 +9,6 @@ import NavButtons from './shared/ui/Button/NavButtons.js';
 
 // Providers
 import AppProvider from './app/AppProvider.js';
-import { NavigationProvider } from './app/contexts/NavigationContext/index.js';
 
 // Game Screen Router
 import GameScreenRouter from './screens/game/GameScreenRouter.js';
@@ -74,43 +73,41 @@ function App() {
   // Main application
   return (
     <AppProvider>
-      <NavigationProvider>
-        <div className="App">
+      <div className="App">
 
-          {/* App Header with Title Left, Navigation Centered */}
-          <header className="app-header">
-            <h1>🎮 Monster Hunter Game</h1>
-            
-            {/* Navigation using NavButtons component */}
-            <NavButtons 
-              buttons={navigationButtons}
-              activeScreen={currentScreen}
-              onScreenChange={setCurrentScreen}
-              spacing="tight"
-              alignment="left"
-            />
+        {/* App Header with Title Left, Navigation Centered */}
+        <header className="app-header">
+          <h1>🎮 Monster Hunter Game</h1>
+          
+          {/* Navigation using NavButtons component */}
+          <NavButtons 
+            buttons={navigationButtons}
+            activeScreen={currentScreen}
+            onScreenChange={setCurrentScreen}
+            spacing="tight"
+            alignment="left"
+          />
 
-            {/* Global Streaming Display */}
-            <StreamingDisplay />
-          </header>
+          {/* Global Streaming Display */}
+          <StreamingDisplay />
+        </header>
 
-          {/* Main Content Area */}
-          <main className="app-main">
-            {currentScreen === 'game' && <GameScreenRouter />}
-            {currentScreen === 'api-services' && <ApiServicesTestScreen />}
-            {currentScreen === 'dev' && <DeveloperScreen />}
-            {currentScreen === 'event-test' && <EventTestScreen />}
-            {currentScreen === 'cocatok-demo' && <CoCaTokDemo />}
-            {currentScreen === 'explosion-demo' && <ExplosionDemo />}
-            {currentScreen === 'style-test' && <StyleTestScreen />}
-            {currentScreen === 'ui-examples' && <UiExamplesScreen />}
-            {currentScreen === 'byo-component' && <BYOComponentTestScreen />}
-          </main>
+        {/* Main Content Area */}
+        <main className="app-main">
+          {currentScreen === 'game' && <GameScreenRouter />}
+          {currentScreen === 'api-services' && <ApiServicesTestScreen />}
+          {currentScreen === 'dev' && <DeveloperScreen />}
+          {currentScreen === 'event-test' && <EventTestScreen />}
+          {currentScreen === 'cocatok-demo' && <CoCaTokDemo />}
+          {currentScreen === 'explosion-demo' && <ExplosionDemo />}
+          {currentScreen === 'style-test' && <StyleTestScreen />}
+          {currentScreen === 'ui-examples' && <UiExamplesScreen />}
+          {currentScreen === 'byo-component' && <BYOComponentTestScreen />}
+        </main>
 
-          <footer className='app-footer'>LLM Monster Hunter</footer>
+        <footer className='app-footer'>LLM Monster Hunter</footer>
 
-        </div>
-      </NavigationProvider>
+      </div>
     </AppProvider>
   );
 }

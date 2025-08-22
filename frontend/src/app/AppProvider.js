@@ -5,6 +5,8 @@
 import React, { useState, useEffect } from 'react';
 import { EventProvider, useEventContext } from './contexts/EventContext';
 import { PartyProvider, useParty } from './contexts/PartyContext';
+import { NavigationProvider } from './contexts/NavigationContext';
+import { DungeonProvider } from './contexts/DungeonContext';
 import AppLoadingScreen from '../screens/game/AppLoadingScreen';
 
 // Session storage key for tracking initialization
@@ -88,13 +90,17 @@ function AppInitializer({ children }) {
  */
 function AppProvider({ children }) {
   return (
-    <EventProvider>
-      <PartyProvider>
-        <AppInitializer>
-          {children}
-        </AppInitializer>
-      </PartyProvider>
-    </EventProvider>
+    <NavigationProvider>
+      <EventProvider>
+        <DungeonProvider>
+          <PartyProvider>
+            <AppInitializer>
+              {children}
+            </AppInitializer>
+          </PartyProvider>
+        </DungeonProvider>
+      </EventProvider>
+    </NavigationProvider>
   );
 }
 
