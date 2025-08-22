@@ -17,7 +17,7 @@ function StreamingDisplay() {
   
   // Get all computed AI status from the hook
   const { currentActivity, queueStatus, llmStatus, imageStatus } = useAiStatus();
-  const { workflowQueueStatus, workflowStatus, currentStep, activeWorkflow } = useWorkflowStatus();
+  const { workflowQueueStatus, workflowStatus, currentStep, currentData, activeWorkflow } = useWorkflowStatus();
 
   // UI state for main card minimization
   const [isMinimized, setIsMinimized] = useState(false);
@@ -239,6 +239,16 @@ function StreamingDisplay() {
                 <div className="empty-table">No workflow items in queue</div>
               </div>
             )}
+
+            {/* Generation Progress */}
+            <CardSection type='content'>                 
+              <Scroll maxHeight="200px">
+                <div className="text-preview">
+                  {JSON.stringify(currentData, null, 2)}
+                  <span className="cursor"></span>
+                </div>
+              </Scroll>
+            </CardSection>
 
           </CardSection>
           <CardSection type='footer'></CardSection>

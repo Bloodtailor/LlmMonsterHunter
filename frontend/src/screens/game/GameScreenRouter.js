@@ -8,9 +8,11 @@ import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
 // Import game screens
 import HomeBaseScreen from './HomeBaseScreen.js';
 import MonsterSanctuaryScreen from './MonsterSanctuaryScreen.js';
-// TODO: Import dungeon screens when they're created
-// import DungeonEntranceScreen from '../../components/dungeon/screens/DungeonEntranceScreen.js';
-// import DungeonDoorsScreen from '../../components/dungeon/screens/DungeonDoorsScreen.js';
+
+// Import dungeon screens
+import { DungeonEntranceScreen } from '../../components/dungeon/index.js';
+// TODO: Import when created
+// import { DungeonDoorsScreen } from '../../components/dungeon/index.js';
 
 /**
  * GameScreenRouter component
@@ -29,9 +31,7 @@ function GameScreenRouter() {
       return <MonsterSanctuaryScreen />;
       
     case 'dungeon-entrance':
-      // TODO: Uncomment when DungeonEntranceScreen is created
-      // return <DungeonEntranceScreen />;
-      return <div>Dungeon Entrance Screen - Coming Soon</div>;
+      return <DungeonEntranceScreen />;
       
     case 'dungeon-doors':
       // TODO: Uncomment when DungeonDoorsScreen is created  

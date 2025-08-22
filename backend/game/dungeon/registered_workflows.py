@@ -14,37 +14,41 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
     required_keys = []
 
     # Set the initial conditions
-    step = "initializing"
+    step = "initialize_workflow"
     progress_data = {}
 
     try:
         from backend.game.dungeon.generator import generate_random_location, build_door_choices, generate_entry_text
 
         # Step 0 - validate required keys
-        step = "validating_context"
+        step = "validate_context"
         on_update(step, progress_data)
         require_keys(context, required_keys)
 
         # Step 1
-        step = "generate_dungeon_entry_text"
+        step = "queue_entry_text"
         on_update(step, progress_data)
         entry_text_generation_id = generate_entry_text(workflow_name)
         progress_data.update({ "entry_text_generation_id": entry_text_generation_id })
 
         # Step 2
+        step = "emit_generation_id"
+        on_update(step, progress_data)
+
+        # Step 3
         step = "generate_location_1"
         on_update(step, progress_data)
         location_1 = generate_random_location(workflow_name)
         progress_data.update({ "location_1": location_1 })
 
-        # Step 3
+        # Step 4
         step = "generate_location_2"
         on_update(step, progress_data)
         location_2 = generate_random_location(workflow_name)
         progress_data.update({ "location_2": location_2})
 
-        # Step 4
-        step = "assembling_door_choices"
+        # Step 5
+        step = "assemble_door_choices"
         on_update(step, progress_data)
         door_choices = build_door_choices(location_1, location_2)
 

@@ -19,6 +19,7 @@ export function useWorkflowStatus() {
   const [activeWorkflow, setActiveWorkflow] = useState(null);
   const [workflowStatus, setWorkflowStatus] = useState('idle');
   const [currentStep, setCurrentStep] = useState(null);
+  const [currentData, setCurrentData] = useState(null);
   const [isWorkflowActive, setIsWorkflowActive] = useState(false);
 
   // Handle workflow events
@@ -27,6 +28,7 @@ export function useWorkflowStatus() {
       setActiveWorkflow(workflowStartedEvent.workflowItem);
       setWorkflowStatus('running');
       setCurrentStep(null);
+      setCurrentData(null);
       setIsWorkflowActive(true);
     }
   }, [workflowStartedEvent]);
@@ -34,6 +36,7 @@ export function useWorkflowStatus() {
   useEffect(() => {
     if (workflowUpdateEvent) {
       setCurrentStep(workflowUpdateEvent.step);
+      setCurrentData(workflowUpdateEvent.data);
       setWorkflowStatus('processing...');
     }
   }, [workflowUpdateEvent]);
@@ -87,6 +90,7 @@ export function useWorkflowStatus() {
     activeWorkflow,
     workflowStatus,
     currentStep,
+    currentData,
     isWorkflowActive,
     workflowQueueStatus
   };
