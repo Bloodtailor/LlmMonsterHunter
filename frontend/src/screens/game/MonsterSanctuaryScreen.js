@@ -19,6 +19,7 @@ import {
 
 // Import our new components
 import { useMonsterCardViewer } from "../../components/cards/useMonsterCardViewer.js";
+import { useNavigation } from "../../app/contexts/NavigationContext/index.js";
 
 function MonsterSanctuaryScreen() {
   // UI state
@@ -104,6 +105,8 @@ function MonsterSanctuaryScreen() {
     }
   }, []);
 
+  const { navigateToGameScreen } = useNavigation();
+
   return (
     <div>
       
@@ -116,6 +119,16 @@ function MonsterSanctuaryScreen() {
           alignment='center'
         >
           <p>Welcome to your mystical sanctuary where legendary creatures await your discovery. Each monster is unique with its own personality, abilities, and backstory.</p>
+        </CardSection>
+        <CardSection type="content" alignment="center" background="light">
+          <Button 
+            size="md" 
+            icon="🏠"
+            variant="secondary"
+            onClick={() => navigateToGameScreen('homebase')}
+          >
+            Back to Home Base
+          </Button>
         </CardSection>
         <CardSection type="content" alignment="center">
             <Button 
