@@ -1,19 +1,18 @@
-// Main React application component - UPDATED WITH BUTTON GROUP UI COMPONENT
-// Now uses ButtonGroup and Button components from shared UI library
-// Clean navigation with Home Base as the new game preparation hub
+// Main React application component - UPDATED WITH NAVIGATION CONTEXT
+// Now uses NavigationContext for game screen management
+// Clean separation between top-level navigation and game navigation
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 // Import NavButtons component from shared UI library
 import NavButtons from './shared/ui/Button/NavButtons.js';
-import { Button } from './shared/ui';
 
 // Providers
 import AppProvider from './app/AppProvider.js';
+import { NavigationProvider } from './app/contexts/NavigationContext/index.js';
 
-// Game Screen
-import MonsterSanctuaryScreen from './screens/game/MonsterSanctuaryScreen.js';
-import HomeBaseScreen from './screens/game/HomeBaseScreen.js';
+// Game Screen Router
+import GameScreenRouter from './screens/game/GameScreenRouter.js';
 
 // Developer Screens
 import ApiServicesTestScreen from './screens/developer/ApiServicesTestScreen';
@@ -28,12 +27,16 @@ import UiExamplesScreen from './screens/developer/UiExamplesScreen.js';
 
 function App() {
 
-  // Navigation state - Home Base is the main game screen
-  const [currentScreen, setCurrentScreen] = useState('homebase'); 
+  // Top-level navigation state - separates game from developer screens
+  const [currentScreen, setCurrentScreen] = useState('game'); 
 
   
-  // Navigation button configurations
+  // Navigation button configurations - single Game entry point
   const navigationButtons = [
+    {
+      screen: 'game',
+      label: '🎮 Game'
+    },
     {
       screen: 'api-services',
       label: '🧪 API Tests'
@@ -63,14 +66,6 @@ function App() {
       label: '🧪 UI Examples'
     },
     {
-      screen: 'sanctuary',
-      label: '🏛️ Monster Sanctuary'
-    },
-    {
-      screen: 'homebase',
-      label: '🏠 Home Base'
-    },
-    {
       screen: 'byo-component',
       label: '🧱 BYO Component'
     }
@@ -79,10 +74,9 @@ function App() {
   // Main application
   return (
     <AppProvider>
+      <NavigationProvider>
         <div className="App">
 
-
-          
           {/* App Header with Title Left, Navigation Centered */}
           <header className="app-header">
             <h1>🎮 Monster Hunter Game</h1>
@@ -102,6 +96,7 @@ function App() {
 
           {/* Main Content Area */}
           <main className="app-main">
+            {currentScreen === 'game' && <GameScreenRouter />}
             {currentScreen === 'api-services' && <ApiServicesTestScreen />}
             {currentScreen === 'dev' && <DeveloperScreen />}
             {currentScreen === 'event-test' && <EventTestScreen />}
@@ -109,15 +104,13 @@ function App() {
             {currentScreen === 'explosion-demo' && <ExplosionDemo />}
             {currentScreen === 'style-test' && <StyleTestScreen />}
             {currentScreen === 'ui-examples' && <UiExamplesScreen />}
-            {currentScreen === 'sanctuary' && <MonsterSanctuaryScreen />}
-            {currentScreen === 'homebase' && <HomeBaseScreen />}
             {currentScreen === 'byo-component' && <BYOComponentTestScreen />}
           </main>
 
           <footer className='app-footer'>LLM Monster Hunter</footer>
 
-          
         </div>
+      </NavigationProvider>
     </AppProvider>
   );
 }

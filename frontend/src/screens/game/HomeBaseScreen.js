@@ -1,47 +1,53 @@
 // HomeBase Screen - starting screen for player to manage their party and enter the dungeon
+// Now uses NavigationContext to navigate to dungeon screens
 // The only way to enter the dungeon
-// 
 
-import React, { useState, useEffect, useCallback } from "react";
+import React from 'react';
 import PartyDisplay from "../../components/cardDisplays/PartyDisplay";
 import MonsterPoolDisplay from "../../components/cardDisplays/MonsterPoolDisplay";
-import { useEnterDungeon } from "../../app/hooks/useDungeon";
 import { Card, CardSection, Button } from "../../shared/ui";
+import { useNavigation } from "../../app/contexts/NavigationContext/index.js";
 
-function HomeBaseScreen(){
+function HomeBaseScreen() {
+    const { navigateToGameScreen } = useNavigation();
 
-    const {
-        isLoading,
-        enterDungeon
-    } = useEnterDungeon();
-
-    const handleEnterDungeon = useCallback(async () => {
-        await enterDungeon();
-    }, [enterDungeon]);
+    const handleEnterDungeon = () => {
+        navigateToGameScreen('dungeon-entrance');
+    };
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <Card size="xl" background="light" >
+            <Card size="xl" background="light">
                 <CardSection type="header" size="xl" title="🏠 Home Base" alignment="center">
                     <p>Prepare your party and venture into the unknown dungeons.</p>
                 </CardSection>
                 <CardSection type="content" alignment="center" background="light">
-                    <Button 
-                        size="xl" 
-                        icon="🏰"
-                        onClick={handleEnterDungeon}
-                        disabled={isLoading}
-                    >
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        <Button 
+                            size="xl" 
+                            icon="🏰"
+                            onClick={handleEnterDungeon}
+                        >
                             Enter the dungeon
-                    </Button>
+                        </Button>
+                        
+                        <Button 
+                            size="xl" 
+                            icon="🏛️"
+                            variant="secondary"
+                            onClick={() => navigateToGameScreen('sanctuary')}
+                        >
+                            Monster Sanctuary
+                        </Button>
+                    </div>
                 </CardSection>
             </Card>
 
-            <PartyDisplay/>
+            <PartyDisplay />
             
             <MonsterPoolDisplay />
         </div>
-    )
+    );
 }
 
 export default HomeBaseScreen;
