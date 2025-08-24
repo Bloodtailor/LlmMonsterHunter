@@ -1,5 +1,6 @@
 // useDungeonEvents.js - Minimal SSE event processing for dungeon workflow
 // Starting simple: just generation ID capture and text streaming
+// Now also captures door choices from workflow completion
 
 import { useEffect, useState } from 'react';
 import { useEventContext } from '../../EventContext/index.js';
@@ -16,7 +17,8 @@ export function useDungeonEvents(stateHook) {
 
   const {
     setEntryText,
-    setIsDoorsReady
+    setIsDoorsReady,
+    setDoors
   } = setters;
 
   // Subscribe to SSE events
@@ -47,12 +49,14 @@ export function useDungeonEvents(stateHook) {
     }
   }, [llmGenerationUpdateEvent, entryTextGenerationId, setEntryText]);
 
-  // Process workflow completion - enable doors when ready
+  // Process workflow completion - enable doors when ready and capture door data
   useEffect(() => {
     if (workflowCompletedEvent?.result?.success) {
+      const doors = workflowCompletedEvent.result;
       setIsDoorsReady(true);
+      setDoors(doors);
     }
-  }, [workflowCompletedEvent, setIsDoorsReady]);
+  }, [workflowCompletedEvent, setIsDoorsReady, setDoors]);
 
   // This hook only provides side effects, no return value
 }
