@@ -11,8 +11,7 @@ import MonsterSanctuaryScreen from './MonsterSanctuaryScreen.js';
 
 // Import dungeon screens
 import { DungeonEntranceScreen } from '../../components/dungeon/index.js';
-// TODO: Import when created
-// import { DungeonDoorsScreen } from '../../components/dungeon/index.js';
+import DungeonDoorsScreen from '../../components/dungeon/screens/DungeonDoorsScreen.js';
 
 /**
  * GameScreenRouter component
@@ -34,9 +33,7 @@ function GameScreenRouter() {
       return <DungeonEntranceScreen />;
       
     case 'dungeon-doors':
-      // TODO: Uncomment when DungeonDoorsScreen is created  
-      // return <DungeonDoorsScreen />;
-      return <div>Dungeon Doors Screen - Coming Soon</div>;
+      return <DungeonDoorsScreen />;
       
     default:
       // Fallback to homebase if unknown screen

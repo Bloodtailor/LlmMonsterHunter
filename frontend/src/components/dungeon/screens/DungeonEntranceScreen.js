@@ -1,173 +1,54 @@
-// DungeonEntranceScreen.js - Dungeon entrance with streaming event text
-// CLEAN VERSION - Uses DungeonContext for simple, business-focused state
-// Just shows streaming text and enables continue when doors are ready
+// DungeonEntranceScreen.js - Pure layout component
+// PERFORMANCE OPTIMIZED - NO context subscriptions, never rerenders on context changes  
+// Completely layout-only, all context logic handled by child components
 
-import React, { useEffect, useRef } from 'react';
-import { Card, CardSection, Button, Alert } from '../../../shared/ui/index.js';
-import { useNavigation } from '../../../app/contexts/NavigationContext/index.js';
-import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
+import React from 'react';
+import { Card, CardSection } from '../../../shared/ui/index.js';
+
+// Import focused components
+import DungeonEntryText from '../components/DungeonEntryText.js';
+import ContinueToDoorsButton from '../components/ContinueToDoorsButton.js';
+import AutoEnterDungeonEffect from '../components/AutoEnterDungeonEffect.js';
+import DungeonResetButton from '../components/DungeonResetButton.js';
 
 /**
  * DungeonEntranceScreen component
- * Shows streaming dungeon entry text using clean DungeonContext
- * Simple business logic: show text, enable continue when ready
+ * Pure layout component with ZERO context subscriptions
+ * Will never rerender due to dungeon context changes
  */
 function DungeonEntranceScreen() {
-  const { navigateToGameScreen } = useNavigation();
-  
-  // Ref to track if we've already called enterDungeon
-  const hasEnteredRef = useRef(false);
-  
-  // Clean business-focused state from DungeonContext
-  const {
-    entryText,        // Streaming entry text
-    isDoorsReady,     // Enable continue button when true
-    isError,          // Show error UI when true
-    error,            // Error message to display
-    enterDungeon,     // Start the workflow
-    resetDungeon      // Clear state and go back
-  } = useDungeon();
 
-  // Auto-enter dungeon when component mounts (only once)
-  useEffect(() => {
-    if (!hasEnteredRef.current) {
-      console.log('DungeonEntranceScreen: Auto-entering dungeon');
-      hasEnteredRef.current = true;
-      enterDungeon();
-    }
-  }, [enterDungeon]);
-
-  // Handle continue to doors
-  const handleContinue = () => {
-    navigateToGameScreen('dungeon-doors');
-  };
-
-  // Handle back to home base
-  const handleBackToHome = () => {
-    hasEnteredRef.current = false; // Reset ref so we can enter again later
-    resetDungeon(); // Clear dungeon state
-    navigateToGameScreen('homebase');
-  };
-
-  // Render error state
-  if (isError) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <Card size="xl" background="light">
-          <CardSection type="header" size="xl" title="🏰 Dungeon Entrance" alignment="center" />
-          <CardSection type="content" alignment="center">
-            <Alert type="error" title="Dungeon Entry Failed">
-              {error || 'Something went wrong while entering the dungeon.'}
-            </Alert>
-            <div style={{ marginTop: '24px' }}>
-              <Button onClick={handleBackToHome} size="lg" variant="secondary">
-                ← Back to Home Base
-              </Button>
-            </div>
-          </CardSection>
-        </Card>
-      </div>
-    );
-  }
-
-  // Main screen with streaming text
+  // Pure layout - never changes, never rerenders
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Side effect component - handles auto-enter logic */}
+      <AutoEnterDungeonEffect />
+      
       {/* Header */}
       <Card size="xl" background="light">
         <CardSection type="header" size="xl" title="🏰 Dungeon Entrance" alignment="center">
-          <p>The dungeon portal shimmers before you...</p>
+          <p>As you approach the ancient dungeon, mystical energies swirl around you...</p>
         </CardSection>
       </Card>
 
-      {/* Streaming Entry Text */}
-      <Card size="xl" background="default">
-        <CardSection type="content" size="lg">
-          <div style={{
-            minHeight: '200px',
-            padding: '24px',
-            backgroundColor: 'var(--color-surface-secondary)',
-            borderRadius: 'var(--radius-md)',
-            border: '2px solid var(--color-border-primary)',
-            position: 'relative'
-          }}>
-            {/* Streaming text display */}
-            <div style={{
-              fontSize: 'var(--font-size-lg)',
-              lineHeight: 'var(--line-height-relaxed)',
-              color: 'var(--color-text-primary)',
-              whiteSpace: 'pre-wrap'
-            }}>
-              {entryText || 'Preparing your dungeon entry...'}
-            </div>
-
-            {/* Streaming indicator - show when we have text but doors aren't ready */}
-            {entryText && !isDoorsReady && (
-              <div style={{
-                position: 'absolute',
-                bottom: '12px',
-                right: '12px',
-                fontSize: 'var(--font-size-sm)',
-                color: 'var(--color-text-muted)',
-                fontStyle: 'italic'
-              }}>
-                Generating doors...
-              </div>
-            )}
-          </div>
+      {/* Entry Text - Focused component that handles streaming */}
+      <Card size="xl" background="dark">
+        <CardSection type="content" padding="none">
+          <DungeonEntryText />
         </CardSection>
       </Card>
 
-      {/* Action Buttons */}
+      {/* Continue Button - Focused component that handles state */}
       <Card size="xl" background="light">
-        <CardSection type="content" alignment="center">
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Button 
-              onClick={handleBackToHome}
-              size="lg" 
-              variant="secondary"
-            >
-              ← Back to Home Base
-            </Button>
-
-            <Button 
-              onClick={handleContinue}
-              size="lg" 
-              disabled={!isDoorsReady}
-              icon={isDoorsReady ? "🚪" : null}
-            >
-              {isDoorsReady ? "Continue to Doors" : "Preparing Doors..."}
-            </Button>
-          </div>
-
-          {/* Status indicator */}
-          <div style={{ 
-            marginTop: '16px', 
-            fontSize: 'var(--font-size-sm)', 
-            color: 'var(--color-text-muted)',
-            textAlign: 'center'
-          }}>
-            {!entryText && 'Starting dungeon entry...'}
-            {entryText && !isDoorsReady && 'Generating dungeon doors...'}
-            {isDoorsReady && 'Ready to explore!'}
+        <CardSection type="content" alignment="center" padding="sm">
+          <ContinueToDoorsButton />
+          
+          {/* Back button - Isolated component with context subscription */}
+          <div style={{ marginTop: '16px' }}>
+            <DungeonResetButton />
           </div>
         </CardSection>
       </Card>
-
-      {/* Simple Debug Info (only in development) */}
-      {process.env.NODE_ENV === 'development' && (
-        <Card size="md" background="default">
-          <CardSection type="header" title="Debug Info" />
-          <CardSection type="content">
-            <div style={{ fontSize: 'var(--font-size-sm)', fontFamily: 'monospace' }}>
-              <div>Entry Text Length: {entryText.length} chars</div>
-              <div>Doors Ready: {isDoorsReady ? 'Yes' : 'No'}</div>
-              <div>Is Error: {isError ? 'Yes' : 'No'}</div>
-              <div>Error: {error || 'None'}</div>
-            </div>
-          </CardSection>
-        </Card>
-      )}
     </div>
   );
 }
