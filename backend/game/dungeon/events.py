@@ -17,6 +17,11 @@ PATH_COUNT_RANGE = (2, 4)
 # Chance that one of the junction's paths is a dungeon exit
 EXIT_PATH_CHANCE = 0.33
 
+# How many paths the LLM generates per batch - more than we need, and we
+# use the LAST ones. Small local LLMs repeat themselves early; asking for
+# extra and taking the later entries plays to their strengths
+PATH_OVERGENERATE_COUNT = 6
+
 def assign_random_event() -> str:
     """Pick a random event for a path from the available events"""
     return random.choice(AVAILABLE_EVENTS)

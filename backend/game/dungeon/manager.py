@@ -64,15 +64,18 @@ def set_available_paths(paths: Dict[str, Any]) -> None:
     state['available_paths'] = paths
     save_dungeon_state(state)
 
+# Fields the player must never see - what waits behind each path
+_HIDDEN_PATH_FIELDS = ('event', 'destination')
+
 def get_public_paths() -> Dict[str, Any]:
     """
     Get available paths SAFE to send to the frontend
-    Strips the hidden 'event' field - the player must not know
-    what waits behind each path
+    Strips the hidden 'event' and 'destination' fields - the player
+    must not know what waits behind each path
     """
     paths = get_dungeon_state().get('available_paths', {})
     return {
-        path_id: {key: value for key, value in path.items() if key != 'event'}
+        path_id: {key: value for key, value in path.items() if key not in _HIDDEN_PATH_FIELDS}
         for path_id, path in paths.items()
     }
 

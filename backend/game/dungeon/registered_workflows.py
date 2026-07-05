@@ -87,7 +87,7 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         )
         from backend.game.dungeon import manager
         from backend.game.monster.generator import generate_contextual_monster, generate_ability, generate_card_art
-        from backend.game.state.manager import get_party_summary
+        from backend.game.state.manager import get_party_summary, get_party_details
         from backend.game.utils import build_and_generate
 
         # Step 0 - validate required keys
@@ -118,10 +118,11 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             })
 
         # === PATH BRANCH ===
-        # Step 1 - where does this path lead?
-        step = "generate_arrival_location"
+        # Step 1 - the destination was pre-generated with the path, so
+        # arrival is instant (fall back to generating for old saved paths)
+        step = "resolve_arrival_location"
         on_update(step, progress_data)
-        location = generate_arrival_location(previous_location, path, workflow_name)
+        location = path.get('destination') or generate_arrival_location(previous_location, path, workflow_name)
         manager.set_current_location(location)
 
         # Step 2 - announce the arrival location to the frontend
@@ -163,13 +164,17 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             on_update(step, progress_data)
             generate_card_art(monster)
 
-            # Step 9 - the riddle (answer NEVER leaves the backend)
+            # Step 9 - the monster speaks: greeting with its own reason for
+            # the challenge, then the riddle (answer NEVER leaves the backend)
             step = "generate_riddle"
             on_update(step, progress_data)
             riddle_data = build_and_generate('riddle', workflow_name, {
+                'location_name': location.get('name', 'Unknown Location'),
+                'location_description': location.get('description', ''),
                 'monster_name': monster.name,
                 'monster_species': monster.species,
-                'monster_description': monster.description
+                'monster_description': monster.description,
+                'party_details': get_party_details()
             })
 
             manager.set_active_encounter({
@@ -183,6 +188,7 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 "event": "monster_riddle",
                 "current_location": location,
                 "monster_id": monster.id,
+                "greeting": riddle_data['greeting'],
                 "riddle": riddle_data['riddle']
             })
 
@@ -210,7 +216,9 @@ def answer_riddle(context: dict, on_update: Callable[[str, Dict[str, Any]], None
 
     try:
         from backend.game.dungeon import manager
+        from backend.game.state.manager import get_party_details
         from backend.game.utils import build_and_generate
+        from backend.models.monster import Monster
 
         # Step 0 - validate required keys
         step = "validate_context"
@@ -221,13 +229,20 @@ def answer_riddle(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         if not encounter:
             raise Exception("No active encounter to answer")
 
-        # Step 1 - LLM judges the answer (leniently, semantically)
+        # The monster who asked - it responds to the party in character
+        monster = Monster.get_monster_by_id(encounter.get('monster_id'))
+
+        # Step 1 - LLM judges the answer strictly, then speaks as the monster
         step = "judge_answer"
         on_update(step, progress_data)
         judgement = build_and_generate('riddle_judgement', workflow_name, {
             'riddle': encounter['riddle'],
             'correct_answer': encounter['answer'],
-            'player_answer': context['player_answer']
+            'player_answer': context['player_answer'],
+            'monster_name': monster.name if monster else 'The monster',
+            'monster_species': monster.species if monster else 'Unknown',
+            'monster_description': monster.description if monster else '',
+            'party_details': get_party_details()
         })
 
         # Step 2 - the encounter is resolved either way
@@ -237,7 +252,7 @@ def answer_riddle(context: dict, on_update: Callable[[str, Dict[str, Any]], None
 
         return success_response({
             "correct": bool(judgement.get('correct')),
-            "verdict": judgement.get('verdict', '')
+            "response": judgement.get('response', '')
         })
 
     except Exception as e:

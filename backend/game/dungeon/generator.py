@@ -6,7 +6,12 @@ from typing import Dict, Any
 import random
 from backend.game.utils import build_and_generate, build_and_stream
 from backend.game.state.manager import get_party_summary
-from backend.game.dungeon.events import assign_random_event, roll_path_count, roll_include_exit
+from backend.game.dungeon.events import (
+    assign_random_event,
+    roll_path_count,
+    roll_include_exit,
+    PATH_OVERGENERATE_COUNT
+)
     
 def generate_entry_text(workflow_name) -> Dict[str, Any]:
     """Generate entry text - assumes valid party_summary"""
@@ -46,12 +51,13 @@ def generate_exit_text(party_summary: str, workflow_name) -> Dict[str, Any]:
 def generate_paths(location: Dict[str, Any], workflow_name: str) -> Dict[str, Dict[str, Any]]:
     """
     Generate the paths leading onward from a location
-    Rolls path count and exit inclusion, generates each path via LLM,
-    and assigns a hidden random event to every non-exit path
+    One batch LLM call over-generates paths (later entries are more
+    creative) and we keep the LAST ones. Every non-exit path gets a
+    hidden random event AND a pre-generated destination location, so
+    arrival displays instantly when the player chooses it
     """
 
     paths = {}
-    path_names = []
 
     count = roll_path_count()
     include_exit = roll_include_exit()
@@ -59,25 +65,39 @@ def generate_paths(location: Dict[str, Any], workflow_name: str) -> Dict[str, Di
     # An exit takes one of the rolled slots
     regular_count = count - 1 if include_exit else count
 
-    for i in range(regular_count):
-        variables = {
+    # One batch call for all paths - over-generated for variety
+    generated = []
+    try:
+        batch = build_and_generate('path_choices', workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
             'location_description': location.get('description', ''),
-            'existing_paths': ', '.join(path_names) if path_names else 'None yet'
-        }
+            'total_count': PATH_OVERGENERATE_COUNT
+        })
+        raw_paths = batch.get('paths') or []
+        generated = [
+            p for p in raw_paths
+            if isinstance(p, dict) and p.get('name') and p.get('description')
+        ]
+    except Exception:
+        generated = []
 
-        try:
-            path = build_and_generate('path_choice', workflow_name, variables)
-        except Exception:
-            path = _get_fallback_path()
+    # Small LLMs repeat themselves early - the later entries are the
+    # creative ones, so take from the END of the batch
+    chosen = generated[-regular_count:] if len(generated) >= regular_count else list(generated)
+    while len(chosen) < regular_count:
+        chosen.append(_get_fallback_path())
+
+    for i, path in enumerate(chosen):
+        # Pre-generate where this path leads (hidden from the player)
+        destination = generate_arrival_location(location, path, workflow_name)
 
         paths[f'path_{i + 1}'] = {
             'name': path.get('name', 'Mysterious Passage'),
             'description': path.get('description', ''),
             'type': 'path',
-            'event': assign_random_event()
+            'event': assign_random_event(),
+            'destination': destination
         }
-        path_names.append(path.get('name', 'Mysterious Passage'))
 
     if include_exit:
         variables = {
