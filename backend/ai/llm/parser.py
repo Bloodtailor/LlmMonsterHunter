@@ -60,9 +60,11 @@ def basic_parser(response_text: str, parser_config: Dict[str, Any]) -> ParseResu
             return ParseResult(success=False, error="Response is not a JSON object")
         
         # Check required fields if specified
+        # Only missing/null/empty-string count as missing - false and 0 are
+        # legitimate values (e.g. riddle_judgement's "correct": false)
         required_fields = parser_config.get('required_fields', [])
         for field in required_fields:
-            if field not in data or not data[field]:
+            if field not in data or data[field] is None or data[field] == '':
                 return ParseResult(success=False, error=f"Missing required field: {field}")
         
         return ParseResult(success=True, data=data)

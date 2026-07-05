@@ -6,6 +6,7 @@ import React from 'react';
 import { Card, CardSection, Button, Badge, LoadingSpinner } from '../../../shared/ui/index.js';
 import { useNavigation } from '../../../app/contexts/NavigationContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
+import DungeonErrorAlert from '../components/DungeonErrorAlert.js';
 
 /**
  * DungeonDoorsScreen component
@@ -68,6 +69,9 @@ function DungeonDoorsScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Errors surface here instead of hanging the screen */}
+      <DungeonErrorAlert />
+
       {/* Header - where the party currently stands */}
       <Card size="xl" background="light">
         <CardSection

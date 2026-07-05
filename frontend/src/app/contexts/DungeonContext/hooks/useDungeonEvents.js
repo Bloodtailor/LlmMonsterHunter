@@ -78,6 +78,17 @@ export function useDungeonEvents(stateHook) {
     );
   });
 
+  // Dungeon workflow failures - surface the error instead of hanging the UI
+  useEventSubscription('workflowFailed', (eventData) => {
+    const workflowType = eventData?.workflowItem?.workflowType;
+    const dungeonWorkflows = ['enter_dungeon', 'choose_path', 'answer_riddle', 'continue_exploring'];
+    if (dungeonWorkflows.includes(workflowType)) {
+      setIsJudgingAnswer(false);
+      const error = typeof eventData?.error === 'string' ? eventData.error : `${workflowType} failed`;
+      setErrorState(error);
+    }
+  });
+
   // Dungeon workflow completions - branch by workflow type
   useEventSubscription('workflowCompleted', (eventData) => {
     const workflowType = eventData?.workflowItem?.workflowType;

@@ -11,6 +11,7 @@ import EncounterTextDisplay from '../components/EncounterTextDisplay.js';
 import EncounterMonsterDisplay from '../components/EncounterMonsterDisplay.js';
 import RiddleBox from '../components/RiddleBox.js';
 import DungeonExitView from '../components/DungeonExitView.js';
+import DungeonErrorAlert from '../components/DungeonErrorAlert.js';
 
 /**
  * DungeonLocationScreen component
@@ -22,6 +23,9 @@ function DungeonLocationScreen() {
   // Pure layout - never changes, never rerenders
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Errors surface here instead of hanging the screen */}
+      <DungeonErrorAlert />
+
       {/* Exit branch - owns the screen when the party takes an exit path */}
       <DungeonExitView />
 
