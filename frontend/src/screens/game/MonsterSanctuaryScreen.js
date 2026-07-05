@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { usePagination } from "../../shared/ui/Pagination/usePagination.js";
 import { useMonsterCollection, useMonsterGeneration } from "../../app/hooks/useMonsters.js";
+import { useEventSubscription } from "../../api/events/useEventSubscription.js";
 import FullPagination, { PAGINATION_LAYOUTS } from "../../shared/ui/Pagination/PaginationPresets.js";
 import { 
   Select,
@@ -67,6 +68,18 @@ function MonsterSanctuaryScreen() {
   useEffect(() => {
     loadMonstersWithPagination();
   }, [loadMonstersWithPagination]);
+
+  // Auto-refresh when a new monster finishes generating - no manual refresh needed
+  useEventSubscription('workflowCompleted', (eventData) => {
+    if (eventData?.workflowItem?.workflowType === 'generate_detailed_monster') {
+      loadMonstersWithPagination();
+    }
+  });
+
+  // Auto-refresh when card art finishes so the new image appears on the card
+  useEventSubscription('imageGenerationCompleted', () => {
+    loadMonstersWithPagination();
+  });
 
   // Handle monster generation
   const handleGenerateMonster = useCallback(async () => {

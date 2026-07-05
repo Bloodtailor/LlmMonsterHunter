@@ -1,19 +1,26 @@
 // StreamingContextDiagnostic Component - Simple debugging display
-// Just shows every key in streamingState - no fancy categorization
-// This is for debugging, not a pretty UI!
+// Shows connection state plus the last payload of every broadcast event
+// Uses the '*' wildcard subscription - this is for debugging, not a pretty UI!
 
 import React, { useState } from 'react';
 import { Button, StatusBadge, Alert, Card, CardSection } from '../../shared/ui/index.js';
 import { useEventContext } from '../../app/contexts/EventContext/useEventContext.js';
+import { useEventSubscription } from '../../api/events/useEventSubscription.js';
 import './streamingContextDiagnostic.css';
 
 function StreamingContextDiagnostic() {
-  
-  // Get all streaming data from context
-  const streamingState = useEventContext();
-  
-  // Connection controls
-  const { connect, disconnect } = streamingState;
+
+  // Connection state and controls from context
+  const { isConnected, connectionError, connect, disconnect } = useEventContext();
+
+  // Capture the last payload of every broadcast event via wildcard subscription
+  const [lastEvents, setLastEvents] = useState({});
+  useEventSubscription('*', (eventData, eventName) => {
+    setLastEvents(prev => ({ ...prev, [`${eventName}Event`]: eventData }));
+  });
+
+  // Same display shape the old context provided: connection + one key per event
+  const streamingState = { isConnected, connectionError, ...lastEvents };
 
   // State for tracking expanded objects and display modes
   const [expandedItems, setExpandedItems] = useState(new Set());

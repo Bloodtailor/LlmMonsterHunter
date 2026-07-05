@@ -1,9 +1,10 @@
 // useDungeonEvents.js - Minimal SSE event processing for dungeon workflow
-// Starting simple: just generation ID capture and text streaming
-// Now also captures door choices from workflow completion
+// Subscribes to specific broadcast events instead of context state,
+// so dungeon state only updates for events it actually cares about
+// Handles: generation ID capture, entry text streaming, door readiness
 
-import { useEffect, useState } from 'react';
-import { useEventContext } from '../../EventContext/index.js';
+import { useRef } from 'react';
+import { useEventSubscription } from '../../../../api/events/useEventSubscription.js';
 
 /**
  * Hook for processing minimal dungeon-related SSE events
@@ -21,42 +22,35 @@ export function useDungeonEvents(stateHook) {
     setDoors
   } = setters;
 
-  // Subscribe to SSE events
-  const {
-    workflowUpdateEvent,
-    workflowCompletedEvent,
-    llmGenerationUpdateEvent
-  } = useEventContext();
+  // Ref (not state) - capturing the ID shouldn't cause a re-render
+  const entryTextGenerationIdRef = useRef(null);
 
-  const [entryTextGenerationId, setEntryTextGenerationId] = useState(null);
-
-  // Process workflow update events - capture generation ID
-  useEffect(() => {
-    if (workflowUpdateEvent?.step === 'emit_generation_id') {
-      // Extract entry text generation ID
-      const generationId = workflowUpdateEvent.data?.entry_text_generation_id;
+  // Capture the entry text generation ID from workflow updates
+  useEventSubscription('workflowUpdate', (eventData) => {
+    if (eventData?.step === 'emit_generation_id') {
+      const generationId = eventData.data?.entry_text_generation_id;
       if (generationId) {
-        setEntryTextGenerationId(generationId);
+        entryTextGenerationIdRef.current = generationId;
       }
     }
-  }, [workflowUpdateEvent]);
+  });
 
-  // Process LLM generation updates - streaming entry text
-  useEffect(() => {
-    // Only process LLM updates for our entry text generation
-    if (llmGenerationUpdateEvent?.generationId === entryTextGenerationId) {
-      setEntryText(llmGenerationUpdateEvent.partialText || '');
+  // Stream entry text - only for our captured generation ID
+  useEventSubscription('llmGenerationUpdate', (eventData) => {
+    const entryTextGenerationId = entryTextGenerationIdRef.current;
+    if (entryTextGenerationId && eventData?.generationId === entryTextGenerationId) {
+      setEntryText(eventData.partialText || '');
     }
-  }, [llmGenerationUpdateEvent, entryTextGenerationId, setEntryText]);
+  });
 
-  // Process workflow completion - enable doors when ready and capture door data
-  useEffect(() => {
-    if (workflowCompletedEvent?.result?.success) {
-      const doors = workflowCompletedEvent.result;
+  // Enable doors when the enter_dungeon workflow completes
+  useEventSubscription('workflowCompleted', (eventData) => {
+    const isDungeonWorkflow = eventData?.workflowItem?.workflowType === 'enter_dungeon';
+    if (isDungeonWorkflow && eventData?.result?.success) {
       setIsDoorsReady(true);
-      setDoors(doors);
+      setDoors(eventData.result);
     }
-  }, [workflowCompletedEvent, setIsDoorsReady, setDoors]);
+  });
 
   // This hook only provides side effects, no return value
 }

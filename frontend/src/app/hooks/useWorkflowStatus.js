@@ -1,94 +1,29 @@
-// useWorkflowStatus Hook - Simple workflow status tracking
-// Lightweight version focusing on essential workflow state
+// useWorkflowStatus Hook - Workflow status from the external workflow state store
+// Thin aggregator over useWorkflowStore slice hooks - all event processing happens
+// outside React (workflowEventHandlers -> broadcastEvent -> workflowStateStore)
+// Return shape unchanged so existing consumers (StreamingDisplay) keep working
 
-import { useState, useEffect, useMemo } from 'react';
-import { useEventContext } from '../contexts/EventContext';
+import {
+  useWorkflowStatusSlice,
+  useWorkflowQueueStatus
+} from '../../api/stores/useWorkflowStore.js';
 
 export function useWorkflowStatus() {
-  
-  // Get workflow events
+
   const {
-    workflowStartedEvent,
-    workflowCompletedEvent,
-    workflowFailedEvent,
-    workflowUpdateEvent,
-    workflowQueueUpdateEvent
-  } = useEventContext();
-  
-  // Simple state tracking
-  const [activeWorkflow, setActiveWorkflow] = useState(null);
-  const [workflowStatus, setWorkflowStatus] = useState('idle');
-  const [currentStep, setCurrentStep] = useState(null);
-  const [currentData, setCurrentData] = useState(null);
-  const [isWorkflowActive, setIsWorkflowActive] = useState(false);
+    activeWorkflow,
+    status,
+    currentStep,
+    currentData,
+    isWorkflowActive
+  } = useWorkflowStatusSlice();
 
-  // Handle workflow events
-  useEffect(() => {
-    if (workflowStartedEvent) {
-      setActiveWorkflow(workflowStartedEvent.workflowItem);
-      setWorkflowStatus('running');
-      setCurrentStep(null);
-      setCurrentData(null);
-      setIsWorkflowActive(true);
-    }
-  }, [workflowStartedEvent]);
-
-  useEffect(() => {
-    if (workflowUpdateEvent) {
-      setCurrentStep(workflowUpdateEvent.step);
-      setCurrentData(workflowUpdateEvent.data);
-      setWorkflowStatus('processing...');
-    }
-  }, [workflowUpdateEvent]);
-
-  useEffect(() => {
-    if (workflowCompletedEvent) {
-      setWorkflowStatus('completed');
-      setIsWorkflowActive(false);
-    }
-  }, [workflowCompletedEvent]);
-
-  useEffect(() => {
-    if (workflowFailedEvent) {
-      setWorkflowStatus('failed');
-      setIsWorkflowActive(false);
-    }
-  }, [workflowFailedEvent]);
-
-  const workflowQueueStatus = useMemo(() => {
-    if (!workflowQueueUpdateEvent || !workflowQueueUpdateEvent.allWorkflowItems) {
-      return {
-        total: 0,
-        pending: 0,
-        processing: 0,
-        completed: 0,
-        failed: 0,
-        items: []
-      };
-    }
-
-    const items = workflowQueueUpdateEvent.allWorkflowItems;
-    const statusCounts = items.reduce((acc, item) => {
-      const status = item.status || 'pending';
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {});
-
-    return {
-      total: items.length,
-      pending: statusCounts.pending || 0,
-      processing: statusCounts.processing || 0,
-      completed: statusCounts.completed || 0,
-      failed: statusCounts.failed || 0,
-      items,
-      trigger: workflowQueueUpdateEvent.trigger
-    };
-  }, [workflowQueueUpdateEvent]);
+  const workflowQueueStatus = useWorkflowQueueStatus();
 
   return {
     // Core state
     activeWorkflow,
-    workflowStatus,
+    workflowStatus: status,
     currentStep,
     currentData,
     isWorkflowActive,
