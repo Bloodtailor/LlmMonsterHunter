@@ -13,25 +13,36 @@ def enter_dungeon():
     result = dungeon_service.enter_dungeon()
     return jsonify(result), 200 if result['success'] else 400
 
-@dungeon_bp.route('/choose-door', methods=['POST'])
-def choose_door():
-    """Choose door - thin HTTP wrapper"""
+@dungeon_bp.route('/choose-path', methods=['POST'])
+def choose_path():
+    """Choose a path - thin HTTP wrapper"""
     data = request.get_json() or {}
-    
-    result = dungeon_service.choose_door(
-        door_choice=data.get('door_choice')
+
+    result = dungeon_service.choose_path(
+        path_id=data.get('path_id')
     )
-    
+
+    return jsonify(result), 200 if result['success'] else 400
+
+@dungeon_bp.route('/answer-riddle', methods=['POST'])
+def answer_riddle():
+    """Answer the active riddle - thin HTTP wrapper"""
+    data = request.get_json() or {}
+
+    result = dungeon_service.answer_riddle(
+        player_answer=data.get('answer')
+    )
+
+    return jsonify(result), 200 if result['success'] else 400
+
+@dungeon_bp.route('/continue', methods=['POST'])
+def continue_exploring():
+    """Generate fresh paths from the current location - thin HTTP wrapper"""
+    result = dungeon_service.continue_exploring()
     return jsonify(result), 200 if result['success'] else 400
 
 @dungeon_bp.route('/state', methods=['GET'])
 def get_dungeon_state():
-    """Get dungeon state - thin HTTP wrapper"""
+    """Get public dungeon state - thin HTTP wrapper"""
     result = dungeon_service.get_dungeon_state()
-    return jsonify(result), 200 if result['success'] else 400
-
-@dungeon_bp.route('/status', methods=['GET'])
-def get_dungeon_status():
-    """Get dungeon status - thin HTTP wrapper"""
-    result = dungeon_service.get_dungeon_status()
     return jsonify(result), 200 if result['success'] else 400
