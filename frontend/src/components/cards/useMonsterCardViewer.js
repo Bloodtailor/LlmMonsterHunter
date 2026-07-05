@@ -2,14 +2,14 @@
 // Encapsulates all viewer state management and provides pre-configured components
 // Reduces boilerplate from 4 things to just 2!
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import MonsterCard from './MonsterCard.js';
 import MonsterCardViewer from './MonsterCardViewer.js';
 
 /**
  * Custom hook for MonsterCard with built-in viewer functionality
  * Manages viewer state and provides pre-configured components
- * 
+ *
  * @returns {object} Hook result with MonsterCard component and viewer
  */
 export function useMonsterCardViewer() {
@@ -20,12 +20,16 @@ export function useMonsterCardViewer() {
   const closeViewer = () => setViewingMonster(null);
 
   // Pre-configured MonsterCard component that handles expand automatically
-  const MonsterCardWithViewer = (props) => (
-    <MonsterCard
-      {...props}
-      onExpandCard={setViewingMonster} // Automatically wired up!
-    />
-  );
+  // Memoized so it keeps the same component identity across re-renders -
+  // otherwise React remounts every card (losing flip state) each render
+  const MonsterCardWithViewer = useMemo(() => {
+    return (props) => (
+      <MonsterCard
+        {...props}
+        onExpandCard={setViewingMonster} // Automatically wired up!
+      />
+    );
+  }, []);
 
   // Pre-rendered viewer (conditionally shown)
   const viewer = viewingMonster ? (

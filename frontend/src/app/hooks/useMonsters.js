@@ -3,8 +3,9 @@
 // Super clean usage - just pass the function, defaults are automatic!
 // App hooks focus purely on business logic, services handle everything else
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
+import { useEventSubscription } from '../../api/events/useEventSubscription.js';
 import * as monstersApi from '../../api/services/monster.js'
 
 // ===== MONSTER COLLECTION HOOKS =====
@@ -36,6 +37,52 @@ export function useMonsterCollection() {
     // Actions
     loadMonsters: api.execute,
     reset: api.reset
+  };
+}
+
+/**
+ * Hook for a monster collection that stays live via monster domain events
+ * Patches single monsters in place from event payloads (no refetch),
+ * so cards update without unmounting or losing their flip state
+ */
+export function useLiveMonsterCollection() {
+  const collection = useMonsterCollection();
+
+  // Local copy of the collection that we can patch per-monster
+  const [monsters, setMonsters] = useState(collection.monsters);
+
+  // Sync from API whenever a real load completes (initial load, pagination, filters)
+  useEffect(() => {
+    setMonsters(collection.monsters);
+  }, [collection.monsters]);
+
+  // Helper - update one monster in place, leave the rest untouched
+  const patchMonster = (monsterId, patch) => {
+    setMonsters(prev => prev.map(monster =>
+      monster.id === monsterId ? { ...monster, ...patch(monster) } : monster
+    ));
+  };
+
+  // Card art finished - attach it to just that monster's card
+  useEventSubscription('monsterArtReady', ({ monsterId, imagePath }) => {
+    if (!monsterId || !imagePath) return;
+    patchMonster(monsterId, () => ({
+      cardArt: { exists: true, relativePath: imagePath }
+    }));
+  });
+
+  // New ability landed - append it to just that monster's card
+  useEventSubscription('monsterAbilityAdded', ({ monsterId, ability }) => {
+    if (!monsterId || !ability) return;
+    patchMonster(monsterId, (monster) => ({
+      abilities: [...(monster.abilities || []), ability],
+      abilityCount: (monster.abilityCount || 0) + 1
+    }));
+  });
+
+  return {
+    ...collection,
+    monsters
   };
 }
 

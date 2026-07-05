@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { usePagination } from "../../shared/ui/Pagination/usePagination.js";
-import { useMonsterCollection, useMonsterGeneration } from "../../app/hooks/useMonsters.js";
+import { useLiveMonsterCollection, useMonsterGeneration } from "../../app/hooks/useMonsters.js";
 import { useEventSubscription } from "../../api/events/useEventSubscription.js";
 import FullPagination, { PAGINATION_LAYOUTS } from "../../shared/ui/Pagination/PaginationPresets.js";
 import { 
@@ -32,7 +32,8 @@ function MonsterSanctuaryScreen() {
 
   const { MonsterCard, viewer } = useMonsterCardViewer();
 
-  // Domain hook - provides clean monster data
+  // Domain hook - clean monster data that stays live via monster domain events
+  // (art and abilities patch individual cards in place, no refetch)
   const {
     monsters,
     total,
@@ -40,7 +41,7 @@ function MonsterSanctuaryScreen() {
     isError,
     error,
     loadMonsters
-  } = useMonsterCollection();
+  } = useLiveMonsterCollection();
 
   // Monster generation hook
   const {
@@ -69,18 +70,9 @@ function MonsterSanctuaryScreen() {
     loadMonstersWithPagination();
   }, [loadMonstersWithPagination]);
 
-  // Staged auto-refresh from monster domain events - no manual refresh needed:
-  // card appears the moment the monster exists (before art), then updates
-  // as each ability lands, then again when card art is ready
+  // A brand-new monster changes the list itself, so refetch for that one;
+  // ability/art updates are patched in place by useLiveMonsterCollection
   useEventSubscription('monsterCreated', () => {
-    loadMonstersWithPagination();
-  });
-
-  useEventSubscription('monsterAbilityAdded', () => {
-    loadMonstersWithPagination();
-  });
-
-  useEventSubscription('monsterArtReady', () => {
     loadMonstersWithPagination();
   });
 
@@ -223,7 +215,9 @@ function MonsterSanctuaryScreen() {
         <Alert type="error" title="Loading Error" style={{ marginBottom: '20px' }}>
           {error?.message || 'Failed to load monsters'}
         </Alert>
-      ) : isLoading ? (
+      ) : isLoading && monsters.length === 0 ? (
+        // Spinner only when there is nothing to show yet - background refetches
+        // keep the grid mounted so cards keep their flip state
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <LoadingSpinner size="section" type="cardFlip"/>
         </div>
