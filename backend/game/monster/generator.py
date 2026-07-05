@@ -31,6 +31,29 @@ def generate_base_monster():
 
     return monster
 
+def generate_contextual_monster(location: dict):
+    """Generate a monster that belongs to a specific dungeon location"""
+
+    variables = {
+        'location_name': location.get('name', 'Unknown Location'),
+        'location_description': location.get('description', '')
+    }
+
+    # Generate monster via LLM with the location woven into the prompt
+    parsed_data = build_and_generate("contextual_monster", "monster_generation", variables)
+
+    # Create and save monster
+    monster = Monster.create_from_llm_data(parsed_data)
+    monster.save()
+
+    # Reload monster with abilities and card art
+    monster = Monster.get_monster_by_id(monster.id)
+
+    # A monster now exists in the game world
+    emit_monster_created(monster.to_dict())
+
+    return monster
+
 def generate_card_art(monster: Monster):
     """Generate and connect card art"""
     

@@ -6,6 +6,7 @@ from typing import Dict, Any
 import random
 from backend.game.utils import build_and_generate, build_and_stream
 from backend.game.state.manager import get_party_summary
+from backend.game.dungeon.events import assign_random_event, roll_path_count, roll_include_exit
     
 def generate_entry_text(workflow_name) -> Dict[str, Any]:
     """Generate entry text - assumes valid party_summary"""
@@ -42,6 +43,94 @@ def generate_exit_text(party_summary: str, workflow_name) -> Dict[str, Any]:
     
     return dungeon_exit_text
 
+def generate_paths(location: Dict[str, Any], workflow_name: str) -> Dict[str, Dict[str, Any]]:
+    """
+    Generate the paths leading onward from a location
+    Rolls path count and exit inclusion, generates each path via LLM,
+    and assigns a hidden random event to every non-exit path
+    """
+
+    paths = {}
+    path_names = []
+
+    count = roll_path_count()
+    include_exit = roll_include_exit()
+
+    # An exit takes one of the rolled slots
+    regular_count = count - 1 if include_exit else count
+
+    for i in range(regular_count):
+        variables = {
+            'location_name': location.get('name', 'Unknown Location'),
+            'location_description': location.get('description', ''),
+            'existing_paths': ', '.join(path_names) if path_names else 'None yet'
+        }
+
+        try:
+            path = build_and_generate('path_choice', workflow_name, variables)
+        except Exception:
+            path = _get_fallback_path()
+
+        paths[f'path_{i + 1}'] = {
+            'name': path.get('name', 'Mysterious Passage'),
+            'description': path.get('description', ''),
+            'type': 'path',
+            'event': assign_random_event()
+        }
+        path_names.append(path.get('name', 'Mysterious Passage'))
+
+    if include_exit:
+        variables = {
+            'location_name': location.get('name', 'Unknown Location'),
+            'location_description': location.get('description', '')
+        }
+
+        try:
+            exit_path = build_and_generate('exit_path', workflow_name, variables)
+        except Exception:
+            exit_path = {
+                'name': 'Stone Stairway to the Surface',
+                'description': 'A familiar stone stairway leading back to the surface and the safety of the outside world.'
+            }
+
+        paths[f'path_{regular_count + 1}'] = {
+            'name': exit_path.get('name', 'Way Out'),
+            'description': exit_path.get('description', ''),
+            'type': 'exit',
+            'event': None
+        }
+
+    return paths
+
+def generate_arrival_location(previous_location: Dict[str, Any], path: Dict[str, Any], workflow_name: str) -> Dict[str, Any]:
+    """Generate the location a chosen path leads to, based on where the party came from"""
+
+    variables = {
+        'previous_location_name': previous_location.get('name', 'Unknown Location'),
+        'previous_location_description': previous_location.get('description', ''),
+        'path_name': path.get('name', 'Mysterious Passage'),
+        'path_description': path.get('description', '')
+    }
+
+    try:
+        location = build_and_generate('arrival_location', workflow_name, variables)
+    except Exception:
+        location = _get_fallback_location()
+
+    return location
+
+def generate_encounter_vanity_text(location: Dict[str, Any], workflow_name: str) -> int:
+    """Queue streamed vanity text for arriving where a monster waits - returns generation_id"""
+
+    variables = {
+        'party_summary': get_party_summary(),
+        'location_name': location.get('name', 'Unknown Location'),
+        'location_description': location.get('description', '')
+    }
+    encounter_text_generation_id = build_and_stream('encounter_vanity', workflow_name, variables)
+
+    return encounter_text_generation_id
+
 def build_door_choices(loc1: Dict[str, Any], loc2: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
     door_choices = {
         "door_1": {
@@ -63,6 +152,30 @@ def build_door_choices(loc1: Dict[str, Any], loc2: Dict[str, Any]) -> Dict[str, 
 
     return door_choices
 
+
+def _get_fallback_path() -> Dict[str, str]:
+    """Get fallback path - always works"""
+
+    fallback_paths = [
+        {
+            "name": "Crumbling Archway",
+            "description": "A stone archway whose carvings have long worn away, opening into darkness beyond."
+        },
+        {
+            "name": "Narrow Crawlspace",
+            "description": "A tight gap between fallen slabs, just wide enough for one adventurer at a time."
+        },
+        {
+            "name": "Iron-Banded Door",
+            "description": "A heavy wooden door reinforced with rusted iron bands, slightly ajar."
+        },
+        {
+            "name": "Rope Ladder",
+            "description": "A frayed rope ladder descending into an unlit shaft below."
+        }
+    ]
+
+    return random.choice(fallback_paths)
 
 def _get_fallback_location() -> Dict[str, str]:
     """Get fallback location - always works"""
