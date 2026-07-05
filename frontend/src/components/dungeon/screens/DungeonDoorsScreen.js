@@ -1,88 +1,66 @@
-// DungeonDoorsScreen.js - Door selection screen with clickable door cards
-// Shows doors from workflow completion and handles door selection
-// Location doors and exit doors for now both return to home base
+// DungeonDoorsScreen.js - Path selection screen with clickable path cards
+// Shows the paths onward from the current location. Each path hides a
+// pre-assigned event the player cannot see - choose wisely.
 
 import React from 'react';
-import { Card, CardSection, Button, Badge } from '../../../shared/ui/index.js';
+import { Card, CardSection, Button, Badge, LoadingSpinner } from '../../../shared/ui/index.js';
 import { useNavigation } from '../../../app/contexts/NavigationContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
 
 /**
  * DungeonDoorsScreen component
- * Displays clickable door cards for dungeon navigation
- * Handles location doors and exit doors
+ * Displays clickable path cards for dungeon navigation
+ * Exit paths are visibly marked; everything else is a mystery
  */
 function DungeonDoorsScreen() {
   const { navigateToGameScreen } = useNavigation();
-  const { doors, resetDungeon } = useDungeon();
+  const { currentLocation, paths, arePathsReady, choosePath, resetDungeon } = useDungeon();
 
-  // Handle location door selection
-  const handleLocationDoor = (doorData) => {
-    console.log('Selected location door:', doorData.name);
-    // TODO: Navigate to location-specific screen
-    // For now, return to home base
-    resetDungeon();
-    navigateToGameScreen('homebase');
+  // Take a path: queue the workflow and move to the location screen
+  const handlePathClick = (path) => {
+    choosePath(path.id);
+    navigateToGameScreen('dungeon-location');
   };
 
-  // Handle exit door selection  
-  const handleExitDoor = (doorData) => {
-    console.log('Selected exit door:', doorData.name);
-    // TODO: Handle dungeon exit logic
-    // For now, return to home base
-    resetDungeon();
-    navigateToGameScreen('homebase');
-  };
+  // Process paths object into array
+  const processPaths = (pathsObject) => {
+    if (!pathsObject) return [];
 
-  // Process doors object into array
-  const processDoors = (doorsObject) => {
-    if (!doorsObject) return [];
-    
-    const doorEntries = [];
-    Object.entries(doorsObject).forEach(([key, value]) => {
-      // Skip the success property
-      if (key !== 'success' && typeof value === 'object' && value.type) {
-        doorEntries.push({
+    const pathEntries = [];
+    Object.entries(pathsObject).forEach(([key, value]) => {
+      if (typeof value === 'object' && value.type) {
+        pathEntries.push({
           id: key,
           ...value
         });
       }
     });
-    
-    return doorEntries;
+
+    return pathEntries;
   };
 
-  const doorArray = processDoors(doors);
+  const pathArray = processPaths(paths);
 
-  // Handle door click based on type
-  const handleDoorClick = (door) => {
-    if (door.type === 'location') {
-      handleLocationDoor(door);
-    } else if (door.type === 'exit') {
-      handleExitDoor(door);
-    }
-  };
-
-  // Get icon and badge variant for door type
-  const getDoorTypeInfo = (type) => {
+  // Get icon and badge variant for path type
+  const getPathTypeInfo = (type) => {
     switch (type) {
-      case 'location':
-        return { icon: '🗺️', variant: 'primary', label: 'Location' };
+      case 'path':
+        return { icon: '🧭', variant: 'primary', label: 'Path' };
       case 'exit':
-        return { icon: '🚪', variant: 'secondary', label: 'Exit' };
+        return { icon: '🚪', variant: 'secondary', label: 'Way Out' };
       default:
         return { icon: '❓', variant: 'tertiary', label: 'Unknown' };
     }
   };
 
   // Card click styles
-  const doorCardStyles = {
+  const pathCardStyles = {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     border: '2px solid transparent'
   };
 
-  const doorCardHoverStyles = {
+  const pathCardHoverStyles = {
     transform: 'translateY(-2px)',
     boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
     borderColor: 'var(--color-primary)'
@@ -90,41 +68,58 @@ function DungeonDoorsScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
+      {/* Header - where the party currently stands */}
       <Card size="xl" background="light">
-        <CardSection type="header" size="xl" title="🚪 Choose Your Path" alignment="center">
-          <p>Three paths lie before you. Choose wisely, adventurer.</p>
+        <CardSection
+          type="header"
+          size="xl"
+          title={`📍 ${currentLocation?.name || 'Somewhere in the Dungeon'}`}
+          alignment="center"
+        >
+          <p>{currentLocation?.description || ''}</p>
+          <p style={{ marginTop: '8px', fontStyle: 'italic', color: 'var(--color-text-muted)' }}>
+            The paths ahead reveal nothing of what waits beyond them.
+          </p>
         </CardSection>
       </Card>
 
-      {/* Door Cards */}
-      {doorArray.length > 0 ? (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: '24px' 
+      {/* Path Cards */}
+      {!arePathsReady ? (
+        <Card size="xl" background="light">
+          <CardSection type="content" alignment="center">
+            <LoadingSpinner size="section" type="spin" />
+            <p style={{ marginTop: '16px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+              Scouting the paths ahead...
+            </p>
+          </CardSection>
+        </Card>
+      ) : pathArray.length > 0 ? (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '24px'
         }}>
-          {doorArray.map((door) => {
-            const typeInfo = getDoorTypeInfo(door.type);
-            
+          {pathArray.map((path) => {
+            const typeInfo = getPathTypeInfo(path.type);
+
             return (
-              <Card 
-                key={door.id}
-                size="lg" 
+              <Card
+                key={path.id}
+                size="lg"
                 background="dark"
-                style={doorCardStyles}
-                onClick={() => handleDoorClick(door)}
+                style={pathCardStyles}
+                onClick={() => handlePathClick(path)}
                 onMouseEnter={(e) => {
-                  Object.assign(e.currentTarget.style, doorCardHoverStyles);
+                  Object.assign(e.currentTarget.style, pathCardHoverStyles);
                 }}
                 onMouseLeave={(e) => {
-                  Object.assign(e.currentTarget.style, doorCardStyles);
+                  Object.assign(e.currentTarget.style, pathCardStyles);
                 }}
               >
                 <CardSection type="header" size="lg" alignment="center">
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: '12px',
                     justifyContent: 'center',
                     flexWrap: 'wrap'
@@ -134,15 +129,15 @@ function DungeonDoorsScreen() {
                       {typeInfo.label}
                     </Badge>
                   </div>
-                  <h3 style={{ 
-                    margin: '8px 0 0 0', 
+                  <h3 style={{
+                    margin: '8px 0 0 0',
                     fontSize: 'var(--font-size-lg)',
                     color: 'var(--color-text-primary)'
                   }}>
-                    {door.name}
+                    {path.name}
                   </h3>
                 </CardSection>
-                
+
                 <CardSection type="content" alignment="center">
                   <p style={{
                     color: 'var(--color-text-secondary)',
@@ -150,7 +145,7 @@ function DungeonDoorsScreen() {
                     fontSize: 'var(--font-size-md)',
                     textAlign: 'center'
                   }}>
-                    {door.description}
+                    {path.description}
                   </p>
                 </CardSection>
               </Card>
@@ -161,7 +156,7 @@ function DungeonDoorsScreen() {
         <Card size="xl" background="light">
           <CardSection type="content" alignment="center">
             <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-              No doors available. Something may have gone wrong with the dungeon generation.
+              No paths available. Something may have gone wrong with the dungeon generation.
             </p>
           </CardSection>
         </Card>
@@ -170,26 +165,16 @@ function DungeonDoorsScreen() {
       {/* Navigation */}
       <Card size="xl" background="light">
         <CardSection type="content" alignment="center">
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Button 
-              size="lg" 
-              variant="tertiary"
-              onClick={() => navigateToGameScreen('dungeon-entrance')}
-            >
-              ← Back to Entrance
-            </Button>
-            
-            <Button 
-              size="lg" 
-              variant="secondary"
-              onClick={() => {
-                resetDungeon();
-                navigateToGameScreen('homebase');
-              }}
-            >
-              🏠 Abandon Quest
-            </Button>
-          </div>
+          <Button
+            size="lg"
+            variant="secondary"
+            onClick={() => {
+              resetDungeon();
+              navigateToGameScreen('homebase');
+            }}
+          >
+            🏠 Abandon Quest
+          </Button>
         </CardSection>
       </Card>
     </div>
