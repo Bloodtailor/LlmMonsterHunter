@@ -8,11 +8,13 @@ import { EventContext } from './EventContext.js';
 import { useSSE } from '../../../api/core/useSSE.js';
 import { aiEventHandlers } from '../../../api/events/aiEventHandlers.js';
 import { workflowEventHandlers } from '../../../api/events/workflowEventHandlers.js';
+import { monsterEventHandlers } from '../../../api/events/monsterEventHandlers.js';
 
 // Module-level constant - stable reference, combined once
 const sseEventHandlers = {
   ...aiEventHandlers,
-  ...workflowEventHandlers
+  ...workflowEventHandlers,
+  ...monsterEventHandlers
 };
 
 function EventProvider({ children }) {
