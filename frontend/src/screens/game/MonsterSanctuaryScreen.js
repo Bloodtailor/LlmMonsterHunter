@@ -69,15 +69,18 @@ function MonsterSanctuaryScreen() {
     loadMonstersWithPagination();
   }, [loadMonstersWithPagination]);
 
-  // Auto-refresh when a new monster finishes generating - no manual refresh needed
-  useEventSubscription('workflowCompleted', (eventData) => {
-    if (eventData?.workflowItem?.workflowType === 'generate_detailed_monster') {
-      loadMonstersWithPagination();
-    }
+  // Staged auto-refresh from monster domain events - no manual refresh needed:
+  // card appears the moment the monster exists (before art), then updates
+  // as each ability lands, then again when card art is ready
+  useEventSubscription('monsterCreated', () => {
+    loadMonstersWithPagination();
   });
 
-  // Auto-refresh when card art finishes so the new image appears on the card
-  useEventSubscription('imageGenerationCompleted', () => {
+  useEventSubscription('monsterAbilityAdded', () => {
+    loadMonstersWithPagination();
+  });
+
+  useEventSubscription('monsterArtReady', () => {
     loadMonstersWithPagination();
   });
 

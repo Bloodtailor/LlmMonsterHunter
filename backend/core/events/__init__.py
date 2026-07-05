@@ -42,9 +42,17 @@ from .workflow_events import (
   emit_workflow_queue_update
 )
 
+# Import monster domain event emission functions
+from .monster_events import (
+  emit_monster_created,
+  emit_monster_ability_added,
+  emit_monster_art_ready
+)
+
 # Import ai_events module to ensure events get registered
 from . import ai_events
 from . import workflow_events
+from . import monster_events
 
 __all__ = [
     # Event Bus
@@ -78,5 +86,10 @@ __all__ = [
     'emit_workflow_update',
     'emit_workflow_completed',
     'emit_workflow_failed',
-    'emit_workflow_queue_update'
+    'emit_workflow_queue_update',
+
+    # Monster Domain Event Emission Functions
+    'emit_monster_created',
+    'emit_monster_ability_added',
+    'emit_monster_art_ready'
 ]

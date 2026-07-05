@@ -1,14 +1,14 @@
 // useDungeonEvents.js - Minimal SSE event processing for dungeon workflow
 // Subscribes to specific broadcast events instead of context state,
 // so dungeon state only updates for events it actually cares about
-// Handles: generation ID capture, entry text streaming, door readiness
+// Handles: entry text streaming (via useStreamedGeneration) and door readiness
 
-import { useRef } from 'react';
 import { useEventSubscription } from '../../../../api/events/useEventSubscription.js';
+import { useStreamedGeneration } from '../../../../api/events/useStreamedGeneration.js';
 
 /**
  * Hook for processing minimal dungeon-related SSE events
- * Just handles generation ID and text streaming for now
+ * Just handles entry text streaming and doors for now
  * @param {object} stateHook - State hook from useDungeonState
  */
 export function useDungeonEvents(stateHook) {
@@ -22,25 +22,9 @@ export function useDungeonEvents(stateHook) {
     setDoors
   } = setters;
 
-  // Ref (not state) - capturing the ID shouldn't cause a re-render
-  const entryTextGenerationIdRef = useRef(null);
-
-  // Capture the entry text generation ID from workflow updates
-  useEventSubscription('workflowUpdate', (eventData) => {
-    if (eventData?.step === 'emit_generation_id') {
-      const generationId = eventData.data?.entry_text_generation_id;
-      if (generationId) {
-        entryTextGenerationIdRef.current = generationId;
-      }
-    }
-  });
-
-  // Stream entry text - only for our captured generation ID
-  useEventSubscription('llmGenerationUpdate', (eventData) => {
-    const entryTextGenerationId = entryTextGenerationIdRef.current;
-    if (entryTextGenerationId && eventData?.generationId === entryTextGenerationId) {
-      setEntryText(eventData.partialText || '');
-    }
+  // Stream the entry text announced by the enter_dungeon workflow
+  useStreamedGeneration('entry_text_generation_id', {
+    onText: (partialText) => setEntryText(partialText)
   });
 
   // Enable doors when the enter_dungeon workflow completes

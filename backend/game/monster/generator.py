@@ -6,6 +6,11 @@ from backend.models.monster import Monster
 from backend.models.ability import Ability
 from backend.game.utils import build_and_generate
 from backend.ai import gateway
+from backend.core.events import (
+    emit_monster_created,
+    emit_monster_ability_added,
+    emit_monster_art_ready
+)
 
 def generate_base_monster():
     """Generate monster - assumes valid inputs"""
@@ -20,7 +25,10 @@ def generate_base_monster():
 
     # Reload monster with abilities and card art
     monster = Monster.get_monster_by_id(monster.id)
-    
+
+    # A monster now exists in the game world
+    emit_monster_created(monster.to_dict())
+
     return monster
 
 def generate_card_art(monster: Monster):
@@ -35,9 +43,12 @@ def generate_card_art(monster: Monster):
     )
 
     image_path = image_result.get('image_path')
-    
+
     monster.set_card_art(image_path)
-    
+
+    # The monster's card art is now attached
+    emit_monster_art_ready(monster.id, image_path)
+
     return image_path
 
 def generate_ability(monster: Monster):
@@ -47,6 +58,9 @@ def generate_ability(monster: Monster):
 
     ability = Ability.create_from_llm_data(monster.id, parsed_data)
     ability.save()
+
+    # The monster has a new ability
+    emit_monster_ability_added(monster.id, ability.to_dict())
 
     return ability
 
