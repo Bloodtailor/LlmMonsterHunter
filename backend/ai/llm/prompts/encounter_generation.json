@@ -24,28 +24,28 @@
   },
 
   "riddle": {
-    "description": "Generate a riddle (with its answer) that a monster asks the party",
-    "max_tokens": 400,
+    "description": "The monster greets the arriving party in character and challenges them with a riddle",
+    "max_tokens": 700,
     "temperature": 0.9,
     "parser": {
       "type": "json",
       "parser_name": "basic_parser",
-      "expected_fields": ["riddle", "answer"],
-      "required_fields": ["riddle", "answer"]
+      "expected_fields": ["greeting", "riddle", "answer"],
+      "required_fields": ["greeting", "riddle", "answer"]
     },
-    "prompt_template": "A monster is challenging an adventuring party with a riddle.\n\nThe monster:\nName: {monster_name}\nSpecies: {monster_species}\nDescription: {monster_description}\n\nGenerate a riddle this monster asks, spoken in the monster's voice and personality. The riddle should be clever but solvable - a classic-style riddle with a single clear answer (an object, creature, or concept). The answer should be a single word or short phrase.\n\nRespond with valid JSON in this exact format:\n{{\"riddle\": \"The riddle text, spoken in the monster's voice.\", \"answer\": \"the answer\"}}\n\nJSON:"
+    "prompt_template": "A monster dwells in this location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nThe monster:\nName: {monster_name}\nSpecies: {monster_species}\nDescription: {monster_description}\n\nAn adventuring party has just walked into the monster's location. The party:\n{party_details}\n\nWrite the monster's spoken words to the party, in the monster's own voice and personality:\n\n1. greeting: The monster reacts to the party's arrival and gives ITS OWN reason for challenging them with a riddle. The reason should fit this monster and this place - maybe it guards this location and only lets the clever pass, maybe it is lonely and trades passage for entertainment, maybe it tests all who enter, maybe it is hungry but honorable. The greeting may address specific party members it finds interesting. End the greeting by announcing the challenge.\n\n2. riddle: The riddle itself, spoken by the monster. Clever but solvable - a classic-style riddle with a single clear answer (an object, creature, or concept). The answer should be a single word or short phrase.\n\nRespond with valid JSON in this exact format:\n{{\"greeting\": \"The monster's spoken greeting and justification, 2-4 sentences.\", \"riddle\": \"The riddle itself, spoken in the monster's voice.\", \"answer\": \"the answer\"}}\n\nJSON:"
   },
 
   "riddle_judgement": {
-    "description": "Judge whether the player's answer to a riddle is correct",
-    "max_tokens": 400,
-    "temperature": 0.3,
+    "description": "Judge the player's riddle answer strictly, then respond as the monster speaking to the party",
+    "max_tokens": 600,
+    "temperature": 0.4,
     "parser": {
       "type": "json",
       "parser_name": "basic_parser",
-      "expected_fields": ["correct", "verdict"],
-      "required_fields": ["correct", "verdict"]
+      "expected_fields": ["correct", "response"],
+      "required_fields": ["correct", "response"]
     },
-    "prompt_template": "You are a STRICT judge of a riddle contest. A monster asked this riddle:\n\nRiddle: {riddle}\n\nThe intended answer is: {correct_answer}\n\nThe player answered: {player_answer}\n\nThe ONLY question that matters: does the player's answer refer to the SAME THING as the intended answer \"{correct_answer}\"?\n\n- SAME thing (any spelling, capitalization, articles like a/an/the, plural, or a true synonym): correct = true\n- DIFFERENT thing: correct = false. It does NOT matter if the riddle could loosely or creatively apply to the player's answer - if it is not the same thing as \"{correct_answer}\", it is wrong. Do not be generous. Do not rationalize a different answer into being correct.\n\nRespond with valid JSON in this exact format:\n{{\"correct\": false, \"verdict\": \"One short in-character sentence from the monster reacting to the answer - gracious in defeat if the player was correct, gleeful if the player was wrong.\"}}\n\nUse true or false (lowercase, no quotes) for correct. JSON:"
+    "prompt_template": "You are a STRICT judge of a riddle contest, and you also speak for the monster who asked it.\n\nThe monster:\nName: {monster_name}\nSpecies: {monster_species}\nDescription: {monster_description}\n\nThe adventuring party being challenged:\n{party_details}\n\nThe monster asked this riddle: {riddle}\n\nThe intended answer is: {correct_answer}\n\nThe party answered: {player_answer}\n\nSTEP 1 - JUDGE. The ONLY question that matters: does the party's answer refer to the SAME THING as the intended answer \"{correct_answer}\"?\n- SAME thing (any spelling, capitalization, articles like a/an/the, plural, or a true synonym): correct = true\n- DIFFERENT thing: correct = false. It does NOT matter if the riddle could loosely or creatively apply to their answer - if it is not the same thing as \"{correct_answer}\", it is wrong. Do not be generous. Do not rationalize a different answer into being correct.\n\nSTEP 2 - RESPOND. Write the monster's spoken response to the party, in its own voice and personality, reacting to their answer. If they were correct: the monster keeps its word - impressed, gracious, or grudging as fits its character. If they were wrong: the monster relishes it or scolds them as fits its character. The response may address specific party members.\n\nRespond with valid JSON in this exact format:\n{{\"correct\": false, \"response\": \"The monster's spoken response to the party, 2-4 sentences in its own voice.\"}}\n\nUse true or false (lowercase, no quotes) for correct. JSON:"
   }
 }

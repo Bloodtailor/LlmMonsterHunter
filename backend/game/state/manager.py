@@ -72,6 +72,26 @@ def get_party_summary() -> str:
         return f"{', '.join(party_names[:-1])}, and {party_names[-1]}"
 
 
+def get_party_details() -> str:
+    """
+    Get a detailed text description of the active party for LLM context
+    One line per monster: name, species, and description
+    """
+
+    party_ids = ActiveParty.get_party_monster_ids()
+
+    if not party_ids:
+        return "A lone, empty-handed adventurer"
+
+    lines = []
+    for monster_id in party_ids:
+        monster = Monster.get_monster_by_id(monster_id)
+        if monster:
+            lines.append(f"- {monster.name} ({monster.species}): {monster.description}")
+
+    return "\n".join(lines) if lines else "A lone, empty-handed adventurer"
+
+
 def reset_game_state() -> Dict[str, Any]:
     """Reset all game state to initial values (for testing)"""
 

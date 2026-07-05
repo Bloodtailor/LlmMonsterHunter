@@ -24,6 +24,7 @@ export function useDungeonEvents(stateHook) {
     setArePathsReady,
     setEncounterText,
     setEncounterMonster,
+    setRiddleGreeting,
     setRiddle,
     setIsJudgingAnswer,
     setRiddleResult,
@@ -115,6 +116,7 @@ export function useDungeonEvents(stateHook) {
         if (result.exited) {
           setExitText(result.exit_text || 'You emerge back into the daylight.');
         } else if (result.event === 'monster_riddle') {
+          setRiddleGreeting(result.greeting || null);
           setRiddle(result.riddle || null);
         }
         break;
@@ -123,7 +125,7 @@ export function useDungeonEvents(stateHook) {
         setIsJudgingAnswer(false);
         setRiddleResult({
           correct: !!result.correct,
-          verdict: result.verdict || ''
+          response: result.response || ''
         });
         break;
 

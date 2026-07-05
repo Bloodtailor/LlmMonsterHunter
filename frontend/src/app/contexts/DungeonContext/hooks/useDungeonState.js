@@ -29,9 +29,10 @@ export function useDungeonState() {
   // Encounter state - streamed vanity text, the monster, and the riddle
   const [encounterText, setEncounterText] = useState('');
   const [encounterMonster, setEncounterMonster] = useState(null);
+  const [riddleGreeting, setRiddleGreeting] = useState(null); // the monster's in-character justification
   const [riddle, setRiddle] = useState(null);
   const [isJudgingAnswer, setIsJudgingAnswer] = useState(false);
-  const [riddleResult, setRiddleResult] = useState(null); // { correct, verdict }
+  const [riddleResult, setRiddleResult] = useState(null); // { correct, response } - the monster's spoken reaction
 
   // Exit state - set when the party takes an exit path
   const [exitText, setExitText] = useState(null);
@@ -47,6 +48,7 @@ export function useDungeonState() {
   const clearEncounter = useCallback(() => {
     setEncounterText('');
     setEncounterMonster(null);
+    setRiddleGreeting(null);
     setRiddle(null);
     setIsJudgingAnswer(false);
     setRiddleResult(null);
@@ -62,6 +64,7 @@ export function useDungeonState() {
     setArePathsReady(false);
     setEncounterText('');
     setEncounterMonster(null);
+    setRiddleGreeting(null);
     setRiddle(null);
     setIsJudgingAnswer(false);
     setRiddleResult(null);
@@ -79,6 +82,7 @@ export function useDungeonState() {
       arePathsReady,
       encounterText,
       encounterMonster,
+      riddleGreeting,
       riddle,
       isJudgingAnswer,
       riddleResult,
@@ -94,6 +98,7 @@ export function useDungeonState() {
       setArePathsReady,
       setEncounterText,
       setEncounterMonster,
+      setRiddleGreeting,
       setRiddle,
       setIsJudgingAnswer,
       setRiddleResult,

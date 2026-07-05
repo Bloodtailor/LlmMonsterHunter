@@ -58,17 +58,17 @@
     "prompt_template": "You and your adventuring party ({party_summary}) are successfully exiting a dungeon adventure and returning to safety. Write 1-2 sentences describing your emergence from the depths and return to the outside world. Make it satisfying and conclusive, celebrating the completion of your underground exploration.\n\nResponse:"
   },
 
-  "path_choice": {
-    "description": "Generate one path leading onward from the current location - a route, not a destination",
-    "max_tokens": 400,
+  "path_choices": {
+    "description": "Generate a batch of distinct paths leading onward from the current location - routes, not destinations",
+    "max_tokens": 800,
     "temperature": 0.9,
     "parser": {
       "type": "json",
       "parser_name": "basic_parser",
-      "expected_fields": ["name", "description"],
-      "required_fields": ["name", "description"]
+      "expected_fields": ["paths"],
+      "required_fields": ["paths"]
     },
-    "prompt_template": "The adventuring party is currently at this location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nGenerate ONE path leading onward from this location. A path is a physical route the party can take - a door, stairway, tunnel, opening, ladder, bridge, gap in a wall, etc. Describe the PATH ITSELF, not where it leads. The party should usually NOT be able to tell what lies beyond. Examples of good paths: a rusty trap door that may have been used by prison staff long ago, a spiral staircase leading upward, a hole through the brick wall that looks like it was made by a wrecking ball, a mysterious decorated wooden door that looks out of place.\n\nThese paths already exist here, so make this one different: {existing_paths}\n\nRespond with valid JSON in this exact format:\n{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of the path itself - what it looks like and hints of its history, NOT what lies beyond it.\"}}\n\nJSON:"
+    "prompt_template": "The adventuring party is currently at this location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nGenerate {total_count} DIFFERENT paths leading onward from this location. A path is a physical route the party can take - a door, stairway, tunnel, opening, ladder, bridge, gap in a wall, etc. Describe each PATH ITSELF, not where it leads. The party should usually NOT be able to tell what lies beyond. Examples of good paths: a rusty trap door that may have been used by prison staff long ago, a spiral staircase leading upward, a hole through the brick wall that looks like it was made by a wrecking ball, a mysterious decorated wooden door that looks out of place.\n\nMake every path different from the others in kind and character - different structures, materials, directions, and moods.\n\nRespond with valid JSON in this exact format:\n{{\"paths\": [{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of the path itself - what it looks like and hints of its history, NOT what lies beyond it.\"}}, ...]}}\n\nThe paths array must contain exactly {total_count} entries. JSON:"
   },
 
   "exit_path": {
