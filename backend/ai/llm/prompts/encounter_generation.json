@@ -1,0 +1,51 @@
+{
+  "encounter_vanity": {
+    "description": "Streamed atmospheric text for arriving at a location where a monster waits",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You and your adventuring party ({party_summary}) have just arrived at this location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nWrite 2-3 sentences of atmospheric text describing the party's arrival, ending with the unmistakable sense that some creature is here with you - movement in the shadows, a sound, a presence. Do NOT describe the creature itself; only build the tension of its presence.\n\nResponse:"
+  },
+
+  "contextual_monster": {
+    "description": "Generate a detailed monster that belongs to a specific dungeon location",
+    "max_tokens": 400,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "nested_parser",
+      "expected_fields": ["basic_info.name", "basic_info.species", "basic_info.description", "basic_info.backstory", "stats.health", "stats.attack", "stats.defense", "stats.speed", "personality.traits"],
+      "required_fields": ["basic_info.name", "basic_info.description"]
+    },
+    "prompt_template": "You are a creative monster designer for a fantasy game. Every monster has a unique wish they seek to fulfill - this drives their personality and actions.\n\nCreate a level 1 monster that dwells in this specific location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nThe monster should feel like it BELONGS here - its appearance, species, and backstory should connect to this place. Create the monster with the following JSON format:\n\n{{\n  \"basic_info\": {{\n    \"name\": \"The name that the monster's friends call it by\",\n    \"species\": \"Species Type\",\n    \"description\": \"Brief physical description\",\n    \"backstory\": \"Their history in this place and what wish drives them\"\n  }},\n  \"stats\": {{\n    \"health\": 120,\n    \"attack\": 25,\n    \"defense\": 18,\n    \"speed\": 15\n  }},\n  \"personality\": {{\n    \"traits\": [\"trait1\", \"trait2\", \"trait3\"]\n  }}\n}}\n\nIMPORTANT: Use only single numbers for stats, not ranges! Generate stats between 80-150 for health, 15-35 for attack, 10-30 for defense, and 5-25 for speed.\n\nMake the monster interesting with a compelling wish/motivation. Generate only valid JSON, no additional text:\n\nJSON:"
+  },
+
+  "riddle": {
+    "description": "Generate a riddle (with its answer) that a monster asks the party",
+    "max_tokens": 400,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["riddle", "answer"],
+      "required_fields": ["riddle", "answer"]
+    },
+    "prompt_template": "A monster is challenging an adventuring party with a riddle.\n\nThe monster:\nName: {monster_name}\nSpecies: {monster_species}\nDescription: {monster_description}\n\nGenerate a riddle this monster asks, spoken in the monster's voice and personality. The riddle should be clever but solvable - a classic-style riddle with a single clear answer (an object, creature, or concept). The answer should be a single word or short phrase.\n\nRespond with valid JSON in this exact format:\n{{\"riddle\": \"The riddle text, spoken in the monster's voice.\", \"answer\": \"the answer\"}}\n\nJSON:"
+  },
+
+  "riddle_judgement": {
+    "description": "Judge whether the player's answer to a riddle is correct",
+    "max_tokens": 400,
+    "temperature": 0.3,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["correct", "verdict"],
+      "required_fields": ["correct", "verdict"]
+    },
+    "prompt_template": "You are a STRICT judge of a riddle contest. A monster asked this riddle:\n\nRiddle: {riddle}\n\nThe intended answer is: {correct_answer}\n\nThe player answered: {player_answer}\n\nThe ONLY question that matters: does the player's answer refer to the SAME THING as the intended answer \"{correct_answer}\"?\n\n- SAME thing (any spelling, capitalization, articles like a/an/the, plural, or a true synonym): correct = true\n- DIFFERENT thing: correct = false. It does NOT matter if the riddle could loosely or creatively apply to the player's answer - if it is not the same thing as \"{correct_answer}\", it is wrong. Do not be generous. Do not rationalize a different answer into being correct.\n\nRespond with valid JSON in this exact format:\n{{\"correct\": false, \"verdict\": \"One short in-character sentence from the monster reacting to the answer - gracious in defeat if the player was correct, gleeful if the player was wrong.\"}}\n\nUse true or false (lowercase, no quotes) for correct. JSON:"
+  }
+}

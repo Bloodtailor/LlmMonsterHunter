@@ -13,8 +13,8 @@ import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
  * Follows healthy pattern for context consumers
  */
 function ContinueToDoorsButton() {
-  // Only consume what we need - just isDoorsReady
-  const { isDoorsReady } = useDungeon();
+  // Only consume what we need - just arePathsReady
+  const { arePathsReady } = useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
   // Handle continue to doors
@@ -31,14 +31,14 @@ function ContinueToDoorsButton() {
 
   return (
     <div style={buttonContainerStyles}>
-      <Button 
-        size="xl" 
+      <Button
+        size="xl"
         icon="🚪"
         onClick={handleContinue}
-        disabled={!isDoorsReady}
-        variant={isDoorsReady ? 'primary' : 'secondary'}
+        disabled={!arePathsReady}
+        variant={arePathsReady ? 'primary' : 'secondary'}
       >
-        {isDoorsReady ? 'Continue to Doors' : 'Generating Doors...'}
+        {arePathsReady ? 'Continue to the Paths' : 'Scouting the Paths...'}
       </Button>
     </div>
   );
