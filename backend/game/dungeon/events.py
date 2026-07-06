@@ -8,7 +8,8 @@ import random
 # Every event a path can hold - add new events here as they are built
 # (future: 'treasure', 'trap', ...)
 AVAILABLE_EVENTS = [
-    'monster_riddle'
+    'monster_riddle',
+    'monster_battle'
 ]
 
 # How many paths a junction offers (inclusive range)
