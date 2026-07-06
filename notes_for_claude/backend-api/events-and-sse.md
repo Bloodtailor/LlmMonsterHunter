@@ -52,7 +52,9 @@ the `data` payload.
 Facts about the game world, emitted from the monster generator so any
 workflow that creates a monster broadcasts them (used for live card reveal
 and Sanctuary auto-refresh):
-- `monster.created` — `{ monster }` (full `MonsterObject`)
+- `monster.created` — `{ monster }` (full `MonsterObject`, at the blueprint stage)
+- `monster.updated` — `{ monster }` (full `MonsterObject` after a staged-generation
+  update: persona, then story/`complete`; frontend replaces the monster in place)
 - `monster.ability_added` — `{ monster_id, ability }` (`AbilityObject`)
 - `monster.art_ready` — `{ monster_id, image_path }`
 

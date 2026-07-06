@@ -11,13 +11,16 @@ Generation endpoints are async — see the workflow model in the
 ## Monster Management (`/api/monsters`)
 
 ### GET /monsters/generate
-Queues a `generate_detailed_monster` workflow that creates a full monster
-(name, species, description, backstory, stats, personality, two abilities,
-and card art).
+Queues a `generate_detailed_monster` workflow that creates a full monster in
+STAGES (see `backend/game/monster/generator.py`): blueprint (taxonomy, ecology,
+code-derived stats) → persona (wish, fears, secret, voice) → story
+(description, backstory, appearance) → two abilities → card art.
 **Success:** `{ "success": true, "workflow_id": number }`
 **Error (500):** `{ "success": false, "error": string }`
-Results arrive via SSE: `monster.created` → `monster.ability_added` (×2) →
-`monster.art_ready`, then `workflow.completed`.
+Results arrive via SSE as the stages complete: `monster.created` (blueprint —
+the card can render immediately) → `monster.updated` (persona) →
+`monster.updated` (story, `generation_stage: "complete"`) →
+`monster.ability_added` (×2) → `monster.art_ready`, then `workflow.completed`.
 
 ### GET /monsters
 List monsters with paging, filtering, and sorting.
