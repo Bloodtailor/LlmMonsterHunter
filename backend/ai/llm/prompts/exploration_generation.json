@@ -1,0 +1,60 @@
+{
+  "look_around": {
+    "description": "Streamed text for arriving at a location and taking it in - notes creatures if any are present",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You and your adventuring party ({party_summary}) have just arrived at this location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nWhat has happened on the adventure so far:\n{dungeon_log}\n\n{monsters_hint}\n\nWrite 2-4 sentences describing the party arriving and looking around - what they see, hear, and feel as they take the place in. Atmospheric and immersive, focused on discovery.\n\nResponse:"
+  },
+
+  "camp_scene": {
+    "description": "Streamed vanity dialogue between the party's monsters as they set up camp",
+    "max_tokens": 700,
+    "temperature": 0.9,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "An adventuring party of monsters is setting up camp in a safe corner of a dungeon location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nThe party (their personalities matter greatly here):\n{party_details}\n\nTheir current conditions:\n{party_conditions}\n\nWhat has happened on the adventure so far:\n{dungeon_log}\n\nWrite a short camp scene: the monsters settle in, and 2-4 short exchanges of spoken dialogue pass between them - banter, reflections on what they have been through, hopes, small kindnesses. Keep each line in its speaker's voice, formatted like:\n\nName: \"What they say.\"\n\nEnd with one sentence of calm - the camp settling for a rest.\n\nResponse:"
+  },
+
+  "sneak_attempt": {
+    "description": "Judge whether the party manages to sneak past the monsters in the area",
+    "max_tokens": 500,
+    "temperature": 0.7,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["narration", "success"],
+      "required_fields": ["narration", "success"]
+    },
+    "prompt_template": "An adventuring party is trying to SNEAK PAST monsters in a dungeon location without being noticed.\n\nLocation: {location_name}\nDescription: {location_description}\n\nThe party attempting to sneak (their natures matter - a hulking armored beast sneaks poorly, a shadowy wisp sneaks well):\n{party_details}\n\nThe monsters in the area, unaware they are being avoided:\n{monster_details}\n\nWhat has happened on the adventure so far:\n{dungeon_log}\n\nJudge whether the sneak attempt succeeds. Weigh the party's natures, the monsters' alertness, and the terrain of this location. Success should feel plausible, not guaranteed - a stealthy party through a noisy cavern usually makes it; a loud party under watchful eyes usually does not.\n\nThen write 2-4 sentences narrating the attempt playing out - the held breaths, the near misses - matching the result. If they fail, end with the monsters noticing them: a fight is now unavoidable.\n\nRespond with valid JSON in this exact format:\n{{\"narration\": \"2-4 sentences narrating the attempt.\", \"success\": true}}\n\nUse true or false (lowercase, no quotes) for success. JSON:"
+  },
+
+  "ambush_intro": {
+    "description": "The party strikes first - narration for a surprise attack on unsuspecting monsters",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "An adventuring party has decided to SURPRISE ATTACK monsters that have not noticed them yet, in this location:\n\nLocation: {location_name}\n\nThe attacking party:\n{party_details}\n\nThe unsuspecting monsters:\n{monster_details}\n\nWhat has happened on the adventure so far:\n{dungeon_log}\n\nWrite 2-3 sentences: the party moves first, the ambush is sprung, and the startled monsters whirl to defend themselves. The party has seized the opening moment - the battle begins on their terms.\n\nResponse:"
+  },
+
+  "dungeon_ability_use": {
+    "description": "THE DUNGEON REFEREE: a party monster uses an ability on anything, outside battle - the LLM decides if it does anything at all",
+    "max_tokens": 600,
+    "temperature": 0.7,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["narration", "effect"],
+      "required_fields": ["narration", "effect"]
+    },
+    "prompt_template": "You are the referee of a dungeon exploration. Outside of battle, a party monster is using one of its abilities, and YOU decide whether it does anything at all.\n\nLocation: {location_name}\nDescription: {location_description}\n\nThe monster acting:\n{actor_details}\n\nThe ability being used: {ability_name} - {ability_description}\n\nThe target: {target_description}\n\nWhat has happened on the adventure so far:\n{dungeon_log}\n\nJudge honestly what this ability would actually accomplish HERE, on THIS target:\n- Many uses accomplish nothing meaningful (a fire breath aimed at a stone wall scorches it, and that is all) - that is a fine outcome; narrate the attempt fizzling or being pointless.\n- A healing or restorative ability used on a wounded party member genuinely helps them.\n- A perception, observation, or divination ability used on a path or place may reveal something true about it. If secret knowledge about the target is provided below, weave a HINT of it into the narration - an impression, not a full answer.\n- Other creative uses may have small narrative effects at your discretion.\n\nSecret knowledge about the target (empty if none): {secret_knowledge}\n\nWrite 2-4 sentences narrating the ability use and what comes of it, then set effect to exactly ONE of:\n- \"none\": nothing mechanically changes (most attempts on odd targets)\n- \"heal_light\": the target party member recovers a little (requires a genuinely restorative ability on a party member)\n- \"heal_major\": the target party member recovers greatly (rare - a powerful restorative ability)\n- \"reveal\": the ability uncovered real information, woven into the narration\n\nRespond with valid JSON in this exact format:\n{{\"narration\": \"2-4 sentences narrating the attempt.\", \"effect\": \"none\"}}\n\nJSON:"
+  }
+}

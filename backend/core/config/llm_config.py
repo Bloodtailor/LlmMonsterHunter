@@ -32,6 +32,16 @@ DEFAULT_PRIORITY = 5
 DEFAULT_TIMEOUT_SECONDS = 600
 DEFAULT_STOP_SEQUENCES = ["</s>"]
 
+# === Reasoning / Thinking Control ===
+# Reasoning models (Qwen3 / DeepSeek-R1 style) emit a <think>...</think>
+# block before their real answer. This game uses raw completion, so we
+# suppress that by PREFILLING an empty think block onto the prompt - the
+# model reads it as "reasoning already done" and answers directly.
+# Turn this OFF (LLM_DISABLE_THINKING=false in .env) if you switch to a
+# non-reasoning model.
+DEFAULT_DISABLE_THINKING = True
+NOTHINK_PREFILL = "\n<think>\n\n</think>\n\n"
+
 # === Prompt Settings ===
 DEFAULT_PROMPT_TYPE = "general"
 DEFAULT_PROMPT_NAME = "user_request"
@@ -101,6 +111,10 @@ def get_stop_sequences():
     if env_stops:
         return [s.strip() for s in env_stops.split(',')]
     return DEFAULT_STOP_SEQUENCES.copy()
+
+def get_disable_thinking():
+    """Whether to suppress reasoning-model <think> blocks via prompt prefill"""
+    return os.getenv('LLM_DISABLE_THINKING', str(DEFAULT_DISABLE_THINKING)).lower() == 'true'
 
 def get_echo():
     """Get whether to echo prompt in response"""

@@ -41,5 +41,10 @@ TURN_HISTORY_SIZE = 8
 # is forced to an ally so the player is never locked out of acting
 MAX_CONSECUTIVE_ENEMY_TURNS = 6
 
+# Fairness guardrail: when a living monster has waited this many times the
+# living-combatant count without acting, Python force-picks it directly
+# (bypassing the LLM turn director) - no monster can ever be forgotten
+OVERDUE_WAIT_MULTIPLIER = 2
+
 # Cap on player free-text length for custom actions and talk
 PLAYER_TEXT_MAX_CHARS = 500

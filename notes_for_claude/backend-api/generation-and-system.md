@@ -17,7 +17,7 @@ for debugging what the model actually produced.
 - `generation_type?: string` — `llm | image`
 - `status?: string` — `pending | generating | completed | failed`
 - `prompt_type?: string` — exact match
-- `prompt_name?: string` — substring match (case-insensitive); e.g. `riddle_judgement`, `action_resolution`
+- `prompt_name?: string` — substring match (case-insensitive); e.g. `monster_dialogue_turn`, `action_resolution`
 - `priority?: number`
 - `sort_by?: string` — default `id`; comma-separated fields allowed
 - `sort_order?: string` — `asc | desc` (default `desc`)
@@ -36,9 +36,16 @@ for debugging what the model actually produced.
 ```
 Tip: to inspect what a specific game prompt produced, filter by
 `prompt_name` — every template name is usable here (`path_choices`,
-`contextual_monster`, `riddle`, `next_turn`, `enemy_turn`,
-`freeform_action_resolution`, `battle_talk`, `action_resolution`,
-`battle_victory`, `battle_defeat`, …).
+`contextual_monster`, `monster_question`, `monster_dialogue_turn`,
+`look_around`, `camp_scene`, `sneak_attempt`, `dungeon_ability_use`,
+`next_turn`, `enemy_turn`, `freeform_action_resolution`, `battle_talk`,
+`action_resolution`, `battle_victory`, `battle_defeat`, …).
+
+Each log's `prompt_text` is the **byte-exact prompt the model received**
+(including the no-think prefill when `LLM_DISABLE_THINKING` is on — it is
+applied in the gateway before logging). The full text is returned
+untruncated, and the developer AI-log table renders it in the expanded row
+("Prompt Sent to LLM").
 
 ### GET /generation/log-options
 Available filter/sort options, with `prompt_type` and `prompt_name` queried

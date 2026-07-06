@@ -46,23 +46,148 @@ choosePath.defaults = {
 };
 
 /**
- * Answer the active riddle using the answer_riddle workflow
- * @param {string} answer - The player's typed answer
+ * Speak to the encounter monsters using the respond_to_monster workflow
+ * (answer their question, keep talking, or open talks with monsters
+ * spotted while exploring - the LLM decides what comes of it)
+ * @param {string} message - What the party says
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
-export async function answerRiddle(answer) {
+export async function respondToMonster(message) {
 
-  const response = await post('/api/dungeon/answer-riddle', { answer });
+  const response = await post('/api/dungeon/respond', { message });
 
   return {
-    success: response.success ?? answerRiddle.defaults.success,
-    workflowId: response.workflow_id ?? answerRiddle.defaults.workflowId,
+    success: response.success ?? respondToMonster.defaults.success,
+    workflowId: response.workflow_id ?? respondToMonster.defaults.workflowId,
     _raw: response
   };
 }
-answerRiddle.defaults = {
+respondToMonster.defaults = {
   success: null,
   workflowId: null,
+};
+
+/**
+ * Attempt to sneak past the monsters using the sneak_past workflow
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function sneakPast() {
+
+  const response = await post('/api/dungeon/sneak');
+
+  return {
+    success: response.success ?? sneakPast.defaults.success,
+    workflowId: response.workflow_id ?? sneakPast.defaults.workflowId,
+    _raw: response
+  };
+}
+sneakPast.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
+ * Spring a surprise attack using the surprise_attack workflow
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function surpriseAttack() {
+
+  const response = await post('/api/dungeon/surprise-attack');
+
+  return {
+    success: response.success ?? surpriseAttack.defaults.success,
+    workflowId: response.workflow_id ?? surpriseAttack.defaults.workflowId,
+    _raw: response
+  };
+}
+surpriseAttack.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
+ * Set up camp in a monster-free location using the setup_camp workflow
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function setupCamp() {
+
+  const response = await post('/api/dungeon/camp');
+
+  return {
+    success: response.success ?? setupCamp.defaults.success,
+    workflowId: response.workflow_id ?? setupCamp.defaults.workflowId,
+    _raw: response
+  };
+}
+setupCamp.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
+ * Use a party monster's ability on anything using the use_dungeon_ability
+ * workflow (outside battle - the LLM decides if it does anything at all)
+ * @param {object} params
+ * @param {number} params.monsterId - The acting party monster
+ * @param {number} params.abilityId - The ability being used
+ * @param {string} params.targetType - 'path' | 'monster' | 'location' | 'custom'
+ * @param {string|number} [params.targetId] - Path id or monster id (for path/monster targets)
+ * @param {string} [params.targetText] - Free-text target description (for custom targets)
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function useDungeonAbility({ monsterId, abilityId, targetType, targetId, targetText }) {
+
+  const response = await post('/api/dungeon/use-ability', {
+    monster_id: monsterId,
+    ability_id: abilityId,
+    target_type: targetType,
+    target_id: targetId,
+    target_text: targetText
+  });
+
+  return {
+    success: response.success ?? useDungeonAbility.defaults.success,
+    workflowId: response.workflow_id ?? useDungeonAbility.defaults.workflowId,
+    _raw: response
+  };
+}
+useDungeonAbility.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
+ * DEVELOPER ONLY: full LLM context X-ray for the debug panel
+ * Returns the dungeon log, party/encounter/battle context blocks exactly
+ * as the LLM prompts receive them, plus paths WITH hidden info
+ * @returns {Promise<object>} The raw context payload (kept snake_case on
+ *   purpose - the panel shows backend truth)
+ */
+export async function getDungeonDebugContext() {
+
+  const response = await get('/api/dungeon/debug-context');
+
+  return {
+    success: response.success ?? getDungeonDebugContext.defaults.success,
+    inDungeon: response.in_dungeon ?? getDungeonDebugContext.defaults.inDungeon,
+    currentLocation: response.current_location ?? getDungeonDebugContext.defaults.currentLocation,
+    dungeonLog: response.dungeon_log ?? getDungeonDebugContext.defaults.dungeonLog,
+    party: response.party ?? getDungeonDebugContext.defaults.party,
+    encounter: response.encounter ?? getDungeonDebugContext.defaults.encounter,
+    pathsFull: response.paths_full ?? getDungeonDebugContext.defaults.pathsFull,
+    battle: response.battle ?? getDungeonDebugContext.defaults.battle,
+    _raw: response
+  };
+}
+getDungeonDebugContext.defaults = {
+  success: null,
+  inDungeon: false,
+  currentLocation: null,
+  dungeonLog: { entries: [], clamped_text: '' },
+  party: null,
+  encounter: null,
+  pathsFull: {},
+  battle: { in_battle: false },
 };
 
 /**

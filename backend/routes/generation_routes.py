@@ -73,17 +73,13 @@ def get_logs():
 
         logs = query.all()
 
-        # Optional: Truncate promptText to reduce payload size
-        def safe_to_dict(log):
-            data = log.to_dict()
-            if 'promptText' in data and data['promptText']:
-                data['promptText'] = (data['promptText'][:200] + '...') if len(data['promptText']) > 200 else data['promptText']
-            return data
+        # Full prompt_text ships intentionally - the developer table's
+        # expanded rows display the exact prompt each generation received
 
         return jsonify({
             'success': True,
             'data': {
-                'logs': [safe_to_dict(log) for log in logs],
+                'logs': [log.to_dict() for log in logs],
                 'count': total_count,  # Total count for pagination
                 'returned_count': len(logs),  # Actual returned count
                 'filters': {

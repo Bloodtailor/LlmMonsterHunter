@@ -10,7 +10,7 @@ import { useDungeon } from '../../../app/contexts/DungeonContext/useDungeon.js';
 /**
  * EncounterMonsterDisplay component
  * Shows each encounter monster's card as it comes into existence
- * (riddles reveal one; battles reveal the whole hostile group)
+ * (dialogues reveal one; battles and explore areas can reveal several)
  */
 function EncounterMonsterDisplay() {
   const { encounterMonsters, exitText } = useDungeon();

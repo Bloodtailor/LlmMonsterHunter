@@ -6,14 +6,21 @@
 
 import random
 from typing import Dict, Any, List, Optional
-from backend.game.utils import build_and_generate, build_and_stream
+from backend.game.utils import build_and_generate, build_and_stream, clamp_context
 from backend.game.state.manager import get_party_summary
 from backend.game.battle.constants import IMPACT_STEPS, INCAPACITATED
 
 # ===== CONTEXT BUILDERS =====
 
-def build_monster_battle_details(monster, entry: Dict[str, Any]) -> str:
-    """One monster as LLM context: identity, condition, and abilities"""
+# Explicit side tags baked into every monster detail block, so the LLM
+# never has to cross-reference names to know who fights for whom
+SIDE_LABELS = {
+    'allies': "PLAYER'S PARTY",
+    'enemies': "HOSTILE ENEMY"
+}
+
+def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = None) -> str:
+    """One monster as LLM context: identity, SIDE, condition, and abilities"""
 
     personality = ', '.join(monster.personality_traits or []) if monster else ''
     abilities = "; ".join(
@@ -21,22 +28,23 @@ def build_monster_battle_details(monster, entry: Dict[str, Any]) -> str:
     ) or "none"
 
     defending = " [defending]" if entry.get('defending') else ""
+    side_tag = f" — {SIDE_LABELS[side]}" if side in SIDE_LABELS else ""
 
     return (
-        f"- {monster.name} ({monster.species}), condition: {entry.get('condition', 'fresh')}{defending}\n"
+        f"- {monster.name} ({monster.species}){side_tag}, condition: {entry.get('condition', 'fresh')}{defending}\n"
         f"  Description: {monster.description}\n"
         f"  Personality: {personality}\n"
         f"  Abilities: {abilities}"
     )
 
-def build_side_details(monsters: Dict[str, Any], entries: Dict[str, Dict[str, Any]]) -> str:
+def build_side_details(monsters: Dict[str, Any], entries: Dict[str, Dict[str, Any]], side: str = None) -> str:
     """A whole side as LLM context - monsters is {id(str): Monster}"""
 
     lines = []
     for monster_id, entry in entries.items():
         monster = monsters.get(monster_id)
         if monster:
-            lines.append(build_monster_battle_details(monster, entry))
+            lines.append(build_monster_battle_details(monster, entry, side))
     return "\n".join(lines) if lines else "None"
 
 def build_battle_situation(state: Dict[str, Any]) -> str:
@@ -49,13 +57,15 @@ def build_battle_situation(state: Dict[str, Any]) -> str:
         )
 
     return (
-        side_line("Party", state.get('allies', {})) + "\n" +
-        side_line("Hostiles", state.get('enemies', {}))
+        side_line("The player's party", state.get('allies', {})) + "\n" +
+        side_line("The hostile enemies", state.get('enemies', {}))
     )
 
 def build_recent_log(state: Dict[str, Any]) -> str:
     log = state.get('recent_log', [])
-    return "\n".join(log) if log else "The battle has just begun."
+    if not log:
+        return "The battle has just begun."
+    return clamp_context('battle_log', "\n".join(log))
 
 # ===== LLM CALLS =====
 
@@ -72,17 +82,25 @@ def generate_battle_arrival_text(location: Dict[str, Any], workflow_name: str) -
 def generate_battle_intro(location: Dict[str, Any], enemy_details: str, party_details: str, workflow_name: str) -> str:
     """The enemy group's in-character challenge"""
 
+    from backend.game.dungeon.manager import get_dungeon_log_text
+
     try:
         return build_and_generate('battle_intro', workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
-            'enemy_details': enemy_details,
-            'party_details': party_details
+            'enemy_details': clamp_context('monster_details', enemy_details),
+            'party_details': clamp_context('party_details', party_details),
+            'dungeon_log': get_dungeon_log_text()
         })
     except Exception:
         return "The creatures block your path, and their intent is unmistakable: there will be a fight."
 
 def build_combatant_summary(monsters: Dict[str, Any], state: Dict[str, Any]) -> str:
-    """Compact summary of everyone still in the fight, with speed, for the turn director"""
+    """
+    Compact summary of everyone still in the fight for the turn director:
+    side, speed, condition, and HOW LONG each has waited since acting
+    (computed in Python - small models cannot infer this from history)
+    """
+    from backend.game.battle.manager import turns_waiting
 
     lines = []
     for side, label in (('allies', 'party'), ('enemies', 'hostile')):
@@ -91,14 +109,26 @@ def build_combatant_summary(monsters: Dict[str, Any], state: Dict[str, Any]) -> 
                 continue
             monster = monsters.get(monster_id)
             speed = monster.speed if monster else 10
-            lines.append(f"- {entry.get('name')} ({label}), speed: {speed}, condition: {entry.get('condition')}")
+            if str(monster_id) not in state.get('last_acted', {}):
+                waiting = "has NOT acted yet this battle"
+            else:
+                waited = turns_waiting(state, monster_id)
+                waiting = "acted just now" if waited == 0 else f"waited {waited} turn(s) since acting"
+            lines.append(
+                f"- {entry.get('name')} ({label}), speed: {speed}, "
+                f"condition: {entry.get('condition')}, {waiting}"
+            )
     return "\n".join(lines) if lines else "None"
 
 def build_turn_history(state: Dict[str, Any]) -> str:
     history = state.get('turn_history', [])
     if not history:
         return "No turns have been taken yet."
-    return "\n".join(f"- {t.get('actor')}: {t.get('action')}" for t in history)
+    lines = []
+    for t in history:
+        side_tag = f" ({t.get('side')})" if t.get('side') else ""
+        lines.append(f"- {t.get('actor')}{side_tag}: {t.get('action')}")
+    return "\n".join(lines)
 
 def generate_next_turn(combatant_details: str, state: Dict[str, Any], workflow_name: str) -> Optional[str]:
     """
@@ -265,6 +295,8 @@ def generate_battle_outcome_text(
 ) -> str:
     """Victory or defeat narration, shaped by how the battle actually ended"""
 
+    from backend.game.dungeon.manager import get_dungeon_log_text
+
     template = 'battle_victory' if outcome == 'victory' else 'battle_defeat'
     fallback = (
         "The battle is over, and the party stands victorious among the settling dust."
@@ -276,8 +308,9 @@ def generate_battle_outcome_text(
         return build_and_generate(template, workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
             'resolution': resolution or 'combat',
-            'party_details': party_details,
-            'enemy_details': enemy_details,
+            'party_details': clamp_context('party_details', party_details),
+            'enemy_details': clamp_context('monster_details', enemy_details),
+            'dungeon_log': get_dungeon_log_text(),
             'recent_log': build_recent_log(state)
         })
     except Exception:

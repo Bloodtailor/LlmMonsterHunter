@@ -7,7 +7,11 @@ import { useCallback, useEffect } from 'react';
 import {
   useEnterDungeon,
   useChoosePath,
-  useAnswerRiddle,
+  useRespondToMonster,
+  useSneakPast,
+  useSurpriseAttack,
+  useSetupCamp,
+  useDungeonAbility,
   useContinueExploring
 } from '../../../hooks/useDungeon.js';
 
@@ -27,7 +31,13 @@ export function useDungeonActions(stateHook) {
     setCurrentLocation,
     setPaths,
     setArePathsReady,
-    setIsJudgingAnswer,
+    setDialogue,
+    setIsMonsterResponding,
+    setIsSneaking,
+    setIsAmbushing,
+    setIsCamping,
+    setIsUsingAbility,
+    setAbilityResult,
     setExitText,
     clearEncounter
   } = setters;
@@ -35,7 +45,11 @@ export function useDungeonActions(stateHook) {
   // App hooks for the API calls
   const enterApi = useEnterDungeon();
   const choosePathApi = useChoosePath();
-  const answerRiddleApi = useAnswerRiddle();
+  const respondApi = useRespondToMonster();
+  const sneakApi = useSneakPast();
+  const surpriseApi = useSurpriseAttack();
+  const campApi = useSetupCamp();
+  const abilityApi = useDungeonAbility();
   const continueApi = useContinueExploring();
 
   // Sync API hook errors with context state
@@ -43,19 +57,33 @@ export function useDungeonActions(stateHook) {
     const apiError =
       (enterApi.isError && enterApi.error) ||
       (choosePathApi.isError && choosePathApi.error) ||
-      (answerRiddleApi.isError && answerRiddleApi.error) ||
+      (respondApi.isError && respondApi.error) ||
+      (sneakApi.isError && sneakApi.error) ||
+      (surpriseApi.isError && surpriseApi.error) ||
+      (campApi.isError && campApi.error) ||
+      (abilityApi.isError && abilityApi.error) ||
       (continueApi.isError && continueApi.error);
 
     if (apiError) {
       setErrorState(apiError?.message || 'Dungeon request failed');
-      setIsJudgingAnswer(false); // don't leave the riddle stuck on "judging"
+      // Don't leave any action stuck on "waiting"
+      setIsMonsterResponding(false);
+      setIsSneaking(false);
+      setIsAmbushing(false);
+      setIsCamping(false);
+      setIsUsingAbility(false);
     }
   }, [
     enterApi.isError, enterApi.error,
     choosePathApi.isError, choosePathApi.error,
-    answerRiddleApi.isError, answerRiddleApi.error,
+    respondApi.isError, respondApi.error,
+    sneakApi.isError, sneakApi.error,
+    surpriseApi.isError, surpriseApi.error,
+    campApi.isError, campApi.error,
+    abilityApi.isError, abilityApi.error,
     continueApi.isError, continueApi.error,
-    setErrorState, setIsJudgingAnswer
+    setErrorState, setIsMonsterResponding, setIsSneaking,
+    setIsAmbushing, setIsCamping, setIsUsingAbility
   ]);
 
   // Enter dungeon action
@@ -83,16 +111,64 @@ export function useDungeonActions(stateHook) {
     await choosePathApi.choosePath(pathId);
   }, [choosePathApi.isLoading, choosePathApi.choosePath, setErrorState, clearEncounter, setExitText, setCurrentLocation, setPaths, setArePathsReady]);
 
-  // Answer the active riddle
-  const answerRiddle = useCallback(async (answer) => {
-    if (answerRiddleApi.isLoading) {
+  // Speak to the encounter monsters - the party's words appear
+  // immediately; the monster's response (and its decision) arrive via SSE
+  const respondToMonster = useCallback(async (message) => {
+    if (respondApi.isLoading) {
       return;
     }
 
     setErrorState(null);
-    setIsJudgingAnswer(true);
-    await answerRiddleApi.answerRiddle(answer);
-  }, [answerRiddleApi.isLoading, answerRiddleApi.answerRiddle, setErrorState, setIsJudgingAnswer]);
+    setIsMonsterResponding(true);
+    setDialogue(prev => [...prev, { speaker: 'The party', text: message }]);
+    await respondApi.respondToMonster(message);
+  }, [respondApi.isLoading, respondApi.respondToMonster, setErrorState, setIsMonsterResponding, setDialogue]);
+
+  // Try to slip past the monsters spotted while exploring
+  const sneakPast = useCallback(async () => {
+    if (sneakApi.isLoading) {
+      return;
+    }
+
+    setErrorState(null);
+    setIsSneaking(true);
+    await sneakApi.sneakPast();
+  }, [sneakApi.isLoading, sneakApi.sneakPast, setErrorState, setIsSneaking]);
+
+  // Strike first at the monsters spotted while exploring
+  const surpriseAttack = useCallback(async () => {
+    if (surpriseApi.isLoading) {
+      return;
+    }
+
+    setErrorState(null);
+    setIsAmbushing(true);
+    await surpriseApi.surpriseAttack();
+  }, [surpriseApi.isLoading, surpriseApi.surpriseAttack, setErrorState, setIsAmbushing]);
+
+  // Set up camp in a monster-free location
+  const setupCamp = useCallback(async () => {
+    if (campApi.isLoading) {
+      return;
+    }
+
+    setErrorState(null);
+    setIsCamping(true);
+    await campApi.setupCamp();
+  }, [campApi.isLoading, campApi.setupCamp, setErrorState, setIsCamping]);
+
+  // A party monster uses an ability on anything - the LLM decides
+  // whether it does anything at all
+  const activateAbility = useCallback(async ({ monsterId, abilityId, targetType, targetId, targetText }) => {
+    if (abilityApi.isLoading) {
+      return;
+    }
+
+    setErrorState(null);
+    setIsUsingAbility(true);
+    setAbilityResult(null);
+    await abilityApi.activateAbility({ monsterId, abilityId, targetType, targetId, targetText });
+  }, [abilityApi.isLoading, abilityApi.activateAbility, setErrorState, setIsUsingAbility, setAbilityResult]);
 
   // Continue exploring - fresh paths from the current location
   const continueExploring = useCallback(async () => {
@@ -117,7 +193,11 @@ export function useDungeonActions(stateHook) {
     actions: {
       enterDungeon,
       choosePath,
-      answerRiddle,
+      respondToMonster,
+      sneakPast,
+      surpriseAttack,
+      setupCamp,
+      activateAbility,
       continueExploring,
       resetDungeon
     }

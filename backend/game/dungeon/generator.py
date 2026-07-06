@@ -2,16 +2,71 @@
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming completely
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 import random
-from backend.game.utils import build_and_generate, build_and_stream
-from backend.game.state.manager import get_party_summary
+from backend.game.utils import build_and_generate, build_and_stream, clamp_context
+from backend.game.state.manager import get_party_summary, get_party_details
 from backend.game.dungeon.events import (
     assign_random_event,
     roll_path_count,
     roll_include_exit,
     PATH_OVERGENERATE_COUNT
 )
+
+# ===== CONTEXT BUILDERS =====
+
+def build_monster_dungeon_details(monster) -> str:
+    """One monster as LLM context for dungeon encounters: identity + abilities"""
+
+    personality = ', '.join(monster.personality_traits or [])
+    abilities = "; ".join(
+        f"{a.name} ({a.description})" for a in (monster.abilities or [])
+    ) or "none"
+
+    return (
+        f"- {monster.name} ({monster.species})\n"
+        f"  Description: {monster.description}\n"
+        f"  Backstory: {monster.backstory or 'Unknown'}\n"
+        f"  Personality: {personality}\n"
+        f"  Abilities: {abilities}"
+    )
+
+def build_monsters_details(monsters: List[Any]) -> str:
+    """Several monsters as one clamped LLM context block"""
+    lines = [build_monster_dungeon_details(m) for m in monsters if m]
+    return clamp_context('monster_details', "\n".join(lines)) if lines else "None"
+
+def build_party_dungeon_details() -> str:
+    """
+    The party as LLM context for dungeon prompts: identity, personality,
+    and each monster's current run condition - so encounter monsters can
+    react to a battered, limping party (or a fresh, confident one)
+    """
+    from backend.game.state.manager import get_party_monster_ids
+    from backend.game.dungeon.manager import get_party_conditions
+    from backend.models.monster import Monster
+
+    conditions = get_party_conditions()
+    lines = []
+    for monster_id in get_party_monster_ids():
+        monster = Monster.get_monster_by_id(monster_id)
+        if not monster:
+            continue
+        personality = ', '.join(monster.personality_traits or [])
+        condition = conditions.get(str(monster_id), 'fresh')
+        lines.append(
+            f"- {monster.name} ({monster.species}), condition: {condition}\n"
+            f"  Description: {monster.description}\n"
+            f"  Personality: {personality}"
+        )
+
+    if not lines:
+        return "A lone, empty-handed adventurer"
+    return clamp_context('party_details', "\n".join(lines))
+
+def _dungeon_log_text() -> str:
+    from backend.game.dungeon.manager import get_dungeon_log_text
+    return get_dungeon_log_text()
     
 def generate_entry_text(workflow_name) -> Dict[str, Any]:
     """Generate entry text - assumes valid party_summary"""
@@ -145,11 +200,181 @@ def generate_encounter_vanity_text(location: Dict[str, Any], workflow_name: str)
     variables = {
         'party_summary': get_party_summary(),
         'location_name': location.get('name', 'Unknown Location'),
-        'location_description': location.get('description', '')
+        'location_description': clamp_context('location_description', location.get('description', '')),
+        'dungeon_log': _dungeon_log_text()
     }
     encounter_text_generation_id = build_and_stream('encounter_vanity', workflow_name, variables)
 
     return encounter_text_generation_id
+
+# ===== EXPLORE EVENT GENERATION =====
+
+def generate_look_around_text(location: Dict[str, Any], monsters_present: bool, workflow_name: str) -> int:
+    """Queue streamed arrival/look-around text for an explore location - returns generation_id"""
+
+    monsters_hint = (
+        "IMPORTANT: There are other creatures in this area. The party SEES them - "
+        "end with the party spotting the creatures, who have not noticed the party yet."
+        if monsters_present else
+        "The area holds no other creatures - the party has this place to themselves."
+    )
+
+    variables = {
+        'party_summary': get_party_summary(),
+        'location_name': location.get('name', 'Unknown Location'),
+        'location_description': clamp_context('location_description', location.get('description', '')),
+        'dungeon_log': _dungeon_log_text(),
+        'monsters_hint': monsters_hint
+    }
+    return build_and_stream('look_around', workflow_name, variables)
+
+def generate_camp_scene(location: Dict[str, Any], party_conditions_text: str, workflow_name: str) -> int:
+    """Queue streamed camp vanity dialogue between the party's monsters - returns generation_id"""
+
+    variables = {
+        'location_name': location.get('name', 'Unknown Location'),
+        'location_description': clamp_context('location_description', location.get('description', '')),
+        'party_details': clamp_context('party_details', get_party_details()),
+        'party_conditions': party_conditions_text or 'All fresh',
+        'dungeon_log': _dungeon_log_text()
+    }
+    return build_and_stream('camp_scene', workflow_name, variables)
+
+def judge_sneak_attempt(location: Dict[str, Any], monster_details: str, workflow_name: str) -> Dict[str, Any]:
+    """
+    THE REFEREE for sneaking past the monsters in an explore location
+    Returns {'narration': str, 'success': bool} - always
+    """
+
+    try:
+        result = build_and_generate('sneak_attempt', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'location_description': clamp_context('location_description', location.get('description', '')),
+            'party_details': build_party_dungeon_details(),
+            'monster_details': monster_details,
+            'dungeon_log': _dungeon_log_text()
+        })
+        return {
+            'narration': str(result.get('narration') or 'The party slips through the shadows...'),
+            'success': bool(result.get('success'))
+        }
+    except Exception:
+        # Can't judge what we can't parse - the monsters notice the party
+        return {
+            'narration': 'The party creeps forward, but a loose stone betrays them - the creatures turn as one.',
+            'success': False
+        }
+
+def generate_ambush_intro(location: Dict[str, Any], monster_details: str, workflow_name: str) -> str:
+    """Narration for the party springing a surprise attack - always returns text"""
+
+    try:
+        return build_and_generate('ambush_intro', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'party_details': build_party_dungeon_details(),
+            'monster_details': monster_details,
+            'dungeon_log': _dungeon_log_text()
+        })
+    except Exception:
+        return "The party strikes without warning - the startled creatures whirl to defend themselves!"
+
+def resolve_dungeon_ability(
+    location: Dict[str, Any],
+    actor_details: str,
+    ability_name: str,
+    ability_description: str,
+    target_description: str,
+    secret_knowledge: str,
+    workflow_name: str
+) -> Dict[str, Any]:
+    """
+    THE DUNGEON REFEREE for out-of-battle ability use on anything
+    Returns {'narration': str, 'effect': validated str} - always
+    """
+
+    valid_effects = ('none', 'heal_light', 'heal_major', 'reveal')
+
+    try:
+        result = build_and_generate('dungeon_ability_use', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'location_description': clamp_context('location_description', location.get('description', '')),
+            'actor_details': actor_details,
+            'ability_name': ability_name,
+            'ability_description': ability_description,
+            'target_description': target_description,
+            'secret_knowledge': secret_knowledge or 'none',
+            'dungeon_log': _dungeon_log_text()
+        })
+
+        effect = str(result.get('effect', '')).strip().lower()
+        if effect not in valid_effects:
+            effect = 'none'
+
+        return {
+            'narration': str(result.get('narration') or 'Nothing much seems to come of it.'),
+            'effect': effect
+        }
+
+    except Exception:
+        return {
+            'narration': f"{ability_name} flares briefly, but the moment passes and nothing seems to change.",
+            'effect': 'none'
+        }
+
+# ===== DIALOGUE ENCOUNTER GENERATION =====
+
+def generate_monster_question(location: Dict[str, Any], monster, workflow_name: str) -> Dict[str, Any]:
+    """
+    The encounter monster greets the party and asks its question
+    Returns {'greeting': str, 'question': str} - always
+    """
+
+    try:
+        result = build_and_generate('monster_question', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'location_description': clamp_context('location_description', location.get('description', '')),
+            'monster_details': build_monsters_details([monster]),
+            'party_details': build_party_dungeon_details(),
+            'dungeon_log': _dungeon_log_text()
+        })
+        greeting = str(result.get('greeting') or '').strip()
+        question = str(result.get('question') or '').strip()
+        if not question:
+            raise Exception('No question generated')
+        return {'greeting': greeting, 'question': question}
+    except Exception:
+        return {
+            'greeting': f"{monster.name} blocks the way, eyes fixed on the party.",
+            'question': "Why have you come to my domain, and what do you seek here?"
+        }
+
+def generate_dialogue_turn(location: Dict[str, Any], monster_details: str, dialogue_history: str, workflow_name: str) -> Dict[str, Any]:
+    """
+    The monster responds to the party's words and decides the outcome
+    Returns {'response': str, 'outcome': validated outcome} - always
+    """
+
+    from backend.game.dungeon.outcomes import validate_outcome
+
+    try:
+        result = build_and_generate('monster_dialogue_turn', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'location_description': clamp_context('location_description', location.get('description', '')),
+            'monster_details': monster_details,
+            'party_details': build_party_dungeon_details(),
+            'dialogue_history': dialogue_history,
+            'dungeon_log': _dungeon_log_text()
+        })
+        return {
+            'response': str(result.get('response') or 'The monster regards the party in long silence.'),
+            'outcome': validate_outcome(result.get('outcome'))
+        }
+    except Exception:
+        # Keep the conversation alive - a broken generation never ends an encounter
+        return {
+            'response': 'The monster regards the party in long silence, as if weighing their words.',
+            'outcome': 'continue_dialogue'
+        }
 
 def build_door_choices(loc1: Dict[str, Any], loc2: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
     door_choices = {

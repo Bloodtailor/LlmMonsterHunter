@@ -22,7 +22,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
 
     try:
         from backend.game.battle import manager as battle
-        from backend.game.battle.constants import MAX_CONSECUTIVE_ENEMY_TURNS
+        from backend.game.battle.constants import MAX_CONSECUTIVE_ENEMY_TURNS, OVERDUE_WAIT_MULTIPLIER
         from backend.game.battle.generator import (
             build_monster_battle_details,
             build_side_details,
@@ -78,7 +78,9 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         def details_of(side, monster_id):
             monster = monsters.get(str(monster_id))
             if monster:
-                return build_monster_battle_details(monster, state[side][str(monster_id)])
+                # Side is baked into the details so the referee always
+                # knows who fights for whom
+                return build_monster_battle_details(monster, state[side][str(monster_id)], side)
             return entry_name(side, monster_id)
 
         def emit_turn(entry: Dict[str, Any]):
@@ -133,7 +135,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
 
             new_condition = battle.apply_impact(state, target_side, target_id, impact)
             battle.append_log(state, resolution['narration'])
-            battle.record_turn(state, actor_name, action)
+            battle.record_turn(state, actor_name, action, actor_id=actor_id, side=side)
             battle.save_battle_state(state)
 
             emit_turn({
@@ -143,16 +145,16 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 'target_condition': new_condition, 'dialogue': None
             })
 
-        def resolve_talk_exchange(exchange: str, initiator_name: str, spoken: str):
+        def resolve_talk_exchange(exchange: str, initiator_name: str, spoken: str, initiator_id=None, initiator_side=None):
             """Run the negotiation adjudicator and apply its decision"""
             talk = generate_battle_talk(
                 location,
-                build_side_details(monsters, state.get('enemies', {})),
-                build_side_details(monsters, state.get('allies', {})),
+                build_side_details(monsters, state.get('enemies', {}), 'enemies'),
+                build_side_details(monsters, state.get('allies', {}), 'allies'),
                 exchange, state, workflow_name
             )
             battle.append_log(state, f'{initiator_name} spoke: "{spoken}" The reply: "{talk["response"]}"')
-            battle.record_turn(state, initiator_name, 'talk')
+            battle.record_turn(state, initiator_name, 'talk', actor_id=initiator_id, side=initiator_side)
             battle.save_battle_state(state)
 
             emit_turn({
@@ -215,7 +217,11 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 new_condition = battle.apply_impact(state, impacted_side, impacted_id, impact) if impacted_id else None
 
                 battle.append_log(state, result['narration'])
-                battle.record_turn(state, actor_name, 'custom action' if result['possible'] else 'a failed attempt')
+                battle.record_turn(
+                    state, actor_name,
+                    'custom action' if result['possible'] else 'a failed attempt',
+                    actor_id=actor_id, side='allies'
+                )
                 battle.save_battle_state(state)
 
                 emit_turn({
@@ -231,7 +237,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 spoken = str(player_action.get('text', ''))
                 outcome, resolution, joined_names = resolve_talk_exchange(
                     f'The adventuring party says to the hostile monsters: "{spoken}"',
-                    actor_name, spoken
+                    actor_name, spoken, initiator_id=actor_id, initiator_side='allies'
                 )
 
             else:
@@ -274,22 +280,40 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
 
         while outcome == 'unresolved':
 
-            # The turn director picks who acts next (pure LLM choice,
-            # with one softlock valve so the player always gets to act)
+            # The turn director picks who acts next (LLM choice inside
+            # Python guardrails: the softlock valve keeps the player in
+            # the fight, and the fairness guardrail force-picks anyone
+            # the LLM has neglected for too long - no monster is ever
+            # forgotten, regardless of model quality)
             force_ally = consecutive_enemy_turns >= MAX_CONSECUTIVE_ENEMY_TURNS
-            picked = generate_next_turn(build_combatant_summary(monsters, state), state, workflow_name)
-            side, actor_id = find_by_name(picked, sides=('allies',) if force_ally else ('allies', 'enemies'))
+            eligible_sides = ('allies',) if force_ally else ('allies', 'enemies')
+
+            living = [
+                (s, mid) for s in ('allies', 'enemies') for mid in battle.active_ids(state, s)
+            ]
+            overdue_threshold = OVERDUE_WAIT_MULTIPLIER * max(len(living), 1)
+            overdue = sorted(
+                (
+                    (battle.turns_waiting(state, mid), s, mid)
+                    for s, mid in living
+                    if s in eligible_sides and battle.turns_waiting(state, mid) >= overdue_threshold
+                ),
+                reverse=True
+            )
+
+            if overdue:
+                _, side, actor_id = overdue[0]
+            else:
+                picked = generate_next_turn(build_combatant_summary(monsters, state), state, workflow_name)
+                side, actor_id = find_by_name(picked, sides=eligible_sides)
 
             if not actor_id:
-                # Fallback: least-recently-acted, fastest first
-                recent = [t.get('actor') for t in state.get('turn_history', [])]
+                # Fallback: longest-waiting first, fastest breaks ties
                 candidates = []
-                for s in (('allies',) if force_ally else ('allies', 'enemies')):
+                for s in eligible_sides:
                     for mid in battle.active_ids(state, s):
-                        name = entry_name(s, mid)
-                        last_acted = max((i for i, r in enumerate(recent) if r == name), default=-1)
                         speed = monsters[mid].speed if monsters.get(mid) else 0
-                        candidates.append((last_acted, -speed, s, mid))
+                        candidates.append((-battle.turns_waiting(state, mid), -speed, s, mid))
                 if not candidates:
                     break
                 candidates.sort()
@@ -314,8 +338,8 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
 
             raw = generate_enemy_turn(
                 details_of('enemies', actor_id),
-                build_side_details(monsters, state.get('allies', {})),
-                build_side_details(monsters, state.get('enemies', {})),
+                build_side_details(monsters, state.get('allies', {}), 'allies'),
+                build_side_details(monsters, state.get('enemies', {}), 'enemies'),
                 state, workflow_name
             )
             action = str(raw.get('action', 'attack')).strip().lower()
@@ -327,7 +351,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 if dialogue:
                     state['pending_talk'] = {'speaker_id': actor_id, 'dialogue': dialogue}
                     state['phase'] = 'awaiting_player_response'
-                    battle.record_turn(state, actor_name, 'talk')
+                    battle.record_turn(state, actor_name, 'talk', actor_id=actor_id, side='enemies')
                     battle.save_battle_state(state)
                     return success_response({
                         "pending": "player_response",
@@ -340,7 +364,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 battle.mark_fled(state, actor_id)
                 narration = f"{actor_name} breaks away from the fight and vanishes into the shadows of {location.get('name', 'the dungeon')}."
                 battle.append_log(state, narration)
-                battle.record_turn(state, actor_name, 'flee')
+                battle.record_turn(state, actor_name, 'flee', actor_id=actor_id, side='enemies')
                 battle.save_battle_state(state)
                 emit_turn({
                     'narration': narration, 'actor_name': actor_name, 'action': 'flee',
@@ -385,7 +409,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         resolution = resolution or 'combat'
         outcome_text = generate_battle_outcome_text(
             outcome, resolution, location, get_party_details(),
-            build_side_details(monsters, state.get('enemies', {})),
+            build_side_details(monsters, state.get('enemies', {}), 'enemies'),
             state, workflow_name
         )
 
@@ -394,6 +418,22 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             monster_id: entry.get('condition', 'fresh')
             for monster_id, entry in state.get('allies', {}).items()
         })
+
+        # The dungeon log gets a compact summary of the battle - the
+        # detailed blow-by-blow stays in the battle's own log
+        if dungeon.is_in_dungeon():
+            enemy_names = ', '.join(
+                entry.get('name', 'Unknown') for entry in state.get('enemies', {}).values()
+            )
+            ally_summary = ', '.join(
+                f"{entry.get('name')}: {entry.get('condition')}"
+                for entry in state.get('allies', {}).values()
+            )
+            summary = f"A battle against {enemy_names} ended in {outcome} ({resolution})."
+            if joined_names:
+                summary += f" {', '.join(joined_names)} joined the party."
+            summary += f" Party condition afterward: {ally_summary}."
+            dungeon.append_dungeon_log(summary)
 
         state['phase'] = outcome
         state['resolution'] = resolution

@@ -27,13 +27,20 @@ export function useBattleEvents(stateHook) {
     setBattleError
   } = setters;
 
-  // A battle begins: choose_path completed with a monster_battle event
+  // A battle begins. Several dungeon moments can start one:
+  //   choose_path        - hostile monsters attack on arrival
+  //   respond_to_monster - a conversation turned hostile (begin_battle)
+  //   sneak_past         - the party was noticed
+  //   surprise_attack    - the party struck first
+  // They all return a battle_snapshot + battle_intro on completion.
+  const BATTLE_STARTING_WORKFLOWS = ['choose_path', 'respond_to_monster', 'sneak_past', 'surprise_attack'];
+
   useEventSubscription('workflowCompleted', (eventData) => {
     const workflowType = eventData?.workflowItem?.workflowType;
     const result = eventData?.result;
     if (!result?.success) return;
 
-    if (workflowType === 'choose_path' && result.event === 'monster_battle') {
+    if (BATTLE_STARTING_WORKFLOWS.includes(workflowType) && result.battle_snapshot?.in_battle) {
       setBattleIntro(result.battle_intro || null);
       setDisplayedBattle(result.battle_snapshot || null);
       return;

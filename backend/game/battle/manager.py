@@ -21,7 +21,8 @@ _EMPTY_STATE = {
     'in_battle': False,
     'phase': None,          # 'ready'|'awaiting_player_turn'|'awaiting_player_response'|'processing'|'victory'|'defeat'
     'turn_count': 0,
-    'turn_history': [],     # [{'actor', 'action'}] - context for the turn-order LLM
+    'turn_history': [],     # [{'actor', 'side', 'action'}] - context for the turn-order LLM
+    'last_acted': {},       # monster_id(str): turn_count when it last acted - fairness tracking
     'pending_actor': None,  # ally monster_id whose turn awaits player input
     'pending_talk': None,   # {'speaker_id', 'dialogue'} - enemy talk awaiting player response
     'allies': {},           # monster_id(str): {'name', 'condition', 'defending'}
@@ -54,6 +55,7 @@ def start_battle(ally_conditions: Dict[str, Dict[str, Any]], enemy_entries: Dict
         'phase': 'ready',
         'turn_count': 0,
         'turn_history': [],
+        'last_acted': {},
         'allies': {
             str(monster_id): {
                 'name': info.get('name', f'Monster {monster_id}'),
@@ -141,12 +143,28 @@ def set_defending(state: Dict[str, Any], side: str, monster_id: str) -> None:
 
 # ===== TURN TRACKING =====
 
-def record_turn(state: Dict[str, Any], actor_name: str, action: str) -> None:
-    """Track who acted for the turn-order LLM's context (in place)"""
+def record_turn(state: Dict[str, Any], actor_name: str, action: str, actor_id: Any = None, side: str = None) -> None:
+    """
+    Track who acted (in place): the rolling history for the turn-order
+    LLM's context, and per-monster last-acted turns for fairness
+    """
     state['turn_count'] = state.get('turn_count', 0) + 1
     history = state.get('turn_history', [])
-    history.append({'actor': actor_name, 'action': action})
+    history.append({
+        'actor': actor_name,
+        'side': 'party' if side == 'allies' else 'hostile' if side == 'enemies' else None,
+        'action': action
+    })
     state['turn_history'] = history[-TURN_HISTORY_SIZE:]
+
+    if actor_id is not None:
+        last_acted = state.get('last_acted', {})
+        last_acted[str(actor_id)] = state['turn_count']
+        state['last_acted'] = last_acted
+
+def turns_waiting(state: Dict[str, Any], monster_id: Any) -> int:
+    """How many turns since this monster last acted (whole battle if never)"""
+    return state.get('turn_count', 0) - state.get('last_acted', {}).get(str(monster_id), 0)
 
 # ===== ROLLING LOG =====
 

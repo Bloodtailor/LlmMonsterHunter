@@ -1,5 +1,6 @@
 // LlmLogDetails - Displays detailed LLM log information in expanded row
-// Shows model info, parameters, parsing results, and response text
+// Shows the exact prompt sent to the model, model info, parameters,
+// parsing results, and response text
 // Used by AiLogTable when expanding LLM generation logs
 
 import React from 'react';
@@ -65,12 +66,30 @@ function LlmLogDetails({ log }) {
         </CardSection>
       </div>
       
+      {/* The exact prompt the model received (includes the no-think
+          prefill when enabled - stored byte-exact at request time) */}
+      {log.promptText && (
+        <CardSection title='Prompt Sent to LLM'>
+          <Card>
+            <div style={{
+              overflow: 'auto',
+              maxHeight: '300px',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'monospace'
+            }}>
+              {log.promptText}
+            </div>
+          </Card>
+        </CardSection>
+      )}
+
       {/* Response Text */}
       {llmLog.responseText && (
         <CardSection title='Response'>
           <Card >
             <div style={{
               overflow: 'auto',
+              maxHeight: '300px',
               whiteSpace: 'pre-wrap',
               fontFamily: 'monospace'
             }}>

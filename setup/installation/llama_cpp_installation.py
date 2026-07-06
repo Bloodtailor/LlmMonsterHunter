@@ -74,13 +74,15 @@ def install_llama_cpp_source():
     
     try:
         # Set environment variables for CUDA build
+        # NOTE: modern llama.cpp uses -DGGML_CUDA=on (the old -DLLAMA_CUDA=on
+        # is ignored by current versions and silently yields a CPU-only build).
         env_vars = os.environ.copy()
-        env_vars["CMAKE_ARGS"] = "-DLLAMA_CUDA=on"
+        env_vars["CMAKE_ARGS"] = "-DGGML_CUDA=on"
         env_vars["FORCE_CMAKE"] = "1"
-        
+
         # Build from source with CUDA
         subprocess.run([
-            str(pip_path), "install", "llama-cpp-python", 
+            str(pip_path), "install", "llama-cpp-python",
             "--force-reinstall", "--no-cache-dir"
         ], env=env_vars, capture_output=True, text=True, check=True)
         
@@ -94,26 +96,35 @@ def install_llama_cpp_source():
 
 def install_llama_cpp_wheel():
     """
-    Method 3: Install from CUDA wheel repository.
-    
+    Method 3: Install the newest prebuilt CUDA wheel from the abetlen index.
+
+    This is the most reliable method on Windows: it downloads a ready-built
+    CUDA wheel (no compiler, no CUDA toolkit, no MAX_PATH source-build issues)
+    and the wheel bundles its own CUDA runtime, so it works on any recent
+    NVIDIA driver. The cu124 index carries the newest Windows wheels; a cu124
+    wheel runs fine on newer CUDA drivers (12.4+) thanks to backward compat.
+
     Returns:
         tuple: (success, message)
     """
     pip_path = Path("venv/Scripts/pip.exe")
-    
+
     if not pip_path.exists():
         return False, "Virtual environment pip not found"
-    
+
     try:
-        # Install from CUDA wheel repository
+        # Install the newest prebuilt CUDA wheel. --only-binary makes pip refuse
+        # to fall back to a source build (which would try to compile and can hit
+        # Windows' 260-char path limit on the vendored llama.cpp tree).
         subprocess.run([
             str(pip_path), "install", "llama-cpp-python",
-            "--extra-index-url", "https://abetlen.github.io/llama-cpp-python/whl/cu121",
-            "--force-reinstall"
+            "--extra-index-url", "https://abetlen.github.io/llama-cpp-python/whl/cu124",
+            "--only-binary", "llama-cpp-python",
+            "--force-reinstall", "--no-cache-dir"
         ], capture_output=True, text=True, check=True)
-        
-        return True, "Successfully installed from CUDA wheel repository"
-        
+
+        return True, "Successfully installed newest prebuilt CUDA wheel (cu124 index)"
+
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr.strip() if e.stderr else "Unknown installation error"
         return False, f"CUDA wheel installation failed: {error_msg}"
@@ -157,10 +168,14 @@ def install_llama_cpp_with_cuda():
     Returns:
         tuple: (success, message) with details about which method succeeded or all failures
     """
+    # Prebuilt CUDA wheel first: on Windows it's the most reliable path and
+    # pulls the NEWEST version without needing a compiler or CUDA toolkit.
+    # Source build is last resort (needs MSVC + CUDA, and Windows long-path
+    # support enabled for the deeply-nested vendored llama.cpp tree).
     methods = [
+        ("CUDA wheel repository", install_llama_cpp_wheel),
         ("Pre-built CUDA package", install_llama_cpp_prebuilt),
-        ("Source build with CUDA", install_llama_cpp_source),
-        ("CUDA wheel repository", install_llama_cpp_wheel)
+        ("Source build with CUDA", install_llama_cpp_source)
     ]
     
     failed_methods = []

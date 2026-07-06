@@ -1,0 +1,68 @@
+/* DungeonContextPanel Styles - mirror of the streaming display, LEFT side */
+
+/* ===== MAIN PANEL POSITIONING ===== */
+.debug-panel {
+  position: fixed;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  width: 520px;
+  max-width: 90vw;
+  z-index: 1000;
+  transition: all 0.3s ease-in-out;
+}
+
+.debug-panel-minimized {
+  width: 240px; /* Collapsed width */
+}
+
+/* ===== HEADER (ALWAYS VISIBLE) ===== */
+.debug-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--background-light);
+  border: var(--border-width-thin) solid var(--background-light);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.debug-panel-header:hover {
+  background: var(--primary-color);
+  color: var(--text-light);
+}
+
+.debug-panel-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* ===== CONTEXT BLOCKS ===== */
+/* Each block renders EXACTLY the text the LLM prompts receive */
+.debug-context-block {
+  background: var(--background-dark);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+}
+
+.debug-panel-scroll {
+  max-height: 75vh;
+  overflow: auto;
+}
+
+.debug-panel-note {
+  color: var(--text-dim);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}

@@ -67,8 +67,10 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
         # Call callback with initial empty state
         if callback:
             callback("")
-        
+
         # Create the streaming generator with all parameters
+        # (the no-think prefill for reasoning models is applied upstream in
+        # the gateway, BEFORE logging, so prompt_text records exact input)
         stream = model(
             prompt,
             stream=True,  # Enable streaming!
