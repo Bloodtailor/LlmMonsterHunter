@@ -2,21 +2,20 @@
 # Validates all inputs and delegates to game logic / workflows
 # Single source of truth for battle business rules
 
-from typing import Dict, Any, List
+from typing import Dict, Any, Optional
 from backend.game.battle import manager
-from backend.game.battle.constants import INCAPACITATED
+from backend.game.battle.constants import INCAPACITATED, PLAYER_TEXT_MAX_CHARS
 from backend.core.utils import error_response, success_response
 from backend.workflow.workflow_gateway import request_workflow
 from backend.models.monster import Monster
 
-VALID_ACTIONS = ('attack', 'ability', 'defend')
+VALID_ACTION_TYPES = ('attack', 'ability', 'defend', 'custom', 'talk')
 
-def submit_round(actions: List[Dict[str, Any]]) -> Dict[str, Any]:
+def take_turn(action: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Submit the player's actions for this round with validation
-    Trust boundary: validates battle phase, one action per able ally,
-    action types, ability ownership, and living targets - then queues
-    the battle_round workflow
+    Take a battle turn with validation
+    Phase 'ready': no action needed (opening initiative)
+    Phase 'awaiting_player_turn': an action for the pending ally is required
     """
 
     state = manager.get_battle_state()
@@ -24,66 +23,92 @@ def submit_round(actions: List[Dict[str, Any]]) -> Dict[str, Any]:
     if not state.get('in_battle'):
         return error_response("Not currently in a battle")
 
-    if state.get('phase') != 'selecting':
-        return error_response(f"Battle is not awaiting actions (phase: {state.get('phase')})")
+    phase = state.get('phase')
 
-    if not isinstance(actions, list):
-        return error_response("actions must be a list")
+    if phase == 'ready':
+        # Opening initiative - no action expected
+        pass
 
-    allies = state.get('allies', {})
-    enemies = state.get('enemies', {})
+    elif phase == 'awaiting_player_turn':
+        pending_actor = str(state.get('pending_actor'))
+        allies = state.get('allies', {})
+        enemies = state.get('enemies', {})
 
-    able_allies = {
-        monster_id for monster_id, entry in allies.items()
-        if entry.get('condition') != INCAPACITATED
-    }
+        if not action or not isinstance(action, dict):
+            return error_response(f"It is {allies.get(pending_actor, {}).get('name', 'your monster')}'s turn - an action is required")
 
-    seen = set()
-    for raw in actions:
-        monster_id = str(raw.get('monster_id'))
+        action_type = action.get('type')
+        if action_type not in VALID_ACTION_TYPES:
+            return error_response(f"Invalid action type '{action_type}'. Valid: {list(VALID_ACTION_TYPES)}")
 
-        if monster_id not in allies:
-            return error_response(f"Monster {monster_id} is not in your party for this battle")
-        if monster_id not in able_allies:
-            return error_response(f"{allies[monster_id].get('name')} is incapacitated and cannot act")
-        if monster_id in seen:
-            return error_response(f"Duplicate action for {allies[monster_id].get('name')}")
-        seen.add(monster_id)
+        if action_type == 'ability':
+            monster = Monster.get_monster_by_id(int(pending_actor))
+            if not monster or not any(a.id == action.get('ability_id') for a in monster.abilities):
+                return error_response("That monster does not have that ability")
 
-        action = raw.get('action')
-        if action not in VALID_ACTIONS:
-            return error_response(f"Invalid action '{action}'. Valid: {list(VALID_ACTIONS)}")
-
-        if action == 'ability':
-            ability_id = raw.get('ability_id')
-            monster = Monster.get_monster_by_id(int(monster_id))
-            if not monster or not any(a.id == ability_id for a in monster.abilities):
-                return error_response(f"{allies[monster_id].get('name')} does not have that ability")
-
-        if action in ('attack', 'ability'):
-            target_id = str(raw.get('target_id')) if raw.get('target_id') is not None else None
+        if action_type in ('attack', 'ability'):
+            target_id = str(action.get('target_id')) if action.get('target_id') is not None else None
             if not target_id or (target_id not in enemies and target_id not in allies):
-                return error_response(f"Action for {allies[monster_id].get('name')} needs a valid target")
-            # Attacks must aim at living enemies
-            if action == 'attack':
+                return error_response("This action needs a valid target")
+            if action_type == 'attack':
                 if target_id not in enemies:
                     return error_response("Attacks must target an enemy")
-                if enemies[target_id].get('condition') == INCAPACITATED:
-                    return error_response(f"{enemies[target_id].get('name')} is already down")
+                enemy = enemies[target_id]
+                if enemy.get('condition') == INCAPACITATED or enemy.get('fled'):
+                    return error_response(f"{enemy.get('name')} is already out of the fight")
 
-    if seen != able_allies:
-        missing = [allies[m].get('name') for m in able_allies - seen]
-        return error_response(f"Every able party member needs an action. Missing: {missing}")
+        if action_type in ('custom', 'talk'):
+            text = str(action.get('text') or '').strip()
+            if not text:
+                return error_response(f"A {action_type} action needs text")
+            if len(text) > PLAYER_TEXT_MAX_CHARS:
+                return error_response(f"Text too long (max {PLAYER_TEXT_MAX_CHARS} characters)")
+            info = str(action.get('info') or '')
+            if len(info) > PLAYER_TEXT_MAX_CHARS:
+                return error_response(f"Additional info too long (max {PLAYER_TEXT_MAX_CHARS} characters)")
+
+    else:
+        return error_response(f"Battle is not awaiting a turn (phase: {phase})")
 
     success, workflow_id = request_workflow(
-        workflow_type="battle_round",
-        context={"actions": actions}
+        workflow_type="battle_turn",
+        context={"player_action": action, "player_response": None}
     )
 
     if success:
         return success_response({'workflow_id': workflow_id})
     else:
-        return error_response("Failed to queue battle round workflow")
+        return error_response("Failed to queue battle turn workflow")
+
+def respond_to_talk(response: str) -> Dict[str, Any]:
+    """
+    Reply to an enemy's battlefield talk with validation
+    Phase must be 'awaiting_player_response'
+    """
+
+    state = manager.get_battle_state()
+
+    if not state.get('in_battle'):
+        return error_response("Not currently in a battle")
+
+    if state.get('phase') != 'awaiting_player_response':
+        return error_response("No enemy is waiting for a response")
+
+    text = str(response or '').strip()
+    if not text:
+        return error_response("A response is required")
+    if len(text) > PLAYER_TEXT_MAX_CHARS:
+        return error_response(f"Response too long (max {PLAYER_TEXT_MAX_CHARS} characters)")
+
+    success, workflow_id = request_workflow(
+        workflow_type="battle_turn",
+        context={"player_action": None, "player_response": text}
+    )
+
+    if success:
+        return success_response({'workflow_id': workflow_id})
+    else:
+        return error_response("Failed to queue battle turn workflow")
 
 def get_battle_state() -> Dict[str, Any]:
     """Public battle snapshot - nothing hidden in battles"""

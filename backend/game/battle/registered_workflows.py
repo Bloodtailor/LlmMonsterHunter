@@ -3,49 +3,49 @@ print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 import random
 from backend.core.workflow_registry import register_workflow
 from backend.core.utils.responses import success_response, error_response
-from backend.core.utils.validation import require_keys
-from typing import Callable, Dict, Any, List, Optional
+from typing import Callable, Dict, Any, Optional
 
 @register_workflow()
-def battle_round(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
     """
-    Process one battle round: enemy action selection, then every action
-    resolved sequentially by the LLM referee. Python owns conditions,
-    ordering, and the outcome; the LLM narrates and judges impacts.
+    Process battle turns, one monster at a time. Resolves the player's
+    input (an ally's turn or a reply to enemy talk), then advances -
+    the LLM directs turn order - resolving enemy turns until it is an
+    ally's turn again, someone starts talking, or the battle ends.
     """
 
-    workflow_name = 'battle_round'
-    # "context" should have the following keys:
-    # actions: [{monster_id, action: 'attack'|'ability'|'defend', ability_id?, target_id?}]
-    required_keys = ["actions"]
+    workflow_name = 'battle_turn'
+    # "context" may have: player_action {...} or player_response str
 
-    # Set the initial conditions
     step = "initialize_workflow"
     progress_data = {}
 
     try:
         from backend.game.battle import manager as battle
+        from backend.game.battle.constants import MAX_CONSECUTIVE_ENEMY_TURNS
         from backend.game.battle.generator import (
             build_monster_battle_details,
             build_side_details,
-            generate_enemy_actions,
+            build_combatant_summary,
+            generate_next_turn,
+            generate_enemy_turn,
             resolve_action,
+            resolve_freeform_action,
+            generate_battle_talk,
             generate_battle_outcome_text
         )
         from backend.game.dungeon import manager as dungeon
+        from backend.game.state.manager import get_party_details
         from backend.models.monster import Monster
+        from backend.models.following_monsters import FollowingMonster
 
-        # Step 0 - validate required keys and battle phase
         step = "validate_context"
         on_update(step, progress_data)
-        require_keys(context, required_keys)
 
         state = battle.get_battle_state()
-        if not state.get('in_battle') or state.get('phase') != 'selecting':
-            raise Exception("No battle awaiting action selection")
-
-        state['phase'] = 'processing'
-        battle.save_battle_state(state)
+        phase = state.get('phase')
+        if not state.get('in_battle') or phase not in ('ready', 'awaiting_player_turn', 'awaiting_player_response'):
+            raise Exception(f"Battle is not awaiting input (phase: {phase})")
 
         # Load Monster objects for everyone in the battle
         monsters = {}
@@ -55,10 +55,10 @@ def battle_round(context: dict, on_update: Callable[[str, Dict[str, Any]], None]
 
         location = dungeon.get_current_location() or {'name': 'the dungeon', 'description': ''}
 
-        # ===== HELPERS (shared by both sides) =====
+        # ===== SHARED HELPERS =====
 
-        def alive_ids(side):
-            return [mid for mid in state.get(side, {}) if not battle.is_incapacitated(state, side, mid)]
+        def entry_name(side, monster_id):
+            return state.get(side, {}).get(str(monster_id), {}).get('name', 'Unknown')
 
         def find_side(monster_id):
             for side in ('allies', 'enemies'):
@@ -66,245 +66,366 @@ def battle_round(context: dict, on_update: Callable[[str, Dict[str, Any]], None]
                     return side
             return None
 
-        def entry_name(side, monster_id):
-            return state.get(side, {}).get(str(monster_id), {}).get('name', 'Unknown')
+        def find_by_name(name, sides=('allies', 'enemies')):
+            """Resolve a monster name (LLM output) to (side, id) among active fighters"""
+            wanted = str(name or '').strip().lower()
+            for side in sides:
+                for monster_id in battle.active_ids(state, side):
+                    if entry_name(side, monster_id).strip().lower() == wanted:
+                        return side, monster_id
+            return None, None
 
-        def normalize_player_action(raw) -> Optional[Dict[str, Any]]:
-            monster_id = str(raw.get('monster_id'))
-            if monster_id not in state.get('allies', {}):
-                return None
-            action = raw.get('action')
-            ability = None
-            if action == 'ability':
-                ability_id = raw.get('ability_id')
-                monster = monsters.get(monster_id)
-                ability = next((a for a in (monster.abilities if monster else []) if a.id == ability_id), None)
-                if not ability:
-                    action = 'attack'  # unknown ability - degrade gracefully
-            target_id = str(raw.get('target_id')) if raw.get('target_id') is not None else None
-            return {
-                'side': 'allies', 'monster_id': monster_id, 'action': action,
-                'ability': ability, 'target_id': target_id, 'target_side': find_side(target_id) if target_id else None
-            }
+        def details_of(side, monster_id):
+            monster = monsters.get(str(monster_id))
+            if monster:
+                return build_monster_battle_details(monster, state[side][str(monster_id)])
+            return entry_name(side, monster_id)
 
-        def normalize_enemy_action(raw) -> Optional[Dict[str, Any]]:
-            """Resolve the LLM's name-based enemy action to real monsters"""
-            name = str(raw.get('name', '')).strip().lower()
-            monster_id = next(
-                (mid for mid in state.get('enemies', {})
-                 if entry_name('enemies', mid).strip().lower() == name),
-                None
-            )
-            if not monster_id or battle.is_incapacitated(state, 'enemies', monster_id):
-                return None
+        def emit_turn(entry: Dict[str, Any]):
+            """One resolved turn for the frontend's click-through log"""
+            entry['battle_snapshot'] = battle.get_battle_snapshot(state)
+            on_update("action_resolved", {"action_result": entry})
 
-            action = str(raw.get('action', 'attack')).strip().lower()
-            if action not in ('attack', 'ability', 'defend'):
-                action = 'attack'
+        def apply_talk_decision(decision: str):
+            """Turn a negotiation decision into a battle ending (or not)"""
+            if decision == 'enemies_join':
+                joined = []
+                for monster_id in battle.active_ids(state, 'enemies'):
+                    FollowingMonster.add_follower(int(monster_id))
+                    joined.append(entry_name('enemies', monster_id))
+                return 'victory', 'joined', joined
+            if decision == 'enemies_yield':
+                return 'victory', 'yielded', []
+            if decision == 'enemies_flee':
+                for monster_id in battle.active_ids(state, 'enemies'):
+                    battle.mark_fled(state, monster_id)
+                return 'victory', 'fled', []
+            if decision == 'party_spared':
+                return 'defeat', 'spared', []
+            return 'unresolved', None, []
 
-            ability = None
-            if action == 'ability':
-                ability_name = str(raw.get('ability_name') or '').strip().lower()
-                monster = monsters.get(monster_id)
-                ability = next(
-                    (a for a in (monster.abilities if monster else []) if a.name.strip().lower() == ability_name),
-                    None
-                )
-                if not ability:
-                    action = 'attack'
+        def resolve_combat_turn(side, actor_id, action, ability, target_side, target_id):
+            """Resolve one attack/ability/defend turn via the referee"""
+            actor_name = entry_name(side, actor_id)
 
-            target_id, target_side = None, None
-            if action != 'defend':
-                target_name = str(raw.get('target') or '').strip().lower()
-                for side in ('allies', 'enemies'):
-                    match = next(
-                        (mid for mid in state.get(side, {})
-                         if entry_name(side, mid).strip().lower() == target_name),
-                        None
-                    )
-                    if match:
-                        target_id, target_side = match, side
-                        break
-                if not target_id:
-                    living = alive_ids('allies')
-                    if living:
-                        target_id, target_side = random.choice(living), 'allies'
-
-            return {
-                'side': 'enemies', 'monster_id': monster_id, 'action': action,
-                'ability': ability, 'target_id': target_id, 'target_side': target_side
-            }
-
-        def fallback_enemy_action(monster_id) -> Dict[str, Any]:
-            living = alive_ids('allies')
-            return {
-                'side': 'enemies', 'monster_id': monster_id, 'action': 'attack', 'ability': None,
-                'target_id': random.choice(living) if living else None,
-                'target_side': 'allies' if living else None
-            }
-
-        # ===== STEP 1: enemy action selection =====
-        step = "select_enemy_actions"
-        on_update(step, progress_data)
-
-        enemy_details = build_side_details(monsters, state.get('enemies', {}))
-        ally_details = build_side_details(monsters, state.get('allies', {}))
-        raw_enemy_actions = generate_enemy_actions(state, enemy_details, ally_details, workflow_name)
-
-        enemy_actions = {}
-        for raw in raw_enemy_actions:
-            normalized = normalize_enemy_action(raw)
-            if normalized:
-                enemy_actions[normalized['monster_id']] = normalized
-        # Every living enemy acts - fill any the LLM missed
-        for monster_id in alive_ids('enemies'):
-            if monster_id not in enemy_actions:
-                enemy_actions[monster_id] = fallback_enemy_action(monster_id)
-
-        player_actions = [a for a in map(normalize_player_action, context['actions']) if a]
-
-        # ===== STEP 2: defending takes effect for the whole round =====
-        battle.clear_defending_all(state)
-        all_actions = player_actions + list(enemy_actions.values())
-        for act in all_actions:
-            if act['action'] == 'defend':
-                battle.set_defending(state, act['side'], act['monster_id'])
-        battle.save_battle_state(state)
-
-        # ===== STEP 3: order by speed (Python sequencing) =====
-        def speed_of(act):
-            monster = monsters.get(act['monster_id'])
-            return monster.speed if monster else 0
-        queue = sorted(all_actions, key=speed_of, reverse=True)
-
-        # ===== STEP 4: resolve sequentially =====
-        step = "resolve_actions"
-        outcome = 'unresolved'
-
-        for act in queue:
-            side, monster_id = act['side'], act['monster_id']
-            actor_name = entry_name(side, monster_id)
-
-            # Fallen mid-round - they lose their action (no LLM call needed)
-            if battle.is_incapacitated(state, side, monster_id):
-                on_update("action_resolved", {"action_result": {
-                    'narration': f"{actor_name} lies incapacitated and cannot act.",
-                    'actor_name': actor_name, 'action': 'skipped', 'ability_name': None,
-                    'target_name': None, 'impact': 'none',
-                    'battle_snapshot': battle.get_battle_snapshot(state)
-                }})
-                continue
-
-            # Attacks retarget if the chosen target already fell (heals may
-            # still target the fallen - that's revival, and it's earned)
-            target_id, target_side = act['target_id'], act['target_side']
-            if act['action'] != 'defend' and target_id:
-                target_down = battle.is_incapacitated(state, target_side, target_id)
-                is_offensive = target_side != side
-                if target_down and is_offensive:
-                    living = alive_ids('enemies' if side == 'allies' else 'allies')
-                    if living:
-                        target_id = random.choice(living)
-                        target_side = 'enemies' if side == 'allies' else 'allies'
-
-            # Build the referee's inputs
-            actor_monster = monsters.get(monster_id)
-            actor_details = build_monster_battle_details(actor_monster, state[side][monster_id]) if actor_monster else actor_name
-
-            if act['action'] == 'defend':
+            if action == 'defend':
+                target_side, target_id = side, actor_id
                 action_description = f"{actor_name} takes a defensive stance, bracing against incoming attacks."
-                target_id, target_side = monster_id, side  # self
-            elif act['action'] == 'ability' and act['ability']:
+            elif action == 'ability' and ability:
                 action_description = (
-                    f"{actor_name} uses the ability '{act['ability'].name}': {act['ability'].description} "
+                    f"{actor_name} uses the ability '{ability.name}': {ability.description} "
                     f"Target: {entry_name(target_side, target_id)}"
                 )
             else:
+                action = 'attack'
                 action_description = f"{actor_name} performs a basic attack on {entry_name(target_side, target_id)}"
 
-            target_monster = monsters.get(target_id)
-            target_details = (
-                build_monster_battle_details(target_monster, state[target_side][target_id])
-                if target_monster else entry_name(target_side, target_id)
-            )
-
             target_name = entry_name(target_side, target_id)
-            fallback_narration = f"{actor_name} strikes at {target_name}, landing a solid blow."
-
             resolution = resolve_action(
-                location, actor_details, action_description, target_details,
-                state, workflow_name, fallback_narration
+                location, details_of(side, actor_id), action_description,
+                details_of(target_side, target_id), state, workflow_name,
+                f"{actor_name} strikes at {target_name}, landing a solid blow."
             )
 
-            # Python guardrails: defends never harm, self-narrations can't hurt the actor
-            impact = resolution['impact']
-            if act['action'] == 'defend':
-                impact = 'none'
+            impact = 'none' if action == 'defend' else resolution['impact']
+            if action == 'defend':
+                battle.set_defending(state, side, actor_id)
 
             new_condition = battle.apply_impact(state, target_side, target_id, impact)
             battle.append_log(state, resolution['narration'])
+            battle.record_turn(state, actor_name, action)
             battle.save_battle_state(state)
 
-            on_update("action_resolved", {"action_result": {
-                'narration': resolution['narration'],
-                'actor_name': actor_name,
-                'action': act['action'],
-                'ability_name': act['ability'].name if act.get('ability') else None,
-                'target_name': target_name,
-                'impact': impact,
-                'target_condition': new_condition,
-                'battle_snapshot': battle.get_battle_snapshot(state)
-            }})
+            emit_turn({
+                'narration': resolution['narration'], 'actor_name': actor_name,
+                'action': action, 'ability_name': ability.name if ability else None,
+                'target_name': target_name, 'impact': impact,
+                'target_condition': new_condition, 'dialogue': None
+            })
 
-            # An action that ends the battle skips the rest (design 1.3.3)
+        def resolve_talk_exchange(exchange: str, initiator_name: str, spoken: str):
+            """Run the negotiation adjudicator and apply its decision"""
+            talk = generate_battle_talk(
+                location,
+                build_side_details(monsters, state.get('enemies', {})),
+                build_side_details(monsters, state.get('allies', {})),
+                exchange, state, workflow_name
+            )
+            battle.append_log(state, f'{initiator_name} spoke: "{spoken}" The reply: "{talk["response"]}"')
+            battle.record_turn(state, initiator_name, 'talk')
+            battle.save_battle_state(state)
+
+            emit_turn({
+                'narration': talk['response'], 'actor_name': initiator_name,
+                'action': 'talk', 'ability_name': None, 'target_name': None,
+                'impact': 'none', 'target_condition': None, 'dialogue': spoken
+            })
+            return apply_talk_decision(talk['decision'])
+
+        outcome, resolution, joined_names = 'unresolved', None, []
+
+        # ===== PHASE A: resolve the player's input =====
+
+        if phase == 'awaiting_player_turn':
+            step = "resolve_player_turn"
+            on_update(step, progress_data)
+
+            player_action = context.get('player_action')
+            actor_id = str(state.get('pending_actor'))
+            if not player_action or actor_id not in state.get('allies', {}):
+                raise Exception("No valid player action for the pending turn")
+
+            state['pending_actor'] = None
+            state['phase'] = 'processing'
+            battle.clear_defending(state, 'allies', actor_id)  # stance ends as the turn begins
+            battle.save_battle_state(state)
+
+            actor_name = entry_name('allies', actor_id)
+            action_type = player_action.get('type')
+
+            if action_type in ('attack', 'ability', 'defend'):
+                ability = None
+                if action_type == 'ability':
+                    monster = monsters.get(actor_id)
+                    ability = next(
+                        (a for a in (monster.abilities if monster else []) if a.id == player_action.get('ability_id')),
+                        None
+                    )
+                    if not ability:
+                        action_type = 'attack'
+                target_id = str(player_action.get('target_id')) if player_action.get('target_id') is not None else None
+                target_side = find_side(target_id) if target_id else None
+                resolve_combat_turn('allies', actor_id, action_type, ability, target_side, target_id)
+
+            elif action_type == 'custom':
+                target_id = str(player_action.get('target_id')) if player_action.get('target_id') is not None else None
+                target_name = entry_name(find_side(target_id), target_id) if target_id else ''
+                result = resolve_freeform_action(
+                    location, details_of('allies', actor_id),
+                    str(player_action.get('text', '')), target_name,
+                    str(player_action.get('info', '')), state, workflow_name
+                )
+
+                # Apply the impact to the referee's named target (validated)
+                impact, impacted_side, impacted_id = result['impact'], None, None
+                if result['possible'] and impact != 'none':
+                    impacted_side, impacted_id = find_by_name(result.get('impact_target'))
+                    if not impacted_id and target_id:
+                        impacted_side, impacted_id = find_side(target_id), target_id
+                new_condition = battle.apply_impact(state, impacted_side, impacted_id, impact) if impacted_id else None
+
+                battle.append_log(state, result['narration'])
+                battle.record_turn(state, actor_name, 'custom action' if result['possible'] else 'a failed attempt')
+                battle.save_battle_state(state)
+
+                emit_turn({
+                    'narration': result['narration'], 'actor_name': actor_name,
+                    'action': 'custom' if result['possible'] else 'skipped',
+                    'ability_name': None,
+                    'target_name': entry_name(impacted_side, impacted_id) if impacted_id else None,
+                    'impact': impact if impacted_id else 'none',
+                    'target_condition': new_condition, 'dialogue': None
+                })
+
+            elif action_type == 'talk':
+                spoken = str(player_action.get('text', ''))
+                outcome, resolution, joined_names = resolve_talk_exchange(
+                    f'The adventuring party says to the hostile monsters: "{spoken}"',
+                    actor_name, spoken
+                )
+
+            else:
+                raise Exception(f"Unknown player action type: {action_type}")
+
+        elif phase == 'awaiting_player_response':
+            step = "resolve_player_response"
+            on_update(step, progress_data)
+
+            player_response = str(context.get('player_response') or '')
+            pending_talk = state.get('pending_talk') or {}
+            speaker_name = entry_name('enemies', pending_talk.get('speaker_id'))
+            if not player_response:
+                raise Exception("No player response for the pending talk")
+
+            state['pending_talk'] = None
+            state['phase'] = 'processing'
+            battle.save_battle_state(state)
+
+            outcome, resolution, joined_names = resolve_talk_exchange(
+                f'{speaker_name} said to the adventuring party: "{pending_talk.get("dialogue", "")}"\n'
+                f'The party replied: "{player_response}"',
+                'The party', player_response
+            )
+
+        else:  # 'ready' - opening initiative, straight to the advance loop
+            state['phase'] = 'processing'
+            battle.save_battle_state(state)
+
+        # Combat may have decided things already
+        if outcome == 'unresolved':
             outcome = battle.derive_outcome(state)
             if outcome != 'unresolved':
-                break
+                resolution = 'combat'
 
-        # ===== STEP 5: round / battle outcome =====
-        step = "determine_outcome"
-        on_update(step, progress_data)
+        # ===== PHASE B: advance until an ally's turn or the battle ends =====
 
-        outcome_text = None
-        if outcome in ('victory', 'defeat'):
-            from backend.game.state.manager import get_party_details
+        step = "advance_turns"
+        consecutive_enemy_turns = 0
 
-            outcome_text = generate_battle_outcome_text(
-                outcome, location, get_party_details(),
+        while outcome == 'unresolved':
+
+            # The turn director picks who acts next (pure LLM choice,
+            # with one softlock valve so the player always gets to act)
+            force_ally = consecutive_enemy_turns >= MAX_CONSECUTIVE_ENEMY_TURNS
+            picked = generate_next_turn(build_combatant_summary(monsters, state), state, workflow_name)
+            side, actor_id = find_by_name(picked, sides=('allies',) if force_ally else ('allies', 'enemies'))
+
+            if not actor_id:
+                # Fallback: least-recently-acted, fastest first
+                recent = [t.get('actor') for t in state.get('turn_history', [])]
+                candidates = []
+                for s in (('allies',) if force_ally else ('allies', 'enemies')):
+                    for mid in battle.active_ids(state, s):
+                        name = entry_name(s, mid)
+                        last_acted = max((i for i, r in enumerate(recent) if r == name), default=-1)
+                        speed = monsters[mid].speed if monsters.get(mid) else 0
+                        candidates.append((last_acted, -speed, s, mid))
+                if not candidates:
+                    break
+                candidates.sort()
+                _, _, side, actor_id = candidates[0]
+
+            if side == 'allies':
+                # The player's monster - hand control back
+                state['pending_actor'] = actor_id
+                state['phase'] = 'awaiting_player_turn'
+                battle.save_battle_state(state)
+                return success_response({
+                    "pending": "player_turn",
+                    "pending_actor": actor_id,
+                    "pending_actor_name": entry_name('allies', actor_id),
+                    "battle_snapshot": battle.get_battle_snapshot(state)
+                })
+
+            # An enemy's turn
+            consecutive_enemy_turns += 1
+            actor_name = entry_name('enemies', actor_id)
+            battle.clear_defending(state, 'enemies', actor_id)
+
+            raw = generate_enemy_turn(
+                details_of('enemies', actor_id),
+                build_side_details(monsters, state.get('allies', {})),
                 build_side_details(monsters, state.get('enemies', {})),
                 state, workflow_name
             )
+            action = str(raw.get('action', 'attack')).strip().lower()
+            if action not in ('attack', 'ability', 'defend', 'talk', 'flee'):
+                action = 'attack'
 
-            # Battle damage persists in the run
-            dungeon.set_party_conditions({
-                monster_id: entry.get('condition', 'fresh')
-                for monster_id, entry in state.get('allies', {}).items()
-            })
+            if action == 'talk':
+                dialogue = str(raw.get('dialogue') or '').strip()
+                if dialogue:
+                    state['pending_talk'] = {'speaker_id': actor_id, 'dialogue': dialogue}
+                    state['phase'] = 'awaiting_player_response'
+                    battle.record_turn(state, actor_name, 'talk')
+                    battle.save_battle_state(state)
+                    return success_response({
+                        "pending": "player_response",
+                        "pending_talk": {"speaker_name": actor_name, "dialogue": dialogue},
+                        "battle_snapshot": battle.get_battle_snapshot(state)
+                    })
+                action = 'attack'  # talk without words - degrade
 
-            state['phase'] = outcome
-            battle.save_battle_state(state)
+            if action == 'flee':
+                battle.mark_fled(state, actor_id)
+                narration = f"{actor_name} breaks away from the fight and vanishes into the shadows of {location.get('name', 'the dungeon')}."
+                battle.append_log(state, narration)
+                battle.record_turn(state, actor_name, 'flee')
+                battle.save_battle_state(state)
+                emit_turn({
+                    'narration': narration, 'actor_name': actor_name, 'action': 'flee',
+                    'ability_name': None, 'target_name': None, 'impact': 'none',
+                    'target_condition': None, 'dialogue': None
+                })
+            else:
+                ability = None
+                if action == 'ability':
+                    monster = monsters.get(actor_id)
+                    wanted = str(raw.get('ability_name') or '').strip().lower()
+                    ability = next(
+                        (a for a in (monster.abilities if monster else []) if a.name.strip().lower() == wanted),
+                        None
+                    )
+                    if not ability:
+                        action = 'attack'
 
-            if outcome == 'defeat':
-                # The run is over - clear everything backend-side
-                battle.end_battle()
-                dungeon.exit_dungeon()
-        else:
-            battle.next_round()
+                target_side, target_id = (None, None)
+                if action != 'defend':
+                    target_side, target_id = find_by_name(raw.get('target'))
+                    if not target_id or (target_side == 'enemies' and action == 'attack'):
+                        living = battle.active_ids(state, 'allies')
+                        if not living:
+                            break
+                        target_side, target_id = 'allies', random.choice(living)
+
+                resolve_combat_turn('enemies', actor_id, action, ability, target_side, target_id)
+
+            outcome = battle.derive_outcome(state)
+            if outcome != 'unresolved':
+                resolution = 'combat'
+
+        # ===== ENDING =====
+
+        step = "determine_outcome"
+        on_update(step, progress_data)
+
+        if outcome not in ('victory', 'defeat'):
+            raise Exception("Battle advance loop ended without an outcome")
+
+        resolution = resolution or 'combat'
+        outcome_text = generate_battle_outcome_text(
+            outcome, resolution, location, get_party_details(),
+            build_side_details(monsters, state.get('enemies', {})),
+            state, workflow_name
+        )
+
+        # Battle damage persists in the run
+        dungeon.set_party_conditions({
+            monster_id: entry.get('condition', 'fresh')
+            for monster_id, entry in state.get('allies', {}).items()
+        })
+
+        state['phase'] = outcome
+        state['resolution'] = resolution
+        state['pending_actor'] = None
+        state['pending_talk'] = None
+        battle.save_battle_state(state)
+
+        if outcome == 'defeat':
+            # The run is over - clear everything backend-side
+            battle.end_battle()
+            dungeon.exit_dungeon()
 
         return success_response({
             "outcome": outcome,
+            "resolution": resolution,
+            "joined_names": joined_names,
             "outcome_text": outcome_text,
-            "round": battle.get_battle_state().get('round', 0),
             "battle_snapshot": battle.get_battle_snapshot()
         })
 
     except Exception as e:
-        # Unstick the battle so the player can retry the round
+        # Unstick the battle so the player can retry
         try:
             from backend.game.battle import manager as battle
             recovery = battle.get_battle_state()
-            if recovery.get('in_battle'):
-                recovery['phase'] = 'selecting'
+            if recovery.get('in_battle') and recovery.get('phase') == 'processing':
+                if recovery.get('pending_talk'):
+                    recovery['phase'] = 'awaiting_player_response'
+                elif recovery.get('pending_actor'):
+                    recovery['phase'] = 'awaiting_player_turn'
+                else:
+                    recovery['phase'] = 'ready'
                 battle.save_battle_state(recovery)
         except Exception:
             pass
