@@ -28,10 +28,17 @@ on exit.
 
 **The dungeon log.** Everything that happens in a run (arrivals, encounters,
 exchanges, ability uses, camps, battle summaries) is recorded backend-side in
-`dungeon_state.dungeon_log` and fed — clamped to a character budget
-(`backend/game/utils/context_limits.py`) — into every dungeon LLM generation,
-so the story stays coherent across the run. Battles keep their own detailed
-rolling log; only a compact summary of each battle lands in the dungeon log.
+`dungeon_state.dungeon_log` and fed into every dungeon LLM generation, so the
+story stays coherent across the run. Battles keep their own detailed rolling
+log (turn-numbered); when a battle ends, the LLM writes a summary of it
+(including lasting effects) into the dungeon log.
+
+**Token-aware context budgets.** Prompt context blocks are clamped by
+`backend/game/utils/context_limits.py`, which scales budgets from the loaded
+model's `LLM_CONTEXT_SIZE` (.env): required blocks (party/monster details)
+are never truncated; flexible blocks (dungeon log, battle log, dialogue,
+turn history) each get a percentage share of the window and keep their most
+recent content. Bigger models automatically get richer prompts.
 
 **Party abilities anywhere.** While in the dungeon (outside battle), any party
 monster can use any of its abilities on anything — a path, a monster, the

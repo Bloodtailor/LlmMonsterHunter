@@ -20,7 +20,8 @@ SIDE_LABELS = {
 }
 
 def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = None) -> str:
-    """One monster as LLM context: identity, SIDE, condition, and abilities"""
+    """One monster as FULL LLM context: identity, SIDE, condition, stats,
+    backstory, personality, and abilities - never truncated"""
 
     personality = ', '.join(monster.personality_traits or []) if monster else ''
     abilities = "; ".join(
@@ -32,7 +33,9 @@ def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = Non
 
     return (
         f"- {monster.name} ({monster.species}){side_tag}, condition: {entry.get('condition', 'fresh')}{defending}\n"
+        f"  Stats: health {monster.max_health}, attack {monster.attack}, defense {monster.defense}, speed {monster.speed}\n"
         f"  Description: {monster.description}\n"
+        f"  Backstory: {monster.backstory or 'Unknown'}\n"
         f"  Personality: {personality}\n"
         f"  Abilities: {abilities}"
     )
@@ -126,9 +129,10 @@ def build_turn_history(state: Dict[str, Any]) -> str:
         return "No turns have been taken yet."
     lines = []
     for t in history:
+        turn_tag = f"Turn {t['turn']} — " if t.get('turn') else ""
         side_tag = f" ({t.get('side')})" if t.get('side') else ""
-        lines.append(f"- {t.get('actor')}{side_tag}: {t.get('action')}")
-    return "\n".join(lines)
+        lines.append(f"- {turn_tag}{t.get('actor')}{side_tag}: {t.get('action')}")
+    return clamp_context('turn_history', "\n".join(lines))
 
 def generate_next_turn(combatant_details: str, state: Dict[str, Any], workflow_name: str) -> Optional[str]:
     """
@@ -283,6 +287,49 @@ def resolve_action(
     except Exception:
         # The battle must go on - deterministic fallback
         return {'narration': fallback_narration, 'impact': 'light'}
+
+def generate_turn_vanity_text(actor_details: str, location: Dict[str, Any], state: Dict[str, Any], workflow_name: str) -> int:
+    """
+    Queue streamed inner-monologue vanity text for the party monster whose
+    turn it is - what it feels, thinks, and wants to do (the player still
+    decides its actual action). Returns generation_id.
+    """
+    return build_and_stream('turn_vanity', workflow_name, {
+        'location_name': location.get('name', 'the dungeon'),
+        'actor_details': actor_details,
+        'battle_situation': build_battle_situation(state),
+        'recent_log': build_recent_log(state)
+    })
+
+def generate_battle_summary(
+    outcome: str,
+    resolution: str,
+    joined_names: List[str],
+    location: Dict[str, Any],
+    party_details: str,
+    enemy_details: str,
+    state: Dict[str, Any],
+    workflow_name: str
+) -> Optional[str]:
+    """
+    Summarize the whole battle for the DUNGEON log: what happened, who
+    fell/fled/joined, and any lasting effects (injuries, lingering debuffs,
+    promises made). Returns None on failure - the caller has a
+    deterministic fallback.
+    """
+    try:
+        summary = build_and_generate('battle_summary', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'outcome': outcome,
+            'resolution': resolution or 'combat',
+            'joined_names': ', '.join(joined_names) if joined_names else 'none',
+            'party_details': party_details,
+            'enemy_details': enemy_details,
+            'recent_log': build_recent_log(state)
+        })
+        return str(summary).strip() or None
+    except Exception:
+        return None
 
 def generate_battle_outcome_text(
     outcome: str,

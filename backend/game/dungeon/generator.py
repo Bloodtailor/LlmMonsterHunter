@@ -16,7 +16,8 @@ from backend.game.dungeon.events import (
 # ===== CONTEXT BUILDERS =====
 
 def build_monster_dungeon_details(monster) -> str:
-    """One monster as LLM context for dungeon encounters: identity + abilities"""
+    """One monster as FULL LLM context for dungeon encounters:
+    identity, stats, backstory, personality, and abilities"""
 
     personality = ', '.join(monster.personality_traits or [])
     abilities = "; ".join(
@@ -25,6 +26,7 @@ def build_monster_dungeon_details(monster) -> str:
 
     return (
         f"- {monster.name} ({monster.species})\n"
+        f"  Stats: health {monster.max_health}, attack {monster.attack}, defense {monster.defense}, speed {monster.speed}\n"
         f"  Description: {monster.description}\n"
         f"  Backstory: {monster.backstory or 'Unknown'}\n"
         f"  Personality: {personality}\n"
@@ -38,9 +40,10 @@ def build_monsters_details(monsters: List[Any]) -> str:
 
 def build_party_dungeon_details() -> str:
     """
-    The party as LLM context for dungeon prompts: identity, personality,
-    and each monster's current run condition - so encounter monsters can
-    react to a battered, limping party (or a fresh, confident one)
+    The party as FULL LLM context for dungeon prompts: identity, current
+    run condition, stats, backstory, personality, and abilities - so
+    encounter monsters can react to who these adventurers truly are
+    (party details are a required block - never truncated)
     """
     from backend.game.state.manager import get_party_monster_ids
     from backend.game.dungeon.manager import get_party_conditions
@@ -53,11 +56,17 @@ def build_party_dungeon_details() -> str:
         if not monster:
             continue
         personality = ', '.join(monster.personality_traits or [])
+        abilities = "; ".join(
+            f"{a.name} ({a.description})" for a in (monster.abilities or [])
+        ) or "none"
         condition = conditions.get(str(monster_id), 'fresh')
         lines.append(
             f"- {monster.name} ({monster.species}), condition: {condition}\n"
+            f"  Stats: health {monster.max_health}, attack {monster.attack}, defense {monster.defense}, speed {monster.speed}\n"
             f"  Description: {monster.description}\n"
-            f"  Personality: {personality}"
+            f"  Backstory: {monster.backstory or 'Unknown'}\n"
+            f"  Personality: {personality}\n"
+            f"  Abilities: {abilities}"
         )
 
     if not lines:
@@ -228,14 +237,13 @@ def generate_look_around_text(location: Dict[str, Any], monsters_present: bool, 
     }
     return build_and_stream('look_around', workflow_name, variables)
 
-def generate_camp_scene(location: Dict[str, Any], party_conditions_text: str, workflow_name: str) -> int:
+def generate_camp_scene(location: Dict[str, Any], workflow_name: str) -> int:
     """Queue streamed camp vanity dialogue between the party's monsters - returns generation_id"""
 
     variables = {
         'location_name': location.get('name', 'Unknown Location'),
         'location_description': clamp_context('location_description', location.get('description', '')),
-        'party_details': clamp_context('party_details', get_party_details()),
-        'party_conditions': party_conditions_text or 'All fresh',
+        'party_details': build_party_dungeon_details(),
         'dungeon_log': _dungeon_log_text()
     }
     return build_and_stream('camp_scene', workflow_name, variables)

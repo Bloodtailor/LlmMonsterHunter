@@ -86,15 +86,21 @@ export function useDungeonActions(stateHook) {
     setIsAmbushing, setIsCamping, setIsUsingAbility
   ]);
 
-  // Enter dungeon action
+  // Enter dungeon action - a fresh run starts clean, so any leftover
+  // state from a previous run is dropped before the workflow queues
   const enterDungeon = useCallback(async () => {
     if (enterApi.isLoading) {
       return;
     }
 
     setErrorState(null);
+    clearEncounter();
+    setExitText(null);
+    setCurrentLocation(null);
+    setPaths(null);
+    setArePathsReady(false);
     await enterApi.enterDungeon();
-  }, [enterApi.isLoading, enterApi.enterDungeon, setErrorState]);
+  }, [enterApi.isLoading, enterApi.enterDungeon, setErrorState, clearEncounter, setExitText, setCurrentLocation, setPaths, setArePathsReady]);
 
   // Take a path - clear everything from the previous junction first
   const choosePath = useCallback(async (pathId) => {

@@ -31,11 +31,11 @@ IMPACT_STEPS = {
 # Design allows up to 7 - kept small while each enemy costs ~4 LLM calls + art
 ENEMY_COUNT_RANGE = (1, 2)
 
-# How many recent narrations to keep as rolling context for the referee
-RECENT_LOG_SIZE = 4
-
-# How many recent turns to keep as context for the turn-order LLM
-TURN_HISTORY_SIZE = 8
+# How many narrations/turns to KEEP IN STORAGE. Generous on purpose -
+# the token-aware budgets in context_limits.py decide how much of this
+# actually fits in each prompt for the loaded model
+RECENT_LOG_SIZE = 40
+TURN_HISTORY_SIZE = 40
 
 # Softlock valve: after this many consecutive enemy turns, the next turn
 # is forced to an ally so the player is never locked out of acting

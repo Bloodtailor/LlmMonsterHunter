@@ -21,6 +21,7 @@ function TurnPanel() {
     displayedBattle,
     pendingActorId,
     pendingActorName,
+    turnVanityText,
     currentSelection,
     isProcessing,
     outcome,
@@ -71,6 +72,25 @@ function TurnPanel() {
   return (
     <Card size="xl" background="light">
       <CardSection type="header" size="md" title={`✨ It's ${actorName}'s turn!`} alignment="center" />
+
+      {/* The monster's streamed inner monologue - what it feels, thinks,
+          and wants right now (the player still decides the action) */}
+      {turnVanityText && (
+        <CardSection type="content" alignment="center">
+          <p style={{
+            fontSize: 'var(--font-size-md)',
+            lineHeight: 'var(--line-height-relaxed)',
+            color: 'var(--color-text-secondary)',
+            fontFamily: 'var(--font-family-serif)',
+            fontStyle: 'italic',
+            whiteSpace: 'pre-wrap',
+            maxWidth: '640px',
+            margin: '0 auto'
+          }}>
+            {turnVanityText}
+          </p>
+        </CardSection>
+      )}
 
       <CardSection type="content">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '640px', margin: '0 auto' }}>

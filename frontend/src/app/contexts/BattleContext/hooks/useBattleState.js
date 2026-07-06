@@ -22,6 +22,10 @@ export function useBattleState() {
   const [pendingActorId, setPendingActorId] = useState(null);
   const [pendingActorName, setPendingActorName] = useState(null);
 
+  // Streamed inner monologue for the acting monster - what it feels,
+  // thinks, and wants (the player still decides the action)
+  const [turnVanityText, setTurnVanityText] = useState('');
+
   // An enemy spoke - the player must respond
   const [pendingTalk, setPendingTalk] = useState(null); // { speakerName, dialogue }
 
@@ -51,6 +55,7 @@ export function useBattleState() {
     setBattleIntro(null);
     setPendingActorId(null);
     setPendingActorName(null);
+    setTurnVanityText('');
     setPendingTalk(null);
     setCurrentSelection({});
     setIsProcessing(false);
@@ -71,6 +76,7 @@ export function useBattleState() {
       battleIntro,
       pendingActorId,
       pendingActorName,
+      turnVanityText,
       pendingTalk,
       currentSelection,
       isProcessing,
@@ -90,6 +96,7 @@ export function useBattleState() {
       setBattleIntro,
       setPendingActorId,
       setPendingActorName,
+      setTurnVanityText,
       setPendingTalk,
       setCurrentSelection,
       setIsProcessing,

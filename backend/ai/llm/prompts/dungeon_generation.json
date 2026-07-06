@@ -7,9 +7,9 @@
       "type": "text",
       "parser_name": "none"
     },
-    "prompt_template": "You and your adventuring party ({party_summary}) are standing at the entrance to a mysterious dungeon. Write 1-2 sentences of atmospheric text describing the entrance and setting the mood for adventure. Make it immersive and exciting, but not overly dramatic.\n\nResponse:"
+    "prompt_template": "You are the narrator of a fantasy dungeon adventure.\n\n========== CONTEXT ==========\n\n--- The player's party ---\n{party_summary}\n\n--- The moment ---\nThe party is standing at the entrance to a mysterious dungeon, about to begin a new expedition.\n\n========== YOUR TASK ==========\nWrite 1-2 sentences of atmospheric text describing the entrance and setting the mood for adventure. Immersive and exciting, but not overly dramatic.\n\nResponse:"
   },
-  
+
   "random_location": {
     "description": "Generate a random dungeon location with name and description",
     "max_tokens": 400,
@@ -20,9 +20,9 @@
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "Generate a mysterious dungeon location for exploration. \n\nRespond with valid JSON in this exact format:\n{{\"name\": \"Location Name\", \"description\": \" 1-2 sentence description of what you see, hear, and feel in this location. Make it atmospheric and immersive.\"}}\n\nMake the location interesting and unique. Avoid generic names. JSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== YOUR TASK ==========\nGenerate one mysterious dungeon location for exploration. Make it interesting and unique - avoid generic names. The description is 1-2 sentences of what a visitor sees, hears, and feels: atmospheric and immersive.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of what you see, hear, and feel in this location.\"}}\n\nJSON:"
   },
-  
+
   "door_choices": {
     "description": "Generate 2 mysterious door choices for dungeon exploration",
     "max_tokens": 400,
@@ -35,7 +35,7 @@
     },
     "prompt_template": "Generate 2 mysterious locations for exploration. \n\nRespond with valid JSON in this exact format:\n{{\"door1\": {{\"name\": \"Door Name\", \"description\": \"1-2 sentence description of the location that this door leads to.\"}}, \"door2\": {{\"name\": \"Door Name\", \"description\": \"1-2 sentence description of the location that this door leads to.\"}}}}\n\nAvoid generic names and descriptions. JSON:"
   },
-  
+
   "location_event": {
     "description": "Generate event text for exploring a specific location",
     "max_tokens": 400,
@@ -46,7 +46,7 @@
     },
     "prompt_template": "You and your party have entered {location_name} in a dungeon. Write 1-2 sentences describing what happens when you explore this area. Make it atmospheric and interesting, focusing on discovery and exploration rather than danger. Describe what you find, see, or experience.\n\nResponse:"
   },
-  
+
   "exit_narrative": {
     "description": "Generate satisfying exit text for completing a dungeon adventure",
     "max_tokens": 400,
@@ -55,7 +55,7 @@
       "type": "text",
       "parser_name": "none"
     },
-    "prompt_template": "You and your adventuring party ({party_summary}) are successfully exiting a dungeon adventure and returning to safety. Write 1-2 sentences describing your emergence from the depths and return to the outside world. Make it satisfying and conclusive, celebrating the completion of your underground exploration.\n\nResponse:"
+    "prompt_template": "You are the narrator of a fantasy dungeon adventure.\n\n========== CONTEXT ==========\n\n--- The player's party ---\n{party_summary}\n\n--- The moment ---\nThe party is successfully exiting the dungeon and returning to safety, their expedition complete.\n\n========== YOUR TASK ==========\nWrite 1-2 sentences describing their emergence from the depths and return to the outside world. Satisfying and conclusive, celebrating the completed exploration.\n\nResponse:"
   },
 
   "path_choices": {
@@ -68,7 +68,7 @@
       "expected_fields": ["paths"],
       "required_fields": ["paths"]
     },
-    "prompt_template": "The adventuring party is currently at this location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nGenerate {total_count} DIFFERENT paths leading onward from this location. A path is a physical route the party can take - a door, stairway, tunnel, opening, ladder, bridge, gap in a wall, etc. Describe each PATH ITSELF, not where it leads. The party should usually NOT be able to tell what lies beyond. Examples of good paths: a rusty trap door that may have been used by prison staff long ago, a spiral staircase leading upward, a hole through the brick wall that looks like it was made by a wrecking ball, a mysterious decorated wooden door that looks out of place.\n\nMake every path different from the others in kind and character - different structures, materials, directions, and moods.\n\nRespond with valid JSON in this exact format:\n{{\"paths\": [{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of the path itself - what it looks like and hints of its history, NOT what lies beyond it.\"}}, ...]}}\n\nThe paths array must contain exactly {total_count} entries. JSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party is currently at ---\n{location_name}: {location_description}\n\n========== YOUR TASK ==========\nGenerate {total_count} DIFFERENT paths leading onward from this location. A path is a physical route the party can take - a door, stairway, tunnel, opening, ladder, bridge, gap in a wall, etc.\n\nRules:\n1. Describe each PATH ITSELF, not where it leads. The party should usually NOT be able to tell what lies beyond.\n2. Make every path different from the others in kind and character - different structures, materials, directions, and moods.\n3. Each description is 1-2 sentences: what the path looks like and hints of its history.\n\nExamples of good paths: a rusty trap door that may have been used by prison staff long ago; a spiral staircase leading upward; a hole through the brick wall that looks like it was made by a wrecking ball; a mysterious decorated wooden door that looks out of place.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format. The paths array must contain exactly {total_count} entries:\n{{\"paths\": [{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of the path itself, NOT what lies beyond it.\"}}, ...]}}\n\nJSON:"
   },
 
   "exit_path": {
@@ -81,7 +81,7 @@
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "The adventuring party is currently at this location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nGenerate ONE path that clearly leads OUT of the dungeon and back to the safety of the outside world. The party should be able to recognize this as a way out - daylight through a crack, fresh air from a passage, a familiar stairway upward, etc.\n\nRespond with valid JSON in this exact format:\n{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of this way out and why it clearly leads to the surface.\"}}\n\nJSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party is currently at ---\n{location_name}: {location_description}\n\n========== YOUR TASK ==========\nGenerate ONE path that clearly leads OUT of the dungeon and back to the safety of the outside world. The party should be able to recognize this as a way out - daylight through a crack, fresh air from a passage, a familiar stairway upward, etc.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of this way out and why it clearly leads to the surface.\"}}\n\nJSON:"
   },
 
   "arrival_location": {
@@ -94,6 +94,6 @@
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "The adventuring party was at this location:\n\nLocation: {previous_location_name}\nDescription: {previous_location_description}\n\nThey chose to take this path onward:\n\nPath: {path_name}\nDescription: {path_description}\n\nGenerate the location the party arrives at after taking this path. It should make sense as somewhere this path could lead, but it may surprise the party - the path only sometimes hints at its destination.\n\nRespond with valid JSON in this exact format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of what the party sees, hears, and feels in this new location. Make it atmospheric and immersive.\"}}\n\nAvoid generic names. JSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party was at ---\n{previous_location_name}: {previous_location_description}\n\n--- The path they chose to take onward ---\n{path_name}: {path_description}\n\n========== YOUR TASK ==========\nGenerate the location the party arrives at after taking this path. It should make sense as somewhere this path could lead, but it may surprise the party - the path only sometimes hints at its destination. Avoid generic names.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of what the party sees, hears, and feels in this new location.\"}}\n\nJSON:"
   }
 }
