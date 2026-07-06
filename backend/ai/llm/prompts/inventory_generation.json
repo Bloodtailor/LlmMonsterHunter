@@ -1,0 +1,51 @@
+{
+  "treasure_item": {
+    "description": "Generate an item discovered on a treasure path - the description must tell the referee what the item does",
+    "max_tokens": 250,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["name", "emoji", "description", "uses"],
+      "required_fields": ["name", "description"]
+    },
+    "prompt_template": "You are an item designer for a fantasy dungeon game. The party has just discovered a hidden treasure.\n\n========== CONTEXT ==========\n\n--- Where it was found ---\n{location_name}: {location_description}\n\n========== YOUR TASK ==========\nInvent ONE item that belongs in this place. Later, a referee will read ONLY the description to judge what happens when the party uses it - so the description must say what the item IS and what it plausibly DOES when used (2-3 sentences, useful but never game-breaking: mending wounds, revealing what is hidden, calming or distracting creatures, lighting the dark...).\n- name: a fantasy item name\n- emoji: ONE emoji that looks like the item\n- description: what it is + what it does when used\n- uses: how many times it can be used before it is spent (1, 2, or 3)\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"...\", \"emoji\": \"🧪\", \"description\": \"...\", \"uses\": 1}}\n\nJSON:"
+  },
+
+  "reward_item": {
+    "description": "Generate the gift a monster grants the party after a dialogue reward outcome - the gift fits the giver",
+    "max_tokens": 250,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["name", "emoji", "description", "uses"],
+      "required_fields": ["name", "description"]
+    },
+    "prompt_template": "You are an item designer for a fantasy dungeon game. A monster was so pleased with the party's words that it grants them a gift.\n\n========== CONTEXT ==========\n\n--- Location ---\n{location_name}: {location_description}\n\n--- The monster granting the gift (the gift should FIT this creature) ---\n{monster_details}\n\n--- The conversation that earned it ---\n{dialogue_history}\n\n========== YOUR TASK ==========\nInvent the ONE item this specific monster would give - something from its hoard, its body, its craft, or its home. Later, a referee will read ONLY the description to judge what happens when the party uses it - so the description must say what the item IS and what it plausibly DOES when used (2-3 sentences, useful but never game-breaking).\n- name: a fantasy item name\n- emoji: ONE emoji that looks like the item\n- description: what it is + what it does when used (its origin may echo the giver)\n- uses: how many times it can be used before it is spent (1, 2, or 3)\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"...\", \"emoji\": \"🎁\", \"description\": \"...\", \"uses\": 1}}\n\nJSON:"
+  },
+
+  "victory_cocatok": {
+    "description": "Mint a unique CoCaTok (collectable card token) commemorating a battle victory",
+    "max_tokens": 300,
+    "temperature": 0.85,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["title", "emoji", "color", "commemoration"],
+      "required_fields": ["title", "commemoration"]
+    },
+    "prompt_template": "You mint CoCaToks - Collectable Card Tokens - unique keepsakes that commemorate a party's victories in a fantasy dungeon game. Each is one of a kind.\n\n========== CONTEXT ==========\n\n--- Where the battle happened ---\n{location_name}\n\n--- The defeated ---\n{defeated_names}\n\n--- How the battle actually went ---\n{battle_summary}\n\n========== YOUR TASK ==========\nMint ONE token commemorating THIS victory specifically - reference what actually happened, not generic glory.\n- title: a short commemorative name (like a trophy inscription, max ~8 words)\n- emoji: ONE emoji capturing the moment\n- color: the token's color, exactly ONE of: {color_options}\n- commemoration: 2-3 sentences telling the story this token remembers, written like a collector's card flavor text\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"title\": \"...\", \"emoji\": \"🏆\", \"color\": \"purple-mystic\", \"commemoration\": \"...\"}}\n\nJSON:"
+  },
+
+  "treasure_discovery": {
+    "description": "Streamed narration of the party discovering a treasure item (the item is already generated - reference it)",
+    "max_tokens": 300,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You are the narrator of a fantasy dungeon adventure.\n\n========== CONTEXT ==========\n\n--- Location the party just arrived at ---\n{location_name}: {location_description}\n\n--- The player's party ---\n{party_summary}\n\n--- The party's adventure so far ---\n{dungeon_log}\n\n--- What they are about to find (already decided - do not change it) ---\n{item_name}: {item_description}\n\n========== YOUR TASK ==========\nWrite 3-4 sentences narrating the party's arrival and their discovery of this exact item - where it lay, how it caught their eye, the small thrill of claiming it. End with the item safely in their possession.\n\nResponse:"
+  }
+}

@@ -7,11 +7,12 @@ import random
 
 # Every event a path can hold, with its weight. Exploring is the bread
 # and butter of a run - encounters punctuate it. Add new events here as
-# they are built (future: 'treasure', 'trap', ...)
+# they are built (future: 'trap', ...)
 EVENT_WEIGHTS = {
-    'location_explore': 0.60,   # arrive, look around, decide what to do
-    'monster_dialogue': 0.20,   # a monster greets the party with a question
-    'monster_battle': 0.20      # hostile monsters attack on arrival
+    'location_explore': 0.55,   # arrive, look around, decide what to do
+    'monster_dialogue': 0.18,   # a monster greets the party with a question
+    'monster_battle': 0.18,     # hostile monsters attack on arrival
+    'treasure': 0.09            # a hidden item waits to be discovered
 }
 
 # When a location_explore fires, chance that monsters are in the area

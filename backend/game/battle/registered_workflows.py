@@ -467,6 +467,28 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 f"{summary} Party condition afterward: {ally_summary}."
             )
 
+        # Every victory mints a unique CoCaTok keepsake commemorating it
+        # (emits inventory.cocatok_added; the frontend plays the pickup
+        # ceremony from the result payload)
+        cocatok_data = None
+        if outcome == 'victory':
+            step = "mint_victory_cocatok"
+            on_update(step, progress_data)
+            from backend.game.inventory.generator import generate_victory_cocatok
+
+            defeated_names = [
+                entry.get('name', 'Unknown')
+                for entry in state.get('enemies', {}).values()
+                if entry.get('name') not in joined_names
+            ]
+            battle_story = summary if dungeon.is_in_dungeon() else (
+                f"A battle against {', '.join(defeated_names) or 'fearsome foes'} "
+                f"ended in victory ({resolution})."
+            )
+            cocatok = generate_victory_cocatok(location, battle_story, defeated_names)
+            cocatok_data = cocatok.to_dict()
+            progress_data.update({ "cocatok": cocatok_data })
+
         state['phase'] = outcome
         state['resolution'] = resolution
         state['pending_actor'] = None
@@ -483,6 +505,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             "resolution": resolution,
             "joined_names": joined_names,
             "outcome_text": outcome_text,
+            "cocatok": cocatok_data,
             "battle_snapshot": battle.get_battle_snapshot()
         })
 

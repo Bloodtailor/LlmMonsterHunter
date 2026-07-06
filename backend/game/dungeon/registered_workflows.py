@@ -242,6 +242,52 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 "party_conditions": manager.get_party_conditions()
             })
 
+        # === EVENT: TREASURE (a hidden item waits to be discovered) ===
+        if event == 'treasure':
+            from backend.game.inventory.generator import (
+                generate_treasure_item,
+                generate_treasure_discovery_text
+            )
+
+            # Step 3 - the item itself (emits inventory.item_added)
+            step = "generate_treasure_item"
+            on_update(step, progress_data)
+            item = generate_treasure_item(location)
+            progress_data.update({ "item": item.to_dict() })
+
+            # Step 4 - queue streamed discovery narration referencing the item
+            step = "queue_treasure_text"
+            on_update(step, progress_data)
+            treasure_text_generation_id = generate_treasure_discovery_text(location, item, workflow_name)
+            progress_data.update({ "treasure_text_generation_id": treasure_text_generation_id })
+
+            # Step 5 - frontend picks the generation id up from this step
+            step = "emit_generation_id"
+            on_update(step, progress_data)
+
+            # After the discovery the moment plays like a creature-free
+            # explore - the party looks up and decides where to go next
+            manager.set_active_encounter({
+                'event': 'location_explore',
+                'monster_ids': [],
+                'monsters_present': False,
+                'camped': False
+            })
+
+            manager.append_dungeon_log(
+                f"At {location.get('name', 'the new location')}, the party discovered "
+                f"a hidden treasure: {item.name} ({item.description})"
+            )
+
+            return success_response({
+                "event": "treasure",
+                "current_location": location,
+                "item": item.to_dict(),
+                "monsters_present": False,
+                "monster_ids": [],
+                "party_conditions": manager.get_party_conditions()
+            })
+
         # === EVENT: MONSTER DIALOGUE (a monster stops the party with a question) ===
         if event == 'monster_dialogue':
 
@@ -487,7 +533,7 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
             })
 
         # Every other outcome resolves the encounter peacefully
-        applied = apply_dialogue_outcome(outcome, [m.id for m in monsters])
+        applied = apply_dialogue_outcome(outcome, [m.id for m in monsters], location)
         manager.clear_active_encounter()
         if applied['log_note']:
             manager.append_dungeon_log(applied['log_note'])
@@ -495,7 +541,8 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
         return success_response({
             "outcome": outcome,
             "response": response,
-            "joined_names": applied['joined_names']
+            "joined_names": applied['joined_names'],
+            "item": applied.get('item')
         })
 
     except Exception as e:
