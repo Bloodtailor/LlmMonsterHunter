@@ -13,6 +13,7 @@ import MonsterSanctuaryScreen from './MonsterSanctuaryScreen.js';
 import { DungeonEntranceScreen } from '../../components/dungeon/index.js';
 import DungeonDoorsScreen from '../../components/dungeon/screens/DungeonDoorsScreen.js';
 import DungeonLocationScreen from '../../components/dungeon/screens/DungeonLocationScreen.js';
+import DungeonBattleScreen from '../../components/battle/screens/DungeonBattleScreen.js';
 
 /**
  * GameScreenRouter component
@@ -38,6 +39,9 @@ function GameScreenRouter() {
 
     case 'dungeon-location':
       return <DungeonLocationScreen />;
+
+    case 'dungeon-battle':
+      return <DungeonBattleScreen />;
 
     default:
       // Fallback to homebase if unknown screen
