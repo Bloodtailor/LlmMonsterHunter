@@ -63,6 +63,15 @@ export function useLiveMonsterCollection() {
     ));
   };
 
+  // Staged generation filled in more of the monster (persona, story) -
+  // replace it wholesale; the event payload is the complete monster
+  useEventSubscription('monsterUpdated', ({ monster }) => {
+    if (!monster?.id) return;
+    setMonsters(prev => prev.map(existing =>
+      existing.id === monster.id ? monster : existing
+    ));
+  });
+
   // Card art finished - attach it to just that monster's card
   useEventSubscription('monsterArtReady', ({ monsterId, imagePath }) => {
     if (!monsterId || !imagePath) return;
