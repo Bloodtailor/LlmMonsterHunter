@@ -22,7 +22,12 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
 
     try:
         from backend.game.battle import manager as battle
-        from backend.game.battle.constants import MAX_CONSECUTIVE_ENEMY_TURNS, OVERDUE_WAIT_MULTIPLIER
+        from backend.game.battle.constants import (
+            MAX_CONSECUTIVE_ENEMY_TURNS,
+            OVERDUE_WAIT_MULTIPLIER,
+            RESOURCE_DELTAS,
+            ABILITY_POOL_BY_TYPE
+        )
         from backend.game.battle.generator import (
             build_monster_battle_details,
             build_side_details,
@@ -90,6 +95,36 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             entry['battle_snapshot'] = battle.get_battle_snapshot(state)
             on_update("action_resolved", {"action_result": entry})
 
+        def apply_resource_deltas(actor_side, actor_id, target_side, target_id,
+                                  stamina_delta, mana_delta):
+            """
+            Spend and restore reserves (in place). Costs (positive deltas)
+            always tire the ACTOR; restores (negative deltas) land on the
+            TARGET - so a defend rests the defender, and a soothing mist
+            aimed at an ally rests the ally.
+            """
+            for resource, delta in (('stamina', stamina_delta), ('mana', mana_delta)):
+                if not delta or delta == 'none':
+                    continue
+                if RESOURCE_DELTAS.get(delta, 0) > 0:
+                    battle.apply_resource(state, actor_side, actor_id, resource, delta)
+                else:
+                    restore_side = target_side or actor_side
+                    restore_id = target_id or actor_id
+                    battle.apply_resource(state, restore_side, restore_id, resource, delta)
+
+        def default_resource_deltas(action, ability):
+            """The code's own cost ruling when the referee stays silent"""
+            if action == 'ability' and ability:
+                pool = ABILITY_POOL_BY_TYPE.get(ability.ability_type, 'stamina')
+                return ('moderate', None) if pool == 'stamina' else (None, 'moderate')
+            if action == 'attack':
+                return 'minor', None
+            if action == 'defend':
+                # Standing guard is also catching your breath
+                return 'restore_minor', None
+            return None, None  # items and talk cost the monster nothing
+
         def apply_talk_decision(decision: str):
             """Turn a negotiation decision into a battle ending (or not)"""
             if decision == 'enemies_join':
@@ -147,6 +182,16 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 battle.set_defending(state, side, actor_id)
 
             new_condition = battle.apply_impact(state, target_side, target_id, impact)
+
+            # Reserves: the referee's judgment, or the code default when
+            # it stayed silent on both pools
+            stamina_delta = resolution.get('stamina_delta')
+            mana_delta = resolution.get('mana_delta')
+            if stamina_delta is None and mana_delta is None:
+                stamina_delta, mana_delta = default_resource_deltas(action, ability)
+            apply_resource_deltas(side, actor_id, target_side, target_id,
+                                  stamina_delta, mana_delta)
+
             battle.append_log(state, resolution['narration'])
             battle.record_turn(state, actor_name, action, actor_id=actor_id, side=side)
             battle.save_battle_state(state)
@@ -229,6 +274,15 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                     if not impacted_id and target_id:
                         impacted_side, impacted_id = find_side(target_id), target_id
                 new_condition = battle.apply_impact(state, impacted_side, impacted_id, impact) if impacted_id else None
+
+                # A custom action that actually happened costs something -
+                # referee's word first, light exertion otherwise
+                stamina_delta = result.get('stamina_delta')
+                mana_delta = result.get('mana_delta')
+                if stamina_delta is None and mana_delta is None and result['possible']:
+                    stamina_delta, mana_delta = 'minor', None
+                apply_resource_deltas('allies', actor_id, impacted_side, impacted_id,
+                                      stamina_delta, mana_delta)
 
                 battle.append_log(state, result['narration'])
                 battle.record_turn(
@@ -467,6 +521,14 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             monster_id: entry.get('condition', 'fresh')
             for monster_id, entry in state.get('allies', {}).items()
         })
+
+        # So do spent reserves - they refill only on the next dungeon entry
+        if dungeon.is_in_dungeon():
+            dungeon.set_party_resources({
+                monster_id: {'stamina': entry.get('stamina', 'brimming'),
+                             'mana': entry.get('mana', 'brimming')}
+                for monster_id, entry in state.get('allies', {}).items()
+            })
 
         # The dungeon log gets a summary of the battle - the detailed
         # blow-by-blow stays in the battle's own log. The LLM writes the

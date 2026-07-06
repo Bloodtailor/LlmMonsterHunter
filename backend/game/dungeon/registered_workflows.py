@@ -22,11 +22,15 @@ def _start_encounter_battle(monsters: List[Any], opening_note: str = None) -> Di
     }
 
     ally_conditions = {}
+    party_resources = manager.get_party_resources()
     for monster_id, condition in manager.get_party_conditions().items():
         ally = Monster.get_monster_by_id(int(monster_id))
+        pools = party_resources.get(str(monster_id), {})
         ally_conditions[monster_id] = {
             'name': ally.name if ally else f'Monster {monster_id}',
-            'condition': condition
+            'condition': condition,
+            'stamina': pools.get('stamina', 'brimming'),
+            'mana': pools.get('mana', 'brimming')
         }
 
     battle_state = battle_manager.start_battle(ally_conditions, enemy_entries)
@@ -762,7 +766,8 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
         step = "emit_generation_id"
         on_update(step, progress_data)
 
-        # Step 3 - one camp per location
+        # Step 3 - one camp per location (marked BEFORE the rest/growth
+        # steps so a failure below can never enable double-camping)
         step = "mark_camped"
         on_update(step, progress_data)
         encounter['camped'] = True
@@ -772,8 +777,33 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
             f"talking around the fire."
         )
 
+        # Step 4 - rest restores the party's reserves (the camp referee
+        # judges how much for each monster; failures mean a full rest)
+        step = "restore_resources"
+        on_update(step, progress_data)
+        from backend.game.dungeon.generator import generate_camp_restore
+        from backend.game.battle.constants import (
+            RESOURCE_LADDER, RESOURCE_DELTAS, BRIMMING, full_resources
+        )
+
+        restores = generate_camp_restore(location, workflow_name)
+        party_resources = manager.get_party_resources()
+        for monster_id, pools in restores.items():
+            current = party_resources.get(str(monster_id)) or full_resources()
+            for resource, delta_word in pools.items():
+                steps_delta = RESOURCE_DELTAS.get(delta_word, 0)
+                if steps_delta == 0:
+                    continue
+                current_index = RESOURCE_LADDER.index(current.get(resource, BRIMMING))
+                new_index = max(0, min(len(RESOURCE_LADDER) - 1, current_index + steps_delta))
+                current[resource] = RESOURCE_LADDER[new_index]
+            party_resources[str(monster_id)] = current
+        manager.set_party_resources(party_resources)
+        progress_data.update({ "party_resources": party_resources })
+
         return success_response({
-            "camped": True
+            "camped": True,
+            "party_resources": party_resources
         })
 
     except Exception as e:
@@ -854,6 +884,49 @@ def _apply_party_heal_effect(effect: str, target_type: str, target_id, manager) 
             effect = 'none'  # healing only sticks to the party
     return effect
 
+def _apply_dungeon_resource_deltas(manager, actor, ability, stamina_delta, mana_delta,
+                                   target_type, target_id):
+    """
+    Out-of-battle resource accounting. The referee's words rule; when it
+    stays silent on both pools, the ability's type picks the pool and the
+    cost is moderate. Costs tire the ACTOR; restores land on a party-member
+    target (else the actor). Pools live in dungeon party_resources.
+    """
+    from backend.game.battle.constants import (
+        RESOURCE_LADDER, RESOURCE_DELTAS, ABILITY_POOL_BY_TYPE, BRIMMING, full_resources
+    )
+    from backend.game.state.manager import get_party_monster_ids
+
+    if stamina_delta is None and mana_delta is None:
+        pool = ABILITY_POOL_BY_TYPE.get(ability.ability_type, 'stamina')
+        stamina_delta, mana_delta = ('moderate', None) if pool == 'stamina' else (None, 'moderate')
+
+    resources = manager.get_party_resources()
+
+    def step_pool(monster_id, resource, delta_word):
+        pools = resources.get(str(monster_id))
+        if pools is None:
+            pools = full_resources()
+        steps = RESOURCE_DELTAS.get(delta_word, 0)
+        current_index = RESOURCE_LADDER.index(pools.get(resource, BRIMMING))
+        new_index = max(0, min(len(RESOURCE_LADDER) - 1, current_index + steps))
+        pools[resource] = RESOURCE_LADDER[new_index]
+        resources[str(monster_id)] = pools
+
+    restore_target_id = actor.id
+    if target_type == 'monster' and target_id and int(target_id) in get_party_monster_ids():
+        restore_target_id = int(target_id)
+
+    for resource, delta in (('stamina', stamina_delta), ('mana', mana_delta)):
+        if not delta or delta == 'none':
+            continue
+        if RESOURCE_DELTAS.get(delta, 0) > 0:
+            step_pool(actor.id, resource, delta)
+        else:
+            step_pool(restore_target_id, resource, delta)
+
+    manager.set_party_resources(resources)
+
 @register_workflow()
 def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
     """
@@ -914,6 +987,16 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
         on_update(step, progress_data)
         effect = _apply_party_heal_effect(result['effect'], target_type, target_id, manager)
 
+        # Step 4 - the ability drains (or restores) reserves. Costs hit the
+        # actor; restores land on a party-member target, else the actor.
+        step = "apply_resource_costs"
+        on_update(step, progress_data)
+        _apply_dungeon_resource_deltas(
+            manager, actor, ability,
+            result.get('stamina_delta'), result.get('mana_delta'),
+            target_type, target_id
+        )
+
         manager.append_dungeon_log(
             f"{actor.name} used {ability.name} on {target_label}: {result['narration']}"
         )
@@ -921,7 +1004,8 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
         return success_response({
             "narration": result['narration'],
             "effect": effect,
-            "party_conditions": manager.get_party_conditions()
+            "party_conditions": manager.get_party_conditions(),
+            "party_resources": manager.get_party_resources()
         })
 
     except Exception as e:

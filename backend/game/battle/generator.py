@@ -8,7 +8,7 @@ import random
 from typing import Dict, Any, List, Optional
 from backend.game.utils import build_and_generate, build_and_stream, clamp_context
 from backend.game.state.manager import get_party_summary
-from backend.game.battle.constants import IMPACT_STEPS, INCAPACITATED
+from backend.game.battle.constants import IMPACT_STEPS, INCAPACITATED, RESOURCE_DELTAS
 
 # ===== CONTEXT BUILDERS =====
 
@@ -21,8 +21,9 @@ SIDE_LABELS = {
 
 def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = None) -> str:
     """One monster as tiered LLM context with battle decorations: SIDE,
-    condition, and defending state (block itself is never truncated).
-    The secret never enters battle prompts - the narrator would leak it."""
+    condition, defending state, and reserve levels (block itself is never
+    truncated). The secret never enters battle prompts - the narrator
+    would leak it."""
 
     from backend.game.monster.context_builder import build_monster_block
 
@@ -30,7 +31,8 @@ def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = Non
         monster,
         condition=entry.get('condition', 'fresh'),
         defending=bool(entry.get('defending')),
-        side_label=SIDE_LABELS.get(side)
+        side_label=SIDE_LABELS.get(side),
+        resources={'stamina': entry.get('stamina'), 'mana': entry.get('mana')}
     )
 
 def build_side_details(monsters: Dict[str, Any], entries: Dict[str, Dict[str, Any]], side: str = None) -> str:
@@ -46,11 +48,16 @@ def build_side_details(monsters: Dict[str, Any], entries: Dict[str, Dict[str, An
 def build_battle_situation(state: Dict[str, Any]) -> str:
     """Compact condition summary of both sides"""
 
+    def member_line(m):
+        parts = [m.get('condition')]
+        if m.get('defending'):
+            parts.append('defending')
+        if m.get('stamina') or m.get('mana'):
+            parts.append(f"stamina {m.get('stamina')}, mana {m.get('mana')}")
+        return f"{m.get('name')} ({', '.join(parts)})"
+
     def side_line(side_name, side):
-        return f"{side_name}: " + ", ".join(
-            f"{m.get('name')} ({m.get('condition')}{', defending' if m.get('defending') else ''})"
-            for m in side.values()
-        )
+        return f"{side_name}: " + ", ".join(member_line(m) for m in side.values())
 
     return (
         side_line("The player's party", state.get('allies', {})) + "\n" +
@@ -62,6 +69,14 @@ def build_recent_log(state: Dict[str, Any]) -> str:
     if not log:
         return "The battle has just begun."
     return clamp_context('battle_log', "\n".join(log))
+
+def _validated_resource_delta(raw) -> Optional[str]:
+    """
+    Validate a referee cost/restore word. None means 'the referee stayed
+    silent' - the workflow falls back to the code default for the action.
+    """
+    word = str(raw or '').strip().lower()
+    return word if word in RESOURCE_DELTAS else None
 
 # ===== LLM CALLS =====
 
@@ -193,7 +208,9 @@ def resolve_freeform_action(
             'possible': bool(result.get('possible')),
             'narration': str(result.get('narration') or 'The chaos of battle swallows the moment - nothing comes of it.'),
             'impact': impact,
-            'impact_target': result.get('impact_target')
+            'impact_target': result.get('impact_target'),
+            'stamina_delta': _validated_resource_delta(result.get('stamina_cost')),
+            'mana_delta': _validated_resource_delta(result.get('mana_cost'))
         }
 
     except Exception:
@@ -202,7 +219,9 @@ def resolve_freeform_action(
             'possible': False,
             'narration': 'The chaos of battle swallows the moment - nothing comes of it.',
             'impact': 'none',
-            'impact_target': None
+            'impact_target': None,
+            'stamina_delta': None,
+            'mana_delta': None
         }
 
 VALID_TALK_DECISIONS = ('continue', 'enemies_join', 'enemies_yield', 'enemies_flee', 'party_spared')
@@ -275,11 +294,17 @@ def resolve_action(
         if impact not in IMPACT_STEPS:
             impact = 'light'
 
-        return {'narration': narration, 'impact': impact}
+        return {
+            'narration': narration,
+            'impact': impact,
+            'stamina_delta': _validated_resource_delta(result.get('stamina_cost')),
+            'mana_delta': _validated_resource_delta(result.get('mana_cost'))
+        }
 
     except Exception:
         # The battle must go on - deterministic fallback
-        return {'narration': fallback_narration, 'impact': 'light'}
+        return {'narration': fallback_narration, 'impact': 'light',
+                'stamina_delta': None, 'mana_delta': None}
 
 def generate_turn_vanity_text(actor_details: str, location: Dict[str, Any], state: Dict[str, Any], workflow_name: str) -> int:
     """

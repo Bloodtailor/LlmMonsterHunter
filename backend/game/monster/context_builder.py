@@ -15,7 +15,8 @@ from backend.game.utils import resolve_detail_tier
 
 def build_monster_block(monster, tier: str = None, condition: str = None,
                         defending: bool = False, side_label: str = None,
-                        include_secret: bool = False) -> str:
+                        include_secret: bool = False, resources: dict = None,
+                        memory_lines: list = None) -> str:
     """One monster as an LLM context block at the given detail tier
     (tier=None resolves from the model's context window)"""
 
@@ -28,6 +29,12 @@ def build_monster_block(monster, tier: str = None, condition: str = None,
     side_tag = f" — {side_label}" if side_label else ""
     condition_tag = f", condition: {condition}" if condition else ""
     defending_tag = " [defending]" if defending else ""
+
+    # Reserve levels (stamina/mana), shown only when the caller tracks them
+    reserves_line = None
+    if resources and (resources.get('stamina') or resources.get('mana')):
+        reserves_line = (f"  Reserves: stamina {resources.get('stamina', 'unknown')}, "
+                         f"mana {resources.get('mana', 'unknown')}")
 
     personality = ', '.join(monster.personality_traits or [])
     abilities = "; ".join(
@@ -52,12 +59,18 @@ def build_monster_block(monster, tier: str = None, condition: str = None,
         f"  Identity: {identity_line}" if identity_line else None,
         f"  Stats: health {monster.max_health}, attack {monster.attack}, "
         f"defense {monster.defense}, speed {monster.speed}",
+        reserves_line,
         f"  Description: {monster.description}",
         f"  Backstory: {monster.backstory or 'Unknown'}",
         f"  Personality: {personality}" if personality else None,
         f"  Wish: {persona.get('core_wish')}" if persona.get('core_wish') else None,
         f"  Abilities: {abilities}"
     ]
+
+    # What it remembers of the party (returning monsters and blend-ins)
+    if memory_lines:
+        lines.append("  Remembers the party:")
+        lines += [f"    * {line}" for line in memory_lines[:3]]
 
     # ----- standard: + lineage, way of life, voice, tastes, persuasion rubric -----
     if tier in ('standard', 'full'):

@@ -41,18 +41,22 @@ def build_party_dungeon_details() -> str:
     these adventurers truly are (party details are never truncated)
     """
     from backend.game.state.manager import get_party_monster_ids
-    from backend.game.dungeon.manager import get_party_conditions
+    from backend.game.dungeon.manager import get_party_conditions, get_party_resources
     from backend.game.monster.context_builder import build_monster_block
     from backend.models.monster import Monster
 
     conditions = get_party_conditions()
+    resources = get_party_resources()
     lines = []
     for monster_id in get_party_monster_ids():
         monster = Monster.get_monster_by_id(monster_id)
         if not monster:
             continue
         condition = conditions.get(str(monster_id), 'fresh')
-        lines.append(build_monster_block(monster, condition=condition))
+        lines.append(build_monster_block(
+            monster, condition=condition,
+            resources=resources.get(str(monster_id))
+        ))
 
     if not lines:
         return "A lone, empty-handed adventurer"
@@ -233,6 +237,56 @@ def generate_camp_scene(location: Dict[str, Any], workflow_name: str) -> int:
     }
     return build_and_stream('camp_scene', workflow_name, variables)
 
+def generate_camp_restore(location: Dict[str, Any], workflow_name: str) -> Dict[int, Dict[str, str]]:
+    """
+    THE CAMP REFEREE: how much rest restores each party monster's pools.
+    Returns {monster_id: {'stamina': restore_word, 'mana': restore_word}}.
+    Fallback (parse failure, unmatched names): a good night's rest -
+    restore_major to both pools for everyone.
+    """
+    from backend.game.state.manager import get_party_monster_ids
+    from backend.game.battle.constants import RESOURCE_DELTAS
+    from backend.models.monster import Monster
+
+    party_ids = get_party_monster_ids()
+    full_rest = {mid: {'stamina': 'restore_major', 'mana': 'restore_major'} for mid in party_ids}
+    valid_words = ('none', 'restore_minor', 'restore_major')
+
+    try:
+        result = build_and_generate('camp_restore', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'location_description': clamp_context('location_description', location.get('description', '')),
+            'party_details': build_party_dungeon_details()
+        })
+
+        names_to_ids = {}
+        for monster_id in party_ids:
+            monster = Monster.get_monster_by_id(monster_id)
+            if monster:
+                names_to_ids[monster.name.strip().lower()] = monster_id
+
+        restores = {}
+        for entry in (result.get('restores') or []):
+            if not isinstance(entry, dict):
+                continue
+            monster_id = names_to_ids.get(str(entry.get('name', '')).strip().lower())
+            if monster_id is None:
+                continue
+            stamina = str(entry.get('stamina', '')).strip().lower()
+            mana = str(entry.get('mana', '')).strip().lower()
+            restores[monster_id] = {
+                'stamina': stamina if stamina in valid_words else 'restore_major',
+                'mana': mana if mana in valid_words else 'restore_major'
+            }
+
+        # Anyone the LLM forgot still gets a proper rest
+        for monster_id in party_ids:
+            restores.setdefault(monster_id, dict(full_rest[monster_id]))
+        return restores
+
+    except Exception:
+        return full_rest
+
 def judge_sneak_attempt(location: Dict[str, Any], monster_details: str, workflow_name: str) -> Dict[str, Any]:
     """
     THE REFEREE for sneaking past the monsters in an explore location
@@ -303,15 +357,25 @@ def resolve_dungeon_ability(
         if effect not in valid_effects:
             effect = 'none'
 
+        from backend.game.battle.constants import RESOURCE_DELTAS
+
+        def validated_delta(raw):
+            word = str(raw or '').strip().lower()
+            return word if word in RESOURCE_DELTAS else None
+
         return {
             'narration': str(result.get('narration') or 'Nothing much seems to come of it.'),
-            'effect': effect
+            'effect': effect,
+            'stamina_delta': validated_delta(result.get('stamina_cost')),
+            'mana_delta': validated_delta(result.get('mana_cost'))
         }
 
     except Exception:
         return {
             'narration': f"{ability_name} flares briefly, but the moment passes and nothing seems to change.",
-            'effect': 'none'
+            'effect': 'none',
+            'stamina_delta': None,
+            'mana_delta': None
         }
 
 def resolve_dungeon_item(

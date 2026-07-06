@@ -75,7 +75,20 @@ GENERATOR_VARIABLES = {
     # Item referee (dungeon/registered_workflows.py use_dungeon_item)
     'dungeon_item_use': {'location_name', 'location_description', 'party_details',
                          'item_name', 'item_description', 'uses_remaining',
-                         'target_description', 'secret_knowledge', 'dungeon_log'}
+                         'target_description', 'secret_knowledge', 'dungeon_log'},
+    # Battle referees (battle/generator.py) - carry the resource cost fields
+    'action_resolution': {'location_name', 'actor_details', 'action_description',
+                          'target_details', 'battle_situation', 'recent_log'},
+    'freeform_action_resolution': {'location_name', 'actor_details', 'player_action_text',
+                                   'player_target', 'player_info', 'battle_situation',
+                                   'recent_log'},
+    'enemy_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
+    # Dungeon ability referee (dungeon/generator.py resolve_dungeon_ability)
+    'dungeon_ability_use': {'location_name', 'location_description', 'actor_details',
+                            'ability_name', 'ability_description', 'target_description',
+                            'secret_knowledge', 'dungeon_log'},
+    # Camp rest referee (dungeon/generator.py generate_camp_restore)
+    'camp_restore': {'location_name', 'location_description', 'party_details'}
 }
 
 def test_staged_templates_render():

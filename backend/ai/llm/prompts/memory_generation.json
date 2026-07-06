@@ -1,0 +1,14 @@
+{
+  "camp_restore": {
+    "description": "Decide how much rest at camp restores each party monster's stamina and mana",
+    "max_tokens": 250,
+    "temperature": 0.6,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["restores"],
+      "required_fields": ["restores"]
+    },
+    "prompt_template": "You are the referee of a dungeon adventure. The party has made camp to rest, and you decide how much each monster's reserves recover.\n\n========== CONTEXT ==========\n\n--- The campsite ---\n{location_name}: {location_description}\n\n--- The party at rest (note each monster's Reserves: stamina and mana levels) ---\n{party_details}\n\n========== YOUR TASK ==========\nFor EACH party monster, judge how much this rest restores its stamina (body) and mana (magic). Use exactly one word for each pool, from: \"none\", \"restore_minor\", \"restore_major\".\n- A safe, comfortable camp usually grants restore_major to both pools.\n- A monster whose nature fits this place recovers fully; one that hates or fears this place may only manage restore_minor.\n- Honor anything a monster's abilities or description say about recovery (a creature that 'never tires' was never tired; one that 'drinks moonlight' recovers mana fully at night).\n- Reserves already at brimming can simply receive none.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format, one entry per party monster:\n{{\"restores\": [{{\"name\": \"exact monster name\", \"stamina\": \"restore_major\", \"mana\": \"restore_major\"}}]}}\n\nJSON:"
+  }
+}

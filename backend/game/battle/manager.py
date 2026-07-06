@@ -12,7 +12,11 @@ from backend.game.battle.constants import (
     FRESH,
     IMPACT_STEPS,
     RECENT_LOG_SIZE,
-    TURN_HISTORY_SIZE
+    TURN_HISTORY_SIZE,
+    RESOURCE_LADDER,
+    RESOURCE_KEYS,
+    RESOURCE_DELTAS,
+    BRIMMING
 )
 
 BATTLE_STATE_KEY = 'battle_state'
@@ -25,9 +29,10 @@ _EMPTY_STATE = {
     'last_acted': {},       # monster_id(str): turn_count when it last acted - fairness tracking
     'pending_actor': None,  # ally monster_id whose turn awaits player input
     'pending_talk': None,   # {'speaker_id', 'dialogue'} - enemy talk awaiting player response
-    'allies': {},           # monster_id(str): {'name', 'condition', 'defending'}
-    'enemies': {},          # monster_id(str): {'name', 'condition', 'defending', 'fled'}
+    'allies': {},           # monster_id(str): {'name', 'condition', 'defending', 'stamina', 'mana'}
+    'enemies': {},          # monster_id(str): {'name', 'condition', 'defending', 'fled', 'stamina', 'mana'}
     'recent_log': [],
+    'finishing_blows': {},  # monster_id(str): {'by_id','by_name','action','ability_name'} - who dropped whom
     'resolution': None      # 'combat'|'joined'|'yielded'|'fled'|'spared'
 }
 
@@ -60,7 +65,11 @@ def start_battle(ally_conditions: Dict[str, Dict[str, Any]], enemy_entries: Dict
             str(monster_id): {
                 'name': info.get('name', f'Monster {monster_id}'),
                 'condition': info.get('condition', FRESH),
-                'defending': False
+                'defending': False,
+                # Reserves carry over from the run - entering the dungeon
+                # is the only guaranteed refill
+                'stamina': info.get('stamina', BRIMMING),
+                'mana': info.get('mana', BRIMMING)
             }
             for monster_id, info in ally_conditions.items()
         },
@@ -69,11 +78,14 @@ def start_battle(ally_conditions: Dict[str, Dict[str, Any]], enemy_entries: Dict
                 'name': info.get('name', f'Monster {monster_id}'),
                 'condition': FRESH,
                 'defending': False,
-                'fled': False
+                'fled': False,
+                'stamina': info.get('stamina', BRIMMING),
+                'mana': info.get('mana', BRIMMING)
             }
             for monster_id, info in enemy_entries.items()
         },
         'recent_log': [],
+        'finishing_blows': {},
         'resolution': None
     })
     save_battle_state(state)
@@ -127,6 +139,28 @@ def apply_impact(state: Dict[str, Any], side: str, monster_id: str, impact: str)
     monster['condition'] = CONDITION_LADDER[new_index]
 
     return monster['condition']
+
+# ===== THE RESOURCE LADDERS (stamina and mana) =====
+
+def apply_resource(state: Dict[str, Any], side: str, monster_id: str, resource: str, delta_word: str) -> Optional[str]:
+    """
+    Apply a referee cost/restore judgment to one of a monster's pools
+    (in place). Same shape as apply_impact: word -> steps -> clamped
+    ladder move. Returns the pool's new level.
+    """
+    monster = state.get(side, {}).get(str(monster_id))
+    if not monster or resource not in RESOURCE_KEYS:
+        return None
+
+    steps = RESOURCE_DELTAS.get(delta_word)
+    if steps is None:
+        return monster.get(resource)
+
+    current_index = RESOURCE_LADDER.index(monster.get(resource, BRIMMING))
+    new_index = max(0, min(len(RESOURCE_LADDER) - 1, current_index + steps))
+    monster[resource] = RESOURCE_LADDER[new_index]
+
+    return monster[resource]
 
 # ===== DEFENDING (lasts until the monster's next turn) =====
 
