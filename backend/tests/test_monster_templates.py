@@ -65,7 +65,17 @@ GENERATOR_VARIABLES = {
         'monster_health', 'monster_attack', 'monster_defense', 'monster_speed',
         'monster_personality', 'monster_role', 'monster_class', 'monster_elements',
         'monster_wish', 'existing_abilities_text', 'ability_count'
-    }
+    },
+    # Inventory generation (backend/game/inventory/generator.py)
+    'treasure_item': {'location_name', 'location_description'},
+    'reward_item': {'location_name', 'location_description', 'monster_details', 'dialogue_history'},
+    'victory_cocatok': {'location_name', 'defeated_names', 'battle_summary', 'color_options'},
+    'treasure_discovery': {'location_name', 'location_description', 'party_summary',
+                           'dungeon_log', 'item_name', 'item_description'},
+    # Item referee (dungeon/registered_workflows.py use_dungeon_item)
+    'dungeon_item_use': {'location_name', 'location_description', 'party_details',
+                         'item_name', 'item_description', 'uses_remaining',
+                         'target_description', 'secret_knowledge', 'dungeon_log'}
 }
 
 def test_staged_templates_render():
