@@ -75,4 +75,60 @@ def apply_dialogue_outcome(outcome: str, monster_ids: List[int], location: Dict[
         # FUTURE: worsen conditions / curse / take something here
         log_note = "The monster punished the party, though it let them live."
 
+    _write_outcome_memories(outcome, monster_ids, location, item_data)
+
     return {'joined_names': joined_names, 'log_note': log_note, 'item': item_data}
+
+# What each resolving outcome writes into the monster's permanent memory.
+# The KIND carries the tone (gave_reward is warm, punished_party is sour) -
+# no LLM call needed here.
+_OUTCOME_MEMORY = {
+    'join_party': ('joined_party',
+                   "Chose to join the party at {location} after a conversation that moved it."),
+    'allow_passage': ('let_party_pass',
+                      "Spoke with the party at {location} and let them pass in peace."),
+    'reward': ('gave_reward',
+               "Was so taken with the party at {location} that it gifted them {gift}."),
+    'punish': ('punished_party',
+               "Was crossed by the party at {location} and made them pay a price, short of blood.")
+}
+
+def _write_outcome_memories(outcome: str, monster_ids: List[int], location: Dict[str, Any], item_data):
+    """
+    Permanent memories for a resolved dialogue: what the monster decided,
+    plus the conversation excerpt that led there. Never raises.
+    """
+    try:
+        from backend.game.memory.manager import write_memory
+        from backend.game.memory.journal import append_party_journal
+        from backend.game.dungeon.manager import get_encounter_dialogue_text
+
+        if outcome not in _OUTCOME_MEMORY:
+            return
+
+        location_name = (location or {}).get('name', 'the dungeon')
+        kind, template = _OUTCOME_MEMORY[outcome]
+        content = template.format(
+            location=location_name,
+            gift=(item_data or {}).get('name', 'a gift')
+        )
+
+        # The words that earned this outcome, clipped for the record
+        exchange = get_encounter_dialogue_text()
+        exchange_clip = exchange[-220:] if exchange else ''
+        details = {'location': location_name}
+        if exchange_clip:
+            details['exchange'] = exchange_clip
+
+        for monster_id in monster_ids:
+            write_memory(int(monster_id), kind, content, dict(details))
+            if exchange_clip:
+                write_memory(
+                    int(monster_id), 'talked_with_party',
+                    f"Traded words with the party at {location_name}: ...{exchange_clip}",
+                    {'location': location_name}
+                )
+
+        append_party_journal(f"Dialogue at {location_name} ended: {content}")
+    except Exception as e:
+        print(f"❌ Dialogue outcome memory writing failed: {e}")

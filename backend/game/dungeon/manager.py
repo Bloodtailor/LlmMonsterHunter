@@ -132,6 +132,8 @@ def get_seen_monster_ids() -> List[int]:
 
 def add_seen_monster_ids(monster_ids: List[int]) -> None:
     state = get_dungeon_state()
+    if not state.get('in_dungeon'):
+        return  # sanctuary battles etc. - there is no run to track
     seen = state.get('seen_monster_ids', [])
     for monster_id in monster_ids:
         if monster_id not in seen:

@@ -114,11 +114,12 @@ def build_monster_block(monster, tier: str = None, condition: str = None,
 
     return "\n".join(line for line in lines if line)
 
-def build_speaker_block(monster, condition: str = None) -> str:
+def build_speaker_block(monster, condition: str = None, memory_lines: list = None) -> str:
     """The FULL block for a monster that is about to SPEAK in a dialogue
     prompt - always full tier, secret included, regardless of window bin"""
 
-    return build_monster_block(monster, tier='full', condition=condition, include_secret=True)
+    return build_monster_block(monster, tier='full', condition=condition,
+                               include_secret=True, memory_lines=memory_lines)
 
 # ===== LINE HELPERS =====
 

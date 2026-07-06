@@ -18,9 +18,11 @@ from backend.game.dungeon.events import (
 # these wrappers add dungeon decorations (run conditions) and block clamping.
 
 def build_monster_dungeon_details(monster) -> str:
-    """One monster as tiered LLM context for dungeon encounters"""
+    """One monster as tiered LLM context for dungeon encounters - if it
+    has met the party before, its freshest memories ride along"""
     from backend.game.monster.context_builder import build_monster_block
-    return build_monster_block(monster)
+    from backend.game.memory.manager import compact_memory_lines
+    return build_monster_block(monster, memory_lines=compact_memory_lines(monster.id))
 
 def build_monsters_details(monsters: List[Any]) -> str:
     """Several monsters as one clamped, tier-binned LLM context block"""
@@ -31,7 +33,8 @@ def build_speaking_monsters_details(monsters: List[Any]) -> str:
     """Monsters that are about to SPEAK (dialogue encounters): always the
     FULL block including the guarded secret, regardless of the tier bin"""
     from backend.game.monster.context_builder import build_speaker_block
-    lines = [build_speaker_block(m) for m in monsters if m]
+    from backend.game.memory.manager import compact_memory_lines
+    lines = [build_speaker_block(m, memory_lines=compact_memory_lines(m.id)) for m in monsters if m]
     return clamp_context('monster_details', "\n".join(lines)) if lines else "None"
 
 def build_party_dungeon_details() -> str:

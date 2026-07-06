@@ -23,16 +23,23 @@ def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = Non
     """One monster as tiered LLM context with battle decorations: SIDE,
     condition, defending state, and reserve levels (block itself is never
     truncated). The secret never enters battle prompts - the narrator
-    would leak it."""
+    would leak it. ENEMIES that have met the party before carry their
+    memories in (ally history lives in the run journal instead)."""
 
     from backend.game.monster.context_builder import build_monster_block
+
+    memory_lines = None
+    if side == 'enemies':
+        from backend.game.memory.manager import compact_memory_lines
+        memory_lines = compact_memory_lines(monster.id)
 
     return build_monster_block(
         monster,
         condition=entry.get('condition', 'fresh'),
         defending=bool(entry.get('defending')),
         side_label=SIDE_LABELS.get(side),
-        resources={'stamina': entry.get('stamina'), 'mana': entry.get('mana')}
+        resources={'stamina': entry.get('stamina'), 'mana': entry.get('mana')},
+        memory_lines=memory_lines
     )
 
 def build_side_details(monsters: Dict[str, Any], entries: Dict[str, Dict[str, Any]], side: str = None) -> str:

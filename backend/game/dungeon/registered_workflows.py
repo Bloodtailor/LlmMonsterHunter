@@ -252,13 +252,19 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 'camped': False
             })
 
+            from backend.game.memory.manager import mark_seen
+            from backend.game.memory.journal import append_party_journal
+            mark_seen([monster.id for monster in monsters])
+
             if monsters_present:
                 monster_names = ', '.join(f"{m.name} ({m.species})" for m in monsters)
                 manager.append_dungeon_log(
                     f"Looking around, the party spotted creatures that have not noticed them yet: {monster_names}."
                 )
+                append_party_journal(f"Explored {location.get('name', 'a new area')} and spotted {monster_names}.")
             else:
                 manager.append_dungeon_log("The party looked around and found the area free of other creatures.")
+                append_party_journal(f"Explored {location.get('name', 'a new area')} - quiet and empty.")
 
             return success_response({
                 "event": "location_explore",
@@ -304,6 +310,8 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 f"At {location.get('name', 'the new location')}, the party discovered "
                 f"a hidden treasure: {item.name} ({item.description})"
             )
+            from backend.game.memory.journal import append_party_journal
+            append_party_journal(f"Found treasure at {location.get('name', 'a new area')}: {item.name}.")
 
             return success_response({
                 "event": "treasure",
@@ -353,6 +361,9 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "generate_monster_question"
             on_update(step, progress_data)
             question_data = generate_monster_question(location, monster, workflow_name)
+
+            from backend.game.memory.manager import mark_seen
+            mark_seen([monster.id])
 
             manager.set_active_encounter({
                 'event': 'monster_dialogue',
@@ -410,6 +421,9 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 generate_ability(enemy)
                 generate_card_art(enemy)
                 enemies.append(enemy)
+
+            from backend.game.memory.manager import mark_seen
+            mark_seen([enemy.id for enemy in enemies])
 
             # Battle intro - the enemies' in-character challenge
             step = "generate_battle_intro"
@@ -527,6 +541,10 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
             f'The party said to {speaker_name}: "{message}" '
             f'{speaker_name} responded: "{response}"'
         )
+        from backend.game.memory import journal
+        journal.append_party_journal(
+            f'Talked with {speaker_name}: said "{message[:70]}" - heard "{response[:60]}"'
+        )
 
         # Step 3 - apply the outcome the monster chose
         step = "apply_outcome"
@@ -627,6 +645,21 @@ def sneak_past(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
             manager.append_dungeon_log(
                 f"The party snuck past {monster_names} without being noticed and pressed on."
             )
+
+            # The avoided monsters keep only a vague impression - enough
+            # for them to resurface in another group someday
+            from backend.game.memory.manager import write_memory
+            from backend.game.memory.journal import append_party_journal
+            location_name = location.get('name', 'the dungeon')
+            for avoided in monsters:
+                write_memory(
+                    avoided.id, 'avoided',
+                    f"Sensed someone slip through its territory at {location_name}, "
+                    f"but never saw them clearly.",
+                    {'location': location_name}
+                )
+            append_party_journal(f"Slipped past {monster_names} unseen at {location_name}.")
+
             return success_response({
                 "success": True,
                 "narration": attempt['narration']
@@ -999,6 +1032,11 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
 
         manager.append_dungeon_log(
             f"{actor.name} used {ability.name} on {target_label}: {result['narration']}"
+        )
+        from backend.game.memory.journal import append_journal
+        append_journal(
+            actor.id,
+            f"Used {ability.name} on {target_label} outside battle: {result['narration'][:100]}"
         )
 
         return success_response({

@@ -179,6 +179,38 @@ def main():
             check('following monsters are excluded',
                   test_monster.id not in memory.eligible_returning_ids())
 
+            # ===== Dialogue outcome memories (M3) =====
+            print('\n-- dialogue outcome memories --')
+            from backend.game.dungeon.outcomes import apply_dialogue_outcome
+
+            state = dungeon.get_dungeon_state()
+            state['active_encounter'] = {
+                'event': 'monster_dialogue',
+                'monster_ids': [test_monster.id],
+                'dialogue': [
+                    {'speaker': 'The party', 'text': 'We mean you no harm.'},
+                    {'speaker': 'Testling', 'text': 'Then pass, strangers.'}
+                ]
+            }
+            dungeon.save_dungeon_state(state)
+
+            before = len(MonsterMemory.for_monster(test_monster.id))
+            applied = apply_dialogue_outcome(
+                'allow_passage', [test_monster.id],
+                {'name': 'Test Chamber', 'description': ''}
+            )
+            rows = MonsterMemory.for_monster(test_monster.id)
+            new_kinds = [r.kind for r in rows[before:]]
+            check('allow_passage writes let_party_pass + talked_with_party',
+                  'let_party_pass' in new_kinds and 'talked_with_party' in new_kinds,
+                  f'got {new_kinds}')
+            passage = next((r for r in rows[before:] if r.kind == 'let_party_pass'), None)
+            check('outcome memory carries the exchange excerpt',
+                  passage is not None and 'exchange' in (passage.details or {}))
+            check('outcome journal line reaches the party journal shape ok',
+                  applied['log_note'] != '')
+            dungeon.clear_active_encounter()
+
             # ===== Resource constants =====
             print('\n-- Resource pool seeds --')
             pools = full_resources()
