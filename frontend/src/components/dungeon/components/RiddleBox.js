@@ -14,7 +14,7 @@ import { useDungeon } from '../../../app/contexts/DungeonContext/useDungeon.js';
  */
 function RiddleBox() {
   const {
-    encounterMonster,
+    encounterMonsters,
     riddleGreeting,
     riddle,
     isJudgingAnswer,
@@ -30,7 +30,7 @@ function RiddleBox() {
   if (exitText || !riddle) return null;
 
   const hasResult = !!riddleResult;
-  const monsterName = encounterMonster?.name || 'The monster';
+  const monsterName = encounterMonsters?.[0]?.name || 'The monster';
 
   // Submit the answer (form wrapper so Enter submits too)
   const handleSubmit = (e) => {
