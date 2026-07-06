@@ -3,7 +3,7 @@
 // The only way to enter the dungeon
 
 import React from 'react';
-import PartyDisplay from "../../components/cardDisplays/PartyDisplay";
+import PartyInventoryTabs from "../../components/cardDisplays/PartyInventoryTabs";
 import MonsterPoolDisplay from "../../components/cardDisplays/MonsterPoolDisplay";
 import { Card, CardSection, Button } from "../../shared/ui";
 import { useNavigation } from "../../app/contexts/NavigationContext/index.js";
@@ -43,8 +43,8 @@ function HomeBaseScreen() {
                 </CardSection>
             </Card>
 
-            <PartyDisplay />
-            
+            <PartyInventoryTabs />
+
             <MonsterPoolDisplay />
         </div>
     );

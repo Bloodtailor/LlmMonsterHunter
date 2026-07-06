@@ -11,6 +11,7 @@ import React from 'react';
 import EncounterLocationHeader from '../components/EncounterLocationHeader.js';
 import EncounterTextDisplay from '../components/EncounterTextDisplay.js';
 import LookAroundTextDisplay from '../components/LookAroundTextDisplay.js';
+import TreasureDisplay from '../components/TreasureDisplay.js';
 import EncounterMonsterDisplay from '../components/EncounterMonsterDisplay.js';
 import ExplorePanel from '../components/ExplorePanel.js';
 import MonsterDialogueBox from '../components/MonsterDialogueBox.js';
@@ -43,6 +44,9 @@ function DungeonLocationScreen() {
 
       {/* Streaming look-around text (explore arrivals) */}
       <LookAroundTextDisplay />
+
+      {/* Treasure discovery - streamed narration + the found item */}
+      <TreasureDisplay />
 
       {/* The monsters' cards - appear on creation, art pops in live */}
       <EncounterMonsterDisplay />

@@ -58,10 +58,18 @@ and Sanctuary auto-refresh):
 - `monster.ability_added` — `{ monster_id, ability }` (`AbilityObject`)
 - `monster.art_ready` — `{ monster_id, image_path }`
 
+### Inventory domain events
+Facts about the party's possessions, emitted from the inventory generator
+and the item-consumption flows:
+- `inventory.item_added` — `{ item }` (`ItemObject` — treasure or dialogue reward)
+- `inventory.item_updated` — `{ item }` (a use was spent, uses remain)
+- `inventory.item_consumed` — `{ item_id, name }` (last use spent; the item is gone)
+- `inventory.cocatok_added` — `{ cocatok }` (`CoCaTokObject` — a victory was minted)
+
 `workflow_type` values seen in workflow events: `generate_detailed_monster`,
 `generate_ability`, `enter_dungeon`, `choose_path`, `respond_to_monster`,
 `sneak_past`, `surprise_attack`, `setup_camp`, `use_dungeon_ability`,
-`continue_exploring`, `battle_turn`.
+`use_dungeon_item`, `continue_exploring`, `battle_turn`.
 
 Notable `workflow.update` steps:
 - `emit_generation_id` — a streamed text generation just started; its id is
@@ -69,11 +77,14 @@ Notable `workflow.update` steps:
   `encounter_text_generation_id` for dialogue/battle encounters,
   `look_text_generation_id` for explore arrivals,
   `camp_text_generation_id` for camp scenes,
+  `treasure_text_generation_id` for treasure discoveries,
   `turn_vanity_generation_id` for the acting party monster's inner
   monologue when a battle turn is handed to the player). Match subsequent
   `llm.generation.update` events by `generation_id` to stream that text.
 - `location_generated` — `data.current_location` (a path's arrival location)
 - `action_resolved` — `data.action_result` (one resolved battle turn; see [Dungeon & Battle](dungeon-and-battle.md))
+- `generate_treasure_item` — `data.item` (the treasure path's found item)
+- `mint_victory_cocatok` — `data.cocatok` (the victory's minted keepsake)
 
 ## How the frontend consumes this
 

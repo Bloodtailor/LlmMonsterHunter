@@ -242,6 +242,52 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 "party_conditions": manager.get_party_conditions()
             })
 
+        # === EVENT: TREASURE (a hidden item waits to be discovered) ===
+        if event == 'treasure':
+            from backend.game.inventory.generator import (
+                generate_treasure_item,
+                generate_treasure_discovery_text
+            )
+
+            # Step 3 - the item itself (emits inventory.item_added)
+            step = "generate_treasure_item"
+            on_update(step, progress_data)
+            item = generate_treasure_item(location)
+            progress_data.update({ "item": item.to_dict() })
+
+            # Step 4 - queue streamed discovery narration referencing the item
+            step = "queue_treasure_text"
+            on_update(step, progress_data)
+            treasure_text_generation_id = generate_treasure_discovery_text(location, item, workflow_name)
+            progress_data.update({ "treasure_text_generation_id": treasure_text_generation_id })
+
+            # Step 5 - frontend picks the generation id up from this step
+            step = "emit_generation_id"
+            on_update(step, progress_data)
+
+            # After the discovery the moment plays like a creature-free
+            # explore - the party looks up and decides where to go next
+            manager.set_active_encounter({
+                'event': 'location_explore',
+                'monster_ids': [],
+                'monsters_present': False,
+                'camped': False
+            })
+
+            manager.append_dungeon_log(
+                f"At {location.get('name', 'the new location')}, the party discovered "
+                f"a hidden treasure: {item.name} ({item.description})"
+            )
+
+            return success_response({
+                "event": "treasure",
+                "current_location": location,
+                "item": item.to_dict(),
+                "monsters_present": False,
+                "monster_ids": [],
+                "party_conditions": manager.get_party_conditions()
+            })
+
         # === EVENT: MONSTER DIALOGUE (a monster stops the party with a question) ===
         if event == 'monster_dialogue':
 
@@ -487,7 +533,7 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
             })
 
         # Every other outcome resolves the encounter peacefully
-        applied = apply_dialogue_outcome(outcome, [m.id for m in monsters])
+        applied = apply_dialogue_outcome(outcome, [m.id for m in monsters], location)
         manager.clear_active_encounter()
         if applied['log_note']:
             manager.append_dungeon_log(applied['log_note'])
@@ -495,7 +541,8 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
         return success_response({
             "outcome": outcome,
             "response": response,
-            "joined_names": applied['joined_names']
+            "joined_names": applied['joined_names'],
+            "item": applied.get('item')
         })
 
     except Exception as e:
@@ -714,6 +761,77 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
             'error': str(e)
         })
 
+def _resolve_dungeon_target(context: dict, manager, location: dict):
+    """
+    Describe an out-of-battle target and gather any secret knowledge
+    (paths know their hidden destination - a perceptive use can hint at it).
+    Shared by the ability and item dungeon-referee workflows.
+    Returns (target_type, target_id, target_label, target_description, secret_knowledge)
+    """
+    from backend.game.dungeon.generator import build_monsters_details
+    from backend.models.monster import Monster
+
+    target_type = str(context.get('target_type') or 'location')
+    target_id = context.get('target_id')
+    target_text = str(context.get('target_text') or '').strip()
+    secret_knowledge = ''
+
+    if target_type == 'path' and target_id:
+        path = manager.get_path(str(target_id))
+        if not path:
+            raise Exception(f"Unknown path: {target_id}")
+        target_label = f"the path '{path.get('name', 'unknown')}'"
+        target_description = (
+            f"A path leading onward: {path.get('name', 'unknown')} - {path.get('description', '')}"
+        )
+        if path.get('type') == 'exit':
+            secret_knowledge = "This path truly leads OUT of the dungeon, back to the surface."
+        else:
+            destination = path.get('destination') or {}
+            secret_knowledge = (
+                f"Beyond this path lies: {destination.get('name', 'an unknown place')} - "
+                f"{destination.get('description', '')}"
+            )
+
+    elif target_type == 'monster' and target_id:
+        target_monster = Monster.get_monster_by_id(int(target_id))
+        if not target_monster:
+            raise Exception(f"Unknown monster: {target_id}")
+        condition = manager.get_party_conditions().get(str(target_monster.id))
+        condition_note = f" Its current condition: {condition}." if condition else ""
+        target_label = target_monster.name
+        target_description = f"A monster.{condition_note}\n{build_monsters_details([target_monster])}"
+
+    elif target_type == 'custom' and target_text:
+        target_label = target_text
+        target_description = f"The player describes the target as: {target_text}"
+
+    else:
+        target_label = f"the location ({location.get('name', 'this place')})"
+        target_description = (
+            f"The location itself: {location.get('name', 'this place')} - "
+            f"{location.get('description', '')}"
+        )
+
+    return target_type, target_id, target_label, target_description, secret_knowledge
+
+def _apply_party_heal_effect(effect: str, target_type: str, target_id, manager) -> str:
+    """Healing effects stick only to party members; returns the (possibly
+    downgraded) effect. Shared by the ability and item workflows."""
+    from backend.game.battle.constants import CONDITION_LADDER, IMPACT_STEPS
+
+    if effect in ('heal_light', 'heal_major') and target_type == 'monster':
+        conditions = manager.get_party_conditions()
+        key = str(target_id)
+        if key in conditions:
+            current_index = CONDITION_LADDER.index(conditions.get(key, 'fresh'))
+            new_index = max(0, min(len(CONDITION_LADDER) - 1, current_index + IMPACT_STEPS[effect]))
+            conditions[key] = CONDITION_LADDER[new_index]
+            manager.set_party_conditions(conditions)
+        else:
+            effect = 'none'  # healing only sticks to the party
+    return effect
+
 @register_workflow()
 def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
     """
@@ -734,7 +852,6 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
     try:
         from backend.game.dungeon import manager
         from backend.game.dungeon.generator import build_monsters_details, resolve_dungeon_ability
-        from backend.game.battle.constants import CONDITION_LADDER, IMPACT_STEPS
         from backend.models.monster import Monster
 
         # Step 0 - validate required keys
@@ -752,52 +869,10 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
         location = manager.get_current_location() or {'name': 'the dungeon', 'description': ''}
 
         # Step 1 - describe the target and gather any secret knowledge
-        # (paths know their hidden destination - a perceptive ability can hint at it)
         step = "resolve_target"
         on_update(step, progress_data)
-
-        target_type = str(context.get('target_type') or 'location')
-        target_id = context.get('target_id')
-        target_text = str(context.get('target_text') or '').strip()
-        secret_knowledge = ''
-        target_label = ''
-
-        if target_type == 'path' and target_id:
-            path = manager.get_path(str(target_id))
-            if not path:
-                raise Exception(f"Unknown path: {target_id}")
-            target_label = f"the path '{path.get('name', 'unknown')}'"
-            target_description = (
-                f"A path leading onward: {path.get('name', 'unknown')} - {path.get('description', '')}"
-            )
-            if path.get('type') == 'exit':
-                secret_knowledge = "This path truly leads OUT of the dungeon, back to the surface."
-            else:
-                destination = path.get('destination') or {}
-                secret_knowledge = (
-                    f"Beyond this path lies: {destination.get('name', 'an unknown place')} - "
-                    f"{destination.get('description', '')}"
-                )
-
-        elif target_type == 'monster' and target_id:
-            target_monster = Monster.get_monster_by_id(int(target_id))
-            if not target_monster:
-                raise Exception(f"Unknown monster: {target_id}")
-            condition = manager.get_party_conditions().get(str(target_monster.id))
-            condition_note = f" Its current condition: {condition}." if condition else ""
-            target_label = target_monster.name
-            target_description = f"A monster.{condition_note}\n{build_monsters_details([target_monster])}"
-
-        elif target_type == 'custom' and target_text:
-            target_label = target_text
-            target_description = f"The player describes the target as: {target_text}"
-
-        else:
-            target_label = f"the location ({location.get('name', 'this place')})"
-            target_description = (
-                f"The location itself: {location.get('name', 'this place')} - "
-                f"{location.get('description', '')}"
-            )
+        target_type, target_id, target_label, target_description, secret_knowledge = \
+            _resolve_dungeon_target(context, manager, location)
 
         # Step 2 - the dungeon referee judges what actually happens
         step = "resolve_ability"
@@ -815,18 +890,7 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
         # Step 3 - apply any mechanical effect (only party members heal)
         step = "apply_effect"
         on_update(step, progress_data)
-        effect = result['effect']
-
-        if effect in ('heal_light', 'heal_major') and target_type == 'monster':
-            conditions = manager.get_party_conditions()
-            key = str(target_id)
-            if key in conditions:
-                current_index = CONDITION_LADDER.index(conditions.get(key, 'fresh'))
-                new_index = max(0, min(len(CONDITION_LADDER) - 1, current_index + IMPACT_STEPS[effect]))
-                conditions[key] = CONDITION_LADDER[new_index]
-                manager.set_party_conditions(conditions)
-            else:
-                effect = 'none'  # healing only sticks to the party
+        effect = _apply_party_heal_effect(result['effect'], target_type, target_id, manager)
 
         manager.append_dungeon_log(
             f"{actor.name} used {ability.name} on {target_label}: {result['narration']}"
@@ -835,6 +899,88 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
         return success_response({
             "narration": result['narration'],
             "effect": effect,
+            "party_conditions": manager.get_party_conditions()
+        })
+
+    except Exception as e:
+        return error_response({
+            'failed_at': step,
+            'completed_work': progress_data,
+            'error': str(e)
+        })
+
+@register_workflow()
+def use_dungeon_item(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+    """
+    The party uses an inventory ITEM on anything outside battle. The LLM
+    referee reads the item's description and decides what actually happens.
+    One use is spent regardless of the outcome (during battle, items cost
+    a turn instead - see the battle_turn workflow).
+    """
+
+    workflow_name = 'use_dungeon_item'
+    # "context" should have the following keys:
+    required_keys = ["item_id"]
+
+    # Set the initial conditions
+    step = "initialize_workflow"
+    progress_data = {}
+
+    try:
+        from backend.game.dungeon import manager
+        from backend.game.dungeon.generator import resolve_dungeon_item
+        from backend.game.inventory.manager import spend_item_use
+        from backend.models.item import Item
+
+        # Step 0 - validate required keys
+        step = "validate_context"
+        on_update(step, progress_data)
+        require_keys(context, required_keys)
+
+        item = Item.get_item_by_id(int(context['item_id']))
+        if not item or item.uses_remaining < 1:
+            raise Exception("That item is not in the party's inventory")
+
+        location = manager.get_current_location() or {'name': 'the dungeon', 'description': ''}
+
+        # Step 1 - describe the target and gather any secret knowledge
+        step = "resolve_target"
+        on_update(step, progress_data)
+        target_type, target_id, target_label, target_description, secret_knowledge = \
+            _resolve_dungeon_target(context, manager, location)
+
+        # Step 2 - the dungeon referee judges what actually happens
+        step = "resolve_item"
+        on_update(step, progress_data)
+        result = resolve_dungeon_item(
+            location,
+            item,
+            target_description,
+            secret_knowledge,
+            workflow_name
+        )
+
+        # Step 3 - apply any mechanical effect (only party members heal)
+        step = "apply_effect"
+        on_update(step, progress_data)
+        effect = _apply_party_heal_effect(result['effect'], target_type, target_id, manager)
+
+        # Step 4 - one use is spent no matter what came of it
+        # (emits inventory.item_updated or inventory.item_consumed)
+        step = "spend_item_use"
+        on_update(step, progress_data)
+        item_name = item.name
+        spend_result = spend_item_use(item)
+        progress_data.update({ "item_spend": spend_result })
+
+        manager.append_dungeon_log(
+            f"The party used {item_name} on {target_label}: {result['narration']}"
+        )
+
+        return success_response({
+            "narration": result['narration'],
+            "effect": effect,
+            "item_spend": spend_result,
             "party_conditions": manager.get_party_conditions()
         })
 

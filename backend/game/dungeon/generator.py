@@ -314,6 +314,48 @@ def resolve_dungeon_ability(
             'effect': 'none'
         }
 
+def resolve_dungeon_item(
+    location: Dict[str, Any],
+    item,
+    target_description: str,
+    secret_knowledge: str,
+    workflow_name: str
+) -> Dict[str, Any]:
+    """
+    THE DUNGEON REFEREE for out-of-battle ITEM use on anything
+    Returns {'narration': str, 'effect': validated str} - always
+    """
+
+    valid_effects = ('none', 'heal_light', 'heal_major', 'reveal')
+
+    try:
+        result = build_and_generate('dungeon_item_use', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'location_description': clamp_context('location_description', location.get('description', '')),
+            'party_details': build_party_dungeon_details(),
+            'item_name': item.name,
+            'item_description': item.description,
+            'uses_remaining': item.uses_remaining,
+            'target_description': target_description,
+            'secret_knowledge': secret_knowledge or 'none',
+            'dungeon_log': _dungeon_log_text()
+        })
+
+        effect = str(result.get('effect', '')).strip().lower()
+        if effect not in valid_effects:
+            effect = 'none'
+
+        return {
+            'narration': str(result.get('narration') or 'Nothing much seems to come of it.'),
+            'effect': effect
+        }
+
+    except Exception:
+        return {
+            'narration': f"The party uses {item.name}, but the moment passes and nothing seems to change.",
+            'effect': 'none'
+        }
+
 # ===== DIALOGUE ENCOUNTER GENERATION =====
 
 def generate_monster_question(location: Dict[str, Any], monster, workflow_name: str) -> Dict[str, Any]:

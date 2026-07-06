@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect } from 'react';
 import { useTakeTurn, useRespondToTalk } from '../../../hooks/useBattle.js';
+import { transformCoCaTok } from '../../../../api/transformers/inventory.js';
 
 /**
  * Hook for managing battle actions
@@ -32,6 +33,7 @@ export function useBattleActions(stateHook) {
     setResolution,
     setOutcomeText,
     setJoinedNames,
+    setVictoryCocatok,
     setBattleError
   } = setters;
 
@@ -68,6 +70,8 @@ export function useBattleActions(stateHook) {
       setResolution(result.resolution || 'combat');
       setOutcomeText(result.outcome_text || '');
       setJoinedNames(result.joined_names || []);
+      // A victory minted a CoCaTok keepsake - hold it for the pickup ceremony
+      setVictoryCocatok(result.cocatok ? transformCoCaTok(result.cocatok) : null);
     }
 
     setTurnResult(null);
@@ -76,7 +80,7 @@ export function useBattleActions(stateHook) {
   }, [
     setDisplayedBattle, setPendingActorId, setPendingActorName, setPendingTalk,
     setCurrentSelection, setOutcome, setResolution, setOutcomeText, setJoinedNames,
-    setTurnResult, setCurrentNarration, setIsProcessing
+    setVictoryCocatok, setTurnResult, setCurrentNarration, setIsProcessing
   ]);
 
   // Some turns have nothing to click through (e.g. opening initiative
@@ -108,6 +112,7 @@ export function useBattleActions(stateHook) {
     const action = {
       type: selection.type,
       ability_id: selection.abilityId ?? null,
+      item_id: selection.itemId ?? null,
       target_id: selection.targetId ?? null,
       text: selection.text ?? null,
       info: selection.info ?? null

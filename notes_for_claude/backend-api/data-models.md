@@ -137,6 +137,37 @@ not its type, so the type has no mechanical meaning.
 ```
 Serve the image via `GET /api/monsters/card-art/{relative_path}`.
 
+## ItemObject
+```json
+{
+  "id": number,
+  "name": string,
+  "description": string,      // referee-facing: what it IS and what it DOES
+  "emoji": string,
+  "uses_remaining": number,   // 1-3 at generation; item is DELETED at 0
+  "source_note": string|null, // "Found at ..." / "Gift from ..."
+  "created_at": string
+}
+```
+The referee reads ONLY the description when the item is used — it must
+carry the item's effect in prose.
+
+## CoCaTokObject
+```json
+{
+  "id": number,
+  "title": string,
+  "emoji": string,
+  "color": string,            // curated frontend color-system name (e.g. "purple-mystic")
+  "commemoration": string,    // collector's-card flavor text of the victory
+  "event_type": "battle_victory",
+  "location_name": string|null,
+  "created_at": string
+}
+```
+Keepsakes: view-only, no delete path. Rendered by the frontend CoCaTok
+spinning-card component from color + emoji (no AI art).
+
 ## GameStateObject
 ```json
 {

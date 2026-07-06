@@ -9,12 +9,14 @@ import { useSSE } from '../../../api/core/useSSE.js';
 import { aiEventHandlers } from '../../../api/events/aiEventHandlers.js';
 import { workflowEventHandlers } from '../../../api/events/workflowEventHandlers.js';
 import { monsterEventHandlers } from '../../../api/events/monsterEventHandlers.js';
+import { inventoryEventHandlers } from '../../../api/events/inventoryEventHandlers.js';
 
 // Module-level constant - stable reference, combined once
 const sseEventHandlers = {
   ...aiEventHandlers,
   ...workflowEventHandlers,
-  ...monsterEventHandlers
+  ...monsterEventHandlers,
+  ...inventoryEventHandlers
 };
 
 function EventProvider({ children }) {

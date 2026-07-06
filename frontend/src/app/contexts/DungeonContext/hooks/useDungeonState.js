@@ -57,6 +57,14 @@ export function useDungeonState() {
   const [isUsingAbility, setIsUsingAbility] = useState(false);
   const [abilityResult, setAbilityResult] = useState(null); // { narration, effect }
 
+  // Inventory items - usable on anything like abilities (LLM referees it)
+  const [isUsingItem, setIsUsingItem] = useState(false);
+  const [itemResult, setItemResult] = useState(null); // { narration, effect }
+
+  // Treasure path event - the streamed discovery text and the found item
+  const [treasureText, setTreasureText] = useState('');
+  const [treasureItem, setTreasureItem] = useState(null);
+
   // Exit state - set when the party takes an exit path
   const [exitText, setExitText] = useState(null);
 
@@ -83,6 +91,9 @@ export function useDungeonState() {
     setIsCamping(false);
     setHasCamped(false);
     setAbilityResult(null);
+    setItemResult(null);
+    setTreasureText('');
+    setTreasureItem(null);
   }, []);
 
   // Reset all state to initial values
@@ -109,6 +120,10 @@ export function useDungeonState() {
     setPartyConditions({});
     setIsUsingAbility(false);
     setAbilityResult(null);
+    setIsUsingItem(false);
+    setItemResult(null);
+    setTreasureText('');
+    setTreasureItem(null);
     setExitText(null);
   }, []);
 
@@ -137,6 +152,10 @@ export function useDungeonState() {
       partyConditions,
       isUsingAbility,
       abilityResult,
+      isUsingItem,
+      itemResult,
+      treasureText,
+      treasureItem,
       exitText
     },
 
@@ -163,6 +182,10 @@ export function useDungeonState() {
       setPartyConditions,
       setIsUsingAbility,
       setAbilityResult,
+      setIsUsingItem,
+      setItemResult,
+      setTreasureText,
+      setTreasureItem,
       setExitText,
       clearEncounter
     },

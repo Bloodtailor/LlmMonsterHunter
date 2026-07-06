@@ -55,6 +55,8 @@ def create_tables():
     from .base import BaseModel  # Base model class
     from .monster import Monster  # Monster model
     from .ability import Ability  # Ability model
+    from .item import Item        # Inventory items
+    from .cocatok import CoCaTok  # Collectable card tokens
     from .generation_log import GenerationLog  # Parent table
     from .llm_log import LLMLog              # LLM child table
     from .image_log import ImageLog          # Image child table

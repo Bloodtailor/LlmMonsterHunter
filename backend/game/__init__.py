@@ -7,3 +7,4 @@ from . import dungeon
 from . import monster
 from . import state
 from . import battle
+from . import inventory

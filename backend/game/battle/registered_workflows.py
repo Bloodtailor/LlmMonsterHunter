@@ -108,8 +108,8 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 return 'defeat', 'spared', []
             return 'unresolved', None, []
 
-        def resolve_combat_turn(side, actor_id, action, ability, target_side, target_id):
-            """Resolve one attack/ability/defend turn via the referee"""
+        def resolve_combat_turn(side, actor_id, action, ability, target_side, target_id, item=None):
+            """Resolve one attack/ability/defend/item turn via the referee"""
             actor_name = entry_name(side, actor_id)
 
             if action == 'defend':
@@ -120,15 +120,26 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                     f"{actor_name} uses the ability '{ability.name}': {ability.description} "
                     f"Target: {entry_name(target_side, target_id)}"
                 )
+            elif action == 'item' and item:
+                action_description = (
+                    f"{actor_name} uses the party's item '{item.name}': {item.description} "
+                    f"Target: {entry_name(target_side, target_id)}. "
+                    f"One use of the item is spent regardless of the outcome."
+                )
             else:
                 action = 'attack'
                 action_description = f"{actor_name} performs a basic attack on {entry_name(target_side, target_id)}"
 
             target_name = entry_name(target_side, target_id)
+            fallback_narration = (
+                f"{actor_name} uses {item.name}, and its effect washes over {target_name}."
+                if action == 'item' and item else
+                f"{actor_name} strikes at {target_name}, landing a solid blow."
+            )
             resolution = resolve_action(
                 location, details_of(side, actor_id), action_description,
                 details_of(target_side, target_id), state, workflow_name,
-                f"{actor_name} strikes at {target_name}, landing a solid blow."
+                fallback_narration
             )
 
             impact = 'none' if action == 'defend' else resolution['impact']
@@ -140,9 +151,10 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             battle.record_turn(state, actor_name, action, actor_id=actor_id, side=side)
             battle.save_battle_state(state)
 
+            used_name = ability.name if ability else (item.name if item else None)
             emit_turn({
                 'narration': resolution['narration'], 'actor_name': actor_name,
-                'action': action, 'ability_name': ability.name if ability else None,
+                'action': action, 'ability_name': used_name,
                 'target_name': target_name, 'impact': impact,
                 'target_condition': new_condition, 'dialogue': None
             })
@@ -234,6 +246,26 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                     'impact': impact if impacted_id else 'none',
                     'target_condition': new_condition, 'dialogue': None
                 })
+
+            elif action_type == 'item':
+                from backend.models.item import Item
+                from backend.game.inventory.manager import spend_item_use
+
+                item = Item.get_item_by_id(int(player_action.get('item_id')))
+                if not item or item.uses_remaining < 1:
+                    raise Exception("That item is not in the party's inventory")
+
+                # No chosen target = the actor uses it on itself
+                target_id = str(player_action.get('target_id')) if player_action.get('target_id') is not None else None
+                target_side = find_side(target_id) if target_id else None
+                if not target_id:
+                    target_side, target_id = 'allies', actor_id
+
+                resolve_combat_turn('allies', actor_id, 'item', None, target_side, target_id, item=item)
+
+                # The turn is spent, and so is one use of the item
+                # (emits inventory.item_updated or inventory.item_consumed)
+                spend_item_use(item)
 
             elif action_type == 'talk':
                 spoken = str(player_action.get('text', ''))
@@ -467,6 +499,28 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 f"{summary} Party condition afterward: {ally_summary}."
             )
 
+        # Every victory mints a unique CoCaTok keepsake commemorating it
+        # (emits inventory.cocatok_added; the frontend plays the pickup
+        # ceremony from the result payload)
+        cocatok_data = None
+        if outcome == 'victory':
+            step = "mint_victory_cocatok"
+            on_update(step, progress_data)
+            from backend.game.inventory.generator import generate_victory_cocatok
+
+            defeated_names = [
+                entry.get('name', 'Unknown')
+                for entry in state.get('enemies', {}).values()
+                if entry.get('name') not in joined_names
+            ]
+            battle_story = summary if dungeon.is_in_dungeon() else (
+                f"A battle against {', '.join(defeated_names) or 'fearsome foes'} "
+                f"ended in victory ({resolution})."
+            )
+            cocatok = generate_victory_cocatok(location, battle_story, defeated_names)
+            cocatok_data = cocatok.to_dict()
+            progress_data.update({ "cocatok": cocatok_data })
+
         state['phase'] = outcome
         state['resolution'] = resolution
         state['pending_actor'] = None
@@ -483,6 +537,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             "resolution": resolution,
             "joined_names": joined_names,
             "outcome_text": outcome_text,
+            "cocatok": cocatok_data,
             "battle_snapshot": battle.get_battle_snapshot()
         })
 

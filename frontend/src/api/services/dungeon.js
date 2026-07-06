@@ -157,6 +157,36 @@ useDungeonAbility.defaults = {
 };
 
 /**
+ * Use an inventory item on anything using the use_dungeon_item workflow
+ * (outside battle - the LLM reads the item's description and decides)
+ * @param {object} params
+ * @param {number} params.itemId - The inventory item being used
+ * @param {string} params.targetType - 'path' | 'monster' | 'location' | 'custom'
+ * @param {string|number} [params.targetId] - Path id or monster id (for path/monster targets)
+ * @param {string} [params.targetText] - Free-text target description (for custom targets)
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function useDungeonItem({ itemId, targetType, targetId, targetText }) {
+
+  const response = await post('/api/dungeon/use-item', {
+    item_id: itemId,
+    target_type: targetType,
+    target_id: targetId,
+    target_text: targetText
+  });
+
+  return {
+    success: response.success ?? useDungeonItem.defaults.success,
+    workflowId: response.workflow_id ?? useDungeonItem.defaults.workflowId,
+    _raw: response
+  };
+}
+useDungeonItem.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
  * DEVELOPER ONLY: full LLM context X-ray for the debug panel
  * Returns the dungeon log, party/encounter/battle context blocks exactly
  * as the LLM prompts receive them, plus paths WITH hidden info

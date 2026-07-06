@@ -50,10 +50,19 @@ from .monster_events import (
   emit_monster_art_ready
 )
 
+# Import inventory domain event emission functions
+from .inventory_events import (
+  emit_inventory_item_added,
+  emit_inventory_item_updated,
+  emit_inventory_item_consumed,
+  emit_inventory_cocatok_added
+)
+
 # Import ai_events module to ensure events get registered
 from . import ai_events
 from . import workflow_events
 from . import monster_events
+from . import inventory_events
 
 __all__ = [
     # Event Bus
@@ -93,5 +102,11 @@ __all__ = [
     'emit_monster_created',
     'emit_monster_updated',
     'emit_monster_ability_added',
-    'emit_monster_art_ready'
+    'emit_monster_art_ready',
+
+    # Inventory Domain Event Emission Functions
+    'emit_inventory_item_added',
+    'emit_inventory_item_updated',
+    'emit_inventory_item_consumed',
+    'emit_inventory_cocatok_added'
 ]

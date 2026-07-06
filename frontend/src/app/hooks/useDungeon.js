@@ -191,6 +191,34 @@ export function useDungeonAbility() {
 }
 
 /**
+ * Hook for using an inventory item on anything outside battle
+ * (queues use_dungeon_item workflow)
+ * Note: the action is named activateItem (not useItem) so lint
+ * doesn't mistake it for a React hook
+ */
+export function useDungeonItem() {
+  // ✨ Automatically uses useDungeonItem.defaults
+  const api = useAsyncState(dungeonApi.useDungeonItem);
+
+  const activateItem = useCallback(async ({ itemId, targetType, targetId, targetText }) => {
+
+    return await api.execute({ itemId, targetType, targetId, targetText });
+  }, [api.execute]);
+
+  return {
+    success: api.data.success,
+    workflowId: api.data.workflowId,
+    rawResponse: api.data._raw,
+
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    activateItem,
+  };
+}
+
+/**
  * Hook for continuing exploration (queues continue_exploring workflow)
  */
 export function useContinueExploring() {

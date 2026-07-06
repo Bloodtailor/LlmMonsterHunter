@@ -9,7 +9,7 @@ from backend.core.utils import error_response, success_response
 from backend.workflow.workflow_gateway import request_workflow
 from backend.models.monster import Monster
 
-VALID_ACTION_TYPES = ('attack', 'ability', 'defend', 'custom', 'talk')
+VALID_ACTION_TYPES = ('attack', 'ability', 'defend', 'custom', 'talk', 'item')
 
 def take_turn(action: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     """
@@ -45,6 +45,19 @@ def take_turn(action: Optional[Dict[str, Any]]) -> Dict[str, Any]:
             monster = Monster.get_monster_by_id(int(pending_actor))
             if not monster or not any(a.id == action.get('ability_id') for a in monster.abilities):
                 return error_response("That monster does not have that ability")
+
+        if action_type == 'item':
+            from backend.models.item import Item
+            try:
+                item = Item.get_item_by_id(int(action.get('item_id')))
+            except (TypeError, ValueError):
+                item = None
+            if not item or item.uses_remaining < 1:
+                return error_response("That item is not in the party's inventory")
+            # Target is optional for items; if given it must be a combatant
+            target_id = str(action.get('target_id')) if action.get('target_id') is not None else None
+            if target_id and target_id not in enemies and target_id not in allies:
+                return error_response("This action needs a valid target")
 
         if action_type in ('attack', 'ability'):
             target_id = str(action.get('target_id')) if action.get('target_id') is not None else None
