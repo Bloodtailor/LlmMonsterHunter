@@ -9,7 +9,7 @@ import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
 
 function BattleOutcomeView() {
-  const { outcome, outcomeText, isProcessing, resetBattle } = useBattleContext();
+  const { outcome, outcomeText, joinedNames, isProcessing, resetBattle } = useBattleContext();
   const { continueExploring, resetDungeon } = useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
@@ -50,6 +50,14 @@ function BattleOutcomeView() {
       <CardSection type="content" alignment="center">
         <p style={textStyles}>{outcomeText}</p>
       </CardSection>
+
+      {joinedNames && joinedNames.length > 0 && (
+        <CardSection type="content" alignment="center">
+          <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'bold' }}>
+            🎉 {joinedNames.join(' and ')} {joinedNames.length === 1 ? 'has' : 'have'} joined your followers!
+          </p>
+        </CardSection>
+      )}
 
       <CardSection type="content" alignment="center">
         {isVictory ? (

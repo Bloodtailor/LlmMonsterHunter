@@ -9,11 +9,16 @@ import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/useDungeon.js';
 
 function BattleIntroBox() {
-  const { battleIntro, displayedBattle } = useBattleContext();
+  const { battleIntro, displayedBattle, beginBattle } = useBattleContext();
   const { exitText } = useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
   if (exitText || !battleIntro || !displayedBattle?.in_battle) return null;
+
+  const handleBeginBattle = () => {
+    beginBattle();  // opening initiative - the LLM decides who moves first
+    navigateToGameScreen('dungeon-battle');
+  };
 
   const speechStyles = {
     fontSize: 'var(--font-size-lg)',
@@ -37,7 +42,7 @@ function BattleIntroBox() {
           size="xl"
           icon="⚔️"
           variant="primary"
-          onClick={() => navigateToGameScreen('dungeon-battle')}
+          onClick={handleBeginBattle}
         >
           Begin Battle
         </Button>

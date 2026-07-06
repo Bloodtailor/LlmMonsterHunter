@@ -8,7 +8,8 @@ import React from 'react';
 import BattleOutcomeView from '../components/BattleOutcomeView.js';
 import BattleSideDisplay from '../components/BattleSideDisplay.js';
 import BattleLogBox from '../components/BattleLogBox.js';
-import ActionSelectionPanel from '../components/ActionSelectionPanel.js';
+import TurnPanel from '../components/TurnPanel.js';
+import TalkResponsePanel from '../components/TalkResponsePanel.js';
 
 /**
  * DungeonBattleScreen component
@@ -31,8 +32,11 @@ function DungeonBattleScreen() {
       {/* Your side */}
       <BattleSideDisplay side="allies" />
 
-      {/* Action selection - visible only while the round awaits orders */}
-      <ActionSelectionPanel />
+      {/* One monster's turn - visible when an ally awaits orders */}
+      <TurnPanel />
+
+      {/* An enemy is talking - the player must respond */}
+      <TalkResponsePanel />
     </div>
   );
 }

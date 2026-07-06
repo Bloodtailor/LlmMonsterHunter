@@ -1,6 +1,6 @@
-// useBattleEvents.js - SSE event processing for battles
-// Queues action narrations for click-through as the backend's referee
-// resolves them (the backend runs ahead; the player reads at their pace)
+// useBattleEvents.js - SSE event processing for turn-based battles
+// Queues turn narrations for click-through as the backend resolves them
+// (the backend runs ahead; the player reads at their own pace)
 
 import { useEventSubscription } from '../../../../api/events/useEventSubscription.js';
 
@@ -17,12 +17,12 @@ export function useBattleEvents(stateHook) {
   const {
     setDisplayedBattle,
     setBattleIntro,
-    setSelectedActions,
+    setPendingActorId,
+    setPendingActorName,
+    setPendingTalk,
     setPendingNarrations,
     setCurrentNarration,
-    setRoundComplete,
-    setOutcome,
-    setOutcomeText,
+    setTurnResult,
     setIsProcessing,
     setBattleError
   } = setters;
@@ -36,31 +36,26 @@ export function useBattleEvents(stateHook) {
     if (workflowType === 'choose_path' && result.event === 'monster_battle') {
       setBattleIntro(result.battle_intro || null);
       setDisplayedBattle(result.battle_snapshot || null);
-      setSelectedActions({});
-      setOutcome(null);
-      setOutcomeText(null);
       return;
     }
 
-    // A round finished processing backend-side. The player may still be
-    // clicking through narrations - store the result; advanceLog applies
+    // A battle_turn call finished backend-side. The player may still be
+    // clicking through narrations - hold the result; advanceLog applies
     // it when the story catches up
-    if (workflowType === 'battle_round') {
-      setRoundComplete(true);
-      if (result.outcome && result.outcome !== 'unresolved') {
-        setOutcome(result.outcome);
-        setOutcomeText(result.outcome_text || '');
-      }
+    if (workflowType === 'battle_turn') {
+      setTurnResult(result);
+      // Nothing to click through (e.g. instant hand-off to an ally turn)?
+      // The actions hook's advanceLog effect will consume it.
     }
   });
 
-  // Each referee resolution arrives as a workflow update
+  // Each resolved turn arrives as a workflow update
   useEventSubscription('workflowUpdate', (eventData) => {
     if (eventData?.step !== 'action_resolved') return;
     const actionResult = eventData.data?.action_result;
     if (!actionResult) return;
 
-    // First narration of the round shows immediately; the rest queue up
+    // First narration shows immediately; the rest queue up
     if (!state.currentNarration) {
       setCurrentNarration(actionResult);
       if (actionResult.battle_snapshot) {
@@ -71,15 +66,16 @@ export function useBattleEvents(stateHook) {
     }
   });
 
-  // A failed battle round should not strand the player mid-processing
-  // (the backend already resets the battle phase to selecting)
+  // A failed battle turn should not strand the player mid-processing
+  // (the backend restores the awaiting phase for retry)
   useEventSubscription('workflowFailed', (eventData) => {
-    if (eventData?.workflowItem?.workflowType !== 'battle_round') return;
+    if (eventData?.workflowItem?.workflowType !== 'battle_turn') return;
+    // Keep pendingActor/pendingTalk so the player can retry their input
     setIsProcessing(false);
     setCurrentNarration(null);
     setPendingNarrations([]);
-    setRoundComplete(false);
-    const error = typeof eventData?.error === 'string' ? eventData.error : 'The battle round failed - try again';
+    setTurnResult(null);
+    const error = typeof eventData?.error === 'string' ? eventData.error : 'The battle turn failed - try again';
     setBattleError(error);
   });
 

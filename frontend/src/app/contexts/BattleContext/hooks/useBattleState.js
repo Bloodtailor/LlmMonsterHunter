@@ -1,7 +1,8 @@
-// useBattleState.js - State for the battle system
+// useBattleState.js - State for the turn-based battle system
 // The battle snapshot shown to the player deliberately lags the backend:
 // narrations are queued and revealed one at a time via "Next", and the
-// displayed conditions update with each revealed story beat
+// turn's result (whose turn is next / enemy talk / the outcome) is
+// applied only after the player has read everything
 
 import { useState, useCallback } from 'react';
 
@@ -12,23 +13,34 @@ import { useState, useCallback } from 'react';
 export function useBattleState() {
 
   // The battle as the PLAYER currently sees it (lags backend on purpose)
-  const [displayedBattle, setDisplayedBattle] = useState(null); // {allies, enemies, round, phase}
+  const [displayedBattle, setDisplayedBattle] = useState(null);
 
   // The enemies' opening challenge
   const [battleIntro, setBattleIntro] = useState(null);
 
-  // Player action selection: { [monsterId]: {action, abilityId?, targetId?} }
-  const [selectedActions, setSelectedActions] = useState({});
+  // Whose turn is it? (an ally awaiting the player's orders)
+  const [pendingActorId, setPendingActorId] = useState(null);
+  const [pendingActorName, setPendingActorName] = useState(null);
 
-  // Round processing + the click-through narration queue
+  // An enemy spoke - the player must respond
+  const [pendingTalk, setPendingTalk] = useState(null); // { speakerName, dialogue }
+
+  // The player's in-progress selection for the pending turn
+  const [currentSelection, setCurrentSelection] = useState({}); // {type, abilityId, targetId, text, info}
+
+  // Turn processing + the click-through narration queue
   const [isProcessing, setIsProcessing] = useState(false);
-  const [pendingNarrations, setPendingNarrations] = useState([]); // queued action_results
-  const [currentNarration, setCurrentNarration] = useState(null); // the one on screen
+  const [pendingNarrations, setPendingNarrations] = useState([]);
+  const [currentNarration, setCurrentNarration] = useState(null);
+
+  // The completed turn's result, held until the story catches up
+  const [turnResult, setTurnResult] = useState(null);
 
   // Battle end
-  const [outcome, setOutcome] = useState(null);       // 'victory' | 'defeat'
+  const [outcome, setOutcome] = useState(null);        // 'victory' | 'defeat'
+  const [resolution, setResolution] = useState(null);  // 'combat'|'joined'|'yielded'|'fled'|'spared'
   const [outcomeText, setOutcomeText] = useState(null);
-  const [roundComplete, setRoundComplete] = useState(false); // backend finished the round
+  const [joinedNames, setJoinedNames] = useState([]);  // monsters who joined the party
 
   // Errors
   const [battleError, setBattleError] = useState(null);
@@ -37,13 +49,18 @@ export function useBattleState() {
   const resetState = useCallback(() => {
     setDisplayedBattle(null);
     setBattleIntro(null);
-    setSelectedActions({});
+    setPendingActorId(null);
+    setPendingActorName(null);
+    setPendingTalk(null);
+    setCurrentSelection({});
     setIsProcessing(false);
     setPendingNarrations([]);
     setCurrentNarration(null);
+    setTurnResult(null);
     setOutcome(null);
+    setResolution(null);
     setOutcomeText(null);
-    setRoundComplete(false);
+    setJoinedNames([]);
     setBattleError(null);
   }, []);
 
@@ -52,13 +69,18 @@ export function useBattleState() {
     state: {
       displayedBattle,
       battleIntro,
-      selectedActions,
+      pendingActorId,
+      pendingActorName,
+      pendingTalk,
+      currentSelection,
       isProcessing,
       pendingNarrations,
       currentNarration,
+      turnResult,
       outcome,
+      resolution,
       outcomeText,
-      roundComplete,
+      joinedNames,
       battleError
     },
 
@@ -66,13 +88,18 @@ export function useBattleState() {
     setters: {
       setDisplayedBattle,
       setBattleIntro,
-      setSelectedActions,
+      setPendingActorId,
+      setPendingActorName,
+      setPendingTalk,
+      setCurrentSelection,
       setIsProcessing,
       setPendingNarrations,
       setCurrentNarration,
+      setTurnResult,
       setOutcome,
+      setResolution,
       setOutcomeText,
-      setRoundComplete,
+      setJoinedNames,
       setBattleError
     },
 

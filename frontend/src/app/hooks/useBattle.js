@@ -7,15 +7,15 @@ import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as battleApi from '../../api/services/battle.js';
 
 /**
- * Hook for submitting a battle round (queues battle_round workflow)
+ * Hook for taking a battle turn (queues battle_turn workflow)
  */
-export function useSubmitRound() {
-  // ✨ Automatically uses submitRound.defaults
-  const api = useAsyncState(battleApi.submitRound);
+export function useTakeTurn() {
+  // ✨ Automatically uses takeTurn.defaults
+  const api = useAsyncState(battleApi.takeTurn);
 
-  const submitRound = useCallback(async (actions) => {
+  const takeTurn = useCallback(async (action) => {
 
-    return await api.execute(actions);
+    return await api.execute(action);
   }, [api.execute]);
 
   return {
@@ -27,6 +27,31 @@ export function useSubmitRound() {
     isError: api.isError,
     error: api.error,
 
-    submitRound,
+    takeTurn,
+  };
+}
+
+/**
+ * Hook for replying to enemy battlefield talk (queues battle_turn workflow)
+ */
+export function useRespondToTalk() {
+  // ✨ Automatically uses respondToTalk.defaults
+  const api = useAsyncState(battleApi.respondToTalk);
+
+  const respondToTalk = useCallback(async (responseText) => {
+
+    return await api.execute(responseText);
+  }, [api.execute]);
+
+  return {
+    success: api.data.success,
+    workflowId: api.data.workflowId,
+    rawResponse: api.data._raw,
+
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    respondToTalk,
   };
 }

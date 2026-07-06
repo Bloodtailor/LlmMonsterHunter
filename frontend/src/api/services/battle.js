@@ -7,28 +7,49 @@ import { get, post } from '../core/client.js';
 
 
 /**
- * Submit the player's actions for this battle round (queues battle_round workflow)
- * @param {Array} actions - [{ monster_id, action: 'attack'|'ability'|'defend', ability_id?, target_id? }]
+ * Take a battle turn (queues battle_turn workflow)
+ * @param {object|null} action - null for opening initiative, or
+ *   { type: 'attack'|'ability'|'defend'|'custom'|'talk', ability_id?, target_id?, text?, info? }
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
-export async function submitRound(actions) {
+export async function takeTurn(action) {
 
-  const response = await post('/api/battle/round', { actions });
+  const response = await post('/api/battle/turn', { action });
 
   return {
-    success: response.success ?? submitRound.defaults.success,
-    workflowId: response.workflow_id ?? submitRound.defaults.workflowId,
+    success: response.success ?? takeTurn.defaults.success,
+    workflowId: response.workflow_id ?? takeTurn.defaults.workflowId,
     _raw: response
   };
 }
-submitRound.defaults = {
+takeTurn.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
+ * Reply to an enemy's battlefield talk (queues battle_turn workflow)
+ * @param {string} responseText - What the party says back
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function respondToTalk(responseText) {
+
+  const response = await post('/api/battle/respond', { response: responseText });
+
+  return {
+    success: response.success ?? respondToTalk.defaults.success,
+    workflowId: response.workflow_id ?? respondToTalk.defaults.workflowId,
+    _raw: response
+  };
+}
+respondToTalk.defaults = {
   success: null,
   workflowId: null,
 };
 
 /**
  * Get the current public battle state
- * @returns {Promise<object>} Battle snapshot (allies/enemies with conditions, round, phase)
+ * @returns {Promise<object>} Battle snapshot
  */
 export async function getBattleState() {
 

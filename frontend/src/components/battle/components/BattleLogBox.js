@@ -20,7 +20,7 @@ function BattleLogBox() {
     isProcessing,
     currentNarration,
     pendingNarrations,
-    roundComplete,
+    turnResult,
     advanceLog
   } = useBattleContext();
 
@@ -34,13 +34,14 @@ function BattleLogBox() {
     whiteSpace: 'pre-wrap'
   };
 
-  // "Next" advances when there's more story, or closes the round
-  // once the backend is finished and everything has been read
+  // "Next" advances when there's more story, or applies the turn's
+  // result once the backend is finished and everything has been read
   const hasMore = pendingNarrations.length > 0;
-  const canFinish = !hasMore && roundComplete;
-  const waitingOnReferee = !hasMore && !roundComplete;
+  const canFinish = !hasMore && !!turnResult;
+  const waitingOnReferee = !hasMore && !turnResult;
 
   const impactBadge = currentNarration ? IMPACT_LABELS[currentNarration.impact] : null;
+  const isTalk = currentNarration?.action === 'talk' && currentNarration?.dialogue;
 
   return (
     <Card size="xl" background="dark">
@@ -49,7 +50,14 @@ function BattleLogBox() {
       <CardSection type="content" alignment="center">
         {currentNarration ? (
           <>
-            <p style={narrationStyles}>{currentNarration.narration}</p>
+            {isTalk && (
+              <p style={{ ...narrationStyles, fontStyle: 'italic', color: 'var(--color-text-secondary)' }}>
+                {currentNarration.actor_name}: "{currentNarration.dialogue}"
+              </p>
+            )}
+            <p style={{ ...narrationStyles, ...(isTalk ? { fontStyle: 'italic' } : {}) }}>
+              {isTalk ? `"${currentNarration.narration}"` : currentNarration.narration}
+            </p>
             {impactBadge && (
               <div style={{ marginTop: '8px' }}>
                 <Badge variant={impactBadge.variant} size="md">
