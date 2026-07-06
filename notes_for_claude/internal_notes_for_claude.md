@@ -1,5 +1,13 @@
 # Internal Notes for Claude - Technical Architecture Lessons from PreMVP
 
+> ⚠️ **Legacy — chat-mode guidance.** This document was written for using Claude in
+> chat mode within a project (Anthropic artifacts, "announce before creating an
+> artifact," "git repo files are read-only," etc.). Development has since moved to
+> an agentic coding tool (Claude Code) that edits files directly, so the artifact
+> workflow rules below **no longer apply**. The parts still worth keeping are the
+> user profile, code-organization principles, and architecture-first mindset. For
+> the current backend API, see [backend-api-reference.md](backend-api-reference.md).
+
 **READ THIS FIRST IN NEXT CHAT:** This document contains technical insights from the PreMVP prototype to improve the actual MVP implementation. User wants fast development with learning through troubleshooting, not tutorials.
 
 ## 🚨🚨🚨 CRITICAL: Artifact Management Rules 🚨🚨🚨
