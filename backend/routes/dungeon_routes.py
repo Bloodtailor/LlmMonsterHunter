@@ -79,3 +79,9 @@ def get_dungeon_state():
     """Get public dungeon state - thin HTTP wrapper"""
     result = dungeon_service.get_dungeon_state()
     return jsonify(result), 200 if result['success'] else 400
+
+@dungeon_bp.route('/debug-context', methods=['GET'])
+def get_debug_context():
+    """DEVELOPER ONLY: full LLM context X-ray (includes hidden info) - thin HTTP wrapper"""
+    result = dungeon_service.get_debug_context()
+    return jsonify(result), 200 if result['success'] else 400

@@ -36,6 +36,34 @@ def build_monsters_details(monsters: List[Any]) -> str:
     lines = [build_monster_dungeon_details(m) for m in monsters if m]
     return clamp_context('monster_details', "\n".join(lines)) if lines else "None"
 
+def build_party_dungeon_details() -> str:
+    """
+    The party as LLM context for dungeon prompts: identity, personality,
+    and each monster's current run condition - so encounter monsters can
+    react to a battered, limping party (or a fresh, confident one)
+    """
+    from backend.game.state.manager import get_party_monster_ids
+    from backend.game.dungeon.manager import get_party_conditions
+    from backend.models.monster import Monster
+
+    conditions = get_party_conditions()
+    lines = []
+    for monster_id in get_party_monster_ids():
+        monster = Monster.get_monster_by_id(monster_id)
+        if not monster:
+            continue
+        personality = ', '.join(monster.personality_traits or [])
+        condition = conditions.get(str(monster_id), 'fresh')
+        lines.append(
+            f"- {monster.name} ({monster.species}), condition: {condition}\n"
+            f"  Description: {monster.description}\n"
+            f"  Personality: {personality}"
+        )
+
+    if not lines:
+        return "A lone, empty-handed adventurer"
+    return clamp_context('party_details', "\n".join(lines))
+
 def _dungeon_log_text() -> str:
     from backend.game.dungeon.manager import get_dungeon_log_text
     return get_dungeon_log_text()
@@ -222,7 +250,7 @@ def judge_sneak_attempt(location: Dict[str, Any], monster_details: str, workflow
         result = build_and_generate('sneak_attempt', workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
             'location_description': clamp_context('location_description', location.get('description', '')),
-            'party_details': clamp_context('party_details', get_party_details()),
+            'party_details': build_party_dungeon_details(),
             'monster_details': monster_details,
             'dungeon_log': _dungeon_log_text()
         })
@@ -243,7 +271,7 @@ def generate_ambush_intro(location: Dict[str, Any], monster_details: str, workfl
     try:
         return build_and_generate('ambush_intro', workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
-            'party_details': clamp_context('party_details', get_party_details()),
+            'party_details': build_party_dungeon_details(),
             'monster_details': monster_details,
             'dungeon_log': _dungeon_log_text()
         })
@@ -306,7 +334,7 @@ def generate_monster_question(location: Dict[str, Any], monster, workflow_name: 
             'location_name': location.get('name', 'Unknown Location'),
             'location_description': clamp_context('location_description', location.get('description', '')),
             'monster_details': build_monsters_details([monster]),
-            'party_details': clamp_context('party_details', get_party_details()),
+            'party_details': build_party_dungeon_details(),
             'dungeon_log': _dungeon_log_text()
         })
         greeting = str(result.get('greeting') or '').strip()
@@ -333,7 +361,7 @@ def generate_dialogue_turn(location: Dict[str, Any], monster_details: str, dialo
             'location_name': location.get('name', 'Unknown Location'),
             'location_description': clamp_context('location_description', location.get('description', '')),
             'monster_details': monster_details,
-            'party_details': clamp_context('party_details', get_party_details()),
+            'party_details': build_party_dungeon_details(),
             'dialogue_history': dialogue_history,
             'dungeon_log': _dungeon_log_text()
         })

@@ -157,6 +157,40 @@ useDungeonAbility.defaults = {
 };
 
 /**
+ * DEVELOPER ONLY: full LLM context X-ray for the debug panel
+ * Returns the dungeon log, party/encounter/battle context blocks exactly
+ * as the LLM prompts receive them, plus paths WITH hidden info
+ * @returns {Promise<object>} The raw context payload (kept snake_case on
+ *   purpose - the panel shows backend truth)
+ */
+export async function getDungeonDebugContext() {
+
+  const response = await get('/api/dungeon/debug-context');
+
+  return {
+    success: response.success ?? getDungeonDebugContext.defaults.success,
+    inDungeon: response.in_dungeon ?? getDungeonDebugContext.defaults.inDungeon,
+    currentLocation: response.current_location ?? getDungeonDebugContext.defaults.currentLocation,
+    dungeonLog: response.dungeon_log ?? getDungeonDebugContext.defaults.dungeonLog,
+    party: response.party ?? getDungeonDebugContext.defaults.party,
+    encounter: response.encounter ?? getDungeonDebugContext.defaults.encounter,
+    pathsFull: response.paths_full ?? getDungeonDebugContext.defaults.pathsFull,
+    battle: response.battle ?? getDungeonDebugContext.defaults.battle,
+    _raw: response
+  };
+}
+getDungeonDebugContext.defaults = {
+  success: null,
+  inDungeon: false,
+  currentLocation: null,
+  dungeonLog: { entries: [], clamped_text: '' },
+  party: null,
+  encounter: null,
+  pathsFull: {},
+  battle: { in_battle: false },
+};
+
+/**
  * Generate fresh paths from the current location using continue_exploring
  * @returns {Promise<object>} Clean transformed response with workflowId
  */

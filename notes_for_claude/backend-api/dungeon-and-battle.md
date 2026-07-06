@@ -160,6 +160,15 @@ demands attention (an open conversation, or unhandled explore monsters).
 **Success:** `{ "success": true, "workflow_id": number }`
 **`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions }`
 
+### GET /dungeon/debug-context
+**DEVELOPER ONLY.** Full LLM-context X-ray, built by the same functions the
+prompts use, so it shows exactly what the LLM receives: the dungeon log
+(raw entries + budget-clamped text), party details text, encounter dialogue
+and monster-details blocks, battle situation / combatant summary (with
+per-monster waiting counts) / turn history / battle log, and paths
+**including their hidden events and destinations**. Powers the left-side
+debug panel in the frontend. Synchronous. Never use for game UI.
+
 ### GET /dungeon/state
 Public dungeon state (hidden path events/destinations stripped). Synchronous.
 **Success:**

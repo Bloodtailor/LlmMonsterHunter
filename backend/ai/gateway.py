@@ -45,11 +45,18 @@ def text_generation_request(prompt: str,
         prompt_type = inference_params['prompt_type']
     if prompt_name is None:
         prompt_name = inference_params['prompt_name']
-    
+
+    # Suppress reasoning-model <think> blocks by prefilling an empty one.
+    # Applied HERE, before logging, so generation_log.prompt_text is
+    # byte-exact with what the model receives (the dev table shows truth).
+    from backend.core.config.llm_config import get_disable_thinking, NOTHINK_PREFILL
+    if get_disable_thinking():
+        prompt = prompt + NOTHINK_PREFILL
+
     # Show simplified request info
     truncated_prompt = prompt[:50] + "..." if len(prompt) > 50 else prompt
     print_success(f"Text generation request: {prompt_type}/{prompt_name} - \"{truncated_prompt}\"")
-    
+
     # Create generation log entry
     generation_log = GenerationLog.create_llm_log(
         prompt_type=prompt_type,

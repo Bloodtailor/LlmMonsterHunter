@@ -20,6 +20,7 @@ import BYOComponentTestScreen from './screens/developer/BYOComponentTestScreen';
 import CoCaTokDemo from './screens/developer/CoCaTokDemo';
 import ExplosionDemo from './screens/developer/ExplosionDemo';
 import StreamingDisplay from './components/streaming/StreamingDisplay.js';
+import DungeonContextPanel from './components/debug/DungeonContextPanel.js';
 import EventTestScreen from './screens/developer/EventTestScreen.js';
 import DeveloperScreen from './screens/developer/DeveloperScreen.js';
 import UiExamplesScreen from './screens/developer/UiExamplesScreen.js';
@@ -88,8 +89,11 @@ function App() {
             alignment="left"
           />
 
-          {/* Global Streaming Display */}
+          {/* Global Streaming Display (right side) */}
           <StreamingDisplay />
+
+          {/* Global LLM-context debug panel (left side) */}
+          <DungeonContextPanel />
         </header>
 
         {/* Main Content Area */}

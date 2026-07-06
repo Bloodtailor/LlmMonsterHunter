@@ -341,7 +341,7 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 str(enemy.id): {'name': enemy.name, 'condition': 'fresh', 'defending': False}
                 for enemy in enemies
             }
-            enemy_details = build_side_details({str(e.id): e for e in enemies}, enemy_entries)
+            enemy_details = build_side_details({str(e.id): e for e in enemies}, enemy_entries, 'enemies')
             battle_intro = generate_battle_intro(location, enemy_details, get_party_details(), workflow_name)
 
             # Start the battle - allies carry their run conditions in

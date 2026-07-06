@@ -41,6 +41,12 @@ Tip: to inspect what a specific game prompt produced, filter by
 `next_turn`, `enemy_turn`, `freeform_action_resolution`, `battle_talk`,
 `action_resolution`, `battle_victory`, `battle_defeat`, …).
 
+Each log's `prompt_text` is the **byte-exact prompt the model received**
+(including the no-think prefill when `LLM_DISABLE_THINKING` is on — it is
+applied in the gateway before logging). The full text is returned
+untruncated, and the developer AI-log table renders it in the expanded row
+("Prompt Sent to LLM").
+
 ### GET /generation/log-options
 Available filter/sort options, with `prompt_type` and `prompt_name` queried
 live from the database.
