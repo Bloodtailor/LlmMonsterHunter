@@ -23,7 +23,7 @@ export function useDungeonEvents(stateHook) {
     setPaths,
     setArePathsReady,
     setEncounterText,
-    setEncounterMonster,
+    setEncounterMonsters,
     setRiddleGreeting,
     setRiddle,
     setIsJudgingAnswer,
@@ -49,34 +49,35 @@ export function useDungeonEvents(stateHook) {
     }
   });
 
-  // The encounter monster reveals itself as it is generated:
-  // card appears on creation, abilities and art pop in live.
-  // Only capture monsters while an encounter is unfolding (encounter
-  // text present but no riddle yet) so Sanctuary summons don't leak in
+  // The encounter monsters reveal themselves as they are generated:
+  // cards appear on creation, abilities and art pop in live.
+  // Battles can spawn several - they accumulate into the array.
+  // Only capture monsters while an encounter is unfolding (location
+  // reached but not yet resolved) so Sanctuary summons don't leak in
   const isEncounterUnfolding = () => state.currentLocation && !state.riddleResult;
 
   useEventSubscription('monsterCreated', ({ monster }) => {
     if (isEncounterUnfolding() && monster) {
-      setEncounterMonster(monster);
+      setEncounterMonsters(prev => [...prev, monster]);
     }
   });
 
   useEventSubscription('monsterAbilityAdded', ({ monsterId, ability }) => {
     if (!monsterId || !ability) return;
-    setEncounterMonster(prev =>
-      prev && prev.id === monsterId
-        ? { ...prev, abilities: [...(prev.abilities || []), ability], abilityCount: (prev.abilityCount || 0) + 1 }
-        : prev
-    );
+    setEncounterMonsters(prev => prev.map(monster =>
+      monster.id === monsterId
+        ? { ...monster, abilities: [...(monster.abilities || []), ability], abilityCount: (monster.abilityCount || 0) + 1 }
+        : monster
+    ));
   });
 
   useEventSubscription('monsterArtReady', ({ monsterId, imagePath }) => {
     if (!monsterId || !imagePath) return;
-    setEncounterMonster(prev =>
-      prev && prev.id === monsterId
-        ? { ...prev, cardArt: { exists: true, relativePath: imagePath } }
-        : prev
-    );
+    setEncounterMonsters(prev => prev.map(monster =>
+      monster.id === monsterId
+        ? { ...monster, cardArt: { exists: true, relativePath: imagePath } }
+        : monster
+    ));
   });
 
   // Dungeon workflow failures - surface the error instead of hanging the UI

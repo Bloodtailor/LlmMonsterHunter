@@ -26,9 +26,9 @@ export function useDungeonState() {
   const [paths, setPaths] = useState(null);
   const [arePathsReady, setArePathsReady] = useState(false);
 
-  // Encounter state - streamed vanity text, the monster, and the riddle
+  // Encounter state - streamed vanity text, the monsters, and the riddle
   const [encounterText, setEncounterText] = useState('');
-  const [encounterMonster, setEncounterMonster] = useState(null);
+  const [encounterMonsters, setEncounterMonsters] = useState([]); // battles can reveal several
   const [riddleGreeting, setRiddleGreeting] = useState(null); // the monster's in-character justification
   const [riddle, setRiddle] = useState(null);
   const [isJudgingAnswer, setIsJudgingAnswer] = useState(false);
@@ -47,7 +47,7 @@ export function useDungeonState() {
   // (used when taking a new path or continuing exploration)
   const clearEncounter = useCallback(() => {
     setEncounterText('');
-    setEncounterMonster(null);
+    setEncounterMonsters([]);
     setRiddleGreeting(null);
     setRiddle(null);
     setIsJudgingAnswer(false);
@@ -63,7 +63,7 @@ export function useDungeonState() {
     setPaths(null);
     setArePathsReady(false);
     setEncounterText('');
-    setEncounterMonster(null);
+    setEncounterMonsters([]);
     setRiddleGreeting(null);
     setRiddle(null);
     setIsJudgingAnswer(false);
@@ -81,7 +81,7 @@ export function useDungeonState() {
       paths,
       arePathsReady,
       encounterText,
-      encounterMonster,
+      encounterMonsters,
       riddleGreeting,
       riddle,
       isJudgingAnswer,
@@ -97,7 +97,7 @@ export function useDungeonState() {
       setPaths,
       setArePathsReady,
       setEncounterText,
-      setEncounterMonster,
+      setEncounterMonsters,
       setRiddleGreeting,
       setRiddle,
       setIsJudgingAnswer,

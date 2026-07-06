@@ -72,6 +72,12 @@ def get_party_summary() -> str:
         return f"{', '.join(party_names[:-1])}, and {party_names[-1]}"
 
 
+def get_party_monster_ids() -> List[int]:
+    """IDs of the monsters in the active party"""
+
+    return ActiveParty.get_party_monster_ids()
+
+
 def get_party_details() -> str:
     """
     Get a detailed text description of the active party for LLM context

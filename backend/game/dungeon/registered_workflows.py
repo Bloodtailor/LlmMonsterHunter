@@ -47,10 +47,15 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         on_update(step, progress_data)
         paths = generate_paths(location, workflow_name)
 
-        # Step 5 - persist the dungeon run
+        # Step 5 - persist the dungeon run, party starts the run fresh
         step = "save_dungeon_state"
         on_update(step, progress_data)
         manager.start_dungeon(location, paths)
+
+        from backend.game.state.manager import get_party_monster_ids
+        manager.set_party_conditions({
+            str(monster_id): 'fresh' for monster_id in get_party_monster_ids()
+        })
 
         return success_response({
             "current_location": location,
@@ -192,6 +197,71 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 "riddle": riddle_data['riddle']
             })
 
+        # === EVENT: MONSTER BATTLE ===
+        if event == 'monster_battle':
+            from backend.game.battle import manager as battle_manager
+            from backend.game.battle.generator import (
+                generate_battle_arrival_text,
+                generate_battle_intro,
+                build_side_details
+            )
+            from backend.game.battle.constants import ENEMY_COUNT_RANGE
+            from backend.game.state.manager import get_party_details
+            from backend.models.monster import Monster
+            import random as _random
+
+            # Step 3 - queue streamed hostile arrival text
+            step = "queue_encounter_text"
+            on_update(step, progress_data)
+            encounter_text_generation_id = generate_battle_arrival_text(location, workflow_name)
+            progress_data.update({ "encounter_text_generation_id": encounter_text_generation_id })
+
+            # Step 4 - frontend picks the generation id up from this step
+            step = "emit_generation_id"
+            on_update(step, progress_data)
+
+            # Steps 5+ - the hostile monsters, fully revealed (emit domain events)
+            enemy_count = _random.randint(*ENEMY_COUNT_RANGE)
+            enemies = []
+            for i in range(enemy_count):
+                step = f"generate_enemy_{i + 1}"
+                on_update(step, progress_data)
+                enemy = generate_contextual_monster(location)
+                generate_ability(enemy)
+                generate_ability(enemy)
+                generate_card_art(enemy)
+                enemies.append(enemy)
+
+            # Battle intro - the enemies' in-character challenge
+            step = "generate_battle_intro"
+            on_update(step, progress_data)
+            enemy_entries = {
+                str(enemy.id): {'name': enemy.name, 'condition': 'fresh', 'defending': False}
+                for enemy in enemies
+            }
+            enemy_details = build_side_details({str(e.id): e for e in enemies}, enemy_entries)
+            battle_intro = generate_battle_intro(location, enemy_details, get_party_details(), workflow_name)
+
+            # Start the battle - allies carry their run conditions in
+            step = "start_battle"
+            on_update(step, progress_data)
+            ally_conditions = {}
+            for monster_id, condition in manager.get_party_conditions().items():
+                ally = Monster.get_monster_by_id(int(monster_id))
+                ally_conditions[monster_id] = {
+                    'name': ally.name if ally else f'Monster {monster_id}',
+                    'condition': condition
+                }
+            battle_state = battle_manager.start_battle(ally_conditions, enemy_entries)
+
+            return success_response({
+                "event": "monster_battle",
+                "current_location": location,
+                "enemy_ids": [enemy.id for enemy in enemies],
+                "battle_intro": battle_intro,
+                "battle_snapshot": battle_manager.get_battle_snapshot(battle_state)
+            })
+
         # Unknown event - shouldn't happen, but don't strand the player
         raise Exception(f"Unknown path event: {event}")
 
@@ -277,11 +347,15 @@ def continue_exploring(context: dict, on_update: Callable[[str, Dict[str, Any]],
     try:
         from backend.game.dungeon.generator import generate_paths
         from backend.game.dungeon import manager
+        from backend.game.battle import manager as battle_manager
 
         # Step 0 - validate required keys
         step = "validate_context"
         on_update(step, progress_data)
         require_keys(context, required_keys)
+
+        # A finished battle is over once the party moves on
+        battle_manager.end_battle()
 
         location = manager.get_current_location()
         if not location:

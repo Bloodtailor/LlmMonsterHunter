@@ -1,0 +1,110 @@
+{
+  "battle_arrival": {
+    "description": "Streamed hostile arrival text - the party walks into monsters that mean to fight",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You and your adventuring party ({party_summary}) have just arrived at this location:\n\nLocation: {location_name}\nDescription: {location_description}\n\nWrite 2-3 sentences of atmospheric text describing the party's arrival, ending with the unmistakable realization that hostile creatures are here and a fight cannot be avoided. Do NOT describe the creatures in detail; only build the tension of the coming battle.\n\nResponse:"
+  },
+
+  "battle_intro": {
+    "description": "The enemy monsters' in-character challenge to the party before battle",
+    "max_tokens": 500,
+    "temperature": 0.9,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "Hostile monsters are about to battle an adventuring party in this location:\n\nLocation: {location_name}\n\nThe hostile monsters:\n{enemy_details}\n\nThe adventuring party:\n{party_details}\n\nWrite the hostile monsters' battle challenge - what they say or do as they confront the party, in their own voices and personalities, 2-4 sentences total. Their words should reflect who they are and why they fight (territorial, hungry, proud, frightened...). If there are multiple monsters, they may each get a moment.\n\nResponse:"
+  },
+
+  "next_turn": {
+    "description": "Decide which monster acts next in the battle",
+    "max_tokens": 200,
+    "temperature": 0.6,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["next"],
+      "required_fields": ["next"]
+    },
+    "prompt_template": "You are directing the flow of a monster battle. Decide which monster acts NEXT.\n\nThe combatants still in the fight (with their speed - higher speed means they act more often):\n{combatant_details}\n\nRecent turns, most recent last:\n{turn_history}\n\nRecent battle events:\n{recent_log}\n\nPick the monster whose moment this is. Faster monsters should get turns more often than slow ones. Avoid letting the same monster act again and again unless the battle's story truly demands it - everyone in the fight should get their moments.\n\nRespond with valid JSON in this exact format:\n{{\"next\": \"exact monster name\"}}\n\nJSON:"
+  },
+
+  "enemy_turn": {
+    "description": "Choose ONE enemy monster's action on its turn",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["action"],
+      "required_fields": ["action"]
+    },
+    "prompt_template": "It is this hostile monster's turn in a battle against an adventuring party:\n\n{actor_details}\n\nThe adventuring party:\n{ally_details}\n\nIts hostile companions:\n{enemy_details}\n\nRecent battle events:\n{recent_log}\n\nChoose ONE action that fits this monster's personality and situation:\n- \"attack\": a basic attack on one party member (set target)\n- \"ability\": use one of ITS OWN abilities listed above (set ability_name exactly as listed, and set target)\n- \"defend\": brace against incoming attacks (no target)\n- \"talk\": speak to the party - bargain, threaten, plead for mercy, or offer something (set dialogue to its exact spoken words)\n- \"flee\": escape the battle entirely (only when desperate or cowardly)\n\nA proud guardian fights to the end; a coward flees when badly hurt; a desperate or lonely monster might talk. Most turns should be combat actions.\n\nRespond with valid JSON in this exact format:\n{{\"action\": \"attack\", \"ability_name\": null, \"target\": \"exact target name\", \"dialogue\": null}}\n\nJSON:"
+  },
+
+  "freeform_action_resolution": {
+    "description": "THE REFEREE for player-typed custom actions: judge feasibility, narrate, judge impact",
+    "max_tokens": 500,
+    "temperature": 0.7,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["possible", "narration", "impact"],
+      "required_fields": ["possible", "narration", "impact"]
+    },
+    "prompt_template": "You are the referee of a monster battle in {location_name}. The player has typed a CUSTOM action for their monster. Judge whether it is possible, then narrate.\n\nThe acting monster:\n{actor_details}\n\nThe player's custom action: {player_action_text}\nChosen target (if any): {player_target}\nAdditional information from the player: {player_info}\n\nCurrent battle situation:\n{battle_situation}\n\nRecent battle events:\n{recent_log}\n\nFIRST judge feasibility: the action is possible only if this specific monster could plausibly do it right now, given its body, abilities, personality, and condition. Wildly overpowered, absurd, or out-of-character actions are NOT possible. Reasonable creative uses of the monster's nature ARE possible.\n\n- If NOT possible: set possible to false, impact to \"none\", and write 2-3 sentences narrating the monster attempting it and failing or the moment passing - the turn is wasted.\n- If possible: set possible to true, write 2-3 sentences narrating the action playing out, and judge the impact ON THE AFFECTED MONSTER with one of: \"none\", \"light\" (typical - most common), \"heavy\" (strong, exploits a weakness), \"devastating\" (rare, earned), \"heal_light\", \"heal_major\". Set impact_target to the exact name of the single monster whose wellbeing changes (or null if none does).\n\nUse numbers only as magnitude, never explicit math. The narration must match the impact.\n\nRespond with valid JSON in this exact format:\n{{\"possible\": true, \"narration\": \"2-3 sentences.\", \"impact\": \"light\", \"impact_target\": \"exact monster name or null\"}}\n\nJSON:"
+  },
+
+  "battle_talk": {
+    "description": "Adjudicate battlefield negotiation and decide whether it changes the battle",
+    "max_tokens": 600,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["response", "decision"],
+      "required_fields": ["response", "decision"]
+    },
+    "prompt_template": "Words are being exchanged in the middle of a monster battle in {location_name}. You speak for the hostile monsters and decide what comes of it.\n\nThe hostile monsters (their personalities, backstories, and wishes matter greatly here):\n{enemy_details}\n\nThe adventuring party:\n{ally_details}\n\nCurrent battle situation:\n{battle_situation}\n\nRecent battle events:\n{recent_log}\n\nWhat was said:\n{exchange}\n\nWrite the hostile monsters' spoken response (in their voices, 2-4 sentences), then DECIDE what comes of this exchange:\n- \"continue\": the battle goes on (the most common outcome - words are cheap)\n- \"enemies_join\": the hostile monsters accept an offer to join the party. Only if the offer fits their wishes and backstory AND their situation makes it appealing (losing, lonely, seeking what the party offers). Never while they are winning comfortably.\n- \"enemies_yield\": the hostile monsters give up and let the party pass, without joining\n- \"enemies_flee\": the hostile monsters break off and escape\n- \"party_spared\": the hostile monsters accept the party's plea for mercy and let them leave alive. Only plausible when the party is clearly losing and the monsters are not cruel.\n\nDecisions must be EARNED by the battle state and the monsters' characters. When in doubt, choose \"continue\".\n\nRespond with valid JSON in this exact format:\n{{\"response\": \"The hostile monsters' spoken reply.\", \"decision\": \"continue\"}}\n\nJSON:"
+  },
+
+  "action_resolution": {
+    "description": "THE REFEREE: narrate one battle action and judge its impact",
+    "max_tokens": 500,
+    "temperature": 0.7,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["narration", "impact"],
+      "required_fields": ["narration", "impact"]
+    },
+    "prompt_template": "You are the referee of a monster battle in {location_name}. Narrate ONE action and judge its impact.\n\nThe acting monster:\n{actor_details}\n\nThe action: {action_description}\n\nThe target:\n{target_details}\n\nCurrent battle situation:\n{battle_situation}\n\nRecent battle events:\n{recent_log}\n\nWrite 2-3 sentences narrating how this action plays out, true to both monsters' personalities and abilities. Use numbers only to describe magnitude, never explicit math.\n\nThen judge the impact ON THE TARGET with exactly one of these words:\n- \"none\": the action misses, is shrugged off, or has no direct effect on the target's wellbeing (defending, posturing, buffs)\n- \"light\": a typical hit or glancing blow - THE MOST COMMON RESULT\n- \"heavy\": a strong hit that exploits a weakness or lands perfectly\n- \"devastating\": rare - a perfect, crushing blow that should feel earned\n- \"heal_light\": modest healing or relief for the target\n- \"heal_major\": powerful restoration for the target\n\nThe narration must MATCH the impact you choose.\n\nRespond with valid JSON in this exact format:\n{{\"narration\": \"2-3 sentences describing the action.\", \"impact\": \"light\"}}\n\nJSON:"
+  },
+
+  "battle_victory": {
+    "description": "Celebratory narration after the party defeats all enemies",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "An adventuring party has just WON a battle against hostile monsters in {location_name}.\n\nHow it ended: {resolution}\n\nThe victorious party:\n{party_details}\n\nThe other monsters:\n{enemy_details}\n\nThe final moments of the battle:\n{recent_log}\n\nWrite 2-4 sentences describing this ending and its aftermath, true to how it ended: 'combat' means the enemies fell in battle; 'joined' means they agreed to join the party (celebrate the new companions!); 'yielded' means they gave up and let the party pass; 'fled' means they escaped. Reflect the party members' personalities.\n\nResponse:"
+  },
+
+  "battle_defeat": {
+    "description": "Somber narration after all party monsters are defeated",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "An adventuring party has just LOST a battle against hostile monsters in {location_name}.\n\nHow it ended: {resolution}\n\nThe defeated party:\n{party_details}\n\nThe victorious monsters:\n{enemy_details}\n\nThe final moments of the battle:\n{recent_log}\n\nWrite 2-4 sentences of somber text describing this ending: 'combat' means the party was overwhelmed and retreats from the dungeon with their fallen companions; 'spared' means the hostile monsters accepted the party's plea and let them leave alive - humbled but grateful. It is a setback, not the end; they escape with their lives.\n\nResponse:"
+  }
+}

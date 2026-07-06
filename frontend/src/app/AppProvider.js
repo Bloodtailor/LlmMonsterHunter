@@ -7,6 +7,7 @@ import { EventProvider, useEventContext } from './contexts/EventContext';
 import { PartyProvider, useParty } from './contexts/PartyContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import { DungeonProvider } from './contexts/DungeonContext';
+import { BattleProvider } from './contexts/BattleContext';
 import AppLoadingScreen from '../screens/game/AppLoadingScreen';
 
 // Session storage key for tracking initialization
@@ -93,11 +94,13 @@ function AppProvider({ children }) {
     <NavigationProvider>
       <EventProvider>
         <DungeonProvider>
-          <PartyProvider>
-            <AppInitializer>
-              {children}
-            </AppInitializer>
-          </PartyProvider>
+          <BattleProvider>
+            <PartyProvider>
+              <AppInitializer>
+                {children}
+              </AppInitializer>
+            </PartyProvider>
+          </BattleProvider>
         </DungeonProvider>
       </EventProvider>
     </NavigationProvider>

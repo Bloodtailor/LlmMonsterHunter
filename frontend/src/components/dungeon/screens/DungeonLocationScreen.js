@@ -10,6 +10,7 @@ import EncounterLocationHeader from '../components/EncounterLocationHeader.js';
 import EncounterTextDisplay from '../components/EncounterTextDisplay.js';
 import EncounterMonsterDisplay from '../components/EncounterMonsterDisplay.js';
 import RiddleBox from '../components/RiddleBox.js';
+import BattleIntroBox from '../components/BattleIntroBox.js';
 import DungeonExitView from '../components/DungeonExitView.js';
 import DungeonErrorAlert from '../components/DungeonErrorAlert.js';
 
@@ -40,6 +41,9 @@ function DungeonLocationScreen() {
 
       {/* The riddle challenge - question, answer, verdict, continue */}
       <RiddleBox />
+
+      {/* The battle challenge - the enemies confront you, then to battle */}
+      <BattleIntroBox />
     </div>
   );
 }

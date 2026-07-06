@@ -12,7 +12,8 @@ _EMPTY_STATE = {
     'in_dungeon': False,
     'current_location': None,
     'available_paths': {},
-    'active_encounter': None
+    'active_encounter': None,
+    'party_conditions': {}   # monster_id: condition - battle damage persists in the run
 }
 
 # ===== CORE STATE ACCESS =====
@@ -78,6 +79,17 @@ def get_public_paths() -> Dict[str, Any]:
         path_id: {key: value for key, value in path.items() if key not in _HIDDEN_PATH_FIELDS}
         for path_id, path in paths.items()
     }
+
+# ===== PARTY CONDITIONS (battle damage persists within the run) =====
+
+def get_party_conditions() -> Dict[str, str]:
+    """Current conditions of the party for this dungeon run {monster_id: condition}"""
+    return get_dungeon_state().get('party_conditions', {})
+
+def set_party_conditions(conditions: Dict[str, str]) -> None:
+    state = get_dungeon_state()
+    state['party_conditions'] = conditions
+    save_dungeon_state(state)
 
 # ===== ACTIVE ENCOUNTER =====
 
