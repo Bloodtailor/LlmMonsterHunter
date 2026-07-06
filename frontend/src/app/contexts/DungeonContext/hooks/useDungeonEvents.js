@@ -16,6 +16,7 @@ const DUNGEON_WORKFLOWS = [
   'surprise_attack',
   'setup_camp',
   'use_dungeon_ability',
+  'use_dungeon_item',
   'continue_exploring'
 ];
 
@@ -50,6 +51,10 @@ export function useDungeonEvents(stateHook) {
     setPartyConditions,
     setIsUsingAbility,
     setAbilityResult,
+    setIsUsingItem,
+    setItemResult,
+    setTreasureText,
+    setTreasureItem,
     setExitText,
     setErrorState
   } = setters;
@@ -72,6 +77,11 @@ export function useDungeonEvents(stateHook) {
   // Stream the camp scene - the party's monsters talking around the fire
   useStreamedGeneration('camp_text_generation_id', {
     onText: (partialText) => setCampText(partialText)
+  });
+
+  // Stream the treasure discovery narration for treasure arrivals
+  useStreamedGeneration('treasure_text_generation_id', {
+    onText: (partialText) => setTreasureText(partialText)
   });
 
   // The choose_path workflow announces the arrival location mid-flight
@@ -121,6 +131,7 @@ export function useDungeonEvents(stateHook) {
     setIsAmbushing(false);
     setIsCamping(false);
     setIsUsingAbility(false);
+    setIsUsingItem(false);
 
     // The party's optimistic dialogue line never reached the monster
     if (workflowType === 'respond_to_monster') {
@@ -175,6 +186,12 @@ export function useDungeonEvents(stateHook) {
           });
         } else if (result.event === 'location_explore') {
           setMonstersPresent(!!result.monsters_present);
+        } else if (result.event === 'treasure') {
+          // The found item was already announced via inventory.item_added;
+          // hold it here for the discovery display, then the moment plays
+          // like a creature-free explore (continue / camp)
+          setTreasureItem(result.item || null);
+          setMonstersPresent(false);
         }
         // monster_battle is handled by the BattleContext
         break;
@@ -219,6 +236,14 @@ export function useDungeonEvents(stateHook) {
       case 'use_dungeon_ability':
         setIsUsingAbility(false);
         setAbilityResult({
+          narration: result.narration || '',
+          effect: result.effect || 'none'
+        });
+        break;
+
+      case 'use_dungeon_item':
+        setIsUsingItem(false);
+        setItemResult({
           narration: result.narration || '',
           effect: result.effect || 'none'
         });

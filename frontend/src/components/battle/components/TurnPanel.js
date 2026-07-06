@@ -7,11 +7,13 @@ import React from 'react';
 import { Card, CardSection, Button, Select, Input, Textarea } from '../../../shared/ui/index.js';
 import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
 import { useParty } from '../../../app/contexts/PartyContext/index.js';
+import { useUsableItems } from '../../../app/hooks/useInventory.js';
 
 const MODE_OPTIONS = [
   { value: 'attack', label: '⚔️ Attack' },
   { value: 'defend', label: '🛡️ Defend' },
   { value: 'ability', label: '⚡ Use Ability' },
+  { value: 'item', label: '🎒 Use Item' },
   { value: 'custom', label: '✍️ Custom Action' },
   { value: 'talk', label: '💬 Talk' }
 ];
@@ -29,6 +31,7 @@ function TurnPanel() {
     executeTurn
   } = useBattleContext();
   const { partyMonsters } = useParty();
+  const { items: usableItems } = useUsableItems();
 
   if (!pendingActorId || isProcessing || outcome) return null;
 
@@ -55,6 +58,11 @@ function TurnPanel() {
     label: `⚡ ${ability.name}`
   }));
 
+  const itemOptions = usableItems.map(item => ({
+    value: String(item.id),
+    label: `${item.emoji} ${item.name} (×${item.usesRemaining})`
+  }));
+
   const mode = currentSelection.type || '';
 
   // Is the selection complete enough to execute?
@@ -63,6 +71,7 @@ function TurnPanel() {
       case 'attack': return !!currentSelection.targetId;
       case 'defend': return true;
       case 'ability': return !!currentSelection.abilityId && !!currentSelection.targetId;
+      case 'item': return !!currentSelection.itemId; // target optional - no target = itself
       case 'custom': return !!(currentSelection.text || '').trim();
       case 'talk': return !!(currentSelection.text || '').trim();
       default: return false;
@@ -103,7 +112,7 @@ function TurnPanel() {
                 options={MODE_OPTIONS}
                 value={mode}
                 placeholder="Choose an action..."
-                onChange={(e) => updateSelection({ type: e.target.value, abilityId: null, targetId: null, text: '', info: '' })}
+                onChange={(e) => updateSelection({ type: e.target.value, abilityId: null, itemId: null, targetId: null, text: '', info: '' })}
               />
             </div>
           </div>
@@ -123,15 +132,34 @@ function TurnPanel() {
             </div>
           )}
 
+          {/* Item picker - one use is spent, and so is the turn */}
+          {mode === 'item' && (
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ minWidth: '90px', fontWeight: 'bold' }}>Item:</span>
+              <div style={{ minWidth: '200px' }}>
+                <Select
+                  options={itemOptions}
+                  value={currentSelection.itemId ? String(currentSelection.itemId) : ''}
+                  placeholder={itemOptions.length ? 'Choose item...' : 'No items in the inventory'}
+                  onChange={(e) => updateSelection({ itemId: Number(e.target.value) })}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Target picker */}
-          {(mode === 'attack' || mode === 'ability' || mode === 'custom') && (
+          {(mode === 'attack' || mode === 'ability' || mode === 'item' || mode === 'custom') && (
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ minWidth: '90px', fontWeight: 'bold' }}>Target:</span>
               <div style={{ minWidth: '200px' }}>
                 <Select
                   options={mode === 'attack' ? livingEnemyOptions : allTargetOptions}
                   value={currentSelection.targetId || ''}
-                  placeholder={mode === 'custom' ? 'Optional target...' : 'Choose target...'}
+                  placeholder={
+                    mode === 'custom' ? 'Optional target...'
+                      : mode === 'item' ? `Optional target... (none = ${actorName})`
+                        : 'Choose target...'
+                  }
                   onChange={(e) => updateSelection({ targetId: e.target.value })}
                 />
               </div>

@@ -12,6 +12,7 @@ import {
   useSurpriseAttack,
   useSetupCamp,
   useDungeonAbility,
+  useDungeonItem,
   useContinueExploring
 } from '../../../hooks/useDungeon.js';
 
@@ -38,6 +39,8 @@ export function useDungeonActions(stateHook) {
     setIsCamping,
     setIsUsingAbility,
     setAbilityResult,
+    setIsUsingItem,
+    setItemResult,
     setExitText,
     clearEncounter
   } = setters;
@@ -50,6 +53,7 @@ export function useDungeonActions(stateHook) {
   const surpriseApi = useSurpriseAttack();
   const campApi = useSetupCamp();
   const abilityApi = useDungeonAbility();
+  const itemApi = useDungeonItem();
   const continueApi = useContinueExploring();
 
   // Sync API hook errors with context state
@@ -176,6 +180,19 @@ export function useDungeonActions(stateHook) {
     await abilityApi.activateAbility({ monsterId, abilityId, targetType, targetId, targetText });
   }, [abilityApi.isLoading, abilityApi.activateAbility, setErrorState, setIsUsingAbility, setAbilityResult]);
 
+  // The party uses an inventory item on anything - the LLM reads the
+  // item's description and decides what actually happens
+  const activateItem = useCallback(async ({ itemId, targetType, targetId, targetText }) => {
+    if (itemApi.isLoading) {
+      return;
+    }
+
+    setErrorState(null);
+    setIsUsingItem(true);
+    setItemResult(null);
+    await itemApi.activateItem({ itemId, targetType, targetId, targetText });
+  }, [itemApi.isLoading, itemApi.activateItem, setErrorState, setIsUsingItem, setItemResult]);
+
   // Continue exploring - fresh paths from the current location
   const continueExploring = useCallback(async () => {
     if (continueApi.isLoading) {
@@ -204,6 +221,7 @@ export function useDungeonActions(stateHook) {
       surpriseAttack,
       setupCamp,
       activateAbility,
+      activateItem,
       continueExploring,
       resetDungeon
     }

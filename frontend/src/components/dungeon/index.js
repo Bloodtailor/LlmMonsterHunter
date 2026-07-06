@@ -15,6 +15,7 @@ export { default as DungeonResetButton } from './components/DungeonResetButton.j
 export { default as EncounterLocationHeader } from './components/EncounterLocationHeader.js';
 export { default as EncounterTextDisplay } from './components/EncounterTextDisplay.js';
 export { default as LookAroundTextDisplay } from './components/LookAroundTextDisplay.js';
+export { default as TreasureDisplay } from './components/TreasureDisplay.js';
 export { default as EncounterMonsterDisplay } from './components/EncounterMonsterDisplay.js';
 export { default as ExplorePanel } from './components/ExplorePanel.js';
 export { default as MonsterDialogueBox } from './components/MonsterDialogueBox.js';
