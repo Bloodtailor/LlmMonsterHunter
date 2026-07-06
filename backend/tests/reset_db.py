@@ -34,6 +34,8 @@ def import_all_models():
 
     from backend.models.monster import Monster
     from backend.models.ability import Ability
+    from backend.models.item import Item
+    from backend.models.cocatok import CoCaTok
     from backend.models.following_monsters import FollowingMonster
     from backend.models.active_party import ActiveParty
     from backend.models.global_variables import GlobalVariable
