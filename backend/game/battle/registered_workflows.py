@@ -395,6 +395,22 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             for monster_id, entry in state.get('allies', {}).items()
         })
 
+        # The dungeon log gets a compact summary of the battle - the
+        # detailed blow-by-blow stays in the battle's own log
+        if dungeon.is_in_dungeon():
+            enemy_names = ', '.join(
+                entry.get('name', 'Unknown') for entry in state.get('enemies', {}).values()
+            )
+            ally_summary = ', '.join(
+                f"{entry.get('name')}: {entry.get('condition')}"
+                for entry in state.get('allies', {}).values()
+            )
+            summary = f"A battle against {enemy_names} ended in {outcome} ({resolution})."
+            if joined_names:
+                summary += f" {', '.join(joined_names)} joined the party."
+            summary += f" Party condition afterward: {ally_summary}."
+            dungeon.append_dungeon_log(summary)
+
         state['phase'] = outcome
         state['resolution'] = resolution
         state['pending_actor'] = None

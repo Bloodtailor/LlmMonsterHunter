@@ -18,7 +18,7 @@
       "type": "text",
       "parser_name": "none"
     },
-    "prompt_template": "Hostile monsters are about to battle an adventuring party in this location:\n\nLocation: {location_name}\n\nThe hostile monsters:\n{enemy_details}\n\nThe adventuring party:\n{party_details}\n\nWrite the hostile monsters' battle challenge - what they say or do as they confront the party, in their own voices and personalities, 2-4 sentences total. Their words should reflect who they are and why they fight (territorial, hungry, proud, frightened...). If there are multiple monsters, they may each get a moment.\n\nResponse:"
+    "prompt_template": "Hostile monsters are about to battle an adventuring party in this location:\n\nLocation: {location_name}\n\nThe hostile monsters:\n{enemy_details}\n\nThe adventuring party:\n{party_details}\n\nWhat has happened on the party's adventure so far:\n{dungeon_log}\n\nWrite the hostile monsters' battle challenge - what they say or do as they confront the party, in their own voices and personalities, 2-4 sentences total. Their words should reflect who they are and why they fight (territorial, hungry, proud, frightened...). If there are multiple monsters, they may each get a moment.\n\nResponse:"
   },
 
   "next_turn": {
@@ -94,7 +94,7 @@
       "type": "text",
       "parser_name": "none"
     },
-    "prompt_template": "An adventuring party has just WON a battle against hostile monsters in {location_name}.\n\nHow it ended: {resolution}\n\nThe victorious party:\n{party_details}\n\nThe other monsters:\n{enemy_details}\n\nThe final moments of the battle:\n{recent_log}\n\nWrite 2-4 sentences describing this ending and its aftermath, true to how it ended: 'combat' means the enemies fell in battle; 'joined' means they agreed to join the party (celebrate the new companions!); 'yielded' means they gave up and let the party pass; 'fled' means they escaped. Reflect the party members' personalities.\n\nResponse:"
+    "prompt_template": "An adventuring party has just WON a battle against hostile monsters in {location_name}.\n\nHow it ended: {resolution}\n\nThe victorious party:\n{party_details}\n\nThe other monsters:\n{enemy_details}\n\nWhat has happened on the party's adventure so far:\n{dungeon_log}\n\nThe final moments of the battle:\n{recent_log}\n\nWrite 2-4 sentences describing this ending and its aftermath, true to how it ended: 'combat' means the enemies fell in battle; 'joined' means they agreed to join the party (celebrate the new companions!); 'yielded' means they gave up and let the party pass; 'fled' means they escaped. Reflect the party members' personalities.\n\nResponse:"
   },
 
   "battle_defeat": {
@@ -105,6 +105,6 @@
       "type": "text",
       "parser_name": "none"
     },
-    "prompt_template": "An adventuring party has just LOST a battle against hostile monsters in {location_name}.\n\nHow it ended: {resolution}\n\nThe defeated party:\n{party_details}\n\nThe victorious monsters:\n{enemy_details}\n\nThe final moments of the battle:\n{recent_log}\n\nWrite 2-4 sentences of somber text describing this ending: 'combat' means the party was overwhelmed and retreats from the dungeon with their fallen companions; 'spared' means the hostile monsters accepted the party's plea and let them leave alive - humbled but grateful. It is a setback, not the end; they escape with their lives.\n\nResponse:"
+    "prompt_template": "An adventuring party has just LOST a battle against hostile monsters in {location_name}.\n\nHow it ended: {resolution}\n\nThe defeated party:\n{party_details}\n\nThe victorious monsters:\n{enemy_details}\n\nWhat has happened on the party's adventure so far:\n{dungeon_log}\n\nThe final moments of the battle:\n{recent_log}\n\nWrite 2-4 sentences of somber text describing this ending: 'combat' means the party was overwhelmed and retreats from the dungeon with their fallen companions; 'spared' means the hostile monsters accepted the party's plea and let them leave alive - humbled but grateful. It is a setback, not the end; they escape with their lives.\n\nResponse:"
   }
 }

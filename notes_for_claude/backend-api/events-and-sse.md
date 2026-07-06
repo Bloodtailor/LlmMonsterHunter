@@ -57,13 +57,16 @@ and Sanctuary auto-refresh):
 - `monster.art_ready` — `{ monster_id, image_path }`
 
 `workflow_type` values seen in workflow events: `generate_detailed_monster`,
-`generate_ability`, `enter_dungeon`, `choose_path`, `answer_riddle`,
+`generate_ability`, `enter_dungeon`, `choose_path`, `respond_to_monster`,
+`sneak_past`, `surprise_attack`, `setup_camp`, `use_dungeon_ability`,
 `continue_exploring`, `battle_turn`.
 
 Notable `workflow.update` steps:
 - `emit_generation_id` — a streamed text generation just started; its id is
   in `data` (`entry_text_generation_id` for the dungeon entrance,
-  `encounter_text_generation_id` for encounters). Match subsequent
+  `encounter_text_generation_id` for dialogue/battle encounters,
+  `look_text_generation_id` for explore arrivals,
+  `camp_text_generation_id` for camp scenes). Match subsequent
   `llm.generation.update` events by `generation_id` to stream that text.
 - `location_generated` — `data.current_location` (a path's arrival location)
 - `action_resolved` — `data.action_result` (one resolved battle turn; see [Dungeon & Battle](dungeon-and-battle.md))

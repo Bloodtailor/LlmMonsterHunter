@@ -2,7 +2,7 @@
 // The recurring pattern for vanity text throughout the game:
 //   1. A workflow emits step 'emit_generation_id' with the generation ID in its data
 //   2. We capture that ID and stream only the matching llmGenerationUpdate events
-// First used for dungeon entry text; encounter vanity text and riddles come next
+// Used for dungeon entry text, encounter vanity text, look-around text, and camp scenes
 
 import { useRef } from 'react';
 import { useEventSubscription } from './useEventSubscription.js';

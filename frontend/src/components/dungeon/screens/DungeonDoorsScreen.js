@@ -7,6 +7,7 @@ import { Card, CardSection, Button, Badge, LoadingSpinner } from '../../../share
 import { useNavigation } from '../../../app/contexts/NavigationContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
 import DungeonErrorAlert from '../components/DungeonErrorAlert.js';
+import DungeonPartyPanel from '../components/DungeonPartyPanel.js';
 
 /**
  * DungeonDoorsScreen component
@@ -165,6 +166,9 @@ function DungeonDoorsScreen() {
           </CardSection>
         </Card>
       )}
+
+      {/* The party - always visible, any ability on anything (even paths) */}
+      <DungeonPartyPanel />
 
       {/* Navigation */}
       <Card size="xl" background="light">

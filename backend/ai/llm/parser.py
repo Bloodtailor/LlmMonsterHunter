@@ -61,7 +61,7 @@ def basic_parser(response_text: str, parser_config: Dict[str, Any]) -> ParseResu
         
         # Check required fields if specified
         # Only missing/null/empty-string count as missing - false and 0 are
-        # legitimate values (e.g. riddle_judgement's "correct": false)
+        # legitimate values (e.g. sneak_attempt's "success": false)
         required_fields = parser_config.get('required_fields', [])
         for field in required_fields:
             if field not in data or data[field] is None or data[field] == '':

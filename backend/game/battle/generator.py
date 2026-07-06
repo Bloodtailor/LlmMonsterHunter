@@ -6,7 +6,7 @@
 
 import random
 from typing import Dict, Any, List, Optional
-from backend.game.utils import build_and_generate, build_and_stream
+from backend.game.utils import build_and_generate, build_and_stream, clamp_context
 from backend.game.state.manager import get_party_summary
 from backend.game.battle.constants import IMPACT_STEPS, INCAPACITATED
 
@@ -55,7 +55,9 @@ def build_battle_situation(state: Dict[str, Any]) -> str:
 
 def build_recent_log(state: Dict[str, Any]) -> str:
     log = state.get('recent_log', [])
-    return "\n".join(log) if log else "The battle has just begun."
+    if not log:
+        return "The battle has just begun."
+    return clamp_context('battle_log', "\n".join(log))
 
 # ===== LLM CALLS =====
 
@@ -72,11 +74,14 @@ def generate_battle_arrival_text(location: Dict[str, Any], workflow_name: str) -
 def generate_battle_intro(location: Dict[str, Any], enemy_details: str, party_details: str, workflow_name: str) -> str:
     """The enemy group's in-character challenge"""
 
+    from backend.game.dungeon.manager import get_dungeon_log_text
+
     try:
         return build_and_generate('battle_intro', workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
-            'enemy_details': enemy_details,
-            'party_details': party_details
+            'enemy_details': clamp_context('monster_details', enemy_details),
+            'party_details': clamp_context('party_details', party_details),
+            'dungeon_log': get_dungeon_log_text()
         })
     except Exception:
         return "The creatures block your path, and their intent is unmistakable: there will be a fight."
@@ -265,6 +270,8 @@ def generate_battle_outcome_text(
 ) -> str:
     """Victory or defeat narration, shaped by how the battle actually ended"""
 
+    from backend.game.dungeon.manager import get_dungeon_log_text
+
     template = 'battle_victory' if outcome == 'victory' else 'battle_defeat'
     fallback = (
         "The battle is over, and the party stands victorious among the settling dust."
@@ -276,8 +283,9 @@ def generate_battle_outcome_text(
         return build_and_generate(template, workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
             'resolution': resolution or 'combat',
-            'party_details': party_details,
-            'enemy_details': enemy_details,
+            'party_details': clamp_context('party_details', party_details),
+            'enemy_details': clamp_context('monster_details', enemy_details),
+            'dungeon_log': get_dungeon_log_text(),
             'recent_log': build_recent_log(state)
         })
     except Exception:

@@ -63,15 +63,15 @@ export function useChoosePath() {
 }
 
 /**
- * Hook for answering the active riddle (queues answer_riddle workflow)
+ * Hook for speaking to the encounter monsters (queues respond_to_monster workflow)
  */
-export function useAnswerRiddle() {
-  // ✨ Automatically uses answerRiddle.defaults
-  const api = useAsyncState(dungeonApi.answerRiddle);
+export function useRespondToMonster() {
+  // ✨ Automatically uses respondToMonster.defaults
+  const api = useAsyncState(dungeonApi.respondToMonster);
 
-  const answerRiddle = useCallback(async (answer) => {
+  const respondToMonster = useCallback(async (message) => {
 
-    return await api.execute(answer);
+    return await api.execute(message);
   }, [api.execute]);
 
   return {
@@ -83,7 +83,110 @@ export function useAnswerRiddle() {
     isError: api.isError,
     error: api.error,
 
-    answerRiddle,
+    respondToMonster,
+  };
+}
+
+/**
+ * Hook for sneaking past the area's monsters (queues sneak_past workflow)
+ */
+export function useSneakPast() {
+  // ✨ Automatically uses sneakPast.defaults
+  const api = useAsyncState(dungeonApi.sneakPast);
+
+  const sneakPast = useCallback(async () => {
+
+    return await api.execute();
+  }, [api.execute]);
+
+  return {
+    success: api.data.success,
+    workflowId: api.data.workflowId,
+    rawResponse: api.data._raw,
+
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    sneakPast,
+  };
+}
+
+/**
+ * Hook for springing a surprise attack (queues surprise_attack workflow)
+ */
+export function useSurpriseAttack() {
+  // ✨ Automatically uses surpriseAttack.defaults
+  const api = useAsyncState(dungeonApi.surpriseAttack);
+
+  const surpriseAttack = useCallback(async () => {
+
+    return await api.execute();
+  }, [api.execute]);
+
+  return {
+    success: api.data.success,
+    workflowId: api.data.workflowId,
+    rawResponse: api.data._raw,
+
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    surpriseAttack,
+  };
+}
+
+/**
+ * Hook for setting up camp (queues setup_camp workflow)
+ */
+export function useSetupCamp() {
+  // ✨ Automatically uses setupCamp.defaults
+  const api = useAsyncState(dungeonApi.setupCamp);
+
+  const setupCamp = useCallback(async () => {
+
+    return await api.execute();
+  }, [api.execute]);
+
+  return {
+    success: api.data.success,
+    workflowId: api.data.workflowId,
+    rawResponse: api.data._raw,
+
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    setupCamp,
+  };
+}
+
+/**
+ * Hook for using a party monster's ability on anything outside battle
+ * (queues use_dungeon_ability workflow)
+ * Note: the action is named activateAbility (not useAbility) so lint
+ * doesn't mistake it for a React hook
+ */
+export function useDungeonAbility() {
+  // ✨ Automatically uses useDungeonAbility.defaults
+  const api = useAsyncState(dungeonApi.useDungeonAbility);
+
+  const activateAbility = useCallback(async ({ monsterId, abilityId, targetType, targetId, targetText }) => {
+
+    return await api.execute({ monsterId, abilityId, targetType, targetId, targetText });
+  }, [api.execute]);
+
+  return {
+    success: api.data.success,
+    workflowId: api.data.workflowId,
+    rawResponse: api.data._raw,
+
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    activateAbility,
   };
 }
 

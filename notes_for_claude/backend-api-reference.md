@@ -6,7 +6,7 @@ links to the per-domain files.
 
 ## Reference files
 - [Monsters & Roster](backend-api/monsters-and-roster.md) — monster generation, listing, abilities, card art, following list, and active party
-- [Dungeon & Battle](backend-api/dungeon-and-battle.md) — the gameplay loop: entering dungeons, choosing paths, riddle encounters, and turn-based battles
+- [Dungeon & Battle](backend-api/dungeon-and-battle.md) — the gameplay loop: entering dungeons, choosing paths, exploring locations, monster dialogues, free-form ability use, and turn-based battles
 - [Generation & System](backend-api/generation-and-system.md) — generation logs, health check, and the in-app test runner
 - [Events & SSE](backend-api/events-and-sse.md) — the SSE endpoint, the full event catalog, and how the frontend event registry consumes it
 - [Data Models](backend-api/data-models.md) — shared object shapes referenced across endpoints
@@ -56,5 +56,6 @@ for the event catalog and the workflow types.
 - Backend state that persists across requests (dungeon run, active battle)
   lives in the `global_variables` table, keyed by `dungeon_state` and
   `battle_state`. Hidden information (a path's pre-assigned event and
-  destination, a riddle's answer) is stored there but stripped from any
-  response that reaches the client.
+  destination) is stored there but stripped from any response that reaches
+  the client. The dungeon run's rolling `dungeon_log` also lives there and
+  is fed (budget-clamped) into every dungeon LLM generation.

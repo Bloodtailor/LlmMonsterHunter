@@ -5,12 +5,21 @@
 
 import random
 
-# Every event a path can hold - add new events here as they are built
-# (future: 'treasure', 'trap', ...)
-AVAILABLE_EVENTS = [
-    'monster_riddle',
-    'monster_battle'
-]
+# Every event a path can hold, with its weight. Exploring is the bread
+# and butter of a run - encounters punctuate it. Add new events here as
+# they are built (future: 'treasure', 'trap', ...)
+EVENT_WEIGHTS = {
+    'location_explore': 0.60,   # arrive, look around, decide what to do
+    'monster_dialogue': 0.20,   # a monster greets the party with a question
+    'monster_battle': 0.20      # hostile monsters attack on arrival
+}
+
+# When a location_explore fires, chance that monsters are in the area
+# (they are not immediately hostile - talk, ambush, or sneak past them)
+EXPLORE_MONSTERS_CHANCE = 0.5
+
+# How many monsters an explore location can hold (inclusive range)
+EXPLORE_MONSTER_COUNT_RANGE = (1, 2)
 
 # How many paths a junction offers (inclusive range)
 PATH_COUNT_RANGE = (2, 4)
@@ -24,8 +33,18 @@ EXIT_PATH_CHANCE = 0.33
 PATH_OVERGENERATE_COUNT = 6
 
 def assign_random_event() -> str:
-    """Pick a random event for a path from the available events"""
-    return random.choice(AVAILABLE_EVENTS)
+    """Pick a weighted random event for a path from the available events"""
+    events = list(EVENT_WEIGHTS.keys())
+    weights = list(EVENT_WEIGHTS.values())
+    return random.choices(events, weights=weights, k=1)[0]
+
+def roll_monsters_present() -> bool:
+    """Roll whether an explore location has monsters in it"""
+    return random.random() < EXPLORE_MONSTERS_CHANCE
+
+def roll_explore_monster_count() -> int:
+    """Roll how many monsters dwell in an explore location"""
+    return random.randint(*EXPLORE_MONSTER_COUNT_RANGE)
 
 def roll_path_count() -> int:
     """Roll how many paths this junction offers"""

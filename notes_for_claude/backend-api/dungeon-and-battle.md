@@ -13,14 +13,32 @@ enter dungeon ─▶ arrive at a location with 2–4 PATHS (+ maybe an exit)
       │                     │  pre-generated destination (never sent to client)
       │                     ▼
   continue          choose a path ─▶ arrive at the destination, the hidden
-  exploring                          event fires:
-      ▲                                • monster_riddle → answer a riddle
-      │                                • monster_battle → turn-based battle
+  exploring                          event fires (weighted in events.py):
+      ▲                                • location_explore (~60%) → look around,
+      │                                  then: talk / surprise attack / sneak past
+      │                                  monsters, or camp / continue if clear
+      │                                • monster_dialogue (~20%) → a monster asks
+      │                                  a question; the LLM decides the outcome
+      │                                • monster_battle (~20%) → turn-based battle
       └───────────────────────────────┘
 ```
 A dungeon run ends by taking an **exit path**, or by losing/being spared in
 a battle. Party condition (battle damage) persists across the run and resets
 on exit.
+
+**The dungeon log.** Everything that happens in a run (arrivals, encounters,
+exchanges, ability uses, camps, battle summaries) is recorded backend-side in
+`dungeon_state.dungeon_log` and fed — clamped to a character budget
+(`backend/game/utils/context_limits.py`) — into every dungeon LLM generation,
+so the story stays coherent across the run. Battles keep their own detailed
+rolling log; only a compact summary of each battle lands in the dungeon log.
+
+**Party abilities anywhere.** While in the dungeon (outside battle), any party
+monster can use any of its abilities on anything — a path, a monster, the
+location, or free text — via `POST /dungeon/use-ability`. The LLM referee
+decides if it does anything at all (heals genuinely heal; perceptive abilities
+can hint at a path's true, hidden destination; most odd attempts fizzle).
+During battles, abilities are used on the monster's turn and cost that turn.
 
 ## Dungeon (`/api/dungeon`)
 
@@ -38,50 +56,121 @@ Also streams entry text via `workflow.update` step `emit_generation_id`
 Resolves the path's pre-generated destination (instant), then fires its
 hidden event.
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result — riddle event:**
+**`workflow.completed` result — explore event (the most common):**
 ```json
-{ "success": true, "event": "monster_riddle",
-  "current_location": LocationObject, "monster_id": number,
-  "greeting": string, "riddle": string }
+{ "success": true, "event": "location_explore",
+  "current_location": LocationObject,
+  "monsters_present": boolean, "monster_ids": number[],
+  "party_conditions": { "[monster_id]": string } }
 ```
+Look-around text streams (step `emit_generation_id`,
+`data.look_text_generation_id`). If `monsters_present`, the area's monsters
+reveal live (they have NOT noticed the party); the player then talks
+(`/dungeon/respond`), ambushes (`/dungeon/surprise-attack`), or sneaks
+(`/dungeon/sneak`). If the area is clear: camp (`/dungeon/camp`) or continue.
+**`workflow.completed` result — dialogue event:**
+```json
+{ "success": true, "event": "monster_dialogue",
+  "current_location": LocationObject, "monster_id": number,
+  "greeting": string, "question": string,
+  "party_conditions": { "[monster_id]": string } }
+```
+The monster asks a question of its own devising; answer via `/dungeon/respond`.
 **`workflow.completed` result — battle event:**
 ```json
 { "success": true, "event": "monster_battle",
   "current_location": LocationObject, "enemy_ids": number[],
-  "battle_intro": string, "battle_snapshot": BattleSnapshot }
+  "battle_intro": string, "battle_snapshot": BattleSnapshot,
+  "party_conditions": { "[monster_id]": string } }
 ```
 **`workflow.completed` result — exit path taken:**
 ```json
 { "success": true, "exited": true, "exit_text": string }
 ```
 During the workflow: `workflow.update` step `location_generated`
-(`data.current_location`); for battle/riddle events the encounter monsters
-reveal live via `monster.created` / `monster.ability_added` /
-`monster.art_ready`, and vanity text streams (step `emit_generation_id`,
-`data.encounter_text_generation_id`).
+(`data.current_location`); encounter monsters reveal live via
+`monster.created` / `monster.ability_added` / `monster.art_ready`, and vanity
+text streams (step `emit_generation_id`, `data.encounter_text_generation_id`
+for dialogue/battle events, `data.look_text_generation_id` for explore).
 
-### POST /dungeon/answer-riddle
-**Request:** `{ "answer": string }`
-Judges the answer semantically (lenient on spelling/synonyms, strict on
-identity) and responds in the monster's voice.
+### POST /dungeon/respond
+**Request:** `{ "message": string }` (non-empty, ≤500 chars)
+The party speaks to the encounter monster(s): answers the question, keeps a
+conversation going, or opens talks with monsters found while exploring (an
+explore encounter converts to a dialogue). The LLM responds in the monster's
+voice and **decides the outcome** of every exchange.
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result:** `{ success, correct: boolean, response: string }`
+**`workflow.completed` result:**
+```json
+{ "success": true, "outcome": string, "response": string,
+  "joined_names?": string[], 
+  "battle_intro?": string, "enemy_ids?": number[], "battle_snapshot?": BattleSnapshot }
+```
+`outcome` is one of:
+- `continue_dialogue` — the conversation stays open; respond again
+- `begin_battle` — the monster attacks (`battle_snapshot` + `battle_intro` included)
+- `allow_passage` — the party may continue exploring
+- `reward` — the monster grants a boon (narrative for now; mechanics hook in `outcomes.py`)
+- `punish` — the monster exacts a price (narrative for now; mechanics hook in `outcomes.py`)
+- `join_party` — the monster(s) join the following list (`joined_names`)
+
+### POST /dungeon/sneak
+Attempt to sneak past the monsters spotted while exploring. The LLM judges
+success from the party's natures, the monsters, and the terrain.
+**Success:** `{ "success": true, "workflow_id": number }`
+**`workflow.completed` result:** `{ success, success: boolean, narration: string, ... }` —
+on failure the monsters notice: `battle_intro`, `enemy_ids`, and
+`battle_snapshot` are included and a battle begins.
+
+### POST /dungeon/surprise-attack
+Strike first at the monsters spotted while exploring. Always starts a battle,
+opened on the party's terms (the ambush is seeded into the battle log).
+**Success:** `{ "success": true, "workflow_id": number }`
+**`workflow.completed` result:** `{ success, battle_intro, enemy_ids, battle_snapshot }`
+
+### POST /dungeon/camp
+Set up camp in a monster-free explore location (once per location). Streams a
+vanity scene of the party's monsters talking around the fire (step
+`emit_generation_id`, `data.camp_text_generation_id`).
+**Success:** `{ "success": true, "workflow_id": number }`
+**`workflow.completed` result:** `{ success, camped: true }`
+
+### POST /dungeon/use-ability
+**Request:**
+```json
+{ "monster_id": number, "ability_id": number,
+  "target_type": "path"|"monster"|"location"|"custom",
+  "target_id?": string|number, "target_text?": string }
+```
+A party monster uses an ability on anything, outside battle. `target_id` is a
+path id for `path` targets or a monster id for `monster` targets;
+`target_text` (≤500 chars) describes `custom` targets. The LLM referee
+decides the effect: `none`, `heal_light`/`heal_major` (party members only —
+moves them up the condition ladder), or `reveal` (true information woven
+into the narration; path targets secretly include their hidden destination
+so perceptive abilities can hint at what lies beyond).
+**Error (400):** in battle, monster not in party, unowned ability, bad target.
+**Success:** `{ "success": true, "workflow_id": number }`
+**`workflow.completed` result:** `{ success, narration, effect, party_conditions }`
 
 ### POST /dungeon/continue
 Generates a fresh set of paths from the current location (the loop's back
-edge; also used after resolving an encounter).
+edge; also used after resolving an encounter). Blocked while an encounter
+demands attention (an open conversation, or unhandled explore monsters).
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject } }`
+**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions }`
 
 ### GET /dungeon/state
-Public dungeon state (hidden path events/destinations and riddle answers
-stripped). Synchronous.
+Public dungeon state (hidden path events/destinations stripped). Synchronous.
 **Success:**
 ```json
 { "success": true, "in_dungeon": boolean,
   "current_location": LocationObject|null,
   "paths": { "[path_id]": PathObject },
-  "active_encounter": { "event": string, "monster_id": number, "riddle": string }|null }
+  "party_conditions": { "[monster_id]": string },
+  "active_encounter": { "event": string, "monster_ids": number[],
+    "monsters_present": boolean|null, "camped": boolean|null,
+    "dialogue": [{ "speaker": string, "text": string }] }|null }
 ```
 
 ## Battle (`/api/battle`)

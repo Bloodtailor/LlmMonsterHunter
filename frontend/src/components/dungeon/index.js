@@ -14,8 +14,11 @@ export { default as AutoEnterDungeonEffect } from './components/AutoEnterDungeon
 export { default as DungeonResetButton } from './components/DungeonResetButton.js';
 export { default as EncounterLocationHeader } from './components/EncounterLocationHeader.js';
 export { default as EncounterTextDisplay } from './components/EncounterTextDisplay.js';
+export { default as LookAroundTextDisplay } from './components/LookAroundTextDisplay.js';
 export { default as EncounterMonsterDisplay } from './components/EncounterMonsterDisplay.js';
-export { default as RiddleBox } from './components/RiddleBox.js';
+export { default as ExplorePanel } from './components/ExplorePanel.js';
+export { default as MonsterDialogueBox } from './components/MonsterDialogueBox.js';
+export { default as DungeonPartyPanel } from './components/DungeonPartyPanel.js';
 export { default as DungeonExitView } from './components/DungeonExitView.js';
 
 // ===== HOOKS =====

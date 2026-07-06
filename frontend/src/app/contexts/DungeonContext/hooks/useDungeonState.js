@@ -1,7 +1,8 @@
 // useDungeonState.js - State for the dungeon exploration loop
 // Business-focused state: what do components actually need to know?
-// Screens render by data presence (location set? riddle set? exit text set?)
-// rather than a separate phase machine - less state to get out of sync
+// Screens render by data presence (location set? dialogue started? exit
+// text set?) rather than a separate phase machine - less state to get
+// out of sync
 
 import { useState, useCallback } from 'react';
 
@@ -26,13 +27,35 @@ export function useDungeonState() {
   const [paths, setPaths] = useState(null);
   const [arePathsReady, setArePathsReady] = useState(false);
 
-  // Encounter state - streamed vanity text, the monsters, and the riddle
+  // Encounter state - streamed vanity text and the revealed monsters
   const [encounterText, setEncounterText] = useState('');
   const [encounterMonsters, setEncounterMonsters] = useState([]); // battles can reveal several
-  const [riddleGreeting, setRiddleGreeting] = useState(null); // the monster's in-character justification
-  const [riddle, setRiddle] = useState(null);
-  const [isJudgingAnswer, setIsJudgingAnswer] = useState(false);
-  const [riddleResult, setRiddleResult] = useState(null); // { correct, response } - the monster's spoken reaction
+
+  // Dialogue encounter - the conversation with the monster(s).
+  // The LLM decides the outcome of every exchange:
+  // null while talking; then 'begin_battle' | 'allow_passage' |
+  // 'reward' | 'punish' | 'join_party' resolves the encounter
+  const [dialogue, setDialogue] = useState([]); // [{ speaker, text }]
+  const [isMonsterResponding, setIsMonsterResponding] = useState(false);
+  const [dialogueOutcome, setDialogueOutcome] = useState(null); // { outcome, joinedNames }
+
+  // Explore event - the party looks around and decides what to do
+  const [monstersPresent, setMonstersPresent] = useState(null); // null until an explore event resolves it
+  const [lookText, setLookText] = useState(''); // streamed look-around text
+  const [sneakResult, setSneakResult] = useState(null); // { success, narration }
+  const [isSneaking, setIsSneaking] = useState(false);
+  const [isAmbushing, setIsAmbushing] = useState(false);
+
+  // Camp - vanity dialogue between the party's monsters
+  const [campText, setCampText] = useState(''); // streamed camp scene
+  const [isCamping, setIsCamping] = useState(false);
+  const [hasCamped, setHasCamped] = useState(false);
+
+  // Party in the dungeon - conditions persist across the run, and any
+  // monster can use its abilities on anything (the LLM referees it)
+  const [partyConditions, setPartyConditions] = useState({}); // { monsterId: condition }
+  const [isUsingAbility, setIsUsingAbility] = useState(false);
+  const [abilityResult, setAbilityResult] = useState(null); // { narration, effect }
 
   // Exit state - set when the party takes an exit path
   const [exitText, setExitText] = useState(null);
@@ -48,10 +71,18 @@ export function useDungeonState() {
   const clearEncounter = useCallback(() => {
     setEncounterText('');
     setEncounterMonsters([]);
-    setRiddleGreeting(null);
-    setRiddle(null);
-    setIsJudgingAnswer(false);
-    setRiddleResult(null);
+    setDialogue([]);
+    setIsMonsterResponding(false);
+    setDialogueOutcome(null);
+    setMonstersPresent(null);
+    setLookText('');
+    setSneakResult(null);
+    setIsSneaking(false);
+    setIsAmbushing(false);
+    setCampText('');
+    setIsCamping(false);
+    setHasCamped(false);
+    setAbilityResult(null);
   }, []);
 
   // Reset all state to initial values
@@ -64,10 +95,20 @@ export function useDungeonState() {
     setArePathsReady(false);
     setEncounterText('');
     setEncounterMonsters([]);
-    setRiddleGreeting(null);
-    setRiddle(null);
-    setIsJudgingAnswer(false);
-    setRiddleResult(null);
+    setDialogue([]);
+    setIsMonsterResponding(false);
+    setDialogueOutcome(null);
+    setMonstersPresent(null);
+    setLookText('');
+    setSneakResult(null);
+    setIsSneaking(false);
+    setIsAmbushing(false);
+    setCampText('');
+    setIsCamping(false);
+    setHasCamped(false);
+    setPartyConditions({});
+    setIsUsingAbility(false);
+    setAbilityResult(null);
     setExitText(null);
   }, []);
 
@@ -82,10 +123,20 @@ export function useDungeonState() {
       arePathsReady,
       encounterText,
       encounterMonsters,
-      riddleGreeting,
-      riddle,
-      isJudgingAnswer,
-      riddleResult,
+      dialogue,
+      isMonsterResponding,
+      dialogueOutcome,
+      monstersPresent,
+      lookText,
+      sneakResult,
+      isSneaking,
+      isAmbushing,
+      campText,
+      isCamping,
+      hasCamped,
+      partyConditions,
+      isUsingAbility,
+      abilityResult,
       exitText
     },
 
@@ -98,10 +149,20 @@ export function useDungeonState() {
       setArePathsReady,
       setEncounterText,
       setEncounterMonsters,
-      setRiddleGreeting,
-      setRiddle,
-      setIsJudgingAnswer,
-      setRiddleResult,
+      setDialogue,
+      setIsMonsterResponding,
+      setDialogueOutcome,
+      setMonstersPresent,
+      setLookText,
+      setSneakResult,
+      setIsSneaking,
+      setIsAmbushing,
+      setCampText,
+      setIsCamping,
+      setHasCamped,
+      setPartyConditions,
+      setIsUsingAbility,
+      setAbilityResult,
       setExitText,
       clearEncounter
     },
