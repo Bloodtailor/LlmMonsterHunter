@@ -4,5 +4,7 @@ Flask-CORS==4.0.0
 PyMySQL==1.1.0
 cryptography>=41.0.0
 python-dotenv==1.0.0
-llama-cpp-python[cuda]==0.2.11
+# CUDA build is installed via setup (prebuilt wheel from the abetlen cu124
+# index) - a plain `pip install` of this pin gives a CPU-only build.
+llama-cpp-python==0.3.33
 requests==2.31.0

@@ -67,10 +67,17 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
         # Call callback with initial empty state
         if callback:
             callback("")
-        
+
+        # Suppress reasoning-model <think> blocks: prefill an empty one so
+        # the model treats reasoning as done and answers directly. Gated by
+        # LLM_DISABLE_THINKING (.env) - the prefill is added to the PROMPT
+        # only, never to the streamed output the player sees.
+        from backend.core.config.llm_config import get_disable_thinking, NOTHINK_PREFILL
+        model_prompt = prompt + NOTHINK_PREFILL if get_disable_thinking() else prompt
+
         # Create the streaming generator with all parameters
         stream = model(
-            prompt,
+            model_prompt,
             stream=True,  # Enable streaming!
             **params      # Pass all parameters
         )
