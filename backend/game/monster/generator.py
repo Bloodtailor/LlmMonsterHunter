@@ -179,9 +179,9 @@ def generate_card_art(monster: Monster):
 
     return image_path
 
-def generate_ability(monster: Monster):
+def generate_ability(monster: Monster, growth_context: str = ''):
 
-    variables = _build_ability_variables(monster)
+    variables = _build_ability_variables(monster, growth_context)
     parsed_data = build_and_generate('generate_ability', 'ability_generation', variables)
 
     ability = Ability.create_from_llm_data(monster.id, parsed_data)
@@ -196,7 +196,7 @@ def generate_ability_by_id(monster_id):
     monster = Monster.query.get(monster_id)
     return generate_ability(monster)
 
-def _build_ability_variables(monster: Monster):
+def _build_ability_variables(monster: Monster, growth_context: str = ''):
 
     # Format existing abilities
     existing_abilities = monster.abilities
@@ -208,7 +208,15 @@ def _build_ability_variables(monster: Monster):
     persona = monster.persona or {}
     ecology = monster.ecology or {}
 
+    # Growth/return abilities carry the WHY into the prompt; ordinary
+    # generation leaves this block empty
+    growth_block = (
+        f"\n--- Why this ability is being learned NOW ---\n{growth_context}\n"
+        if growth_context else ''
+    )
+
     return {
+        'growth_context': growth_block,
         'monster_name': monster.name,
         'monster_species': monster.species,
         'monster_description': monster.description,

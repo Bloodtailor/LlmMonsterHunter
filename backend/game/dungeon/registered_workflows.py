@@ -214,8 +214,107 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         progress_data.update({ "current_location": location })
         on_update(step, progress_data)
 
-        # === EVENT: LOCATION EXPLORE (the most common arrival) ===
         event = path.get('event')
+
+        # === EVENT: RETURNING MONSTER (someone here remembers the party) ===
+        if event == 'returning_monster':
+            from backend.game.memory import returning
+
+            step = "pick_returning_monster"
+            on_update(step, progress_data)
+            remembered = returning.pick_returning_monster()
+
+            if not remembered:
+                # The pool emptied since this path was generated (e.g. the
+                # monster joined the party at a sibling path) - degrade
+                # invisibly to a plain explore; events are hidden anyway
+                event = 'location_explore'
+            else:
+                # The monster returns CHANGED by what it remembers
+                step = "transform_returning_monster"
+                on_update(step, progress_data)
+                transformed = returning.transform_returning_monster(remembered, workflow_name)
+                disposition = transformed['disposition']
+                greeting = transformed['greeting']
+
+                step = "reveal_returning_monster"
+                on_update(step, progress_data)
+                returning.stage_reveal(remembered)
+                progress_data.update({ "monster_id": remembered.id, "returning": True })
+
+                # The recognition scene streams while the encounter stages
+                step = "queue_reunion_text"
+                on_update(step, progress_data)
+                from backend.game.dungeon.generator import generate_reunion_scene
+                reunion_text_generation_id = generate_reunion_scene(
+                    location, remembered, disposition, workflow_name
+                )
+                progress_data.update({ "reunion_text_generation_id": reunion_text_generation_id })
+
+                step = "emit_generation_id"
+                on_update(step, progress_data)
+
+                manager.append_dungeon_log(
+                    f"At {location.get('name', 'the new location')}, the party came face to "
+                    f"face with {remembered.name} ({remembered.species}) again - it remembers "
+                    f"them, and its bearing is {disposition}."
+                )
+
+                if disposition == 'hostile':
+                    # A reckoning - straight to battle, its greeting as the intro
+                    step = "start_battle"
+                    on_update(step, progress_data)
+                    battle_snapshot = _start_encounter_battle(
+                        [remembered],
+                        opening_note=(f"{remembered.name} has returned to face the party, "
+                                      f"hardened by its memories: \"{greeting}\"")
+                    )
+                    return success_response({
+                        "event": "monster_battle",
+                        "returning": True,
+                        "current_location": location,
+                        "enemy_ids": [remembered.id],
+                        "battle_intro": greeting,
+                        "battle_snapshot": battle_snapshot,
+                        "party_conditions": manager.get_party_conditions()
+                    })
+
+                if disposition == 'friendly':
+                    # A warm reunion - it opens the conversation itself
+                    manager.set_active_encounter({
+                        'event': 'monster_dialogue',
+                        'monster_ids': [remembered.id],
+                        'dialogue': []
+                    })
+                    manager.append_encounter_dialogue(remembered.name, greeting)
+                    return success_response({
+                        "event": "monster_dialogue",
+                        "returning": True,
+                        "current_location": location,
+                        "monster_id": remembered.id,
+                        "greeting": greeting,
+                        "question": "",
+                        "party_conditions": manager.get_party_conditions()
+                    })
+
+                # wary - a watchful standoff; talk, sneak, or ambush all work
+                manager.set_active_encounter({
+                    'event': 'location_explore',
+                    'monster_ids': [remembered.id],
+                    'monsters_present': True,
+                    'camped': False
+                })
+                return success_response({
+                    "event": "location_explore",
+                    "returning": True,
+                    "current_location": location,
+                    "monsters_present": True,
+                    "monster_ids": [remembered.id],
+                    "greeting": greeting,
+                    "party_conditions": manager.get_party_conditions()
+                })
+
+        # === EVENT: LOCATION EXPLORE (the most common arrival) ===
         if event == 'location_explore':
 
             # Python decides whether creatures dwell here
@@ -231,10 +330,23 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "emit_generation_id"
             on_update(step, progress_data)
 
-            # Steps 5+ - the creatures of this place, revealed live (if any)
+            # Steps 5+ - the creatures of this place, revealed live (if any).
+            # Sometimes one of them is a monster the party has met before -
+            # it takes a fresh monster's slot, memories and all (no
+            # generation needed; it already exists in full).
             monsters = []
             if monsters_present:
+                from backend.game.memory import returning
+
                 monster_count = roll_explore_monster_count()
+                blended = returning.maybe_blend_in()
+                if blended:
+                    step = "reveal_returning_monster"
+                    on_update(step, progress_data)
+                    returning.stage_reveal(blended)
+                    monsters.append(blended)
+                    monster_count -= 1
+
                 for i in range(monster_count):
                     step = f"generate_area_monster_{i + 1}"
                     on_update(step, progress_data)
@@ -335,25 +447,34 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "emit_generation_id"
             on_update(step, progress_data)
 
-            # Step 5 - the monster that dwells here (emits monster.created)
-            step = "generate_encounter_monster"
-            on_update(step, progress_data)
-            monster = generate_contextual_monster(location)
-            progress_data.update({ "monster_id": monster.id })
+            # Step 5 - the monster that dwells here. Sometimes it is one
+            # the party has met before (blend-in: no generation needed).
+            from backend.game.memory import returning
+            monster = returning.maybe_blend_in()
+            if monster:
+                step = "reveal_returning_monster"
+                on_update(step, progress_data)
+                returning.stage_reveal(monster)
+                progress_data.update({ "monster_id": monster.id })
+            else:
+                step = "generate_encounter_monster"
+                on_update(step, progress_data)
+                monster = generate_contextual_monster(location)
+                progress_data.update({ "monster_id": monster.id })
 
-            # Steps 6-7 - abilities (emit monster.ability_added)
-            step = "generate_first_ability"
-            on_update(step, progress_data)
-            generate_ability(monster)
+                # Steps 6-7 - abilities (emit monster.ability_added)
+                step = "generate_first_ability"
+                on_update(step, progress_data)
+                generate_ability(monster)
 
-            step = "generate_second_ability"
-            on_update(step, progress_data)
-            generate_ability(monster)
+                step = "generate_second_ability"
+                on_update(step, progress_data)
+                generate_ability(monster)
 
-            # Step 8 - card art, full reveal before it speaks (emits monster.art_ready)
-            step = "generate_card_art"
-            on_update(step, progress_data)
-            generate_card_art(monster)
+                # Step 8 - card art, full reveal before it speaks (emits monster.art_ready)
+                step = "generate_card_art"
+                on_update(step, progress_data)
+                generate_card_art(monster)
 
             # Step 9 - the monster speaks: greeting with its own reason for
             # stopping the party, then its question. What the party answers
@@ -410,9 +531,21 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "emit_generation_id"
             on_update(step, progress_data)
 
-            # Steps 5+ - the hostile monsters, fully revealed (emit domain events)
+            # Steps 5+ - the hostile monsters, fully revealed (emit domain
+            # events). An avoided or bested monster from another day may
+            # be running with this pack (blend-in).
+            from backend.game.memory import returning
             enemy_count = _random.randint(*ENEMY_COUNT_RANGE)
             enemies = []
+
+            blended = returning.maybe_blend_in()
+            if blended:
+                step = "reveal_returning_monster"
+                on_update(step, progress_data)
+                returning.stage_reveal(blended)
+                enemies.append(blended)
+                enemy_count -= 1
+
             for i in range(enemy_count):
                 step = f"generate_enemy_{i + 1}"
                 on_update(step, progress_data)

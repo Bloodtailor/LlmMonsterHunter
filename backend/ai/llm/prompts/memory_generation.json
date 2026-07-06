@@ -1,4 +1,28 @@
 {
+  "returning_transform": {
+    "description": "Decide how a remembered monster returns to face the party: disposition, greeting, training, and whether it forged an answer to its past",
+    "max_tokens": 350,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["disposition", "greeting", "stat_boost", "battle_line", "grudge_note", "new_ability", "ability_theme"],
+      "required_fields": ["disposition", "greeting"]
+    },
+    "prompt_template": "A monster that met an adventuring party before is about to cross their path again. Time has passed. You decide how its memories changed it.\n\n========== CONTEXT ==========\n\n--- The monster ---\n{monster_details}\n\n--- What it remembers of the party ---\n{monster_memories}\n\n--- How many times it has already returned to face them ---\n{return_count}\n\n--- The party it is about to meet again ---\n{party_summary}\n\n========== YOUR TASK ==========\nDecide, true to its personality AND its memories:\n1. disposition - exactly one of:\n   - \"hostile\": it wants a reckoning (defeated monsters usually return angry and hardened)\n   - \"friendly\": it remembers kindness and seeks the party out warmly\n   - \"wary\": it watches, torn, remembering both good and bad\n2. greeting - 1-2 sentences it says or does on recognizing the party, in its own Voice, referencing what it remembers WITHOUT listing it.\n3. stat_boost - how hard it trained since: \"slight\", \"notable\", or \"fierce\" (fierce only for a burning grudge or transformation).\n4. battle_line - optionally reword its battle cry to carry the memory (similar length; null to keep the old one).\n5. grudge_note - one short sentence naming the grudge or bond it now carries (e.g. 'Owes its defeat to Fluffy and dreams of repaying it in kind').\n6. new_ability - \"yes\" ONLY if its memories forged a new trick (e.g. an answer to the exact way it was defeated); else \"no\".\n7. ability_theme - if new_ability is yes: a short phrase for what the ability must do (e.g. 'a stone shell that catches the flame that once felled it'); else null.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"disposition\": \"hostile\", \"greeting\": \"1-2 sentences.\", \"stat_boost\": \"notable\", \"battle_line\": null, \"grudge_note\": \"One sentence.\", \"new_ability\": \"no\", \"ability_theme\": null}}\n\nJSON:"
+  },
+
+  "reunion_scene": {
+    "description": "Streamed narration of the party recognizing a monster they have met before",
+    "max_tokens": 400,
+    "temperature": 0.9,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You are the narrator of a fantasy dungeon adventure. The party has just come face to face with a creature they have MET BEFORE.\n\n========== CONTEXT ==========\n\n--- Location ---\n{location_name}: {location_description}\n\n--- The party ---\n{party_summary}\n\n--- The creature they recognize ---\n{monster_name} ({monster_species})\n\n--- What passed between them before ---\n{memory_summary}\n\n--- The creature's bearing now ---\n{disposition}\n\n========== YOUR TASK ==========\nWrite 2-4 sentences: the moment of recognition. The party realizes they know this creature; its bearing reflects its disposition and what it remembers - changed, marked by the past. Build the tension or warmth of the reunion, but do NOT resolve what happens next, and do NOT have anyone attack or speak actual dialogue yet.\n\nResponse:"
+  },
+
   "camp_restore": {
     "description": "Decide how much rest at camp restores each party monster's stamina and mana",
     "max_tokens": 250,

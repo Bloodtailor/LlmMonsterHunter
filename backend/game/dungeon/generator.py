@@ -143,6 +143,11 @@ def generate_paths(location: Dict[str, Any], workflow_name: str) -> Dict[str, Di
     while len(chosen) < regular_count:
         chosen.append(_get_fallback_path())
 
+    # Remembered monsters can only return when some are eligible (checked
+    # once per junction; re-checked when the path is actually taken)
+    from backend.game.memory.manager import eligible_returning_ids
+    include_returning = bool(eligible_returning_ids())
+
     for i, path in enumerate(chosen):
         # Pre-generate where this path leads (hidden from the player)
         destination = generate_arrival_location(location, path, workflow_name)
@@ -151,7 +156,7 @@ def generate_paths(location: Dict[str, Any], workflow_name: str) -> Dict[str, Di
             'name': path.get('name', 'Mysterious Passage'),
             'description': path.get('description', ''),
             'type': 'path',
-            'event': assign_random_event(),
+            'event': assign_random_event(include_returning),
             'destination': destination
         }
 
@@ -239,6 +244,22 @@ def generate_camp_scene(location: Dict[str, Any], workflow_name: str) -> int:
         'dungeon_log': _dungeon_log_text()
     }
     return build_and_stream('camp_scene', workflow_name, variables)
+
+def generate_reunion_scene(location: Dict[str, Any], monster, disposition: str, workflow_name: str) -> int:
+    """Queue the streamed reunion narration - the party recognizes a
+    monster they have met before. Returns generation_id."""
+    from backend.game.memory.manager import get_memory_lines
+
+    memory_lines = get_memory_lines(monster.id, cap=4)
+    return build_and_stream('reunion_scene', workflow_name, {
+        'party_summary': get_party_summary(),
+        'location_name': location.get('name', 'Unknown Location'),
+        'location_description': clamp_context('location_description', location.get('description', '')),
+        'monster_name': monster.name,
+        'monster_species': monster.species,
+        'memory_summary': "\n".join(f"- {line}" for line in memory_lines) or "A half-remembered scent.",
+        'disposition': disposition
+    })
 
 def generate_camp_restore(location: Dict[str, Any], workflow_name: str) -> Dict[int, Dict[str, str]]:
     """

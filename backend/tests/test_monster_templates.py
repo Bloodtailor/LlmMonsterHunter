@@ -64,7 +64,7 @@ GENERATOR_VARIABLES = {
         'monster_name', 'monster_species', 'monster_description', 'monster_backstory',
         'monster_health', 'monster_attack', 'monster_defense', 'monster_speed',
         'monster_personality', 'monster_role', 'monster_class', 'monster_elements',
-        'monster_wish', 'existing_abilities_text', 'ability_count'
+        'monster_wish', 'existing_abilities_text', 'ability_count', 'growth_context'
     },
     # Inventory generation (backend/game/inventory/generator.py)
     'treasure_item': {'location_name', 'location_description'},
@@ -88,7 +88,12 @@ GENERATOR_VARIABLES = {
                             'ability_name', 'ability_description', 'target_description',
                             'secret_knowledge', 'dungeon_log'},
     # Camp rest referee (dungeon/generator.py generate_camp_restore)
-    'camp_restore': {'location_name', 'location_description', 'party_details'}
+    'camp_restore': {'location_name', 'location_description', 'party_details'},
+    # Returning monsters (game/memory/returning.py + dungeon/generator.py)
+    'returning_transform': {'monster_details', 'monster_memories', 'return_count',
+                            'party_summary'},
+    'reunion_scene': {'party_summary', 'location_name', 'location_description',
+                      'monster_name', 'monster_species', 'memory_summary', 'disposition'}
 }
 
 def test_staged_templates_render():
