@@ -48,6 +48,22 @@ def get_context_size_tokens() -> int:
     except (TypeError, ValueError):
         return 4096
 
+# Monster detail tiers: how much of a monster's persona/CMDTS enters prompt
+# blocks that hold SEVERAL monsters (party details, battle sides). Binned by
+# the model's context window. Single-speaker dialogue prompts ignore the bin
+# and always use the full block for the monster that is speaking.
+#   compact  (< 6144)  - identity line, stats, description, traits, wish
+#   standard (< 12288) - + voice, tastes, persuasion rubric, habitat/diet line
+#   full     (>= 12288) - everything, including beliefs, fears, bonds, class
+def resolve_detail_tier() -> str:
+    """The monster-detail tier for multi-monster blocks on the CURRENT model"""
+    context_size = get_context_size_tokens()
+    if context_size < 6144:
+        return 'compact'
+    if context_size < 12288:
+        return 'standard'
+    return 'full'
+
 def get_prompt_char_budget() -> int:
     """Characters available for the whole prompt after reserving the response"""
     usable_tokens = max(get_context_size_tokens() - RESERVED_RESPONSE_TOKENS, 512)

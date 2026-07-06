@@ -14,39 +14,35 @@ from backend.game.dungeon.events import (
 )
 
 # ===== CONTEXT BUILDERS =====
+# All monster-to-text conversion lives in game/monster/context_builder.py;
+# these wrappers add dungeon decorations (run conditions) and block clamping.
 
 def build_monster_dungeon_details(monster) -> str:
-    """One monster as FULL LLM context for dungeon encounters:
-    identity, stats, backstory, personality, and abilities"""
-
-    personality = ', '.join(monster.personality_traits or [])
-    abilities = "; ".join(
-        f"{a.name} ({a.description})" for a in (monster.abilities or [])
-    ) or "none"
-
-    return (
-        f"- {monster.name} ({monster.species})\n"
-        f"  Stats: health {monster.max_health}, attack {monster.attack}, defense {monster.defense}, speed {monster.speed}\n"
-        f"  Description: {monster.description}\n"
-        f"  Backstory: {monster.backstory or 'Unknown'}\n"
-        f"  Personality: {personality}\n"
-        f"  Abilities: {abilities}"
-    )
+    """One monster as tiered LLM context for dungeon encounters"""
+    from backend.game.monster.context_builder import build_monster_block
+    return build_monster_block(monster)
 
 def build_monsters_details(monsters: List[Any]) -> str:
-    """Several monsters as one clamped LLM context block"""
+    """Several monsters as one clamped, tier-binned LLM context block"""
     lines = [build_monster_dungeon_details(m) for m in monsters if m]
+    return clamp_context('monster_details', "\n".join(lines)) if lines else "None"
+
+def build_speaking_monsters_details(monsters: List[Any]) -> str:
+    """Monsters that are about to SPEAK (dialogue encounters): always the
+    FULL block including the guarded secret, regardless of the tier bin"""
+    from backend.game.monster.context_builder import build_speaker_block
+    lines = [build_speaker_block(m) for m in monsters if m]
     return clamp_context('monster_details', "\n".join(lines)) if lines else "None"
 
 def build_party_dungeon_details() -> str:
     """
-    The party as FULL LLM context for dungeon prompts: identity, current
-    run condition, stats, backstory, personality, and abilities - so
-    encounter monsters can react to who these adventurers truly are
-    (party details are a required block - never truncated)
+    The party as tiered LLM context for dungeon prompts, decorated with each
+    member's current run condition - so encounter monsters can react to who
+    these adventurers truly are (party details are never truncated)
     """
     from backend.game.state.manager import get_party_monster_ids
     from backend.game.dungeon.manager import get_party_conditions
+    from backend.game.monster.context_builder import build_monster_block
     from backend.models.monster import Monster
 
     conditions = get_party_conditions()
@@ -55,19 +51,8 @@ def build_party_dungeon_details() -> str:
         monster = Monster.get_monster_by_id(monster_id)
         if not monster:
             continue
-        personality = ', '.join(monster.personality_traits or [])
-        abilities = "; ".join(
-            f"{a.name} ({a.description})" for a in (monster.abilities or [])
-        ) or "none"
         condition = conditions.get(str(monster_id), 'fresh')
-        lines.append(
-            f"- {monster.name} ({monster.species}), condition: {condition}\n"
-            f"  Stats: health {monster.max_health}, attack {monster.attack}, defense {monster.defense}, speed {monster.speed}\n"
-            f"  Description: {monster.description}\n"
-            f"  Backstory: {monster.backstory or 'Unknown'}\n"
-            f"  Personality: {personality}\n"
-            f"  Abilities: {abilities}"
-        )
+        lines.append(build_monster_block(monster, condition=condition))
 
     if not lines:
         return "A lone, empty-handed adventurer"
@@ -341,7 +326,7 @@ def generate_monster_question(location: Dict[str, Any], monster, workflow_name: 
         result = build_and_generate('monster_question', workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
             'location_description': clamp_context('location_description', location.get('description', '')),
-            'monster_details': build_monsters_details([monster]),
+            'monster_details': build_speaking_monsters_details([monster]),
             'party_details': build_party_dungeon_details(),
             'dungeon_log': _dungeon_log_text()
         })

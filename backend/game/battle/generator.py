@@ -20,24 +20,17 @@ SIDE_LABELS = {
 }
 
 def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = None) -> str:
-    """One monster as FULL LLM context: identity, SIDE, condition, stats,
-    backstory, personality, and abilities - never truncated"""
+    """One monster as tiered LLM context with battle decorations: SIDE,
+    condition, and defending state (block itself is never truncated).
+    The secret never enters battle prompts - the narrator would leak it."""
 
-    personality = ', '.join(monster.personality_traits or []) if monster else ''
-    abilities = "; ".join(
-        f"{a.name} ({a.description})" for a in (monster.abilities if monster else [])
-    ) or "none"
+    from backend.game.monster.context_builder import build_monster_block
 
-    defending = " [defending]" if entry.get('defending') else ""
-    side_tag = f" — {SIDE_LABELS[side]}" if side in SIDE_LABELS else ""
-
-    return (
-        f"- {monster.name} ({monster.species}){side_tag}, condition: {entry.get('condition', 'fresh')}{defending}\n"
-        f"  Stats: health {monster.max_health}, attack {monster.attack}, defense {monster.defense}, speed {monster.speed}\n"
-        f"  Description: {monster.description}\n"
-        f"  Backstory: {monster.backstory or 'Unknown'}\n"
-        f"  Personality: {personality}\n"
-        f"  Abilities: {abilities}"
+    return build_monster_block(
+        monster,
+        condition=entry.get('condition', 'fresh'),
+        defending=bool(entry.get('defending')),
+        side_label=SIDE_LABELS.get(side)
     )
 
 def build_side_details(monsters: Dict[str, Any], entries: Dict[str, Dict[str, Any]], side: str = None) -> str:
