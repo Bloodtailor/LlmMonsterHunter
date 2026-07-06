@@ -81,24 +81,143 @@ def generate_battle_intro(location: Dict[str, Any], enemy_details: str, party_de
     except Exception:
         return "The creatures block your path, and their intent is unmistakable: there will be a fight."
 
-def generate_enemy_actions(state: Dict[str, Any], enemy_details: str, ally_details: str, workflow_name: str) -> List[Dict[str, Any]]:
+def build_combatant_summary(monsters: Dict[str, Any], state: Dict[str, Any]) -> str:
+    """Compact summary of everyone still in the fight, with speed, for the turn director"""
+
+    lines = []
+    for side, label in (('allies', 'party'), ('enemies', 'hostile')):
+        for monster_id, entry in state.get(side, {}).items():
+            if entry.get('condition') == 'incapacitated' or entry.get('fled'):
+                continue
+            monster = monsters.get(monster_id)
+            speed = monster.speed if monster else 10
+            lines.append(f"- {entry.get('name')} ({label}), speed: {speed}, condition: {entry.get('condition')}")
+    return "\n".join(lines) if lines else "None"
+
+def build_turn_history(state: Dict[str, Any]) -> str:
+    history = state.get('turn_history', [])
+    if not history:
+        return "No turns have been taken yet."
+    return "\n".join(f"- {t.get('actor')}: {t.get('action')}" for t in history)
+
+def generate_next_turn(combatant_details: str, state: Dict[str, Any], workflow_name: str) -> Optional[str]:
     """
-    Choose actions for the enemy side - returns RAW LLM action entries
-    (validation and name resolution happen in the workflow, which knows
-    the real monsters)
+    The turn director: pure LLM choice of who acts next
+    Returns the raw chosen name (validation happens in the workflow)
     """
 
     try:
-        result = build_and_generate('enemy_actions', workflow_name, {
-            'round': state.get('round', 1),
-            'enemy_details': enemy_details,
-            'ally_details': ally_details,
+        result = build_and_generate('next_turn', workflow_name, {
+            'combatant_details': combatant_details,
+            'turn_history': build_turn_history(state),
             'recent_log': build_recent_log(state)
         })
-        actions = result.get('actions')
-        return actions if isinstance(actions, list) else []
+        return str(result.get('next', '')).strip() or None
     except Exception:
-        return []
+        return None
+
+def generate_enemy_turn(actor_details: str, ally_details: str, enemy_details: str, state: Dict[str, Any], workflow_name: str) -> Dict[str, Any]:
+    """
+    One enemy chooses its action (attack/ability/defend/talk/flee)
+    Returns the RAW LLM entry (validation happens in the workflow)
+    """
+
+    try:
+        result = build_and_generate('enemy_turn', workflow_name, {
+            'actor_details': actor_details,
+            'ally_details': ally_details,
+            'enemy_details': enemy_details,
+            'recent_log': build_recent_log(state)
+        })
+        return result if isinstance(result, dict) else {}
+    except Exception:
+        return {}
+
+def resolve_freeform_action(
+    location: Dict[str, Any],
+    actor_details: str,
+    player_action_text: str,
+    player_target: str,
+    player_info: str,
+    state: Dict[str, Any],
+    workflow_name: str
+) -> Dict[str, Any]:
+    """
+    THE REFEREE for player-typed custom actions
+    Returns {'possible', 'narration', 'impact', 'impact_target'} - always
+    """
+
+    try:
+        result = build_and_generate('freeform_action_resolution', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'actor_details': actor_details,
+            'player_action_text': player_action_text,
+            'player_target': player_target or 'none specified',
+            'player_info': player_info or 'none',
+            'battle_situation': build_battle_situation(state),
+            'recent_log': build_recent_log(state)
+        })
+
+        impact = str(result.get('impact', '')).strip().lower()
+        if impact not in IMPACT_STEPS:
+            impact = 'none'
+
+        return {
+            'possible': bool(result.get('possible')),
+            'narration': str(result.get('narration') or 'The chaos of battle swallows the moment - nothing comes of it.'),
+            'impact': impact,
+            'impact_target': result.get('impact_target')
+        }
+
+    except Exception:
+        # Can't judge what we can't parse - the moment passes safely
+        return {
+            'possible': False,
+            'narration': 'The chaos of battle swallows the moment - nothing comes of it.',
+            'impact': 'none',
+            'impact_target': None
+        }
+
+VALID_TALK_DECISIONS = ('continue', 'enemies_join', 'enemies_yield', 'enemies_flee', 'party_spared')
+
+def generate_battle_talk(
+    location: Dict[str, Any],
+    enemy_details: str,
+    ally_details: str,
+    exchange: str,
+    state: Dict[str, Any],
+    workflow_name: str
+) -> Dict[str, Any]:
+    """
+    The negotiation adjudicator - the enemies speak and the LLM decides
+    whether the exchange changes the battle
+    Returns {'response', 'decision'} with a validated decision - always
+    """
+
+    try:
+        result = build_and_generate('battle_talk', workflow_name, {
+            'location_name': location.get('name', 'Unknown Location'),
+            'enemy_details': enemy_details,
+            'ally_details': ally_details,
+            'battle_situation': build_battle_situation(state),
+            'recent_log': build_recent_log(state),
+            'exchange': exchange
+        })
+
+        decision = str(result.get('decision', '')).strip().lower()
+        if decision not in VALID_TALK_DECISIONS:
+            decision = 'continue'
+
+        return {
+            'response': str(result.get('response') or 'The creatures answer only with bared teeth.'),
+            'decision': decision
+        }
+
+    except Exception:
+        return {
+            'response': 'The creatures answer only with bared teeth.',
+            'decision': 'continue'
+        }
 
 def resolve_action(
     location: Dict[str, Any],
@@ -137,17 +256,18 @@ def resolve_action(
 
 def generate_battle_outcome_text(
     outcome: str,
+    resolution: str,
     location: Dict[str, Any],
     party_details: str,
     enemy_details: str,
     state: Dict[str, Any],
     workflow_name: str
 ) -> str:
-    """Victory or defeat narration"""
+    """Victory or defeat narration, shaped by how the battle actually ended"""
 
     template = 'battle_victory' if outcome == 'victory' else 'battle_defeat'
     fallback = (
-        "The last of the hostile creatures falls, and the party stands victorious among the settling dust."
+        "The battle is over, and the party stands victorious among the settling dust."
         if outcome == 'victory'
         else "Overwhelmed, the party gathers their fallen companions and retreats from the dungeon, alive but defeated."
     )
@@ -155,6 +275,7 @@ def generate_battle_outcome_text(
     try:
         return build_and_generate(template, workflow_name, {
             'location_name': location.get('name', 'Unknown Location'),
+            'resolution': resolution or 'combat',
             'party_details': party_details,
             'enemy_details': enemy_details,
             'recent_log': build_recent_log(state)

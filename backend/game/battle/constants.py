@@ -33,3 +33,13 @@ ENEMY_COUNT_RANGE = (1, 2)
 
 # How many recent narrations to keep as rolling context for the referee
 RECENT_LOG_SIZE = 4
+
+# How many recent turns to keep as context for the turn-order LLM
+TURN_HISTORY_SIZE = 8
+
+# Softlock valve: after this many consecutive enemy turns, the next turn
+# is forced to an ally so the player is never locked out of acting
+MAX_CONSECUTIVE_ENEMY_TURNS = 6
+
+# Cap on player free-text length for custom actions and talk
+PLAYER_TEXT_MAX_CHARS = 500
