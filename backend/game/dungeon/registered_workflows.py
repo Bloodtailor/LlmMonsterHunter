@@ -397,7 +397,7 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
 
     try:
         from backend.game.dungeon import manager
-        from backend.game.dungeon.generator import build_monsters_details, generate_dialogue_turn
+        from backend.game.dungeon.generator import build_speaking_monsters_details, generate_dialogue_turn
         from backend.game.dungeon.outcomes import apply_dialogue_outcome
         from backend.models.monster import Monster
 
@@ -444,7 +444,7 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
         on_update(step, progress_data)
         turn = generate_dialogue_turn(
             location,
-            build_monsters_details(monsters),
+            build_speaking_monsters_details(monsters),
             manager.get_encounter_dialogue_text(),
             workflow_name
         )

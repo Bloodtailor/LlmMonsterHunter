@@ -14,27 +14,45 @@ def generate_detailed_monster(context: dict, on_update: Callable[[str, Dict[str,
     progress_data = {}
 
     try:
-        from backend.game.monster.generator import generate_base_monster, generate_ability, generate_card_art
-        
-        # Step 1
-        step = "creating_monster"
+        from backend.game.monster.generator import (
+            generate_monster_blueprint,
+            generate_monster_persona,
+            generate_monster_story,
+            generate_ability,
+            generate_card_art
+        )
+
+        # Step 1 - lineage, ecology, and stats (monster saved + announced here)
+        step = "creating_blueprint"
         on_update(step, progress_data)
-        monster = generate_base_monster()
+        monster = generate_monster_blueprint()
         progress_data.update({ "monster": monster.to_dict()})
 
-        # Step 2
+        # Step 2 - inner life and social self
+        step = "shaping_persona"
+        on_update(step, progress_data)
+        monster = generate_monster_persona(monster)
+        progress_data.update({ "monster": monster.to_dict()})
+
+        # Step 3 - description, backstory, appearance
+        step = "writing_story"
+        on_update(step, progress_data)
+        monster = generate_monster_story(monster)
+        progress_data.update({ "monster": monster.to_dict()})
+
+        # Step 4
         step = "adding_first_ability"
         on_update(step, progress_data)
         ability_1 = generate_ability(monster)
         progress_data.update({ "ability_1": ability_1.to_dict()})
 
-        # Step 3
+        # Step 5
         step = "adding_second_ability"
         on_update(step, progress_data)
         ability_2 = generate_ability(monster)
         progress_data.update({ "ability_2": ability_2.to_dict()})
 
-        # Step 4
+        # Step 6
         step = "creating_card_art"
         on_update(step, progress_data)
         image_path = generate_card_art(monster)

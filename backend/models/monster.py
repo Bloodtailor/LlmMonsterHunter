@@ -25,9 +25,23 @@ class Monster(BaseModel):
     
     # Basic Monster Information
     name = Column(String(100), nullable=False)
-    species = Column(String(100), nullable=False) 
+    species = Column(String(100), nullable=False)  # Mirrors taxonomy['species']
     description = Column(Text, nullable=False)  # Short description
     backstory = Column(Text, nullable=True)     # Longer backstory from AI
+
+    # Game mechanics identity
+    rarity = Column(String(20), nullable=True)       # common|uncommon|rare|epic|legendary
+    party_role = Column(String(50), nullable=True)   # tank|striker|skirmisher|support|controller|trickster
+
+    # Staged generation progress: blueprint -> persona -> complete
+    generation_stage = Column(String(20), nullable=True, default='complete')
+
+    # CMDTS + persona (per-monster JSON - shapes in docs/plans/monster-depth-cmdts.md §2)
+    taxonomy = Column(JSON, nullable=True)        # curated domain/kingdom + invented lineage + display labels
+    class_taxonomy = Column(JSON, nullable=True)  # list of trained disciplines (0:m)
+    ecology = Column(JSON, nullable=True)         # habitat, diet, social, sapience, elements, size, lifecycle
+    persona = Column(JSON, nullable=True)         # wish, fears, secret, voice, social hooks, etc.
+    appearance = Column(JSON, nullable=True)      # structured visuals feeding card art prompts
     
     # Basic Stats (for future battle system)
     max_health = Column(Integer, default=100)
@@ -67,6 +81,14 @@ class Monster(BaseModel):
                 'speed': self.speed
             },
             'personality_traits': self.personality_traits or [],
+            'rarity': self.rarity,
+            'party_role': self.party_role,
+            'generation_stage': self.generation_stage or 'complete',
+            'taxonomy': self.taxonomy or {},
+            'class_taxonomy': self.class_taxonomy or [],
+            'ecology': self.ecology or {},
+            'persona': self.persona or {},
+            'appearance': self.appearance or {},
             'abilities': [ability.to_dict() for ability in self.abilities],
             'ability_count': len(self.abilities),
             'card_art': self.get_card_art_info()  # NEW: Card art information
@@ -122,47 +144,6 @@ class Monster(BaseModel):
         except Exception as e:
             print(f"❌ Error setting card art for monster {self.id}: {e}")
             return False
-    
-    @classmethod
-    def create_from_llm_data(cls, llm_response_data):
-        """
-        Create a new Monster from LLM-generated data
-        Handles both basic and detailed monster formats
-        
-        Args:
-            llm_response_data (dict): Parsed JSON from LLM containing monster data
-            
-        Returns:
-            Monster: New monster instance (not yet saved to database)
-        """
-        
-        # Extract data with safe defaults
-        basic_info = llm_response_data.get('basic_info', {})
-        stats = llm_response_data.get('stats', {})
-        personality = llm_response_data.get('personality', {})
-        
-        # Create new monster instance
-        monster = cls(
-            name=basic_info.get('name', 'Unnamed Monster'),
-            species=basic_info.get('species', 'Unknown Species'),
-            description=basic_info.get('description', 'A mysterious creature.'),
-            backstory=basic_info.get('backstory', ''),
-            
-            # Stats with defaults
-            max_health=stats.get('health', 100),
-            current_health=stats.get('health', 100),  # Start at full health
-            attack=stats.get('attack', 20),
-            defense=stats.get('defense', 15),
-            speed=stats.get('speed', 10),
-            
-            # JSON fields
-            personality_traits=personality.get('traits', []),
-            
-            # NEW: Card art starts as None (will be set when image is generated)
-            card_art_path=None
-        )
-        
-        return monster
     
     @classmethod
     def get_all_monsters(cls):

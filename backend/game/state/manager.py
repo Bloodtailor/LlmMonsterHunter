@@ -80,9 +80,11 @@ def get_party_monster_ids() -> List[int]:
 
 def get_party_details() -> str:
     """
-    Get a detailed text description of the active party for LLM context
-    One line per monster: name, species, and description
+    The active party as tiered LLM context (shared context builder;
+    depth scales with the model's context window)
     """
+
+    from backend.game.monster.context_builder import build_monster_block
 
     party_ids = ActiveParty.get_party_monster_ids()
 
@@ -93,7 +95,7 @@ def get_party_details() -> str:
     for monster_id in party_ids:
         monster = Monster.get_monster_by_id(monster_id)
         if monster:
-            lines.append(f"- {monster.name} ({monster.species}): {monster.description}")
+            lines.append(build_monster_block(monster))
 
     return "\n".join(lines) if lines else "A lone, empty-handed adventurer"
 

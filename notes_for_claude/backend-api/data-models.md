@@ -20,6 +20,14 @@ backend's `snake_case` JSON. (The frontend transforms these to camelCase in
     "speed": number
   },
   "personality_traits": string[],
+  "rarity": "common"|"uncommon"|"rare"|"epic"|"legendary",
+  "party_role": "tank"|"striker"|"skirmisher"|"support"|"controller"|"trickster",
+  "generation_stage": "blueprint"|"persona"|"complete",
+  "taxonomy": TaxonomyObject,
+  "class_taxonomy": [ClassEntryObject],
+  "ecology": EcologyObject,
+  "persona": PersonaObject,
+  "appearance": AppearanceObject,
   "abilities": [AbilityObject],
   "ability_count": number,
   "card_art": CardArtObject,
@@ -27,7 +35,81 @@ backend's `snake_case` JSON. (The frontend transforms these to camelCase in
   "updated_at": string
 }
 ```
-`stats.speed` is used by the battle system to weight turn order.
+`stats.speed` is used by the battle system to weight turn order. Stats are
+CODE-derived from `party_role` × `rarity` × `ecology.size_class` (with jitter)
+— the LLM never picks numbers. Rarity is code-rolled (weighted) and injected
+into the generation prompt. `generation_stage` tracks staged generation:
+the row exists from `blueprint` on and fills in via `monster.updated` events.
+
+## TaxonomyObject
+```json
+{
+  "domain": string,       // curated pick (8 domains, see cmdts_data.py)
+  "kingdom": string,      // curated pick within the domain
+  "family": string,       // LLM-invented lineage
+  "genus": string,        // LLM-invented breed
+  "species": string,      // LLM-invented; mirrored to the species column
+  "type_label": string,   // display label, derived from kingdom
+  "race_label": string    // plain-language look, e.g. "Beetle"
+}
+```
+
+## ClassEntryObject
+```json
+{ "domain": string, "discipline": string, "specialization": string }
+```
+`domain` is a curated pick (Martial/Arcane/Primal/Divine/Cunning/Craft/Mystic);
+the rest are LLM-invented. `class_taxonomy` is a list (0:m, empty = untrained).
+
+## EcologyObject
+```json
+{
+  "size_class": "tiny"|"small"|"medium"|"large"|"huge"|"colossal",
+  "lifecycle_stage": "nascent"|"juvenile"|"adult"|"elder"|"timeless",
+  "creation_mechanism": "born"|"hatched"|"summoned"|"constructed"|"risen"|"spawned"|"transformed"|"primordial",
+  "habitat": { "primary": string, "secondary": string[], "biomes": string[] },
+  "social_structure": { "primary": string, "notes": string },
+  "diet": { "feeds": boolean, "sustenance": string[], "feeding_style": string, "notes": string },
+  "sapience": "feral"|"bestial"|"sapient"|"erudite",
+  "communication": string[],
+  "elemental_affinities": string[],
+  "activity_cycle": string
+}
+```
+`sapience` gates dialogue: feral/bestial monsters cannot speak — encounter
+prompts narrate their behavior instead. All enum values are normalized onto
+the curated lists in `backend/game/monster/cmdts_data.py`.
+
+## PersonaObject
+```json
+{
+  "core_wish": string,          // THE driver - dialogue, recruitment, evolution
+  "motivations": string,
+  "goals": string[],
+  "beliefs": string,
+  "moral_character": string,
+  "fears": string[],
+  "secret": string,             // discovered through chat - never shown in UI or battle prompts
+  "likes": string[], "dislikes": string[],
+  "hobbies": string[],
+  "profession": string,         // self-identity, may differ from class
+  "attitude_toward_strangers": string,
+  "responds_well_to": string[], "responds_poorly_to": string[],  // persuasion rubric
+  "recruitment_lever": string,  // what would convince it to join a party
+  "social_bonds": { "drawn_to": string, "clashes_with": string },
+  "speech_style": string,       // the voice - drives all dialogue generation
+  "battle_line": string         // signature confrontation line
+}
+```
+
+## AppearanceObject
+```json
+{
+  "visual_description": string,   // written for an artist - feeds card art prompts
+  "primary_colors": string[],
+  "distinguishing_features": string[]
+}
+```
 
 ## AbilityObject
 ```json

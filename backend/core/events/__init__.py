@@ -45,6 +45,7 @@ from .workflow_events import (
 # Import monster domain event emission functions
 from .monster_events import (
   emit_monster_created,
+  emit_monster_updated,
   emit_monster_ability_added,
   emit_monster_art_ready
 )
@@ -90,6 +91,7 @@ __all__ = [
 
     # Monster Domain Event Emission Functions
     'emit_monster_created',
+    'emit_monster_updated',
     'emit_monster_ability_added',
     'emit_monster_art_ready'
 ]

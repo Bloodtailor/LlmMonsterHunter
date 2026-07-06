@@ -17,6 +17,15 @@ import { useTypographyScale } from '../../shared/hooks/useTypographyScale.js';
 import useCooldown from '../../shared/hooks/useButtonCooldown.js';
 import { useAbilityGeneration } from '../../app/hooks/useMonsters.js';
 
+// Classic rarity palette for the rarity badge
+const RARITY_COLORS = {
+  common: '#6c757d',
+  uncommon: '#2f9e44',
+  rare: '#1c7ed6',
+  epic: '#9c36b5',
+  legendary: '#e8590c'
+};
+
 function MonsterCardDetails({
   monster,
   size = 'md',
@@ -83,20 +92,90 @@ function MonsterCardDetails({
   const maxAbilities = getMaxAbilities();
   const maxTraits = getMaxTraits();
 
+  const taxonomy = monster.taxonomy || {};
+  const ecology = monster.ecology || {};
+  const persona = monster.persona || {};
+  const isXL = size === CARD_SIZES.XL;
+
+  const joinList = (values) => (values || []).join(', ');
+
+  // The full persona dossier (XL card only). The monster's SECRET is
+  // deliberately absent - secrets are discovered through conversation.
+  const personaRows = [
+    ['Wish', persona.core_wish],
+    ['Profession', persona.profession],
+    ['Voice', persona.speech_style],
+    ['Battle cry', persona.battle_line],
+    ['Moral character', persona.moral_character],
+    ['Beliefs', persona.beliefs],
+    ['Motivations', persona.motivations],
+    ['Goals', joinList(persona.goals)],
+    ['Fears', joinList(persona.fears)],
+    ['Likes', joinList(persona.likes)],
+    ['Dislikes', joinList(persona.dislikes)],
+    ['Hobbies', joinList(persona.hobbies)],
+    ['Toward strangers', persona.attitude_toward_strangers],
+    ['Responds well to', joinList(persona.responds_well_to)],
+    ['Responds poorly to', joinList(persona.responds_poorly_to)],
+    ['Would join a party for', persona.recruitment_lever],
+    ['Drawn to', persona.social_bonds?.drawn_to],
+    ['Clashes with', persona.social_bonds?.clashes_with]
+  ].filter(([, value]) => value);
+
+  const lineage = ['domain', 'kingdom', 'family', 'genus', 'species']
+    .map((rank) => taxonomy[rank])
+    .filter(Boolean)
+    .join(' › ');
+
+  const habitat = ecology.habitat || {};
+  const diet = ecology.diet || {};
+  const classChain = (monster.classTaxonomy || [])
+    .map((entry) => [entry.domain, entry.discipline, entry.specialization].filter(Boolean).join(' › '))
+    .join('; ');
+
+  const ecologyRows = [
+    ['Size', ecology.size_class],
+    ['Habitat', habitat.primary && `${habitat.primary}${(habitat.biomes || []).length ? ` (${joinList(habitat.biomes)})` : ''}`],
+    ['Diet', diet.feeding_style && `${diet.feeding_style}${diet.notes ? ` — ${diet.notes}` : ''}`],
+    ['Sustained by', joinList(diet.sustenance)],
+    ['Social life', ecology.social_structure?.primary],
+    ['Mind', ecology.sapience],
+    ['Communicates by', joinList(ecology.communication)],
+    ['Elements', joinList(ecology.elemental_affinities)],
+    ['Came to be', ecology.creation_mechanism],
+    ['Lifecycle', ecology.lifecycle_stage],
+    ['Active', ecology.activity_cycle],
+    ['Class', classChain]
+  ].filter(([, value]) => value);
+
   return (
     <Card variant="flat" padding="md" className="monster-card-details">
       
       {/* Header - CardSection automatically handles title typography */}
-      <CardSection 
-        type="header" 
-        size={size} 
+      <CardSection
+        type="header"
+        size={size}
         classType={classType}
         title={monster.name}
         alignment='center'
       >
         <Badge variant="info" size={getBadgeSize()}>
-          {monster.species}
+          {taxonomy.race_label || monster.species}
         </Badge>
+        {monster.rarity && (
+          <Badge
+            size={getBadgeSize()}
+            color={RARITY_COLORS[monster.rarity]}
+            ariaLabel={`Rarity: ${monster.rarity}`}
+          >
+            {monster.rarity}
+          </Badge>
+        )}
+        {monster.partyRole && (
+          <Badge variant="secondary" size={getBadgeSize()}>
+            {monster.partyRole}
+          </Badge>
+        )}
       </CardSection>
 
       {/* Description - CardSection handles content typography */}
@@ -231,8 +310,49 @@ function MonsterCardDetails({
         </CardSection>
       )}
 
+      {/* Persona dossier - full-size card only */}
+      {isXL && personaRows.length > 0 && (
+        <CardSection
+          type="content"
+          size={size}
+          classType={classType}
+          title="🧠 Persona"
+        >
+          <div className="monster-card-dossier">
+            {personaRows.map(([label, value]) => (
+              <div key={label} className="monster-card-dossier-row">
+                <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>{label}</span>
+                <span className={getTextSize('caption')}>{value}</span>
+              </div>
+            ))}
+          </div>
+        </CardSection>
+      )}
+
+      {/* Taxonomy & Ecology - full-size card only */}
+      {isXL && (lineage || ecologyRows.length > 0) && (
+        <CardSection
+          type="content"
+          size={size}
+          classType={classType}
+          title="🌿 Taxonomy & Ecology"
+        >
+          {lineage && (
+            <p className={`monster-card-lineage ${getTextSize('caption')}`}>{lineage}</p>
+          )}
+          <div className="monster-card-dossier">
+            {ecologyRows.map(([label, value]) => (
+              <div key={label} className="monster-card-dossier-row">
+                <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>{label}</span>
+                <span className={getTextSize('caption')}>{value}</span>
+              </div>
+            ))}
+          </div>
+        </CardSection>
+      )}
+
       <CardSection type="footer" size={size} classType={classType}></CardSection>
-      
+
     </Card>
   );
 }

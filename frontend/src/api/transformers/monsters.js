@@ -22,6 +22,16 @@ export function transformMonster(rawMonster) {
     backstory: rawMonster.backstory,
     personalityTraits: rawMonster.personality_traits || [],
 
+    // Identity & CMDTS (see docs/plans/monster-depth-cmdts.md)
+    rarity: rawMonster.rarity || null,
+    partyRole: rawMonster.party_role || null,
+    generationStage: rawMonster.generation_stage || 'complete',
+    taxonomy: rawMonster.taxonomy || {},
+    classTaxonomy: rawMonster.class_taxonomy || [],
+    ecology: rawMonster.ecology || {},
+    persona: rawMonster.persona || {},
+    appearance: rawMonster.appearance || {},
+
     // Stats (use the nested stats object if available, fallback to flat structure)
     stats: {
       attack: rawMonster.stats?.attack || rawMonster.attack || 0,

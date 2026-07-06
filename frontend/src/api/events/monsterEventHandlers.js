@@ -18,6 +18,14 @@ export const monsterEventHandlers = {
     broadcastEvent('monsterCreated', transformedData);
   },
 
+  // Staged generation filled in more of an existing monster (persona, story)
+  'monster.updated': (eventData) => {
+    const transformedData = {
+      monster: transformMonster(eventData.monster)
+    };
+    broadcastEvent('monsterUpdated', transformedData);
+  },
+
   'monster.ability_added': (eventData) => {
     const transformedData = {
       monsterId: eventData.monster_id || null,

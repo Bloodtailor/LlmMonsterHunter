@@ -80,3 +80,29 @@
 .monster-card-ability-description {
   color: var(--text-medium);
 }
+/* ===== DETAILS SIDE - PERSONA / TAXONOMY DOSSIER (XL card only) ===== */
+.monster-card-dossier {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.monster-card-dossier-row {
+  display: grid;
+  grid-template-columns: 40% 1fr;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs);
+  background: var(--background-light);
+  border-radius: var(--radius-sm);
+}
+
+.monster-card-dossier-label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-medium);
+}
+
+.monster-card-lineage {
+  margin-bottom: var(--spacing-sm);
+  font-style: italic;
+  color: var(--text-medium);
+}
