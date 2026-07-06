@@ -721,11 +721,23 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         state['pending_talk'] = None
         battle.save_battle_state(state)
 
+        defeat_reflection = None
         if outcome == 'defeat':
-            # The run is over. Close the run's history row while the run
-            # state still exists, then clear everything backend-side.
-            # (summary was generated above whenever we are in a dungeon)
+            # The run is over. The party takes one collective lesson out
+            # of the dungeon, the run's history row closes - all BEFORE
+            # the wipes below destroy the run state.
             if dungeon.is_in_dungeon():
+                step = "defeat_reflection"
+                on_update(step, progress_data)
+                try:
+                    from backend.game.memory import growth
+                    party_monsters = [monsters.get(mid) for mid in state.get('allies', {})]
+                    defeat_reflection = growth.run_defeat_reflection(
+                        [m for m in party_monsters if m], state, workflow_name
+                    )
+                except Exception as lesson_error:
+                    print(f"❌ Defeat lesson failed (the defeat stands): {lesson_error}")
+
                 from backend.models.dungeon_run import DungeonRun
                 DungeonRun.close('defeat', summary=summary)
             battle.end_battle()
@@ -737,6 +749,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             "joined_names": joined_names,
             "outcome_text": outcome_text,
             "cocatok": cocatok_data,
+            "defeat_reflection": defeat_reflection,
             "battle_snapshot": battle.get_battle_snapshot()
         })
 

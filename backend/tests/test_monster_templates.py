@@ -93,7 +93,11 @@ GENERATOR_VARIABLES = {
     'returning_transform': {'monster_details', 'monster_memories', 'return_count',
                             'party_summary'},
     'reunion_scene': {'party_summary', 'location_name', 'location_description',
-                      'monster_name', 'monster_species', 'memory_summary', 'disposition'}
+                      'monster_name', 'monster_species', 'memory_summary', 'disposition'},
+    # Growth (game/memory/growth.py)
+    'camp_spotlight': {'party_names', 'journal_highlights'},
+    'growth_reflection': {'monster_details', 'run_journal', 'monster_memories', 'mode_note'},
+    'defeat_reflection': {'party_details', 'battle_log', 'journal_highlights'}
 }
 
 def test_staged_templates_render():

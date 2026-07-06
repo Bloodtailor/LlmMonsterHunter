@@ -180,6 +180,36 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             on_update(step, progress_data)
             exit_text = generate_exit_text(get_party_summary(), workflow_name)
 
+            # The exit ceremony: walking out alive, EVERY member reflects
+            # on the whole run and grows from what the journal shows.
+            # A failure here never blocks the exit itself.
+            step = "exit_ceremony"
+            on_update(step, progress_data)
+            growth_results = []
+            try:
+                from backend.game.memory import growth
+                from backend.game.memory.manager import write_memory
+                from backend.game.state.manager import get_party_monster_ids
+                from backend.models.monster import Monster
+
+                for monster_id in get_party_monster_ids():
+                    monster = Monster.get_monster_by_id(monster_id)
+                    if not monster:
+                        continue
+                    progress_data.update({ "growing": monster.name })
+                    on_update(step, progress_data)
+                    reflection = growth.run_growth_reflection(monster, 'exit', workflow_name)
+                    if reflection:
+                        growth_results.append(growth.apply_growth(monster, reflection))
+                    write_memory(
+                        monster.id, 'run_complete',
+                        "Walked out of the dungeon alive with the party, carrying "
+                        "everything the run had made of it."
+                    )
+            except Exception as ceremony_error:
+                print(f"❌ Exit ceremony failed (the exit itself stands): {ceremony_error}")
+            progress_data.update({ "growth": growth_results })
+
             # Close this run's row in the history while the run state
             # still exists (exit_dungeon wipes it)
             step = "close_run"
@@ -194,7 +224,8 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
 
             return success_response({
                 "exited": True,
-                "exit_text": exit_text
+                "exit_text": exit_text,
+                "growth": growth_results
             })
 
         # === PATH BRANCH ===
@@ -967,9 +998,49 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
         manager.set_party_resources(party_resources)
         progress_data.update({ "party_resources": party_resources })
 
+        # Step 5 - growth: the fire spotlights the 1-2 members whose story
+        # mattered most this run; the rest keep the memory of the evening.
+        # A failure here never breaks the camp itself.
+        step = "camp_growth"
+        on_update(step, progress_data)
+        growth_results = []
+        try:
+            from backend.game.memory import growth
+            from backend.game.memory.manager import write_memory
+            from backend.game.state.manager import get_party_monster_ids
+            from backend.models.monster import Monster
+
+            party_monsters = [
+                m for m in (Monster.get_monster_by_id(mid) for mid in get_party_monster_ids())
+                if m
+            ]
+            spotlight = growth.pick_spotlight(party_monsters, workflow_name)
+            for monster in spotlight:
+                step = "growth_reflection"
+                progress_data.update({ "growing": monster.name })
+                on_update(step, progress_data)
+                reflection = growth.run_growth_reflection(monster, 'camp', workflow_name)
+                if reflection:
+                    growth_results.append(growth.apply_growth(monster, reflection))
+
+            spotlight_ids = {m.id for m in spotlight}
+            location_name = location.get('name', 'the dungeon')
+            for monster in party_monsters:
+                if monster.id not in spotlight_ids:
+                    write_memory(
+                        monster.id, 'camp',
+                        f"Rested at a campfire at {location_name} with the party.",
+                        {'location': location_name}
+                    )
+        except Exception as growth_error:
+            print(f"❌ Camp growth failed (the camp itself stands): {growth_error}")
+
+        progress_data.update({ "growth": growth_results })
+
         return success_response({
             "camped": True,
-            "party_resources": party_resources
+            "party_resources": party_resources,
+            "growth": growth_results
         })
 
     except Exception as e:
