@@ -194,26 +194,9 @@ def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, targe
     if not monster or not any(a.id == ability_id for a in (monster.abilities or [])):
         return error_response("That monster does not have that ability")
 
-    target_type = str(target_type or 'location')
-    if target_type not in ('path', 'monster', 'location', 'custom'):
-        return error_response("Invalid target type. Valid: path, monster, location, custom")
-
-    if target_type == 'path':
-        if not target_id or not manager.get_path(str(target_id)):
-            return error_response("This target needs a valid path")
-    elif target_type == 'monster':
-        try:
-            target_id = int(target_id)
-        except (TypeError, ValueError):
-            return error_response("This target needs a valid monster id")
-        if not Monster.get_monster_by_id(target_id):
-            return error_response("Unknown target monster")
-    elif target_type == 'custom':
-        text = str(target_text or '').strip()
-        if not text:
-            return error_response("A custom target needs a description")
-        if len(text) > PLAYER_TEXT_MAX_CHARS:
-            return error_response(f"Target description too long (max {PLAYER_TEXT_MAX_CHARS} characters)")
+    target_error, target_type, target_id = _validate_dungeon_target(target_type, target_id, target_text)
+    if target_error:
+        return target_error
 
     success, workflow_id = request_workflow(
         workflow_type="use_dungeon_ability",
@@ -230,6 +213,75 @@ def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, targe
         return success_response({'workflow_id': workflow_id})
     else:
         return error_response("Failed to queue use ability workflow")
+
+def use_item(item_id: Any, target_type: str = None, target_id: Any = None, target_text: str = None) -> Dict[str, Any]:
+    """
+    The party uses an inventory item on anything, outside battle
+    Trust boundary: validates the item and the target
+    (during battle, items cost a turn - use the battle turn instead)
+    """
+
+    if not manager.is_in_dungeon():
+        return error_response("Not currently in a dungeon")
+
+    if battle_manager.is_in_battle():
+        return error_response("During a battle, items are used on a monster's turn")
+
+    try:
+        item_id = int(item_id)
+    except (TypeError, ValueError):
+        return error_response("item_id must be a number")
+
+    from backend.models.item import Item
+    item = Item.get_item_by_id(item_id)
+    if not item or item.uses_remaining < 1:
+        return error_response("That item is not in the party's inventory")
+
+    target_error, target_type, target_id = _validate_dungeon_target(target_type, target_id, target_text)
+    if target_error:
+        return target_error
+
+    success, workflow_id = request_workflow(
+        workflow_type="use_dungeon_item",
+        context={
+            "item_id": item_id,
+            "target_type": target_type,
+            "target_id": target_id,
+            "target_text": str(target_text or '').strip()
+        }
+    )
+
+    if success:
+        return success_response({'workflow_id': workflow_id})
+    else:
+        return error_response("Failed to queue use item workflow")
+
+def _validate_dungeon_target(target_type: str, target_id: Any, target_text: str):
+    """Shared out-of-battle target validation for abilities and items.
+    Returns (error_response|None, normalized_target_type, normalized_target_id)"""
+
+    target_type = str(target_type or 'location')
+    if target_type not in ('path', 'monster', 'location', 'custom'):
+        return error_response("Invalid target type. Valid: path, monster, location, custom"), target_type, target_id
+
+    if target_type == 'path':
+        if not target_id or not manager.get_path(str(target_id)):
+            return error_response("This target needs a valid path"), target_type, target_id
+    elif target_type == 'monster':
+        try:
+            target_id = int(target_id)
+        except (TypeError, ValueError):
+            return error_response("This target needs a valid monster id"), target_type, target_id
+        if not Monster.get_monster_by_id(target_id):
+            return error_response("Unknown target monster"), target_type, target_id
+    elif target_type == 'custom':
+        text = str(target_text or '').strip()
+        if not text:
+            return error_response("A custom target needs a description"), target_type, target_id
+        if len(text) > PLAYER_TEXT_MAX_CHARS:
+            return error_response(f"Target description too long (max {PLAYER_TEXT_MAX_CHARS} characters)"), target_type, target_id
+
+    return None, target_type, target_id
 
 def continue_exploring() -> Dict[str, Any]:
     """

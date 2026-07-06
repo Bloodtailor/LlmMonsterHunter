@@ -43,3 +43,26 @@ def get_inventory_counts() -> Dict[str, Any]:
         'item_count': Item.query.count(),
         'cocatok_count': CoCaTok.query.count()
     })
+
+def spend_item_use(item: Item) -> Dict[str, Any]:
+    """
+    Spend one use of an item; the item is DELETED when its last use goes.
+    Emits inventory.item_updated or inventory.item_consumed accordingly.
+    Returns {'consumed': bool, 'item_id': int, 'name': str}
+    """
+    from backend.core.events import (
+        emit_inventory_item_updated,
+        emit_inventory_item_consumed
+    )
+
+    item.uses_remaining = max(0, (item.uses_remaining or 1) - 1)
+
+    if item.uses_remaining <= 0:
+        result = {'consumed': True, 'item_id': item.id, 'name': item.name}
+        item.delete()
+        emit_inventory_item_consumed(result['item_id'], result['name'])
+        return result
+
+    item.save()
+    emit_inventory_item_updated(item.to_dict())
+    return {'consumed': False, 'item_id': item.id, 'name': item.name}

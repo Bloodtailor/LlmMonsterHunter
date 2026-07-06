@@ -68,6 +68,20 @@ def use_ability():
 
     return jsonify(result), 200 if result['success'] else 400
 
+@dungeon_bp.route('/use-item', methods=['POST'])
+def use_item():
+    """Use an inventory item on anything (outside battle) - thin HTTP wrapper"""
+    data = request.get_json() or {}
+
+    result = dungeon_service.use_item(
+        item_id=data.get('item_id'),
+        target_type=data.get('target_type'),
+        target_id=data.get('target_id'),
+        target_text=data.get('target_text')
+    )
+
+    return jsonify(result), 200 if result['success'] else 400
+
 @dungeon_bp.route('/continue', methods=['POST'])
 def continue_exploring():
     """Generate fresh paths from the current location - thin HTTP wrapper"""
