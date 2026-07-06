@@ -3,6 +3,7 @@
 // (the backend runs ahead; the player reads at their own pace)
 
 import { useEventSubscription } from '../../../../api/events/useEventSubscription.js';
+import { useStreamedGeneration } from '../../../../api/events/useStreamedGeneration.js';
 
 /**
  * Hook for processing battle-related SSE events
@@ -11,7 +12,8 @@ import { useEventSubscription } from '../../../../api/events/useEventSubscriptio
 export function useBattleEvents(stateHook) {
   const {
     state,
-    setters
+    setters,
+    resetState
   } = stateHook;
 
   const {
@@ -19,6 +21,7 @@ export function useBattleEvents(stateHook) {
     setBattleIntro,
     setPendingActorId,
     setPendingActorName,
+    setTurnVanityText,
     setPendingTalk,
     setPendingNarrations,
     setCurrentNarration,
@@ -26,6 +29,12 @@ export function useBattleEvents(stateHook) {
     setIsProcessing,
     setBattleError
   } = setters;
+
+  // The acting monster's streamed inner monologue (announced by the
+  // battle_turn workflow when it hands the player a turn)
+  useStreamedGeneration('turn_vanity_generation_id', {
+    onText: (partialText) => setTurnVanityText(partialText)
+  });
 
   // A battle begins. Several dungeon moments can start one:
   //   choose_path        - hostile monsters attack on arrival
@@ -39,6 +48,12 @@ export function useBattleEvents(stateHook) {
     const workflowType = eventData?.workflowItem?.workflowType;
     const result = eventData?.result;
     if (!result?.success) return;
+
+    // A fresh dungeon run starts clean - drop any stale battle display
+    if (workflowType === 'enter_dungeon') {
+      resetState();
+      return;
+    }
 
     if (BATTLE_STARTING_WORKFLOWS.includes(workflowType) && result.battle_snapshot?.in_battle) {
       setBattleIntro(result.battle_intro || null);

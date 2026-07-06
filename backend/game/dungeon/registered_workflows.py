@@ -54,12 +54,17 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
     try:
         from backend.game.dungeon.generator import generate_random_location, generate_paths, generate_entry_text
         from backend.game.dungeon import manager
+        from backend.game.battle import manager as battle_manager
         from backend.game.state.manager import get_party_monster_ids, get_party_summary
 
         # Step 0 - validate required keys
         step = "validate_context"
         on_update(step, progress_data)
         require_keys(context, required_keys)
+
+        # A fresh run starts clean: any stale battle from a previous run
+        # is cleared (start_dungeon below resets the dungeon state and log)
+        battle_manager.end_battle()
 
         # Step 1
         step = "queue_entry_text"
@@ -661,7 +666,6 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
     try:
         from backend.game.dungeon import manager
         from backend.game.dungeon.generator import generate_camp_scene
-        from backend.models.monster import Monster
 
         # Step 0 - validate required keys
         step = "validate_context"
@@ -678,18 +682,11 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
 
         location = manager.get_current_location() or {'name': 'the dungeon', 'description': ''}
 
-        # The party's current shape colors the campfire talk
-        conditions_lines = []
-        for monster_id, condition in manager.get_party_conditions().items():
-            monster = Monster.get_monster_by_id(int(monster_id))
-            if monster:
-                conditions_lines.append(f"- {monster.name}: {condition}")
-        party_conditions_text = "\n".join(conditions_lines) or "All fresh"
-
-        # Step 1 - queue the streamed camp scene
+        # Step 1 - queue the streamed camp scene (party conditions travel
+        # inside the full party details block)
         step = "queue_camp_text"
         on_update(step, progress_data)
-        camp_text_generation_id = generate_camp_scene(location, party_conditions_text, workflow_name)
+        camp_text_generation_id = generate_camp_scene(location, workflow_name)
         progress_data.update({ "camp_text_generation_id": camp_text_generation_id })
 
         # Step 2 - frontend picks the generation id up from this step

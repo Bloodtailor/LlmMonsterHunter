@@ -151,6 +151,7 @@ def record_turn(state: Dict[str, Any], actor_name: str, action: str, actor_id: A
     state['turn_count'] = state.get('turn_count', 0) + 1
     history = state.get('turn_history', [])
     history.append({
+        'turn': state['turn_count'],
         'actor': actor_name,
         'side': 'party' if side == 'allies' else 'hostile' if side == 'enemies' else None,
         'action': action
@@ -169,9 +170,13 @@ def turns_waiting(state: Dict[str, Any], monster_id: Any) -> int:
 # ===== ROLLING LOG =====
 
 def append_log(state: Dict[str, Any], narration: str) -> None:
-    """Keep the last few narrations as context for the referee (in place)"""
+    """
+    Keep recent narrations as context for the referee (in place), each
+    stamped with its turn number. append_log is always called just before
+    record_turn increments the count, so the entry's turn is count + 1.
+    """
     log = state.get('recent_log', [])
-    log.append(narration)
+    log.append(f"Turn {state.get('turn_count', 0) + 1}: {narration}")
     state['recent_log'] = log[-RECENT_LOG_SIZE:]
 
 # ===== OUTCOME =====

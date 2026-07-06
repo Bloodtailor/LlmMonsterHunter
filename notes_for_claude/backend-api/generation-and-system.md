@@ -39,7 +39,10 @@ Tip: to inspect what a specific game prompt produced, filter by
 `contextual_monster`, `monster_question`, `monster_dialogue_turn`,
 `look_around`, `camp_scene`, `sneak_attempt`, `dungeon_ability_use`,
 `next_turn`, `enemy_turn`, `freeform_action_resolution`, `battle_talk`,
-`action_resolution`, `battle_victory`, `battle_defeat`, …).
+`action_resolution`, `turn_vanity`, `battle_summary`, `battle_victory`,
+`battle_defeat`, …). All gameplay templates share one structured skeleton
+(CONTEXT / YOUR TASK / RESPONSE FORMAT sections) so context and
+instructions are unambiguous to small models.
 
 Each log's `prompt_text` is the **byte-exact prompt the model received**
 (including the no-think prefill when `LLM_DISABLE_THINKING` is on — it is

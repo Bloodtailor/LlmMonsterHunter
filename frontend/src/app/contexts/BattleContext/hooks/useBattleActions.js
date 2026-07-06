@@ -21,6 +21,7 @@ export function useBattleActions(stateHook) {
     setDisplayedBattle,
     setPendingActorId,
     setPendingActorName,
+    setTurnVanityText,
     setPendingTalk,
     setCurrentSelection,
     setIsProcessing,
@@ -118,6 +119,7 @@ export function useBattleActions(stateHook) {
     setTurnResult(null);
     setPendingActorId(null);
     setPendingActorName(null);
+    setTurnVanityText('');  // the acted monster's monologue is spent
     setIsProcessing(true);
 
     const result = await turnApi.takeTurn(action);
@@ -127,7 +129,7 @@ export function useBattleActions(stateHook) {
   }, [
     turnApi.isLoading, turnApi.takeTurn, state.isProcessing, state.currentSelection,
     setBattleError, setPendingNarrations, setCurrentNarration, setTurnResult,
-    setPendingActorId, setPendingActorName, setIsProcessing
+    setPendingActorId, setPendingActorName, setTurnVanityText, setIsProcessing
   ]);
 
   // Reply to an enemy's battlefield talk

@@ -32,7 +32,9 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             resolve_action,
             resolve_freeform_action,
             generate_battle_talk,
-            generate_battle_outcome_text
+            generate_battle_outcome_text,
+            generate_battle_summary,
+            generate_turn_vanity_text
         )
         from backend.game.dungeon import manager as dungeon
         from backend.game.state.manager import get_party_details
@@ -324,6 +326,21 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 state['pending_actor'] = actor_id
                 state['phase'] = 'awaiting_player_turn'
                 battle.save_battle_state(state)
+
+                # Streamed inner monologue for the acting monster - what it
+                # feels, thinks, and wants (the player still decides the
+                # action). Failure can never block the turn.
+                try:
+                    step = "queue_turn_vanity"
+                    turn_vanity_generation_id = generate_turn_vanity_text(
+                        details_of('allies', actor_id), location, state, workflow_name
+                    )
+                    progress_data.update({ "turn_vanity_generation_id": turn_vanity_generation_id })
+                    step = "emit_generation_id"
+                    on_update(step, progress_data)
+                except Exception:
+                    pass
+
                 return success_response({
                     "pending": "player_turn",
                     "pending_actor": actor_id,
@@ -419,9 +436,14 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             for monster_id, entry in state.get('allies', {}).items()
         })
 
-        # The dungeon log gets a compact summary of the battle - the
-        # detailed blow-by-blow stays in the battle's own log
+        # The dungeon log gets a summary of the battle - the detailed
+        # blow-by-blow stays in the battle's own log. The LLM writes the
+        # story (including lasting effects like lingering debuffs); a
+        # deterministic line covers the mechanical truth either way.
         if dungeon.is_in_dungeon():
+            step = "summarize_battle"
+            on_update(step, progress_data)
+
             enemy_names = ', '.join(
                 entry.get('name', 'Unknown') for entry in state.get('enemies', {}).values()
             )
@@ -429,11 +451,21 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 f"{entry.get('name')}: {entry.get('condition')}"
                 for entry in state.get('allies', {}).values()
             )
-            summary = f"A battle against {enemy_names} ended in {outcome} ({resolution})."
-            if joined_names:
-                summary += f" {', '.join(joined_names)} joined the party."
-            summary += f" Party condition afterward: {ally_summary}."
-            dungeon.append_dungeon_log(summary)
+
+            summary = generate_battle_summary(
+                outcome, resolution, joined_names, location,
+                build_side_details(monsters, state.get('allies', {}), 'allies'),
+                build_side_details(monsters, state.get('enemies', {}), 'enemies'),
+                state, workflow_name
+            )
+            if not summary:
+                summary = f"A battle against {enemy_names} ended in {outcome} ({resolution})."
+                if joined_names:
+                    summary += f" {', '.join(joined_names)} joined the party."
+
+            dungeon.append_dungeon_log(
+                f"{summary} Party condition afterward: {ally_summary}."
+            )
 
         state['phase'] = outcome
         state['resolution'] = resolution

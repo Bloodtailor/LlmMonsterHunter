@@ -66,7 +66,9 @@ Notable `workflow.update` steps:
   in `data` (`entry_text_generation_id` for the dungeon entrance,
   `encounter_text_generation_id` for dialogue/battle encounters,
   `look_text_generation_id` for explore arrivals,
-  `camp_text_generation_id` for camp scenes). Match subsequent
+  `camp_text_generation_id` for camp scenes,
+  `turn_vanity_generation_id` for the acting party monster's inner
+  monologue when a battle turn is handed to the player). Match subsequent
   `llm.generation.update` events by `generation_id` to stream that text.
 - `location_generated` — `data.current_location` (a path's arrival location)
 - `action_resolved` — `data.action_result` (one resolved battle turn; see [Dungeon & Battle](dungeon-and-battle.md))
