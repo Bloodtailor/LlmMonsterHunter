@@ -146,47 +146,6 @@ class Monster(BaseModel):
             return False
     
     @classmethod
-    def create_from_llm_data(cls, llm_response_data):
-        """
-        Create a new Monster from LLM-generated data
-        Handles both basic and detailed monster formats
-        
-        Args:
-            llm_response_data (dict): Parsed JSON from LLM containing monster data
-            
-        Returns:
-            Monster: New monster instance (not yet saved to database)
-        """
-        
-        # Extract data with safe defaults
-        basic_info = llm_response_data.get('basic_info', {})
-        stats = llm_response_data.get('stats', {})
-        personality = llm_response_data.get('personality', {})
-        
-        # Create new monster instance
-        monster = cls(
-            name=basic_info.get('name', 'Unnamed Monster'),
-            species=basic_info.get('species', 'Unknown Species'),
-            description=basic_info.get('description', 'A mysterious creature.'),
-            backstory=basic_info.get('backstory', ''),
-            
-            # Stats with defaults
-            max_health=stats.get('health', 100),
-            current_health=stats.get('health', 100),  # Start at full health
-            attack=stats.get('attack', 20),
-            defense=stats.get('defense', 15),
-            speed=stats.get('speed', 10),
-            
-            # JSON fields
-            personality_traits=personality.get('traits', []),
-            
-            # NEW: Card art starts as None (will be set when image is generated)
-            card_art_path=None
-        )
-        
-        return monster
-    
-    @classmethod
     def get_all_monsters(cls):
         """
         Get all monsters from database with their abilities loaded

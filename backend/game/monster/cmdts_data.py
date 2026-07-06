@@ -127,6 +127,16 @@ FEEDING_STYLES = ['carnivore', 'herbivore', 'omnivore', 'detritivore', 'lithovor
 
 ACTIVITY_CYCLES = ['diurnal', 'nocturnal', 'crepuscular', 'ever-waking']
 
+# Rarity is CODE-ROLLED, never LLM-picked (a creative model asked to choose
+# rarity drifts toward legendary); the rolled rarity is injected into the
+# generation prompt so the LLM designs a monster AT that rarity.
+RARITY_WEIGHTS = {'common': 45, 'uncommon': 30, 'rare': 15, 'epic': 7, 'legendary': 3}
+
+def roll_rarity() -> str:
+    """Weighted rarity roll for a newly generated monster"""
+    return random.choices(list(RARITY_WEIGHTS.keys()),
+                          weights=list(RARITY_WEIGHTS.values()))[0]
+
 # ===== STAT DERIVATION (code-derived: role base x rarity x size, +/- jitter) =====
 # Level-1 spreads centered on the old LLM guidance
 # (health 80-150, attack 15-35, defense 10-30, speed 5-25).

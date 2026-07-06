@@ -10,19 +10,6 @@
     "prompt_template": "You are the narrator of a fantasy dungeon adventure.\n\n========== CONTEXT ==========\n\n--- Location the party just arrived at ---\n{location_name}: {location_description}\n\n--- The player's party ---\n{party_summary}\n\n--- The party's adventure so far ---\n{dungeon_log}\n\n========== YOUR TASK ==========\nWrite 2-3 sentences of atmospheric text describing the party's arrival, ending with the unmistakable sense that some creature is here with them - movement in the shadows, a sound, a presence. Do NOT describe the creature itself; only build the tension of its presence.\n\nResponse:"
   },
 
-  "contextual_monster": {
-    "description": "Generate a detailed monster that belongs to a specific dungeon location",
-    "max_tokens": 400,
-    "temperature": 0.9,
-    "parser": {
-      "type": "json",
-      "parser_name": "nested_parser",
-      "expected_fields": ["basic_info.name", "basic_info.species", "basic_info.description", "basic_info.backstory", "stats.health", "stats.attack", "stats.defense", "stats.speed", "personality.traits"],
-      "required_fields": ["basic_info.name", "basic_info.description"]
-    },
-    "prompt_template": "You are a creative monster designer for a fantasy game. Every monster has a unique wish it seeks to fulfill - this drives its personality and actions.\n\n========== CONTEXT ==========\n\n--- The location this monster dwells in ---\n{location_name}: {location_description}\n\n========== YOUR TASK ==========\nCreate a level 1 monster that BELONGS in this location - its appearance, species, and backstory should connect to this place. Give it a compelling wish/motivation.\n\nIMPORTANT: Use only single numbers for stats, not ranges. Generate stats between 80-150 for health, 15-35 for attack, 10-30 for defense, and 5-25 for speed.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\n  \"basic_info\": {{\n    \"name\": \"The name that the monster's friends call it by\",\n    \"species\": \"Species Type\",\n    \"description\": \"Brief physical description\",\n    \"backstory\": \"Their history in this place and what wish drives them\"\n  }},\n  \"stats\": {{\n    \"health\": 120,\n    \"attack\": 25,\n    \"defense\": 18,\n    \"speed\": 15\n  }},\n  \"personality\": {{\n    \"traits\": [\"trait1\", \"trait2\", \"trait3\"]\n  }}\n}}\n\nJSON:"
-  },
-
   "monster_question": {
     "description": "The monster greets the arriving party in character and asks them a question of its own devising",
     "max_tokens": 600,

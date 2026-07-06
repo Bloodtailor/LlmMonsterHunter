@@ -18,6 +18,13 @@ MONSTER_EVENTS = {
         'send_to_frontend': True
     },
 
+    'monster.updated': {
+        'data_fields': {
+            'monster': 'Complete monster data (from monster.to_dict()) after a staged-generation update'
+        },
+        'send_to_frontend': True
+    },
+
     'monster.ability_added': {
         'data_fields': {
             'monster_id': 'Database ID of the monster the ability belongs to',
@@ -43,6 +50,12 @@ register_events(MONSTER_EVENTS)
 def emit_monster_created(monster: Dict[str, Any]) -> bool:
     """Emit when a new monster is saved to the database"""
     return _emit_from_schema('monster.created',
+        monster=monster
+    )
+
+def emit_monster_updated(monster: Dict[str, Any]) -> bool:
+    """Emit when staged generation fills in more of an existing monster"""
+    return _emit_from_schema('monster.updated',
         monster=monster
     )
 
