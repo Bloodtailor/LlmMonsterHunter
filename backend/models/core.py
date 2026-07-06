@@ -61,7 +61,9 @@ def create_tables():
     from .llm_log import LLMLog              # LLM child table
     from .image_log import ImageLog          # Image child table
     from .game_workflow import GameWorkflow
-    
+    from .dungeon_run import DungeonRun       # Dungeon run history
+    from .monster_memory import MonsterMemory # What monsters remember
+
     # Create all tables
     db.create_all()
     return True, 'Database tables created successfully'

@@ -39,6 +39,14 @@ MONSTER_EVENTS = {
             'image_path': 'Relative path to the card art image'
         },
         'send_to_frontend': True
+    },
+
+    'monster.memory_added': {
+        'data_fields': {
+            'monster_id': 'Database ID of the monster the memory belongs to',
+            'memory': 'Complete memory data (from memory.to_dict())'
+        },
+        'send_to_frontend': True
     }
 }
 
@@ -71,4 +79,11 @@ def emit_monster_art_ready(monster_id: int, image_path: str) -> bool:
     return _emit_from_schema('monster.art_ready',
         monster_id=monster_id,
         image_path=image_path
+    )
+
+def emit_monster_memory_added(monster_id: int, memory: Dict[str, Any]) -> bool:
+    """Emit when a monster records a new memory of the party"""
+    return _emit_from_schema('monster.memory_added',
+        monster_id=monster_id,
+        memory=memory
     )

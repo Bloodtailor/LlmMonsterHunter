@@ -21,6 +21,10 @@ _EMPTY_STATE = {
     'available_paths': {},
     'active_encounter': None,
     'party_conditions': {},  # monster_id: condition - battle damage persists in the run
+    'party_resources': {},   # monster_id: {'stamina': word, 'mana': word} - reset only on entry
+    'run_journal': {},       # monster_id: [what it did this run] - feeds growth reflections
+    'run_id': None,          # the DungeonRun row this run writes memories against
+    'seen_monster_ids': [],  # every monster staged this run (excluded from returning pools)
     'dungeon_log': []        # everything that has happened this run, oldest first
 }
 
@@ -39,7 +43,7 @@ def is_in_dungeon() -> bool:
 
 # ===== DUNGEON RUN LIFECYCLE =====
 
-def start_dungeon(location: Dict[str, Any], paths: Dict[str, Any]) -> None:
+def start_dungeon(location: Dict[str, Any], paths: Dict[str, Any], run_id: int = None) -> None:
     """Begin a dungeon run at a starting location with its first paths"""
     save_dungeon_state({
         'in_dungeon': True,
@@ -47,6 +51,10 @@ def start_dungeon(location: Dict[str, Any], paths: Dict[str, Any]) -> None:
         'available_paths': paths,
         'active_encounter': None,
         'party_conditions': {},
+        'party_resources': {},
+        'run_journal': {},
+        'run_id': run_id,
+        'seen_monster_ids': [],
         'dungeon_log': []
     })
 
@@ -99,6 +107,36 @@ def get_party_conditions() -> Dict[str, str]:
 def set_party_conditions(conditions: Dict[str, str]) -> None:
     state = get_dungeon_state()
     state['party_conditions'] = conditions
+    save_dungeon_state(state)
+
+# ===== PARTY RESOURCES (stamina/mana pools - reset only on dungeon entry) =====
+
+def get_party_resources() -> Dict[str, Dict[str, str]]:
+    """Current resource pools of the party {monster_id: {'stamina', 'mana'}}"""
+    return get_dungeon_state().get('party_resources', {})
+
+def set_party_resources(resources: Dict[str, Dict[str, str]]) -> None:
+    state = get_dungeon_state()
+    state['party_resources'] = resources
+    save_dungeon_state(state)
+
+# ===== RUN IDENTITY (which DungeonRun row this run belongs to) =====
+
+def get_run_id():
+    return get_dungeon_state().get('run_id')
+
+# ===== SEEN MONSTERS (staged this run - excluded from returning pools) =====
+
+def get_seen_monster_ids() -> List[int]:
+    return get_dungeon_state().get('seen_monster_ids', [])
+
+def add_seen_monster_ids(monster_ids: List[int]) -> None:
+    state = get_dungeon_state()
+    seen = state.get('seen_monster_ids', [])
+    for monster_id in monster_ids:
+        if monster_id not in seen:
+            seen.append(monster_id)
+    state['seen_monster_ids'] = seen
     save_dungeon_state(state)
 
 # ===== ACTIVE ENCOUNTER =====

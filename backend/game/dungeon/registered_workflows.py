@@ -66,6 +66,11 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         # is cleared (start_dungeon below resets the dungeon state and log)
         battle_manager.end_battle()
 
+        # Open this run's row in the run history (closes any dangling
+        # active run as 'abandoned' first)
+        from backend.models.dungeon_run import DungeonRun
+        run = DungeonRun.begin()
+
         # Step 1
         step = "queue_entry_text"
         on_update(step, progress_data)
@@ -90,12 +95,20 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         # Step 5 - persist the dungeon run, party starts the run fresh
         step = "save_dungeon_state"
         on_update(step, progress_data)
-        manager.start_dungeon(location, paths)
+        manager.start_dungeon(location, paths, run_id=run.id if run else None)
 
         party_conditions = {
             str(monster_id): 'fresh' for monster_id in get_party_monster_ids()
         }
         manager.set_party_conditions(party_conditions)
+
+        # Stamina and mana come back full ONLY here - entering the
+        # dungeon is the one guaranteed reset of the party's reserves
+        from backend.game.battle.constants import full_resources
+        party_resources = {
+            str(monster_id): full_resources() for monster_id in get_party_monster_ids()
+        }
+        manager.set_party_resources(party_resources)
 
         # The run's story begins
         manager.append_dungeon_log(
@@ -106,7 +119,8 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         return success_response({
             "current_location": location,
             "paths": manager.get_public_paths(),
-            "party_conditions": party_conditions
+            "party_conditions": party_conditions,
+            "party_resources": party_resources
         })
 
     except Exception as e:
@@ -161,6 +175,14 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "generate_exit_text"
             on_update(step, progress_data)
             exit_text = generate_exit_text(get_party_summary(), workflow_name)
+
+            # Close this run's row in the history while the run state
+            # still exists (exit_dungeon wipes it)
+            step = "close_run"
+            on_update(step, progress_data)
+            from backend.models.dungeon_run import DungeonRun
+            log_entries = manager.get_dungeon_log_entries()
+            DungeonRun.close('victory_exit', summary=log_entries[-1] if log_entries else None)
 
             step = "exit_dungeon"
             on_update(step, progress_data)

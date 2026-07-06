@@ -528,7 +528,12 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         battle.save_battle_state(state)
 
         if outcome == 'defeat':
-            # The run is over - clear everything backend-side
+            # The run is over. Close the run's history row while the run
+            # state still exists, then clear everything backend-side.
+            # (summary was generated above whenever we are in a dungeon)
+            if dungeon.is_in_dungeon():
+                from backend.models.dungeon_run import DungeonRun
+                DungeonRun.close('defeat', summary=summary)
             battle.end_battle()
             dungeon.exit_dungeon()
 
