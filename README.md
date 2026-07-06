@@ -39,19 +39,27 @@ This is a **personal project**, built solo for **educational purposes** and as p
 
 ## 🚧 **Development Status**  
 
-We’re currently in the **early stages** of development. The focus so far has been on building infrastructure rather than gameplay. Here’s what’s working today:  
+We’re past the infrastructure-only stage — the **first real gameplay loop is playable**. Here’s what’s working today:  
 
+**Infrastructure**  
 - ✅ **ComfyUI integration** for AI image generation  
 - ✅ **AI queue system** to unify LLM and image generation requests  
 - ✅ **Workflow queue system** capable of chaining multiple AI requests into structured game objects  
+- ✅ **Real-time event system**: a frontend event registry streams LLM tokens and domain events over SSE, so the smallest component updates the moment its data is ready (live monster card reveal, auto-refreshing Sanctuary)  
+
+**Gameplay**  
 - ✅ **Monster generation**: create monsters with **names, personality traits, abilities, backstories, and unique images**, viewable in the frontend  
+- ✅ **Dungeon exploration**: choose between mysterious **paths** (routes, not destinations) that each secretly hold an event; the LLM decides where each path leads based on where you came from  
+- ✅ **Riddle encounters**: a monster greets your party in character, poses an LLM-generated riddle, and judges your typed answer semantically — responding in its own voice  
+- ✅ **Turn-based, LLM-refereed battles**: one monster per turn, with turn order and every outcome narrated by the LLM (numbers describe magnitude, never explicit math). Attack, defend, use abilities, or **type your own free-text action** — the referee decides if it’s possible  
+- ✅ **Battlefield negotiation & recruitment**: spend a turn *talking* to your enemies — bargain, threaten, or plead — and if you win them over, they **join your party**. Enemies can talk, plead, or flee on their own turns too  
 
 **Vision for the future:**  
-- Enter dungeons and face procedurally generated encounters  
-- Battle monsters in **state-driven, AI-mediated combat**  
-- Befriend monsters through conversation  
-- Evolve monsters and unlock new abilities  
-- Eventually, **chat directly with your monsters** as companions  
+- Items and inventory management  
+- Monster evolution — new stats, art, personas, and abilities  
+- Persistent monster **memories** and **affinity** that shape behavior over time  
+- Campsite narrative encounters between your monsters  
+- Eventually, **chat directly with your monsters** as companions at home base  
 
 
 ![Monster Sanctuary](docs/assets/images/monster_sanctuary.png)  
