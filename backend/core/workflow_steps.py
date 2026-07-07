@@ -29,3 +29,13 @@ class WorkflowStep:
     def emit_again(self) -> None:
         """Re-report the current step (used after updating data mid-step)"""
         self._on_update(self.name, self.data)
+
+    def mark(self, name: str) -> None:
+        """Move the step pointer WITHOUT reporting - failure attribution
+        only (some steps exist just to name where an error happened)"""
+        self.name = name
+
+    def emit_event(self, name: str, data: dict[str, Any]) -> None:
+        """Report a one-off event with its own payload; the step pointer
+        stays where it is (e.g. battle turns streaming 'action_resolved')"""
+        self._on_update(name, data)
