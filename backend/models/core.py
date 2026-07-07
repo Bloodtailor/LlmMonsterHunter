@@ -64,6 +64,7 @@ def create_tables():
         from .chat_thread import ChatThread  # noqa: F401
         from .cocatok import CoCaTok  # noqa: F401
         from .dungeon_run import DungeonRun  # noqa: F401
+        from .game_setting import GameSetting  # noqa: F401
         from .game_workflow import GameWorkflow  # noqa: F401
         from .generation_log import GenerationLog  # noqa: F401
         from .image_log import ImageLog  # noqa: F401
