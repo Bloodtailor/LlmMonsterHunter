@@ -1,7 +1,7 @@
 # Game Settings — In-Game Settings Panel + DeepSeek Provider — Plan
 
-**Status:** IN PROGRESS (July 2026) — M1–M3 landed (settings storage/API,
-provider seam + observability, DeepSeek provider); M4 panel UI remains.
+**Status:** IMPLEMENTED (July 2026) — all four milestones landed. Pending
+Aaron's live soak (real key): the verification checklist below.
 **Branch:** `feature/game-settings` — one milestone commit per milestone, prefix `Set-M#`.
 
 Today the game speaks to exactly one text engine: the local
@@ -127,7 +127,7 @@ it shows in the streaming panel and logs).
 Suite: `test_deepseek_provider.py` (monkeypatched requests). Docs:
 `docs/api/settings.md`, `docs/tuning.md` (in-game settings section).
 
-### M4 — Settings panel UI — PLANNED
+### M4 — Settings panel UI — IMPLEMENTED
 `components/settings/`: `SettingsOverlay.js` (gear-opened, sectioned),
 `LlmSettingsSection.js`, `settings.css`; `api/services/settings.js` +
 `api/transformers/settings.js` (+ jest). Gear `IconButton` in the
