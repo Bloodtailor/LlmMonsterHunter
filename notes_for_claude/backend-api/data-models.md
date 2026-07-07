@@ -218,7 +218,9 @@ Public battle state (nothing is hidden in battles).
   "name": string,
   "condition": "fresh"|"scuffed"|"wounded"|"battered"|"critical"|"incapacitated",
   "defending": boolean,
-  "fled": boolean        // enemies only
+  "fled": boolean,       // enemies only
+  "stamina": "brimming"|"steady"|"strained"|"drained"|"spent",
+  "mana":    "brimming"|"steady"|"strained"|"drained"|"spent"
 }
 ```
 The condition ladder is Python-owned. The LLM referee returns an **impact**
@@ -226,6 +228,41 @@ word per action — `none | light | heavy | devastating | heal_light |
 heal_major` — and Python maps it to steps along the ladder (defending
 softens incoming harm by one step). A side is beaten when every member is
 `incapacitated` (enemies: or `fled`).
+
+The reserve ladders work identically: the referee's optional
+`stamina_cost`/`mana_cost` words — `none | minor | moderate | heavy |
+restore_minor | restore_major` — step the pools (code defaults per action
+type when the referee is silent). Ally pools persist across battles within
+a run and refill on dungeon entry; enemy pools seed `brimming`.
+
+## MemoryObject
+One permanent remembered moment in a monster's life (table `monster_memories`).
+```json
+{
+  "id": number,
+  "monster_id": number,
+  "run_id": number|null,             // the dungeon run it happened in
+  "kind": "was_defeated"|"defeated_party"|"joined_party"|"yielded_to_party"|"fled_from_party"|"spared_party"|"let_party_pass"|"gave_reward"|"punished_party"|"talked_with_party"|"avoided"|"camp"|"growth"|"lesson"|"returned"|"run_complete",
+  "content": string,                 // 1-2 past-tense sentences, prompt-ready
+  "details": { "run_number?": number, "by?": string, "with?": string,
+               "location?": string, "stat?": string, "amount_pct?": number,
+               "battle_summary?": string, "exchange?": string },
+  "created_at": string
+}
+```
+
+## DungeonRunObject
+One row per journey into the dungeon (table `dungeon_runs`).
+```json
+{
+  "id": number,
+  "run_number": number,              // counts up over the whole save
+  "ended_at": string|null,
+  "result": null|"victory_exit"|"defeat"|"abandoned",  // null = active
+  "summary": string|null,
+  "created_at": string               // doubles as the start time
+}
+```
 
 ## GenerationLogObject
 ```json

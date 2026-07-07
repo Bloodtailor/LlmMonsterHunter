@@ -53,8 +53,11 @@ During battles, abilities are used on the monster's turn and cost that turn.
 Requires a ready active party. Streams entry text, generates a starting
 location and its paths (each path is a *route onward*, not a destination —
 its true destination and its hidden event are generated now but withheld).
+Opens a `dungeon_runs` history row and refills the party's stamina/mana
+pools — **entering is the only guaranteed reset of reserves**.
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject } }`
+**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions, party_resources: { "[monster_id]": { "stamina": word, "mana": word } } }`
+Reserve words ladder: `brimming > steady > strained > drained > spent`.
 Also streams entry text via `workflow.update` step `emit_generation_id`
 (`data.entry_text_generation_id`) + `llm.generation.update`.
 
@@ -92,8 +95,22 @@ The monster asks a question of its own devising; answer via `/dungeon/respond`.
 ```
 **`workflow.completed` result — exit path taken:**
 ```json
-{ "success": true, "exited": true, "exit_text": string }
+{ "success": true, "exited": true, "exit_text": string,
+  "growth": [GrowthResult] }
 ```
+The exit is the EXIT CEREMONY: every party member runs a growth reflection
+over its run journal (see *Memory & evolution* below); the run's history row
+closes as `victory_exit`.
+**Returning-monster event** (`returning_monster`, weight 0.12 whenever
+remembered monsters are eligible): a previously-met monster comes back
+TRANSFORMED by its memories (code-clamped stat boost, possibly an answering
+ability, reworded battle line). Its disposition routes the encounter — the
+result mirrors the matching event shape (`monster_battle`/`monster_dialogue`/
+`location_explore`) plus `"returning": true`, and the recognition scene
+streams via `data.reunion_text_generation_id`. The monster's card arrives via
+`dungeon.monster_revealed` (NOT `monster.created` — it already exists).
+Blend-ins: ~25% of normal encounters swap one generated slot for a
+remembered monster (unchanged, also revealed via `dungeon.monster_revealed`).
 During the workflow: `workflow.update` step `location_generated`
 (`data.current_location`); encounter monsters reveal live via
 `monster.created` / `monster.ability_added` / `monster.art_ready`, and vanity
@@ -138,9 +155,15 @@ opened on the party's terms (the ambush is seeded into the battle log).
 ### POST /dungeon/camp
 Set up camp in a monster-free explore location (once per location). Streams a
 vanity scene of the party's monsters talking around the fire (step
-`emit_generation_id`, `data.camp_text_generation_id`).
+`emit_generation_id`, `data.camp_text_generation_id`), then:
+1. **Rest restores reserves** — the camp referee judges per-monster restore
+   words (parse failure = full rest for everyone).
+2. **The spotlight** — the LLM picks the 1-2 members whose run journal shows
+   the strongest story; only they run growth reflections at camp. Everyone
+   else keeps a `camp` memory of the evening.
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result:** `{ success, camped: true }`
+**`workflow.completed` result:** `{ success, camped: true, party_resources, growth: [GrowthResult] }`
+`GrowthResult`: `{ monster_id, monster_name, reflection, stat|null, tier|null, new_ability|null, reworded_ability|null }`
 
 ### POST /dungeon/use-ability
 **Request:**
@@ -157,8 +180,12 @@ moves them up the condition ladder), or `reveal` (true information woven
 into the narration; path targets secretly include their hidden destination
 so perceptive abilities can hint at what lies beyond).
 **Error (400):** in battle, monster not in party, unowned ability, bad target.
+Out-of-battle ability use drains reserves too: the referee's optional
+`stamina_cost`/`mana_cost` words rule; when silent, the ability's type picks
+the pool (attack/defense/movement → stamina, support/special/utility → mana)
+at `moderate`.
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result:** `{ success, narration, effect, party_conditions }`
+**`workflow.completed` result:** `{ success, narration, effect, party_conditions, party_resources }`
 
 ### POST /dungeon/continue
 Generates a fresh set of paths from the current location (the loop's back
@@ -184,6 +211,7 @@ Public dungeon state (hidden path events/destinations stripped). Synchronous.
   "current_location": LocationObject|null,
   "paths": { "[path_id]": PathObject },
   "party_conditions": { "[monster_id]": string },
+  "party_resources": { "[monster_id]": { "stamina": string, "mana": string } },
   "active_encounter": { "event": string, "monster_ids": number[],
     "monsters_present": boolean|null, "camped": boolean|null,
     "dialogue": [{ "speaker": string, "text": string }] }|null }
@@ -197,6 +225,18 @@ victory/defeat decision. There is no HP math — each monster sits on a
 condition ladder (`fresh → scuffed → wounded → battered → critical →
 incapacitated`) and the referee moves it by an impact word. See
 `BattleSnapshot` in [Data Models](data-models.md).
+
+**Reserves** work the same way: every combatant entry carries `stamina` and
+`mana` words (`brimming → steady → strained → drained → spent`). The referee
+judges each action's exertion in the SAME call as its impact (optional
+`stamina_cost`/`mana_cost` words; code defaults per action type when silent:
+attack → stamina minor, ability → its type's pool moderate, defend →
+restores minor stamina). Costs hit the actor; restorative effects land on
+the target. Explicit costs/restores in ability descriptions are honored.
+Ally pools carry over between battles within a run and refill only on
+dungeon entry; enemies start each battle brimming. Drained monsters falter
+(the referee is told to weaken and narrate their exhaustion) and drained
+ENEMIES prefer to defend, talk, or flee.
 
 Battle phases (in `BattleSnapshot.phase`):
 - `ready` — battle created; call `POST /battle/turn` with `action: null` to run opening initiative
@@ -239,9 +279,34 @@ these for click-through. The `battle_turn` `workflow.completed` result is
 one of:
 - `{ pending: "player_turn", pending_actor, pending_actor_name, battle_snapshot }`
 - `{ pending: "player_response", pending_talk: { speaker_name, dialogue }, battle_snapshot }`
-- `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, battle_snapshot }`
+- `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, cocatok, defeat_reflection: string|null, battle_snapshot }`
 
 `resolution` explains *how* it ended: `combat | joined | yielded | fled |
 spared`. On `joined`, the surviving enemies are added to the following list
 (`joined_names` lists them) — this is the capture mechanic. `defeat` clears
-the dungeon run backend-side.
+the dungeon run backend-side — but first the party takes ONE collective
+`defeat_reflection` (the lesson of the loss; a shared `lesson` memory lands
+on every member) and the run's history row closes as `defeat`.
+
+## Memory & evolution
+
+The world remembers (design doc: `docs/plans/monster-memory-evolution.md`):
+- **Every encounter writes permanent `monster_memories` rows** (pure code,
+  no extra LLM calls): defeated (naming who landed the finishing blow and
+  with what), defeated the party, joined/yielded/fled/spared, let-pass,
+  rewarded/punished/talked (with the conversation excerpt), avoided
+  (sneaked past — vague), camp/growth/lesson/returned/run_complete.
+  Each fires `monster.memory_added`; read them back via
+  `GET /api/monsters/<id>/memories`.
+- **Prompts see memories**: encounter/dialogue/battle-enemy monster blocks
+  carry each monster's freshest memories ("Remembers the party:").
+- **The run journal** (dungeon state, per party monster, code-written)
+  records what each member actually did and said; growth reflections read
+  it as their evidence. Visible in `GET /dungeon/debug-context`.
+- **Growth is clamped in code**: tiers slight/notable = 2/5%, 30% lifetime
+  cap per stat; new abilities only when the journal shows a repeated
+  wish/behavior (max 6); ability descriptions may be REWORDED to match how
+  they were truly used (≤1.15× the old length, never longer).
+- **Returning monsters** get 3/6/10% boosts × a return-count multiplier
+  (cap 1.5×), 50% lifetime return cap, and may learn an ability that
+  answers exactly how they once fell.

@@ -1,7 +1,23 @@
 # Monster Memory & Evolution — Implementation Plan
 
-**Status:** IN PROGRESS (July 2026, branch `feature/monster-memory-evolution`)
+**Status:** IMPLEMENTED (July 2026, branch `feature/monster-memory-evolution`,
+Mem-M1…Mem-M7). Offline/stubbed test suites green; pending the user's live
+soak with the LLM loaded (two full runs + one returning encounter per
+disposition; watch the AI log for parse-retry rates on the new templates —
+`camp_restore`, `returning_transform`, `growth_reflection`, `camp_spotlight`,
+`defeat_reflection` — and tune wording/max_tokens if the local 7B struggles).
 **Commit prefix:** `Mem-M#`
+
+**Deviations from the original plan (all deliberate):**
+- Enemy action costs ride the shared referee call (`enemy_turn` output
+  unchanged — one cost path for both sides).
+- Defeat reflection is ONE collective call, not per-monster (defeat must
+  not stall on a local model).
+- Camp/exit reflections return in workflow results instead of streaming
+  (avoids per-monster generation-id plumbing).
+- No `dungeon.resources_updated` SSE event — resources ride workflow
+  results like `party_conditions`, and battle pools ride snapshots.
+- Blend-ins are NOT transformed; only dedicated returning events are.
 
 The world remembers the player's choices. Monsters keep permanent memories of
 what the party did to them, come back changed in later runs, grow from what
