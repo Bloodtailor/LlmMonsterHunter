@@ -216,18 +216,20 @@ def get_game_state() -> dict[str, Any]:
 def start_new_game() -> dict[str, Any]:
     """
     The New Game promise: erase the world so a new story can begin.
-    Refuses while any workflow is queued or running - wiping state out
-    from under the sequential worker would strand it mid-story. The
+    Refuses while the workflow queue is ACTUALLY busy - wiping state
+    out from under the sequential worker would strand it mid-story.
+    The check asks the live in-memory queue, never the game_workflows
+    table: table rows outlive dead processes (the queue does not resume
+    them), and a stale row must not block New Game forever. The
     frontend confirms with the player BEFORE calling this; by the time
     the request arrives, the decision is made.
     """
     try:
         from backend.game.state.new_game import wipe_world
-        from backend.models.game_workflow import GameWorkflow
+        from backend.workflow.workflow_queue import get_queue
 
-        busy_count = GameWorkflow.query.filter(
-            GameWorkflow.status.in_(('pending', 'processing'))
-        ).count()
+        live_counts = get_queue().get_queue_status().get('status_counts', {})
+        busy_count = live_counts.get('pending', 0) + live_counts.get('processing', 0)
         if busy_count:
             return error_response(
                 f'{busy_count} workflow(s) still queued or running - '

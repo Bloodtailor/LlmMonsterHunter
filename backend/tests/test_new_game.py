@@ -1,8 +1,10 @@
 # New Game Tests - OFFLINE (no LLM, test DB)
 # Exercises Ngx-M1 (docs/plans/new-game-experience.md): wipe_world()
 # erases every game-domain table in FK-safe order while the developer
-# log tables survive, start_new_game() refuses while a workflow is
-# queued or running, and has_world_data flips with the world.
+# log tables survive, the busy guard asks the LIVE queue (stale table
+# rows from a dead process must never block New Game),
+# GameWorkflow.close_dangling() sweeps those strays at startup, and
+# has_world_data flips with the world.
 #
 # Usage: python -m backend.tests.test_new_game   (from project root)
 
@@ -158,27 +160,59 @@ def main():
             state = game_state_service.get_game_state()
             check('the seeded world reads as world data', state.get('has_world_data') is True)
 
-            # ===== the busy guard =====
-            print('\n-- the busy guard --')
-            result = game_state_service.start_new_game()
-            check('a pending workflow blocks the wipe', result['success'] is False)
+            # ===== dangling rows from a dead process =====
+            print('\n-- the dangling sweep --')
+            from backend.models.game_workflow import GameWorkflow
+
+            stuck_processing = GameWorkflow.create_workflow('test_stuck_processing', {})
+            stuck_processing.mark_started()
+            stuck_processing.save()
+
+            closed = GameWorkflow.close_dangling()
+            check('both stray rows were closed', closed == 2, str(closed))
             check(
-                'the blocked world is untouched',
-                game_row_counts()['monsters'] > 0,
+                'nothing reads as live work anymore',
+                GameWorkflow.query.filter(
+                    GameWorkflow.status.in_(('pending', 'processing'))
+                ).count()
+                == 0,
+            )
+            swept = GameWorkflow.query.get(workflow.id)
+            check(
+                'the closed row says why',
+                'shutdown' in (swept.error_message or ''),
+                str(swept.error_message),
             )
 
-            workflow.mark_started()
-            workflow.save()
-            result = game_state_service.start_new_game()
-            check('a processing workflow blocks the wipe', result['success'] is False)
+            # ===== the busy guard asks the LIVE queue =====
+            print('\n-- the busy guard --')
+            import backend.workflow.workflow_queue as workflow_queue_module
 
-            workflow.mark_completed({'done': True})
-            workflow.save()
+            class BusyQueueStub:
+                def get_queue_status(self):
+                    return {'status_counts': {'pending': 1, 'processing': 0}}
+
+            real_get_queue = workflow_queue_module.get_queue
+            workflow_queue_module.get_queue = lambda: BusyQueueStub()
+            try:
+                result = game_state_service.start_new_game()
+                check('a live queued workflow blocks the wipe', result['success'] is False)
+                check(
+                    'the blocked world is untouched',
+                    game_row_counts()['monsters'] > 0,
+                )
+            finally:
+                workflow_queue_module.get_queue = real_get_queue
 
             # ===== the wipe =====
             print('\n-- the wipe --')
+            # A stale pending row (as if a process died mid-story) must
+            # NOT block - the guard reads the live queue, and the wipe
+            # clears the stray with everything else
+            GameWorkflow.create_workflow('test_stale_leftover', {}).save()
+
             result = game_state_service.start_new_game()
-            check('a quiet world lets the wipe through', result['success'] is True)
+            check('a stale table row never blocks the wipe', result['success'] is True)
 
             counts = game_row_counts()
             check(
