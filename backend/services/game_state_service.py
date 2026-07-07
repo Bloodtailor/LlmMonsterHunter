@@ -165,14 +165,59 @@ def get_game_state() -> dict[str, Any]:
     try:
         from backend.game.dungeon import manager as dungeon_manager
         from backend.models.active_party import ActiveParty
+        from backend.models.dungeon_run import DungeonRun
         from backend.models.following_monsters import FollowingMonster
+        from backend.models.monster import Monster
+
+        # Anything a player could grieve losing: monsters, finished (or
+        # abandoned) runs, or a completed opening. Drives the title
+        # screen's erase-the-world confirmation on New Game.
+        has_world_data = (
+            Monster.query.first() is not None
+            or DungeonRun.query.first() is not None
+            or state_manager.is_first_run_complete()
+        )
 
         return success_response(
             {
                 'first_run_complete': state_manager.is_first_run_complete(),
+                'has_world_data': has_world_data,
                 'following_count': FollowingMonster.get_following_count(),
                 'party_count': ActiveParty.get_party_count(),
                 'in_dungeon': dungeon_manager.is_in_dungeon(),
+            }
+        )
+    except Exception as e:
+        return error_response(str(e))
+
+
+def start_new_game() -> dict[str, Any]:
+    """
+    The New Game promise: erase the world so a new story can begin.
+    Refuses while any workflow is queued or running - wiping state out
+    from under the sequential worker would strand it mid-story. The
+    frontend confirms with the player BEFORE calling this; by the time
+    the request arrives, the decision is made.
+    """
+    try:
+        from backend.game.state.new_game import wipe_world
+        from backend.models.game_workflow import GameWorkflow
+
+        busy_count = GameWorkflow.query.filter(
+            GameWorkflow.status.in_(('pending', 'processing'))
+        ).count()
+        if busy_count:
+            return error_response(
+                f'{busy_count} workflow(s) still queued or running - '
+                'let the story finish its sentence before starting over'
+            )
+
+        deleted = wipe_world()
+
+        return success_response(
+            {
+                'message': 'The world has been erased - a new story can begin',
+                'deleted_rows': deleted,
             }
         )
     except Exception as e:

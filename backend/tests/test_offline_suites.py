@@ -21,6 +21,7 @@ SUITES = [
     'test_stakes',
     'test_affinity',
     'test_first_run',
+    'test_new_game',
 ]
 
 

@@ -1,10 +1,11 @@
 // TitleScreen.js - The game's opening screen
-// New Game starts the guided first run (it wipes nothing - the opening
-// simply plays against the existing world). Continue appears once the
-// guided opening has ever been finished and goes straight to home base.
+// New Game is a promise: it ERASES the world (POST /api/game-state/new-game)
+// behind an explicit confirmation step whenever anything meaningful
+// exists to lose. Continue appears once the guided opening has ever
+// been finished and goes straight to home base.
 
-import React, { useEffect } from 'react';
-import { Button, Card, CardSection, LoadingContainer } from '../../shared/ui/index.js';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, Card, CardSection, LoadingContainer } from '../../shared/ui/index.js';
 import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
 import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as gameStateApi from '../../api/services/gameState.js';
@@ -16,11 +17,43 @@ function TitleScreen() {
   const api = useAsyncState(gameStateApi.getGameState);
   const { execute: loadGameState } = api;
 
+  // The destructive-confirm step: the erase only happens after the
+  // player has read what New Game means (skipped for an empty world)
+  const [confirmingErase, setConfirmingErase] = useState(false);
+  const [isErasing, setIsErasing] = useState(false);
+  const [eraseError, setEraseError] = useState(null);
+
   useEffect(() => {
     loadGameState();
   }, [loadGameState]);
 
   const firstRunComplete = !!api.data.firstRunComplete;
+  const hasWorldData = !!api.data.hasWorldData;
+
+  const eraseAndBegin = async () => {
+    setIsErasing(true);
+    setEraseError(null);
+    try {
+      const result = await gameStateApi.startNewGame();
+      if (!result.success) {
+        setEraseError(result.error || 'The world would not let go - try again.');
+        setIsErasing(false);
+        return;
+      }
+      navigateToGameScreen('first-run-opening');
+    } catch (error) {
+      setEraseError(error.message || 'The world would not let go - try again.');
+      setIsErasing(false);
+    }
+  };
+
+  const handleNewGame = () => {
+    if (hasWorldData) {
+      setConfirmingErase(true);
+    } else {
+      eraseAndBegin();
+    }
+  };
 
   return (
     <div
@@ -41,10 +74,56 @@ function TitleScreen() {
         </CardSection>
       </Card>
 
+      {eraseError && (
+        <Alert type="error" title="The new game could not begin">
+          {String(eraseError)}
+        </Alert>
+      )}
+
       <Card size="xl" background="light">
         <CardSection type="content" alignment="center" padding="lg">
           {api.isLoading ? (
             <LoadingContainer isLoading={true} loadingText="Reading the world's story so far..." />
+          ) : confirmingErase ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                alignItems: 'center',
+              }}
+            >
+              <p style={{ fontWeight: 'var(--font-weight-bold)', margin: 0 }}>
+                Begin a completely new story?
+              </p>
+              <p
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  textAlign: 'center',
+                  margin: 0,
+                }}
+              >
+                Every monster, memory, conversation, evolution, and chronicle in this world will be
+                erased forever. This cannot be undone.
+              </p>
+              <Button
+                size="xl"
+                icon="🔥"
+                variant="danger"
+                disabled={isErasing}
+                onClick={eraseAndBegin}
+              >
+                {isErasing ? 'The old world fades...' : 'Erase everything and begin'}
+              </Button>
+              <Button
+                size="lg"
+                variant="secondary"
+                disabled={isErasing}
+                onClick={() => setConfirmingErase(false)}
+              >
+                Keep my world
+              </Button>
+            </div>
           ) : (
             <div
               style={{
@@ -58,15 +137,17 @@ function TitleScreen() {
                 size="xl"
                 icon="✨"
                 variant="primary"
-                onClick={() => navigateToGameScreen('first-run-opening')}
+                disabled={isErasing}
+                onClick={handleNewGame}
               >
-                New Game
+                {isErasing ? 'The story gathers itself...' : 'New Game'}
               </Button>
               {firstRunComplete && (
                 <Button
                   size="xl"
                   icon="🏠"
                   variant="secondary"
+                  disabled={isErasing}
                   onClick={() => navigateToGameScreen('homebase')}
                 >
                   Continue

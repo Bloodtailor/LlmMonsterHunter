@@ -19,6 +19,9 @@ runs with goals and stakes → a home base worth returning to.**
 
 1. **Single-world model** — no save profiles. New Game starts the guided
    opening against the existing database; Continue goes to home base.
+   **SUPERSEDED (July 2026):** New Game now erases the world first — see
+   [new-game-experience.md](new-game-experience.md). Still single-world,
+   still no profiles.
 2. **One goal per run** — no side-goals in v1.
 3. **Affinity ladder** `wary → familiar → trusting → devoted`, stored on
    the monster. **Wary monsters act on their own in battle**: their turn

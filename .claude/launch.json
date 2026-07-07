@@ -7,6 +7,12 @@
       "runtimeArgs": ["start"],
       "cwd": "frontend",
       "port": 3000
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "./venv/Scripts/python.exe",
+      "runtimeArgs": ["-X", "utf8", "-m", "backend.run"],
+      "port": 5000
     }
   ]
 }

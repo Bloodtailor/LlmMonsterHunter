@@ -19,6 +19,7 @@ export async function getGameState() {
   return {
     success: response.success ?? getGameState.defaults.success,
     firstRunComplete: response.first_run_complete ?? getGameState.defaults.firstRunComplete,
+    hasWorldData: response.has_world_data ?? getGameState.defaults.hasWorldData,
     followingCount: response.following_count ?? getGameState.defaults.followingCount,
     partyCount: response.party_count ?? getGameState.defaults.partyCount,
     inDungeon: response.in_dungeon ?? getGameState.defaults.inDungeon,
@@ -28,9 +29,33 @@ export async function getGameState() {
 getGameState.defaults = {
   success: null,
   firstRunComplete: false,
+  hasWorldData: false,
   followingCount: 0,
   partyCount: 0,
   inDungeon: false,
+};
+
+/**
+ * Erase the world so a new story can begin (the New Game promise).
+ * The caller confirms with the player FIRST - this call is the point
+ * of no return. Fails while a workflow is still queued or running.
+ * @returns {Promise<object>} Clean response with erase status
+ */
+export async function startNewGame() {
+  const response = await post('/api/game-state/new-game', {});
+
+  return {
+    success: response.success ?? startNewGame.defaults.success,
+    message: response.message ?? startNewGame.defaults.message,
+    error: response.error ?? startNewGame.defaults.error,
+    _raw: response,
+  };
+}
+
+startNewGame.defaults = {
+  success: false,
+  message: null,
+  error: null,
 };
 
 // ===== FOLLOWING MONSTERS (Player Collection) =====
