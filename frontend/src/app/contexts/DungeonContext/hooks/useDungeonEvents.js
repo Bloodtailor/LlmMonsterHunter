@@ -66,6 +66,8 @@ export function useDungeonEvents(stateHook) {
     setTreasureText,
     setTreasureItem,
     setExitText,
+    setChronicleText,
+    setRunNumber,
     setErrorState,
   } = setters;
 
@@ -102,6 +104,11 @@ export function useDungeonEvents(stateHook) {
   // Stream the reunion scene - the party recognizes a returning monster
   useStreamedGeneration('reunion_text_generation_id', {
     onText: (partialText) => setReunionText(partialText),
+  });
+
+  // Stream the run's chronicle - the exit ceremony's closing story beat
+  useStreamedGeneration('chronicle_text_generation_id', {
+    onText: (partialText) => setChronicleText(partialText),
   });
 
   // The choose_path workflow announces the arrival location mid-flight
@@ -240,6 +247,9 @@ export function useDungeonEvents(stateHook) {
           setGrowthResults(result.growth || []);
           if (result.goal) setGoal(result.goal);
           setGoalReward(result.goal_reward || null);
+          // The final text arrives with the result even if streaming missed
+          if (result.chronicle) setChronicleText(result.chronicle);
+          setRunNumber(result.run_number || null);
         } else if (result.event === 'monster_dialogue') {
           // The monster opens the conversation: greeting, then its question
           setDialogue((prev) => {

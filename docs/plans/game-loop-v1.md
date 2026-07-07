@@ -95,7 +95,7 @@ forced exit path. Empty-party entry is allowed only for the first run;
 the recruit auto-joins the active party; the fixed goal ("leave with a
 new companion") completes on recruitment.
 
-### M7 — Post-run chronicle — PLANNED
+### M7 — Post-run chronicle — IMPLEMENTED
 After every run end (victory or defeat): a streamed chronicle scene —
 the run's log condensed into a story beat with the goal outcome, growth,
 monsters met/recruited/lost, and the run number. Inputs are captured

@@ -223,6 +223,17 @@ GENERATOR_VARIABLES = {
     },
     # Rolling summaries (game/utils/rolling_summary.py)
     'condense_history': {'source_label', 'prior_summary', 'batch_lines'},
+    # The post-run chronicle (game/dungeon/chronicle.py)
+    'run_chronicle': {
+        'run_number',
+        'result_word',
+        'party_summary',
+        'goal_line',
+        'companions_line',
+        'dungeon_log',
+    },
+    # The first-run opening scene (game/dungeon/first_run.py - no variables)
+    'opening_scene': set(),
     # Home-base chat (game/chat/generator.py)
     'home_chat_reply': {
         'monster_details',

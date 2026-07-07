@@ -5,6 +5,8 @@
 #
 # Usage: python -m backend.tests.test_expedition   (from project root)
 
+import copy
+
 from backend.core.workflow_steps import WorkflowStep
 from backend.tests.harness import build_test_app
 
@@ -272,6 +274,67 @@ def main():
                     snapshot['status'] == 'pending' and not snapshot['progress_notes'],
                 )
             finally:
+                dungeon_manager.save_dungeon_state(saved_state)
+
+            # ===== the post-run chronicle (Game Loop M7) =====
+            print('\n-- run chronicle --')
+            from backend.game.dungeon import chronicle
+            from backend.models.dungeon_run import DungeonRun
+
+            saved_state = dungeon_manager.get_dungeon_state()
+            run = DungeonRun.begin()
+            try:
+                run_state = copy.deepcopy(dungeon_manager._EMPTY_STATE)
+                run_state.update(
+                    {
+                        'in_dungeon': True,
+                        'run_id': run.id if run else None,
+                        'dungeon_log': ['The party entered.', 'A spring was found.'],
+                    }
+                )
+                dungeon_manager.save_dungeon_state(run_state)
+                run_context.begin_run_context(theme='drowned halls', danger='calm')
+                game_utils.build_and_generate = fake_goal
+                goal_module.generate_run_goal('test')
+
+                captured = {}
+
+                def fake_stream(template, workflow, variables=None):
+                    captured['template'] = template
+                    captured.update(variables or {})
+                    return 4242
+
+                real_build_and_stream = game_utils.build_and_stream
+                game_utils.build_and_stream = fake_stream
+                try:
+                    queued = chronicle.queue_run_chronicle('victory', 'test')
+                finally:
+                    game_utils.build_and_stream = real_build_and_stream
+
+                check('the chronicle queued', queued and queued['generation_id'] == 4242)
+                check(
+                    'it knows its run number',
+                    run and queued.get('run_number') == run.run_number,
+                )
+                check(
+                    'the goal line rides in',
+                    'moonlit spring' in captured.get('goal_line', ''),
+                )
+                check(
+                    'the log rides in',
+                    'A spring was found.' in captured.get('dungeon_log', ''),
+                )
+                check(
+                    'a run without recruits says so',
+                    'No new companions' in captured.get('companions_line', ''),
+                )
+
+                check(
+                    'an unqueued chronicle awaits to None',
+                    chronicle.await_run_chronicle(None) is None,
+                )
+            finally:
+                DungeonRun.close('abandoned')
                 dungeon_manager.save_dungeon_state(saved_state)
 
         finally:

@@ -17,6 +17,8 @@ function BattleOutcomeView() {
     joinedNames,
     victoryCocatok,
     defeatReflection,
+    chronicle,
+    runNumber,
     isProcessing,
     resetBattle,
   } = useBattleContext();
@@ -89,6 +91,18 @@ function BattleOutcomeView() {
           >
             📿 {defeatReflection}
           </p>
+        </CardSection>
+      )}
+
+      {/* The run's chronicle - a defeat still becomes part of the saga */}
+      {!isVictory && chronicle && (
+        <CardSection type="content" alignment="center">
+          <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+            <p style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+              📜 The Chronicle{runNumber ? ` — Run ${runNumber}` : ''}
+            </p>
+            <p style={{ ...textStyles, fontSize: 'var(--font-size-md)' }}>{chronicle}</p>
+          </div>
         </CardSection>
       )}
 

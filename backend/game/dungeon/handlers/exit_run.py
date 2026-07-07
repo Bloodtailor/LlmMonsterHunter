@@ -106,6 +106,21 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
 
     complete_first_run_if_active()
 
+    # THE CHRONICLE: the whole run condensed into its story beat, streamed
+    # to the player and stamped into the run's history row. Composed from
+    # live state, so it queues BEFORE the wipes; a failure never blocks
+    # the exit (the old one-line summary steps in).
+    step.emit("queue_chronicle")
+    from backend.game.dungeon import chronicle
+
+    queued_chronicle = chronicle.queue_run_chronicle('victory', workflow_name)
+    if queued_chronicle:
+        step.data.update(
+            {"chronicle_text_generation_id": queued_chronicle['generation_id']}
+        )
+        step.emit("emit_generation_id")
+    chronicle_text = chronicle.await_run_chronicle(queued_chronicle)
+
     # Close this run's row in the history while the run state
     # still exists (exit_dungeon wipes it), and preserve the run's
     # log for conversations back home
@@ -114,7 +129,10 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
 
     log_entries = manager.get_dungeon_log_entries()
     manager.snapshot_last_run_log('victory_exit')
-    DungeonRun.close('victory_exit', summary=log_entries[-1] if log_entries else None)
+    DungeonRun.close(
+        'victory_exit',
+        summary=chronicle_text or (log_entries[-1] if log_entries else None),
+    )
 
     step.emit("exit_dungeon")
     manager.exit_dungeon()
@@ -126,5 +144,7 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
             "growth": growth_results,
             "goal": goal_state,
             "goal_reward": goal_reward,
+            "chronicle": chronicle_text,
+            "run_number": (queued_chronicle or {}).get('run_number'),
         }
     )

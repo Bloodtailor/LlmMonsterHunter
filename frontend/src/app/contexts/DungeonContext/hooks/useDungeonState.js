@@ -94,6 +94,10 @@ export function useDungeonState() {
   // Exit state - set when the party takes an exit path
   const [exitText, setExitText] = useState(null);
 
+  // The run's chronicle - streamed at the exit, stamped with the run number
+  const [chronicleText, setChronicleText] = useState('');
+  const [runNumber, setRunNumber] = useState(null);
+
   // Helper to set error state
   const setErrorState = useCallback((errorMessage) => {
     setIsError(!!errorMessage);
@@ -166,6 +170,8 @@ export function useDungeonState() {
     setTreasureText('');
     setTreasureItem(null);
     setExitText(null);
+    setChronicleText('');
+    setRunNumber(null);
   }, []);
 
   return {
@@ -209,6 +215,8 @@ export function useDungeonState() {
       treasureText,
       treasureItem,
       exitText,
+      chronicleText,
+      runNumber,
     },
 
     // Internal setters (for other hooks)
@@ -250,6 +258,8 @@ export function useDungeonState() {
       setTreasureText,
       setTreasureItem,
       setExitText,
+      setChronicleText,
+      setRunNumber,
       clearEncounter,
     },
 

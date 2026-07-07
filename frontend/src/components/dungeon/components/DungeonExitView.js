@@ -22,7 +22,8 @@ function growthBadges(growth) {
  * Exit narrative + the exit ceremony + return home - the run is over
  */
 function DungeonExitView() {
-  const { exitText, growthResults, goal, goalReward, resetDungeon } = useDungeon();
+  const { exitText, growthResults, goal, goalReward, chronicleText, runNumber, resetDungeon } =
+    useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
   if (!exitText) return null;
@@ -141,6 +142,23 @@ function DungeonExitView() {
                 </div>
               ))}
             </div>
+          </CardSection>
+        </Card>
+      )}
+
+      {/* The run's chronicle - this run's place in the saga, streamed */}
+      {chronicleText && (
+        <Card size="xl" background="dark">
+          <CardSection
+            type="header"
+            size="md"
+            title={`📜 The Chronicle${runNumber ? ` — Run ${runNumber}` : ''}`}
+            alignment="center"
+          />
+          <CardSection type="content">
+            <p style={{ ...reflectionStyles, maxWidth: '720px', margin: '0 auto' }}>
+              {chronicleText}
+            </p>
           </CardSection>
         </Card>
       )}

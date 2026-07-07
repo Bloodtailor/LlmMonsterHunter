@@ -151,13 +151,17 @@ The monster asks a question of its own devising; answer via `/dungeon/respond`.
 { "success": true, "exited": true, "exit_text": string,
   "growth": [GrowthResult],
   "goal": { "text": string, "status": "pending"|"complete", "progress_notes": string[] } | null,
-  "goal_reward": { "item": ItemObject, "growth": [GrowthResult] } | null }
+  "goal_reward": { "item": ItemObject, "growth": [GrowthResult] } | null,
+  "chronicle": string | null, "run_number": number | null }
 ```
 The exit is the EXIT CEREMONY: every party member runs a growth reflection
 over its run journal (see *Memory & evolution* below); a FULFILLED goal
 adds the reward ceremony (one rare item + a code-owned `notable` growth
-step per member — `goal_reward` is null for unfinished goals); the run's
-history row closes as `victory_exit`.
+step per member — `goal_reward` is null for unfinished goals); THE
+CHRONICLE condenses the whole run into one story beat (streamed via
+`data.chronicle_text_generation_id`, final text also in the result, and
+persisted to the run row's `summary` — the Sanctuary timeline becomes a
+saga); the run's history row closes as `victory_exit`.
 **Returning-monster event** (`returning_monster`, weight 0.12 whenever
 remembered monsters are eligible): a previously-met monster comes back
 TRANSFORMED by its memories (code-clamped stat boost, possibly an answering
@@ -354,7 +358,7 @@ one-sentence thought still streams first. The `battle_turn`
 `workflow.completed` result is one of:
 - `{ pending: "player_turn", pending_actor, pending_actor_name, battle_snapshot }`
 - `{ pending: "player_response", pending_talk: { speaker_name, dialogue }, battle_snapshot }`
-- `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, cocatok, defeat_reflection: string|null, spoils_lost: { released_names, lost_item_names } | null, battle_snapshot }`
+- `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, cocatok, defeat_reflection: string|null, spoils_lost: { released_names, lost_item_names } | null, chronicle: string|null, run_number: number|null, battle_snapshot }`
 
 `resolution` explains *how* it ended: `combat | joined | yielded | fled |
 spared`. On `joined`, the surviving enemies are added to the following list

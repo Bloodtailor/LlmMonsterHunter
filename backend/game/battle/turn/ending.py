@@ -218,12 +218,15 @@ def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[s
 
     defeat_reflection = None
     spoils_lost = None
+    chronicle_text = None
+    run_number = None
     if outcome == 'defeat':
         # The run is over. The party takes one collective lesson out
         # of the dungeon, THE STAKES are enforced (this run's recruits
         # released, its items and keepsakes taken back - memories
-        # remain), and the run's history row closes - all BEFORE the
-        # wipes below destroy the run state.
+        # remain), the CHRONICLE stamps the run into history, and the
+        # run's history row closes - all BEFORE the wipes below destroy
+        # the run state.
         if dungeon.is_in_dungeon():
             ctx.step.emit("defeat_reflection")
             try:
@@ -236,15 +239,30 @@ def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[s
             except Exception as lesson_error:
                 print(f"❌ Defeat lesson failed (the defeat stands): {lesson_error}")
 
+            # The chronicle reads the spoils BEFORE they are forfeited -
+            # it must name what the defeat cost
+            ctx.step.emit("queue_chronicle")
+            from backend.game.dungeon import chronicle
+
+            queued_chronicle = chronicle.queue_run_chronicle('defeat', ctx.workflow_name)
+            if queued_chronicle:
+                run_number = queued_chronicle.get('run_number')
+                ctx.step.data.update(
+                    {"chronicle_text_generation_id": queued_chronicle['generation_id']}
+                )
+                ctx.step.emit("emit_generation_id")
+
             ctx.step.emit("forfeit_run_spoils")
             from backend.game.dungeon.spoils import forfeit_run_spoils
 
             spoils_lost = forfeit_run_spoils('defeat')
 
+            chronicle_text = chronicle.await_run_chronicle(queued_chronicle)
+
             from backend.models.dungeon_run import DungeonRun
 
             dungeon.snapshot_last_run_log('defeat')
-            DungeonRun.close('defeat', summary=summary)
+            DungeonRun.close('defeat', summary=chronicle_text or summary)
         battle.end_battle()
         dungeon.exit_dungeon()
 
@@ -257,6 +275,8 @@ def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[s
             "cocatok": cocatok_data,
             "defeat_reflection": defeat_reflection,
             "spoils_lost": spoils_lost,
+            "chronicle": chronicle_text,
+            "run_number": run_number,
             "battle_snapshot": battle.get_battle_snapshot(),
         }
     )

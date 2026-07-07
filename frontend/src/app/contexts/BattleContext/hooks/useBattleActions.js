@@ -31,6 +31,8 @@ export function useBattleActions(stateHook) {
     setJoinedNames,
     setVictoryCocatok,
     setDefeatReflection,
+    setChronicle,
+    setRunNumber,
     setBattleError,
   } = setters;
 
@@ -77,8 +79,11 @@ export function useBattleActions(stateHook) {
         setJoinedNames(result.joined_names || []);
         // A victory minted a CoCaTok keepsake - hold it for the pickup ceremony
         setVictoryCocatok(result.cocatok ? transformCoCaTok(result.cocatok) : null);
-        // A defeat carries one collective lesson out of the dungeon
+        // A defeat carries one collective lesson out of the dungeon,
+        // and the run's chronicle stamps it into history
         setDefeatReflection(result.defeat_reflection || null);
+        setChronicle(result.chronicle || null);
+        setRunNumber(result.run_number || null);
       }
 
       setTurnResult(null);
@@ -97,6 +102,8 @@ export function useBattleActions(stateHook) {
       setJoinedNames,
       setVictoryCocatok,
       setDefeatReflection,
+      setChronicle,
+      setRunNumber,
       setTurnResult,
       setCurrentNarration,
       setIsProcessing,
