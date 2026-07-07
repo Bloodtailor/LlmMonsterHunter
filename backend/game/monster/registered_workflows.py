@@ -208,18 +208,21 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
 
         step_affinity(monster.id, 'evolved_together')
 
-        # Step 8 - a new face for the new form (old art stays on disk,
-        # its path lives in the lineage row). Prose failure skips this so
-        # the art never mismatches the appearance block.
+        # Step 8 - a new face for the new form, painted WITH the old face
+        # as a reference image so it stays recognizably the same being
+        # (old art stays on disk, its path lives in the lineage row).
+        # Prose failure skips this so the art never mismatches the
+        # appearance block.
         art_regenerated = False
         if art_worthy and is_image_generation_enabled():
             step = "regenerating_art"
             on_update(step, progress_data)
             try:
-                from backend.game.monster.card_art import generate_card_art
+                from backend.game.monster.card_art import generate_evolved_card_art
 
-                generate_card_art(monster)
-                art_regenerated = True
+                art_regenerated = bool(
+                    generate_evolved_card_art(monster, evolution_row.old_card_art_path)
+                )
             except Exception as e:
                 print(f"❌ Card art regen failed for {monster.name} - the old face stands: {e}")
 

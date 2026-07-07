@@ -41,17 +41,19 @@ def outputs_dir() -> Path:
 
 def compose_portrait_prompt(monster: Monster, description: str) -> str:
     """The image prompt: identity framing + the (possibly re-edited)
-    appearance text - the same recipe as monster card art, with the
-    player's words as the brief"""
+    appearance text as sentences - the same recipe as monster card art,
+    with the player's words as the brief (Gemini wants prose, not the
+    old SD tag-soup)"""
     taxonomy = monster.taxonomy or {}
     ecology = monster.ecology or {}
-    parts = [
-        monster.name,
-        taxonomy.get('race_label') or monster.species,
-        ecology.get('size_class') or '',
-        description,
-    ]
-    return ", ".join(part for part in parts if part)
+
+    race = taxonomy.get('race_label') or monster.species
+    size = ecology.get('size_class')
+    creature = f"a {size} {race}" if size else f"a {race}"
+
+    subject = f"A portrait of {monster.name}, {creature}."
+    brief = str(description or '').strip()
+    return f"{subject} {brief}" if brief else subject
 
 
 def generate_portrait_candidate(monster: Monster, description: str) -> str:
