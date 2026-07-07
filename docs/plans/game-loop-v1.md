@@ -1,6 +1,9 @@
 # Game Loop v1 — Plan
 
-**Status:** IN PROGRESS (July 2026).
+**Status:** IMPLEMENTED (July 2026) — all seven milestones landed;
+pending live soak (full first run, a themed run with a goal completed
+and one failed, a defeat losing provisional spoils, a wary recruit
+acting on its own then earning trust).
 **Branch:** `feature/game-loop-v1` — one milestone commit per milestone, prefix `Loop-M#`.
 
 The July 2026 architecture review put it plainly: every verb exists —
