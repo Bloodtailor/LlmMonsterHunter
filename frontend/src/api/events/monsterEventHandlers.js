@@ -3,7 +3,7 @@
 // These are facts about the game world (monster exists, has art, has ability),
 // not machinery progress - subscribe to react the moment they become true
 
-import { transformMonster, transformAbility } from "../transformers/monsters.js";
+import { transformMonster, transformAbility, transformMemory } from "../transformers/monsters.js";
 import { broadcastEvent } from "../core/eventBroadcast.js";
 
 /**
@@ -40,5 +40,14 @@ export const monsterEventHandlers = {
       imagePath: eventData.image_path || null
     };
     broadcastEvent('monsterArtReady', transformedData);
+  },
+
+  // The monster recorded a new permanent memory of the party
+  'monster.memory_added': (eventData) => {
+    const transformedData = {
+      monsterId: eventData.monster_id || null,
+      memory: transformMemory(eventData.memory)
+    };
+    broadcastEvent('monsterMemoryAdded', transformedData);
   }
 };

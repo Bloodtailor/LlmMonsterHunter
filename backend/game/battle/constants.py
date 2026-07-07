@@ -27,6 +27,54 @@ IMPACT_STEPS = {
     'heal_major': -2
 }
 
+# ===== RESOURCE POOLS (stamina and mana) =====
+# Same philosophy as the condition ladder: no numbers, just positions on
+# a word ladder. The referee picks a cost word per action; Python steps
+# the ladder. Pools refill ONLY when the party enters the dungeon (plus
+# whatever the referee grants: camp rest, defend stances, restoring
+# abilities and items).
+
+# Reserve levels, fullest to emptiest. Bottom = nothing left to give.
+RESOURCE_LADDER = [
+    'brimming',
+    'steady',
+    'strained',
+    'drained',
+    'spent'
+]
+
+RESOURCE_KEYS = ('stamina', 'mana')
+
+BRIMMING = 'brimming'
+SPENT = 'spent'
+
+# How each referee cost/restore judgment moves a pool on the ladder
+# (positive = toward spent, negative = toward brimming)
+RESOURCE_DELTAS = {
+    'none': 0,
+    'minor': 1,
+    'moderate': 2,
+    'heavy': 3,
+    'restore_minor': -1,
+    'restore_major': -2
+}
+
+# Which pool an ability drains BY DEFAULT when the referee stays silent,
+# keyed by ability_type (see ability_generation.json). Unknown types
+# default to stamina.
+ABILITY_POOL_BY_TYPE = {
+    'attack': 'stamina',
+    'defense': 'stamina',
+    'movement': 'stamina',
+    'support': 'mana',
+    'special': 'mana',
+    'utility': 'mana'
+}
+
+def full_resources() -> dict:
+    """A fresh set of pools - both reserves brimming"""
+    return {key: BRIMMING for key in RESOURCE_KEYS}
+
 # How many enemies a battle spawns (inclusive range)
 # Design allows up to 7 - kept small while each enemy costs ~4 LLM calls + art
 ENEMY_COUNT_RANGE = (1, 2)

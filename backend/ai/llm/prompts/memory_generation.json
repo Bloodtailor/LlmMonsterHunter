@@ -1,0 +1,77 @@
+{
+  "returning_transform": {
+    "description": "Decide how a remembered monster returns to face the party: disposition, greeting, training, and whether it forged an answer to its past",
+    "max_tokens": 350,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["disposition", "greeting", "stat_boost", "battle_line", "grudge_note", "new_ability", "ability_theme"],
+      "required_fields": ["disposition", "greeting"]
+    },
+    "prompt_template": "A monster that met an adventuring party before is about to cross their path again. Time has passed. You decide how its memories changed it.\n\n========== CONTEXT ==========\n\n--- The monster ---\n{monster_details}\n\n--- What it remembers of the party ---\n{monster_memories}\n\n--- How many times it has already returned to face them ---\n{return_count}\n\n--- The party it is about to meet again ---\n{party_summary}\n\n========== YOUR TASK ==========\nDecide, true to its personality AND its memories:\n1. disposition - exactly one of:\n   - \"hostile\": it wants a reckoning (defeated monsters usually return angry and hardened)\n   - \"friendly\": it remembers kindness and seeks the party out warmly\n   - \"wary\": it watches, torn, remembering both good and bad\n2. greeting - 1-2 sentences it says or does on recognizing the party, in its own Voice, referencing what it remembers WITHOUT listing it.\n3. stat_boost - how hard it trained since: \"slight\", \"notable\", or \"fierce\" (fierce only for a burning grudge or transformation).\n4. battle_line - optionally reword its battle cry to carry the memory (similar length; null to keep the old one).\n5. grudge_note - one short sentence naming the grudge or bond it now carries (e.g. 'Owes its defeat to Fluffy and dreams of repaying it in kind').\n6. new_ability - \"yes\" ONLY if its memories forged a new trick (e.g. an answer to the exact way it was defeated); else \"no\".\n7. ability_theme - if new_ability is yes: a short phrase for what the ability must do (e.g. 'a stone shell that catches the flame that once felled it'); else null.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"disposition\": \"hostile\", \"greeting\": \"1-2 sentences.\", \"stat_boost\": \"notable\", \"battle_line\": null, \"grudge_note\": \"One sentence.\", \"new_ability\": \"no\", \"ability_theme\": null}}\n\nJSON:"
+  },
+
+  "reunion_scene": {
+    "description": "Streamed narration of the party recognizing a monster they have met before",
+    "max_tokens": 400,
+    "temperature": 0.9,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You are the narrator of a fantasy dungeon adventure. The party has just come face to face with a creature they have MET BEFORE.\n\n========== CONTEXT ==========\n\n--- Location ---\n{location_name}: {location_description}\n\n--- The party ---\n{party_summary}\n\n--- The creature they recognize ---\n{monster_name} ({monster_species})\n\n--- What passed between them before ---\n{memory_summary}\n\n--- The creature's bearing now ---\n{disposition}\n\n========== YOUR TASK ==========\nWrite 2-4 sentences: the moment of recognition. The party realizes they know this creature; its bearing reflects its disposition and what it remembers - changed, marked by the past. Build the tension or warmth of the reunion, but do NOT resolve what happens next, and do NOT have anyone attack or speak actual dialogue yet.\n\nResponse:"
+  },
+
+  "camp_spotlight": {
+    "description": "Pick the 1-2 party monsters whose story mattered most this run - they grow at this camp",
+    "max_tokens": 150,
+    "temperature": 0.6,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["spotlight", "reason"],
+      "required_fields": ["spotlight"]
+    },
+    "prompt_template": "You are the chronicler of an adventuring party resting at a dungeon campfire. Growth comes to those whose story demands it.\n\n========== CONTEXT ==========\n\n--- The party ---\n{party_names}\n\n--- What each member did this run (their journals) ---\n{journal_highlights}\n\n========== YOUR TASK ==========\nPick the 1 or 2 party monsters whose journal shows the strongest STORY this run - repeated wishes, bold choices, words spoken, prices paid. They will grow tonight. Prefer monsters who DID things over monsters who tagged along.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"spotlight\": [\"exact monster name\", \"optional second name\"], \"reason\": \"One short sentence.\"}}\n\nJSON:"
+  },
+
+  "growth_reflection": {
+    "description": "One monster reflects on the run: a clamped stat step, maybe a justified new ability, maybe a reworded ability description",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["reflection", "stat", "tier", "new_ability", "ability_theme", "reword_ability", "reworded_description", "memory_note"],
+      "required_fields": ["reflection"]
+    },
+    "prompt_template": "You are the inner voice of a monster in an adventuring party, reflecting on what this dungeon run has made of it.\n\n========== CONTEXT ==========\n\n--- The monster ---\n{monster_details}\n\n--- What it DID this run (its journal - this is the evidence) ---\n{run_journal}\n\n--- What it carries from before ---\n{monster_memories}\n\n--- The moment ---\n{mode_note}\n\n========== YOUR TASK ==========\nDecide how this run changed it. EVERYTHING must be earned by the journal above - no growth the evidence does not show:\n1. reflection - 2-3 sentences in the narrator's voice: what it lived, wished, and learned this run.\n2. stat - which strength grew, exactly one of \"health\", \"attack\", \"defense\", \"speed\" - pick what the journal shows it USED or strained against. Use \"none\" if nothing was truly exercised.\n3. tier - \"slight\" for ordinary effort, \"notable\" ONLY for a run where this stat was tested again and again.\n4. new_ability - \"yes\" ONLY when the journal shows a REPEATED wish or behavior that none of its current abilities can express (a monster that keeps wishing to shield others but cannot; one that keeps questioning enemies and needs the insight to read them). Otherwise \"no\".\n5. ability_theme - if new_ability is yes: one short phrase for what the ability must do, drawn from that repeated wish; else null.\n6. reword_ability - the exact name of ONE existing ability whose written description no longer matches how the monster actually used it this run; or \"none\".\n7. reworded_description - if rewording: the ability's new description, SIMILAR LENGTH to the old one, never longer than it - same power, truer words (what it actually did, what the monster wishes it did); else null.\n8. memory_note - one past-tense sentence this monster will remember forever about this run.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"reflection\": \"2-3 sentences.\", \"stat\": \"defense\", \"tier\": \"slight\", \"new_ability\": \"no\", \"ability_theme\": null, \"reword_ability\": \"none\", \"reworded_description\": null, \"memory_note\": \"One sentence.\"}}\n\nJSON:"
+  },
+
+  "defeat_reflection": {
+    "description": "One collective lesson the defeated party carries out of the dungeon",
+    "max_tokens": 300,
+    "temperature": 0.7,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["reflection", "memory_note"],
+      "required_fields": ["reflection"]
+    },
+    "prompt_template": "You are the narrator of a dungeon adventure that just ended in DEFEAT. The party escapes with their lives - humbled, but alive.\n\n========== CONTEXT ==========\n\n--- The defeated party ---\n{party_details}\n\n--- The final battle ---\n{battle_log}\n\n--- What each member had done this run ---\n{journal_highlights}\n\n========== YOUR TASK ==========\n1. reflection - 2-3 sentences: the lesson this defeat teaches the party, drawn from HOW they actually lost (who fell first, what overwhelmed them, what they never tried).\n2. memory_note - one past-tense sentence every member will carry: the shared lesson of this defeat.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"reflection\": \"2-3 sentences.\", \"memory_note\": \"One sentence.\"}}\n\nJSON:"
+  },
+
+  "camp_restore": {
+    "description": "Decide how much rest at camp restores each party monster's stamina and mana",
+    "max_tokens": 250,
+    "temperature": 0.6,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["restores"],
+      "required_fields": ["restores"]
+    },
+    "prompt_template": "You are the referee of a dungeon adventure. The party has made camp to rest, and you decide how much each monster's reserves recover.\n\n========== CONTEXT ==========\n\n--- The campsite ---\n{location_name}: {location_description}\n\n--- The party at rest (note each monster's Reserves: stamina and mana levels) ---\n{party_details}\n\n========== YOUR TASK ==========\nFor EACH party monster, judge how much this rest restores its stamina (body) and mana (magic). Use exactly one word for each pool, from: \"none\", \"restore_minor\", \"restore_major\".\n- A safe, comfortable camp usually grants restore_major to both pools.\n- A monster whose nature fits this place recovers fully; one that hates or fears this place may only manage restore_minor.\n- Honor anything a monster's abilities or description say about recovery (a creature that 'never tires' was never tired; one that 'drinks moonlight' recovers mana fully at night).\n- Reserves already at brimming can simply receive none.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format, one entry per party monster:\n{{\"restores\": [{{\"name\": \"exact monster name\", \"stamina\": \"restore_major\", \"mana\": \"restore_major\"}}]}}\n\nJSON:"
+  }
+}

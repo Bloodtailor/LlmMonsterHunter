@@ -33,10 +33,18 @@ EXIT_PATH_CHANCE = 0.33
 # extra and taking the later entries plays to their strengths
 PATH_OVERGENERATE_COUNT = 6
 
-def assign_random_event() -> str:
+# Weight of the returning-monster event WHEN remembered monsters are
+# eligible to return (the pool is checked at path-generation time and
+# re-checked at dispatch; random.choices normalizes the weights)
+RETURNING_EVENT_WEIGHT = 0.12
+
+def assign_random_event(include_returning: bool = False) -> str:
     """Pick a weighted random event for a path from the available events"""
     events = list(EVENT_WEIGHTS.keys())
     weights = list(EVENT_WEIGHTS.values())
+    if include_returning:
+        events.append('returning_monster')
+        weights.append(RETURNING_EVENT_WEIGHT)
     return random.choices(events, weights=weights, k=1)[0]
 
 def roll_monsters_present() -> bool:

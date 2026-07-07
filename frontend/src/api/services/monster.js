@@ -8,6 +8,7 @@ import {
   transformMonster,
   transformMonsters,
   transformAbility,
+  transformMemories,
 } from '../transformers/monsters.js';
 
 // ===== MONSTER COLLECTION =====
@@ -51,6 +52,23 @@ loadMonsters.defaults = {
   offset: 0
 };
 
+
+/**
+ * Load one monster's permanent memories (oldest first - its life in order)
+ * @param {number} monsterId - Monster database ID
+ * @returns {Promise<object>} Clean transformed response with memories array
+ */
+export async function loadMonsterMemories(monsterId) {
+  const response = await get(`/api/monsters/${monsterId}/memories`);
+
+  return {
+    memories: transformMemories(response.memories ?? loadMonsterMemories.defaults.memories),
+    _raw: response
+  };
+}
+loadMonsterMemories.defaults = {
+  memories: []
+};
 
 /**
  * Generate a new monster using the new monnster generation workflow

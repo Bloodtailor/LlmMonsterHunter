@@ -43,6 +43,8 @@ def import_all_models():
     from backend.models.llm_log import LLMLog
     from backend.models.image_log import ImageLog
     from backend.models.game_workflow import GameWorkflow
+    from backend.models.dungeon_run import DungeonRun
+    from backend.models.monster_memory import MonsterMemory
 
 def main():
     db_name = os.getenv('DB_NAME', 'monster_hunter_game')

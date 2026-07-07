@@ -14,6 +14,7 @@ import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
 import { useMonsterCardViewer } from '../../cards/useMonsterCardViewer.js';
 import { useUsableItems } from '../../../app/hooks/useInventory.js';
 import InventoryPanel from '../../inventory/InventoryPanel.js';
+import ResourceBadges from '../../battle/components/ResourceBadges.js';
 
 // Condition colors along the ladder (fresh -> incapacitated)
 const CONDITION_VARIANTS = {
@@ -43,6 +44,7 @@ function DungeonPartyPanel() {
   const { partyMonsters } = useParty();
   const {
     partyConditions,
+    partyResources,
     paths,
     encounterMonsters,
     isUsingAbility,
@@ -194,6 +196,7 @@ function DungeonPartyPanel() {
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {partyMonsters.map(monster => {
                 const condition = partyConditions?.[String(monster.id)] || 'fresh';
+                const pools = partyResources?.[String(monster.id)] || {};
                 return (
                   <div
                     key={monster.id}
@@ -213,6 +216,7 @@ function DungeonPartyPanel() {
                     <Badge variant={CONDITION_VARIANTS[condition] || 'info'} size="sm" pill>
                       {condition}
                     </Badge>
+                    <ResourceBadges stamina={pools.stamina} mana={pools.mana} />
                   </div>
                 );
               })}

@@ -22,11 +22,15 @@ def _start_encounter_battle(monsters: List[Any], opening_note: str = None) -> Di
     }
 
     ally_conditions = {}
+    party_resources = manager.get_party_resources()
     for monster_id, condition in manager.get_party_conditions().items():
         ally = Monster.get_monster_by_id(int(monster_id))
+        pools = party_resources.get(str(monster_id), {})
         ally_conditions[monster_id] = {
             'name': ally.name if ally else f'Monster {monster_id}',
-            'condition': condition
+            'condition': condition,
+            'stamina': pools.get('stamina', 'brimming'),
+            'mana': pools.get('mana', 'brimming')
         }
 
     battle_state = battle_manager.start_battle(ally_conditions, enemy_entries)
@@ -66,6 +70,11 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         # is cleared (start_dungeon below resets the dungeon state and log)
         battle_manager.end_battle()
 
+        # Open this run's row in the run history (closes any dangling
+        # active run as 'abandoned' first)
+        from backend.models.dungeon_run import DungeonRun
+        run = DungeonRun.begin()
+
         # Step 1
         step = "queue_entry_text"
         on_update(step, progress_data)
@@ -90,12 +99,20 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         # Step 5 - persist the dungeon run, party starts the run fresh
         step = "save_dungeon_state"
         on_update(step, progress_data)
-        manager.start_dungeon(location, paths)
+        manager.start_dungeon(location, paths, run_id=run.id if run else None)
 
         party_conditions = {
             str(monster_id): 'fresh' for monster_id in get_party_monster_ids()
         }
         manager.set_party_conditions(party_conditions)
+
+        # Stamina and mana come back full ONLY here - entering the
+        # dungeon is the one guaranteed reset of the party's reserves
+        from backend.game.battle.constants import full_resources
+        party_resources = {
+            str(monster_id): full_resources() for monster_id in get_party_monster_ids()
+        }
+        manager.set_party_resources(party_resources)
 
         # The run's story begins
         manager.append_dungeon_log(
@@ -106,7 +123,8 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         return success_response({
             "current_location": location,
             "paths": manager.get_public_paths(),
-            "party_conditions": party_conditions
+            "party_conditions": party_conditions,
+            "party_resources": party_resources
         })
 
     except Exception as e:
@@ -162,13 +180,52 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             on_update(step, progress_data)
             exit_text = generate_exit_text(get_party_summary(), workflow_name)
 
+            # The exit ceremony: walking out alive, EVERY member reflects
+            # on the whole run and grows from what the journal shows.
+            # A failure here never blocks the exit itself.
+            step = "exit_ceremony"
+            on_update(step, progress_data)
+            growth_results = []
+            try:
+                from backend.game.memory import growth
+                from backend.game.memory.manager import write_memory
+                from backend.game.state.manager import get_party_monster_ids
+                from backend.models.monster import Monster
+
+                for monster_id in get_party_monster_ids():
+                    monster = Monster.get_monster_by_id(monster_id)
+                    if not monster:
+                        continue
+                    progress_data.update({ "growing": monster.name })
+                    on_update(step, progress_data)
+                    reflection = growth.run_growth_reflection(monster, 'exit', workflow_name)
+                    if reflection:
+                        growth_results.append(growth.apply_growth(monster, reflection))
+                    write_memory(
+                        monster.id, 'run_complete',
+                        "Walked out of the dungeon alive with the party, carrying "
+                        "everything the run had made of it."
+                    )
+            except Exception as ceremony_error:
+                print(f"❌ Exit ceremony failed (the exit itself stands): {ceremony_error}")
+            progress_data.update({ "growth": growth_results })
+
+            # Close this run's row in the history while the run state
+            # still exists (exit_dungeon wipes it)
+            step = "close_run"
+            on_update(step, progress_data)
+            from backend.models.dungeon_run import DungeonRun
+            log_entries = manager.get_dungeon_log_entries()
+            DungeonRun.close('victory_exit', summary=log_entries[-1] if log_entries else None)
+
             step = "exit_dungeon"
             on_update(step, progress_data)
             manager.exit_dungeon()
 
             return success_response({
                 "exited": True,
-                "exit_text": exit_text
+                "exit_text": exit_text,
+                "growth": growth_results
             })
 
         # === PATH BRANCH ===
@@ -188,8 +245,107 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         progress_data.update({ "current_location": location })
         on_update(step, progress_data)
 
-        # === EVENT: LOCATION EXPLORE (the most common arrival) ===
         event = path.get('event')
+
+        # === EVENT: RETURNING MONSTER (someone here remembers the party) ===
+        if event == 'returning_monster':
+            from backend.game.memory import returning
+
+            step = "pick_returning_monster"
+            on_update(step, progress_data)
+            remembered = returning.pick_returning_monster()
+
+            if not remembered:
+                # The pool emptied since this path was generated (e.g. the
+                # monster joined the party at a sibling path) - degrade
+                # invisibly to a plain explore; events are hidden anyway
+                event = 'location_explore'
+            else:
+                # The monster returns CHANGED by what it remembers
+                step = "transform_returning_monster"
+                on_update(step, progress_data)
+                transformed = returning.transform_returning_monster(remembered, workflow_name)
+                disposition = transformed['disposition']
+                greeting = transformed['greeting']
+
+                step = "reveal_returning_monster"
+                on_update(step, progress_data)
+                returning.stage_reveal(remembered)
+                progress_data.update({ "monster_id": remembered.id, "returning": True })
+
+                # The recognition scene streams while the encounter stages
+                step = "queue_reunion_text"
+                on_update(step, progress_data)
+                from backend.game.dungeon.generator import generate_reunion_scene
+                reunion_text_generation_id = generate_reunion_scene(
+                    location, remembered, disposition, workflow_name
+                )
+                progress_data.update({ "reunion_text_generation_id": reunion_text_generation_id })
+
+                step = "emit_generation_id"
+                on_update(step, progress_data)
+
+                manager.append_dungeon_log(
+                    f"At {location.get('name', 'the new location')}, the party came face to "
+                    f"face with {remembered.name} ({remembered.species}) again - it remembers "
+                    f"them, and its bearing is {disposition}."
+                )
+
+                if disposition == 'hostile':
+                    # A reckoning - straight to battle, its greeting as the intro
+                    step = "start_battle"
+                    on_update(step, progress_data)
+                    battle_snapshot = _start_encounter_battle(
+                        [remembered],
+                        opening_note=(f"{remembered.name} has returned to face the party, "
+                                      f"hardened by its memories: \"{greeting}\"")
+                    )
+                    return success_response({
+                        "event": "monster_battle",
+                        "returning": True,
+                        "current_location": location,
+                        "enemy_ids": [remembered.id],
+                        "battle_intro": greeting,
+                        "battle_snapshot": battle_snapshot,
+                        "party_conditions": manager.get_party_conditions()
+                    })
+
+                if disposition == 'friendly':
+                    # A warm reunion - it opens the conversation itself
+                    manager.set_active_encounter({
+                        'event': 'monster_dialogue',
+                        'monster_ids': [remembered.id],
+                        'dialogue': []
+                    })
+                    manager.append_encounter_dialogue(remembered.name, greeting)
+                    return success_response({
+                        "event": "monster_dialogue",
+                        "returning": True,
+                        "current_location": location,
+                        "monster_id": remembered.id,
+                        "greeting": greeting,
+                        "question": "",
+                        "party_conditions": manager.get_party_conditions()
+                    })
+
+                # wary - a watchful standoff; talk, sneak, or ambush all work
+                manager.set_active_encounter({
+                    'event': 'location_explore',
+                    'monster_ids': [remembered.id],
+                    'monsters_present': True,
+                    'camped': False
+                })
+                return success_response({
+                    "event": "location_explore",
+                    "returning": True,
+                    "current_location": location,
+                    "monsters_present": True,
+                    "monster_ids": [remembered.id],
+                    "greeting": greeting,
+                    "party_conditions": manager.get_party_conditions()
+                })
+
+        # === EVENT: LOCATION EXPLORE (the most common arrival) ===
         if event == 'location_explore':
 
             # Python decides whether creatures dwell here
@@ -205,10 +361,23 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "emit_generation_id"
             on_update(step, progress_data)
 
-            # Steps 5+ - the creatures of this place, revealed live (if any)
+            # Steps 5+ - the creatures of this place, revealed live (if any).
+            # Sometimes one of them is a monster the party has met before -
+            # it takes a fresh monster's slot, memories and all (no
+            # generation needed; it already exists in full).
             monsters = []
             if monsters_present:
+                from backend.game.memory import returning
+
                 monster_count = roll_explore_monster_count()
+                blended = returning.maybe_blend_in()
+                if blended:
+                    step = "reveal_returning_monster"
+                    on_update(step, progress_data)
+                    returning.stage_reveal(blended)
+                    monsters.append(blended)
+                    monster_count -= 1
+
                 for i in range(monster_count):
                     step = f"generate_area_monster_{i + 1}"
                     on_update(step, progress_data)
@@ -226,13 +395,19 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 'camped': False
             })
 
+            from backend.game.memory.manager import mark_seen
+            from backend.game.memory.journal import append_party_journal
+            mark_seen([monster.id for monster in monsters])
+
             if monsters_present:
                 monster_names = ', '.join(f"{m.name} ({m.species})" for m in monsters)
                 manager.append_dungeon_log(
                     f"Looking around, the party spotted creatures that have not noticed them yet: {monster_names}."
                 )
+                append_party_journal(f"Explored {location.get('name', 'a new area')} and spotted {monster_names}.")
             else:
                 manager.append_dungeon_log("The party looked around and found the area free of other creatures.")
+                append_party_journal(f"Explored {location.get('name', 'a new area')} - quiet and empty.")
 
             return success_response({
                 "event": "location_explore",
@@ -278,6 +453,8 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 f"At {location.get('name', 'the new location')}, the party discovered "
                 f"a hidden treasure: {item.name} ({item.description})"
             )
+            from backend.game.memory.journal import append_party_journal
+            append_party_journal(f"Found treasure at {location.get('name', 'a new area')}: {item.name}.")
 
             return success_response({
                 "event": "treasure",
@@ -301,25 +478,34 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "emit_generation_id"
             on_update(step, progress_data)
 
-            # Step 5 - the monster that dwells here (emits monster.created)
-            step = "generate_encounter_monster"
-            on_update(step, progress_data)
-            monster = generate_contextual_monster(location)
-            progress_data.update({ "monster_id": monster.id })
+            # Step 5 - the monster that dwells here. Sometimes it is one
+            # the party has met before (blend-in: no generation needed).
+            from backend.game.memory import returning
+            monster = returning.maybe_blend_in()
+            if monster:
+                step = "reveal_returning_monster"
+                on_update(step, progress_data)
+                returning.stage_reveal(monster)
+                progress_data.update({ "monster_id": monster.id })
+            else:
+                step = "generate_encounter_monster"
+                on_update(step, progress_data)
+                monster = generate_contextual_monster(location)
+                progress_data.update({ "monster_id": monster.id })
 
-            # Steps 6-7 - abilities (emit monster.ability_added)
-            step = "generate_first_ability"
-            on_update(step, progress_data)
-            generate_ability(monster)
+                # Steps 6-7 - abilities (emit monster.ability_added)
+                step = "generate_first_ability"
+                on_update(step, progress_data)
+                generate_ability(monster)
 
-            step = "generate_second_ability"
-            on_update(step, progress_data)
-            generate_ability(monster)
+                step = "generate_second_ability"
+                on_update(step, progress_data)
+                generate_ability(monster)
 
-            # Step 8 - card art, full reveal before it speaks (emits monster.art_ready)
-            step = "generate_card_art"
-            on_update(step, progress_data)
-            generate_card_art(monster)
+                # Step 8 - card art, full reveal before it speaks (emits monster.art_ready)
+                step = "generate_card_art"
+                on_update(step, progress_data)
+                generate_card_art(monster)
 
             # Step 9 - the monster speaks: greeting with its own reason for
             # stopping the party, then its question. What the party answers
@@ -327,6 +513,9 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "generate_monster_question"
             on_update(step, progress_data)
             question_data = generate_monster_question(location, monster, workflow_name)
+
+            from backend.game.memory.manager import mark_seen
+            mark_seen([monster.id])
 
             manager.set_active_encounter({
                 'event': 'monster_dialogue',
@@ -373,9 +562,21 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             step = "emit_generation_id"
             on_update(step, progress_data)
 
-            # Steps 5+ - the hostile monsters, fully revealed (emit domain events)
+            # Steps 5+ - the hostile monsters, fully revealed (emit domain
+            # events). An avoided or bested monster from another day may
+            # be running with this pack (blend-in).
+            from backend.game.memory import returning
             enemy_count = _random.randint(*ENEMY_COUNT_RANGE)
             enemies = []
+
+            blended = returning.maybe_blend_in()
+            if blended:
+                step = "reveal_returning_monster"
+                on_update(step, progress_data)
+                returning.stage_reveal(blended)
+                enemies.append(blended)
+                enemy_count -= 1
+
             for i in range(enemy_count):
                 step = f"generate_enemy_{i + 1}"
                 on_update(step, progress_data)
@@ -384,6 +585,9 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 generate_ability(enemy)
                 generate_card_art(enemy)
                 enemies.append(enemy)
+
+            from backend.game.memory.manager import mark_seen
+            mark_seen([enemy.id for enemy in enemies])
 
             # Battle intro - the enemies' in-character challenge
             step = "generate_battle_intro"
@@ -501,6 +705,10 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
             f'The party said to {speaker_name}: "{message}" '
             f'{speaker_name} responded: "{response}"'
         )
+        from backend.game.memory import journal
+        journal.append_party_journal(
+            f'Talked with {speaker_name}: said "{message[:70]}" - heard "{response[:60]}"'
+        )
 
         # Step 3 - apply the outcome the monster chose
         step = "apply_outcome"
@@ -601,6 +809,21 @@ def sneak_past(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
             manager.append_dungeon_log(
                 f"The party snuck past {monster_names} without being noticed and pressed on."
             )
+
+            # The avoided monsters keep only a vague impression - enough
+            # for them to resurface in another group someday
+            from backend.game.memory.manager import write_memory
+            from backend.game.memory.journal import append_party_journal
+            location_name = location.get('name', 'the dungeon')
+            for avoided in monsters:
+                write_memory(
+                    avoided.id, 'avoided',
+                    f"Sensed someone slip through its territory at {location_name}, "
+                    f"but never saw them clearly.",
+                    {'location': location_name}
+                )
+            append_party_journal(f"Slipped past {monster_names} unseen at {location_name}.")
+
             return success_response({
                 "success": True,
                 "narration": attempt['narration']
@@ -740,7 +963,8 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
         step = "emit_generation_id"
         on_update(step, progress_data)
 
-        # Step 3 - one camp per location
+        # Step 3 - one camp per location (marked BEFORE the rest/growth
+        # steps so a failure below can never enable double-camping)
         step = "mark_camped"
         on_update(step, progress_data)
         encounter['camped'] = True
@@ -750,8 +974,73 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
             f"talking around the fire."
         )
 
+        # Step 4 - rest restores the party's reserves (the camp referee
+        # judges how much for each monster; failures mean a full rest)
+        step = "restore_resources"
+        on_update(step, progress_data)
+        from backend.game.dungeon.generator import generate_camp_restore
+        from backend.game.battle.constants import (
+            RESOURCE_LADDER, RESOURCE_DELTAS, BRIMMING, full_resources
+        )
+
+        restores = generate_camp_restore(location, workflow_name)
+        party_resources = manager.get_party_resources()
+        for monster_id, pools in restores.items():
+            current = party_resources.get(str(monster_id)) or full_resources()
+            for resource, delta_word in pools.items():
+                steps_delta = RESOURCE_DELTAS.get(delta_word, 0)
+                if steps_delta == 0:
+                    continue
+                current_index = RESOURCE_LADDER.index(current.get(resource, BRIMMING))
+                new_index = max(0, min(len(RESOURCE_LADDER) - 1, current_index + steps_delta))
+                current[resource] = RESOURCE_LADDER[new_index]
+            party_resources[str(monster_id)] = current
+        manager.set_party_resources(party_resources)
+        progress_data.update({ "party_resources": party_resources })
+
+        # Step 5 - growth: the fire spotlights the 1-2 members whose story
+        # mattered most this run; the rest keep the memory of the evening.
+        # A failure here never breaks the camp itself.
+        step = "camp_growth"
+        on_update(step, progress_data)
+        growth_results = []
+        try:
+            from backend.game.memory import growth
+            from backend.game.memory.manager import write_memory
+            from backend.game.state.manager import get_party_monster_ids
+            from backend.models.monster import Monster
+
+            party_monsters = [
+                m for m in (Monster.get_monster_by_id(mid) for mid in get_party_monster_ids())
+                if m
+            ]
+            spotlight = growth.pick_spotlight(party_monsters, workflow_name)
+            for monster in spotlight:
+                step = "growth_reflection"
+                progress_data.update({ "growing": monster.name })
+                on_update(step, progress_data)
+                reflection = growth.run_growth_reflection(monster, 'camp', workflow_name)
+                if reflection:
+                    growth_results.append(growth.apply_growth(monster, reflection))
+
+            spotlight_ids = {m.id for m in spotlight}
+            location_name = location.get('name', 'the dungeon')
+            for monster in party_monsters:
+                if monster.id not in spotlight_ids:
+                    write_memory(
+                        monster.id, 'camp',
+                        f"Rested at a campfire at {location_name} with the party.",
+                        {'location': location_name}
+                    )
+        except Exception as growth_error:
+            print(f"❌ Camp growth failed (the camp itself stands): {growth_error}")
+
+        progress_data.update({ "growth": growth_results })
+
         return success_response({
-            "camped": True
+            "camped": True,
+            "party_resources": party_resources,
+            "growth": growth_results
         })
 
     except Exception as e:
@@ -832,6 +1121,49 @@ def _apply_party_heal_effect(effect: str, target_type: str, target_id, manager) 
             effect = 'none'  # healing only sticks to the party
     return effect
 
+def _apply_dungeon_resource_deltas(manager, actor, ability, stamina_delta, mana_delta,
+                                   target_type, target_id):
+    """
+    Out-of-battle resource accounting. The referee's words rule; when it
+    stays silent on both pools, the ability's type picks the pool and the
+    cost is moderate. Costs tire the ACTOR; restores land on a party-member
+    target (else the actor). Pools live in dungeon party_resources.
+    """
+    from backend.game.battle.constants import (
+        RESOURCE_LADDER, RESOURCE_DELTAS, ABILITY_POOL_BY_TYPE, BRIMMING, full_resources
+    )
+    from backend.game.state.manager import get_party_monster_ids
+
+    if stamina_delta is None and mana_delta is None:
+        pool = ABILITY_POOL_BY_TYPE.get(ability.ability_type, 'stamina')
+        stamina_delta, mana_delta = ('moderate', None) if pool == 'stamina' else (None, 'moderate')
+
+    resources = manager.get_party_resources()
+
+    def step_pool(monster_id, resource, delta_word):
+        pools = resources.get(str(monster_id))
+        if pools is None:
+            pools = full_resources()
+        steps = RESOURCE_DELTAS.get(delta_word, 0)
+        current_index = RESOURCE_LADDER.index(pools.get(resource, BRIMMING))
+        new_index = max(0, min(len(RESOURCE_LADDER) - 1, current_index + steps))
+        pools[resource] = RESOURCE_LADDER[new_index]
+        resources[str(monster_id)] = pools
+
+    restore_target_id = actor.id
+    if target_type == 'monster' and target_id and int(target_id) in get_party_monster_ids():
+        restore_target_id = int(target_id)
+
+    for resource, delta in (('stamina', stamina_delta), ('mana', mana_delta)):
+        if not delta or delta == 'none':
+            continue
+        if RESOURCE_DELTAS.get(delta, 0) > 0:
+            step_pool(actor.id, resource, delta)
+        else:
+            step_pool(restore_target_id, resource, delta)
+
+    manager.set_party_resources(resources)
+
 @register_workflow()
 def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
     """
@@ -892,14 +1224,30 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
         on_update(step, progress_data)
         effect = _apply_party_heal_effect(result['effect'], target_type, target_id, manager)
 
+        # Step 4 - the ability drains (or restores) reserves. Costs hit the
+        # actor; restores land on a party-member target, else the actor.
+        step = "apply_resource_costs"
+        on_update(step, progress_data)
+        _apply_dungeon_resource_deltas(
+            manager, actor, ability,
+            result.get('stamina_delta'), result.get('mana_delta'),
+            target_type, target_id
+        )
+
         manager.append_dungeon_log(
             f"{actor.name} used {ability.name} on {target_label}: {result['narration']}"
+        )
+        from backend.game.memory.journal import append_journal
+        append_journal(
+            actor.id,
+            f"Used {ability.name} on {target_label} outside battle: {result['narration'][:100]}"
         )
 
         return success_response({
             "narration": result['narration'],
             "effect": effect,
-            "party_conditions": manager.get_party_conditions()
+            "party_conditions": manager.get_party_conditions(),
+            "party_resources": manager.get_party_resources()
         })
 
     except Exception as e:

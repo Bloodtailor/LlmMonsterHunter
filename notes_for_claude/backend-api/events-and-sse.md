@@ -54,9 +54,19 @@ workflow that creates a monster broadcasts them (used for live card reveal
 and Sanctuary auto-refresh):
 - `monster.created` — `{ monster }` (full `MonsterObject`, at the blueprint stage)
 - `monster.updated` — `{ monster }` (full `MonsterObject` after a staged-generation
-  update: persona, then story/`complete`; frontend replaces the monster in place)
+  update: persona, then story/`complete`; frontend replaces the monster in place.
+  ALSO fires after growth reflections and returning-monster transforms — stat
+  bumps, reworded abilities, and persona grudges arrive this way)
 - `monster.ability_added` — `{ monster_id, ability }` (`AbilityObject`)
 - `monster.art_ready` — `{ monster_id, image_path }`
+- `monster.memory_added` — `{ monster_id, memory }` (`MemoryObject` — the monster
+  recorded a permanent memory of the party; see monsters-and-roster.md)
+
+### Dungeon domain events
+- `dungeon.monster_revealed` — `{ monster }` (full `MonsterObject`): a
+  PRE-EXISTING monster was staged into the current encounter (returning
+  monsters and blend-ins). New monsters announce via `monster.created`;
+  this event exists because existing monsters never re-fire creation events.
 
 ### Inventory domain events
 Facts about the party's possessions, emitted from the inventory generator

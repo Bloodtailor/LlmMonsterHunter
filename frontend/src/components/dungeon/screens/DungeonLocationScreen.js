@@ -11,6 +11,8 @@ import React from 'react';
 import EncounterLocationHeader from '../components/EncounterLocationHeader.js';
 import EncounterTextDisplay from '../components/EncounterTextDisplay.js';
 import LookAroundTextDisplay from '../components/LookAroundTextDisplay.js';
+import ReunionDisplay from '../components/ReunionDisplay.js';
+import GrowthDisplay from '../components/GrowthDisplay.js';
 import TreasureDisplay from '../components/TreasureDisplay.js';
 import EncounterMonsterDisplay from '../components/EncounterMonsterDisplay.js';
 import ExplorePanel from '../components/ExplorePanel.js';
@@ -45,8 +47,14 @@ function DungeonLocationScreen() {
       {/* Streaming look-around text (explore arrivals) */}
       <LookAroundTextDisplay />
 
+      {/* The recognition scene - a remembered monster has returned */}
+      <ReunionDisplay />
+
       {/* Treasure discovery - streamed narration + the found item */}
       <TreasureDisplay />
+
+      {/* Camp growth - the spotlit monsters' reflections by the fire */}
+      <GrowthDisplay />
 
       {/* The monsters' cards - appear on creation, art pops in live */}
       <EncounterMonsterDisplay />

@@ -34,6 +34,12 @@ def get_monster(monster_id):
     result = monster_service.get_monster_by_id(monster_id)
     return jsonify(result), 200 if result['success'] else 404
 
+@monster_bp.route('/<int:monster_id>/memories')
+def get_monster_memories(monster_id):
+    """Get one monster's permanent memories - thin HTTP wrapper"""
+    result = monster_service.get_monster_memories(monster_id)
+    return jsonify(result), 200 if result['success'] else 404
+
 @monster_bp.route('/stats')
 def get_stats():
     """Get monster statistics - thin HTTP wrapper"""

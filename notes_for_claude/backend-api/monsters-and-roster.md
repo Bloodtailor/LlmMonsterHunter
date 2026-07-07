@@ -53,6 +53,16 @@ List monsters with paging, filtering, and sorting.
 **Success:** `{ "success": true, "monster": MonsterObject }`
 **Error (404):** `{ "success": false, "error": "Monster not found", "monster": null }`
 
+### GET /monsters/:id/memories
+The monster's permanent memories of the party, oldest first (its life in
+order). Written by battles, dialogues, sneaks, camps, growth reflections,
+and returns — see the *Memory & evolution* section in
+[Dungeon & Battle](dungeon-and-battle.md). Live additions arrive via the
+`monster.memory_added` SSE event. Synchronous.
+**Success:** `{ "success": true, "monster_id": number, "memories": [MemoryObject] }`
+`MemoryObject`: `{ id, monster_id, run_id, kind, content, details: { run_number?, by?, with?, location?, ... }, created_at }`
+**Error (404):** `{ "success": false, "error": "Monster not found" }`
+
 ### GET /monsters/stats
 Aggregate stats over the collection.
 **Query params:** `filter?: string` — `all | with_art | without_art` (default `all`)

@@ -350,8 +350,14 @@ def get_debug_context() -> Dict[str, Any]:
         'party': {
             'summary': get_party_summary(),
             'details_text': build_party_dungeon_details(),
-            'conditions': dungeon_state.get('party_conditions', {})
+            'conditions': dungeon_state.get('party_conditions', {}),
+            'resources': dungeon_state.get('party_resources', {})
         },
+
+        # Run identity and the per-monster journal feeding growth reflections
+        'run_id': dungeon_state.get('run_id'),
+        'run_journal': dungeon_state.get('run_journal', {}),
+        'seen_monster_ids': dungeon_state.get('seen_monster_ids', []),
 
         # The active encounter's context blocks
         'encounter': {
@@ -394,6 +400,7 @@ def get_dungeon_state() -> Dict[str, Any]:
         'current_location': state.get('current_location'),
         'paths': manager.get_public_paths(),
         'party_conditions': state.get('party_conditions', {}),
+        'party_resources': state.get('party_resources', {}),
         'active_encounter': {
             'event': encounter.get('event'),
             'monster_ids': encounter.get('monster_ids', []),

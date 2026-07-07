@@ -64,7 +64,7 @@ GENERATOR_VARIABLES = {
         'monster_name', 'monster_species', 'monster_description', 'monster_backstory',
         'monster_health', 'monster_attack', 'monster_defense', 'monster_speed',
         'monster_personality', 'monster_role', 'monster_class', 'monster_elements',
-        'monster_wish', 'existing_abilities_text', 'ability_count'
+        'monster_wish', 'existing_abilities_text', 'ability_count', 'growth_context'
     },
     # Inventory generation (backend/game/inventory/generator.py)
     'treasure_item': {'location_name', 'location_description'},
@@ -75,7 +75,29 @@ GENERATOR_VARIABLES = {
     # Item referee (dungeon/registered_workflows.py use_dungeon_item)
     'dungeon_item_use': {'location_name', 'location_description', 'party_details',
                          'item_name', 'item_description', 'uses_remaining',
-                         'target_description', 'secret_knowledge', 'dungeon_log'}
+                         'target_description', 'secret_knowledge', 'dungeon_log'},
+    # Battle referees (battle/generator.py) - carry the resource cost fields
+    'action_resolution': {'location_name', 'actor_details', 'action_description',
+                          'target_details', 'battle_situation', 'recent_log'},
+    'freeform_action_resolution': {'location_name', 'actor_details', 'player_action_text',
+                                   'player_target', 'player_info', 'battle_situation',
+                                   'recent_log'},
+    'enemy_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
+    # Dungeon ability referee (dungeon/generator.py resolve_dungeon_ability)
+    'dungeon_ability_use': {'location_name', 'location_description', 'actor_details',
+                            'ability_name', 'ability_description', 'target_description',
+                            'secret_knowledge', 'dungeon_log'},
+    # Camp rest referee (dungeon/generator.py generate_camp_restore)
+    'camp_restore': {'location_name', 'location_description', 'party_details'},
+    # Returning monsters (game/memory/returning.py + dungeon/generator.py)
+    'returning_transform': {'monster_details', 'monster_memories', 'return_count',
+                            'party_summary'},
+    'reunion_scene': {'party_summary', 'location_name', 'location_description',
+                      'monster_name', 'monster_species', 'memory_summary', 'disposition'},
+    # Growth (game/memory/growth.py)
+    'camp_spotlight': {'party_names', 'journal_highlights'},
+    'growth_reflection': {'monster_details', 'run_journal', 'monster_memories', 'mode_note'},
+    'defeat_reflection': {'party_details', 'battle_log', 'journal_highlights'}
 }
 
 def test_staged_templates_render():

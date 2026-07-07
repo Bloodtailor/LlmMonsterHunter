@@ -29,6 +29,8 @@ FLEXIBLE_BLOCK_SHARES = {
     'battle_log': 0.20,         # turn-by-turn battle narrations
     'dialogue_history': 0.15,   # the active encounter conversation
     'turn_history': 0.08,       # who acted when, for the turn director
+    'monster_memories': 0.06,   # what a monster remembers of the party
+    'run_journal': 0.06,        # what a party monster did this run
     'location_description': 0.05
 }
 
@@ -37,7 +39,8 @@ MIN_FLEXIBLE_CHARS = 600
 
 # Blocks that grow over time keep their TAIL (the most recent events
 # matter); description blocks keep their HEAD (the opening lines matter)
-_TAIL_BLOCKS = ('dungeon_log', 'battle_log', 'dialogue_history', 'turn_history')
+_TAIL_BLOCKS = ('dungeon_log', 'battle_log', 'dialogue_history', 'turn_history',
+                'monster_memories', 'run_journal')
 
 TRUNCATION_MARKER = '(...earlier events trimmed...)'
 

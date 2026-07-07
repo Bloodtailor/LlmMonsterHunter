@@ -22,7 +22,12 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
 
     try:
         from backend.game.battle import manager as battle
-        from backend.game.battle.constants import MAX_CONSECUTIVE_ENEMY_TURNS, OVERDUE_WAIT_MULTIPLIER
+        from backend.game.battle.constants import (
+            MAX_CONSECUTIVE_ENEMY_TURNS,
+            OVERDUE_WAIT_MULTIPLIER,
+            RESOURCE_DELTAS,
+            ABILITY_POOL_BY_TYPE
+        )
         from backend.game.battle.generator import (
             build_monster_battle_details,
             build_side_details,
@@ -38,6 +43,8 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         )
         from backend.game.dungeon import manager as dungeon
         from backend.game.state.manager import get_party_details
+        from backend.game.memory import journal
+        from backend.game.memory import manager as memory
         from backend.models.monster import Monster
         from backend.models.following_monsters import FollowingMonster
 
@@ -89,6 +96,54 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             """One resolved turn for the frontend's click-through log"""
             entry['battle_snapshot'] = battle.get_battle_snapshot(state)
             on_update("action_resolved", {"action_result": entry})
+
+        def record_finishing_blow(prior_condition, new_condition, target_id,
+                                  actor_side, actor_id, action, used_name):
+            """
+            Remember WHO dropped a monster and WITH WHAT (in place) - the
+            monster's 'was_defeated' memory names its defeater, and a
+            returning grudge can answer that exact move.
+            """
+            if new_condition != 'incapacitated' or prior_condition == 'incapacitated':
+                return
+            blows = state.get('finishing_blows', {})
+            blows[str(target_id)] = {
+                'by_id': str(actor_id),
+                'by_name': entry_name(actor_side, actor_id),
+                'action': action,
+                'ability_name': used_name
+            }
+            state['finishing_blows'] = blows
+
+        def apply_resource_deltas(actor_side, actor_id, target_side, target_id,
+                                  stamina_delta, mana_delta):
+            """
+            Spend and restore reserves (in place). Costs (positive deltas)
+            always tire the ACTOR; restores (negative deltas) land on the
+            TARGET - so a defend rests the defender, and a soothing mist
+            aimed at an ally rests the ally.
+            """
+            for resource, delta in (('stamina', stamina_delta), ('mana', mana_delta)):
+                if not delta or delta == 'none':
+                    continue
+                if RESOURCE_DELTAS.get(delta, 0) > 0:
+                    battle.apply_resource(state, actor_side, actor_id, resource, delta)
+                else:
+                    restore_side = target_side or actor_side
+                    restore_id = target_id or actor_id
+                    battle.apply_resource(state, restore_side, restore_id, resource, delta)
+
+        def default_resource_deltas(action, ability):
+            """The code's own cost ruling when the referee stays silent"""
+            if action == 'ability' and ability:
+                pool = ABILITY_POOL_BY_TYPE.get(ability.ability_type, 'stamina')
+                return ('moderate', None) if pool == 'stamina' else (None, 'moderate')
+            if action == 'attack':
+                return 'minor', None
+            if action == 'defend':
+                # Standing guard is also catching your breath
+                return 'restore_minor', None
+            return None, None  # items and talk cost the monster nothing
 
         def apply_talk_decision(decision: str):
             """Turn a negotiation decision into a battle ending (or not)"""
@@ -146,7 +201,29 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             if action == 'defend':
                 battle.set_defending(state, side, actor_id)
 
+            prior_condition = state.get(target_side, {}).get(str(target_id), {}).get('condition')
             new_condition = battle.apply_impact(state, target_side, target_id, impact)
+            record_finishing_blow(prior_condition, new_condition, target_id,
+                                  side, actor_id, action,
+                                  ability.name if ability else (item.name if item else None))
+
+            # Reserves: the referee's judgment, or the code default when
+            # it stayed silent on both pools
+            stamina_delta = resolution.get('stamina_delta')
+            mana_delta = resolution.get('mana_delta')
+            if stamina_delta is None and mana_delta is None:
+                stamina_delta, mana_delta = default_resource_deltas(action, ability)
+            apply_resource_deltas(side, actor_id, target_side, target_id,
+                                  stamina_delta, mana_delta)
+
+            # Party monsters journal what they did (feeds growth reflections)
+            if side == 'allies':
+                used = ability.name if ability else (item.name if item else 'a basic attack')
+                journal.append_journal(
+                    actor_id,
+                    f"Used {used} on {target_name} ({impact}): {resolution['narration'][:110]}"
+                )
+
             battle.append_log(state, resolution['narration'])
             battle.record_turn(state, actor_name, action, actor_id=actor_id, side=side)
             battle.save_battle_state(state)
@@ -170,6 +247,14 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             battle.append_log(state, f'{initiator_name} spoke: "{spoken}" The reply: "{talk["response"]}"')
             battle.record_turn(state, initiator_name, 'talk', actor_id=initiator_id, side=initiator_side)
             battle.save_battle_state(state)
+
+            # Words spoken mid-battle are exactly what growth reflections
+            # want to see - who this monster talks to, and about what
+            talk_note = f'Chose words over blows: said "{spoken[:70]}" - the enemy answered "{talk["response"][:60]}"'
+            if initiator_side == 'allies' and initiator_id:
+                journal.append_journal(initiator_id, talk_note)
+            elif initiator_id is None:
+                journal.append_party_journal(talk_note)
 
             emit_turn({
                 'narration': talk['response'], 'actor_name': initiator_name,
@@ -228,7 +313,28 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                     impacted_side, impacted_id = find_by_name(result.get('impact_target'))
                     if not impacted_id and target_id:
                         impacted_side, impacted_id = find_side(target_id), target_id
+                prior_condition = (state.get(impacted_side, {}).get(str(impacted_id), {}).get('condition')
+                                   if impacted_id else None)
                 new_condition = battle.apply_impact(state, impacted_side, impacted_id, impact) if impacted_id else None
+                if impacted_id:
+                    record_finishing_blow(prior_condition, new_condition, impacted_id,
+                                          'allies', actor_id, 'custom', None)
+
+                # A custom action that actually happened costs something -
+                # referee's word first, light exertion otherwise
+                stamina_delta = result.get('stamina_delta')
+                mana_delta = result.get('mana_delta')
+                if stamina_delta is None and mana_delta is None and result['possible']:
+                    stamina_delta, mana_delta = 'minor', None
+                apply_resource_deltas('allies', actor_id, impacted_side, impacted_id,
+                                      stamina_delta, mana_delta)
+
+                attempted = str(player_action.get('text', ''))[:70]
+                journal.append_journal(
+                    actor_id,
+                    f"Tried something of its own ('{attempted}'): "
+                    f"{'it worked - ' if result['possible'] else 'it failed - '}{result['narration'][:80]}"
+                )
 
                 battle.append_log(state, result['narration'])
                 battle.record_turn(
@@ -402,6 +508,10 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                     state['phase'] = 'awaiting_player_response'
                     battle.record_turn(state, actor_name, 'talk', actor_id=actor_id, side='enemies')
                     battle.save_battle_state(state)
+                    # The whole party hears an enemy reaching for words
+                    journal.append_party_journal(
+                        f'Enemy {actor_name} spoke to the party mid-battle: "{dialogue[:90]}"'
+                    )
                     return success_response({
                         "pending": "player_response",
                         "pending_talk": {"speaker_name": actor_name, "dialogue": dialogue},
@@ -468,10 +578,19 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             for monster_id, entry in state.get('allies', {}).items()
         })
 
+        # So do spent reserves - they refill only on the next dungeon entry
+        if dungeon.is_in_dungeon():
+            dungeon.set_party_resources({
+                monster_id: {'stamina': entry.get('stamina', 'brimming'),
+                             'mana': entry.get('mana', 'brimming')}
+                for monster_id, entry in state.get('allies', {}).items()
+            })
+
         # The dungeon log gets a summary of the battle - the detailed
         # blow-by-blow stays in the battle's own log. The LLM writes the
         # story (including lasting effects like lingering debuffs); a
         # deterministic line covers the mechanical truth either way.
+        summary = None
         if dungeon.is_in_dungeon():
             step = "summarize_battle"
             on_update(step, progress_data)
@@ -498,6 +617,81 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             dungeon.append_dungeon_log(
                 f"{summary} Party condition afterward: {ally_summary}."
             )
+
+        # ===== WHAT THE MONSTERS WILL REMEMBER =====
+        # Written BEFORE any defeat cleanup wipes the run state. A failed
+        # memory must never break the battle result.
+        step = "write_battle_memories"
+        on_update(step, progress_data)
+        try:
+            location_name = location.get('name', 'the dungeon')
+            party_names = ', '.join(
+                entry.get('name', 'Unknown') for entry in state.get('allies', {}).values()
+            ) or 'the party'
+            memory_details = {'location': location_name}
+            if summary:
+                memory_details['battle_summary'] = summary[:400]
+
+            for monster_id, entry in state.get('enemies', {}).items():
+                name_joined = entry.get('name') in joined_names
+
+                if entry.get('condition') == 'incapacitated':
+                    blow = state.get('finishing_blows', {}).get(str(monster_id))
+                    content = f"Was defeated in battle by the party ({party_names}) at {location_name}."
+                    details = dict(memory_details)
+                    if blow:
+                        with_what = blow.get('ability_name') or 'a basic attack'
+                        content += f" Brought down by {blow.get('by_name')} with {with_what}."
+                        details.update({'by': blow.get('by_name'), 'with': with_what})
+                    memory.write_memory(int(monster_id), 'was_defeated', content, details)
+
+                elif entry.get('fled'):
+                    memory.write_memory(
+                        int(monster_id), 'fled_from_party',
+                        f"Fled from a battle against the party ({party_names}) at {location_name}.",
+                        dict(memory_details)
+                    )
+
+                elif name_joined:
+                    memory.write_memory(
+                        int(monster_id), 'joined_party',
+                        f"Chose to join the party ({party_names}) after words won out mid-battle at {location_name}.",
+                        dict(memory_details)
+                    )
+
+                elif resolution == 'yielded':
+                    memory.write_memory(
+                        int(monster_id), 'yielded_to_party',
+                        f"Yielded to the party ({party_names}) at {location_name} rather than fight to the end.",
+                        dict(memory_details)
+                    )
+
+                elif outcome == 'defeat':
+                    if resolution == 'spared':
+                        memory.write_memory(
+                            int(monster_id), 'spared_party',
+                            f"Defeated the party ({party_names}) at {location_name} and granted their plea for mercy.",
+                            dict(memory_details)
+                        )
+                    else:
+                        fallen = ', '.join(
+                            e.get('name', 'Unknown') for e in state.get('allies', {}).values()
+                            if e.get('condition') == 'incapacitated'
+                        )
+                        details = dict(memory_details)
+                        details['party_fallen'] = fallen
+                        memory.write_memory(
+                            int(monster_id), 'defeated_party',
+                            f"Stood victorious over the party ({party_names}) at {location_name}.",
+                            details
+                        )
+
+            # The run journal closes the chapter for the party's side
+            journal.append_party_journal(
+                f"Battle at {location_name} ended in {outcome} ({resolution})."
+            )
+        except Exception as memory_error:
+            print(f"❌ Battle memory writing failed (battle result unaffected): {memory_error}")
 
         # Every victory mints a unique CoCaTok keepsake commemorating it
         # (emits inventory.cocatok_added; the frontend plays the pickup
@@ -527,8 +721,25 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         state['pending_talk'] = None
         battle.save_battle_state(state)
 
+        defeat_reflection = None
         if outcome == 'defeat':
-            # The run is over - clear everything backend-side
+            # The run is over. The party takes one collective lesson out
+            # of the dungeon, the run's history row closes - all BEFORE
+            # the wipes below destroy the run state.
+            if dungeon.is_in_dungeon():
+                step = "defeat_reflection"
+                on_update(step, progress_data)
+                try:
+                    from backend.game.memory import growth
+                    party_monsters = [monsters.get(mid) for mid in state.get('allies', {})]
+                    defeat_reflection = growth.run_defeat_reflection(
+                        [m for m in party_monsters if m], state, workflow_name
+                    )
+                except Exception as lesson_error:
+                    print(f"❌ Defeat lesson failed (the defeat stands): {lesson_error}")
+
+                from backend.models.dungeon_run import DungeonRun
+                DungeonRun.close('defeat', summary=summary)
             battle.end_battle()
             dungeon.exit_dungeon()
 
@@ -538,6 +749,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             "joined_names": joined_names,
             "outcome_text": outcome_text,
             "cocatok": cocatok_data,
+            "defeat_reflection": defeat_reflection,
             "battle_snapshot": battle.get_battle_snapshot()
         })
 

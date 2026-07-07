@@ -47,7 +47,13 @@ from .monster_events import (
   emit_monster_created,
   emit_monster_updated,
   emit_monster_ability_added,
-  emit_monster_art_ready
+  emit_monster_art_ready,
+  emit_monster_memory_added
+)
+
+# Import dungeon domain event emission functions
+from .dungeon_events import (
+  emit_dungeon_monster_revealed
 )
 
 # Import inventory domain event emission functions
@@ -63,6 +69,7 @@ from . import ai_events
 from . import workflow_events
 from . import monster_events
 from . import inventory_events
+from . import dungeon_events
 
 __all__ = [
     # Event Bus
@@ -103,6 +110,10 @@ __all__ = [
     'emit_monster_updated',
     'emit_monster_ability_added',
     'emit_monster_art_ready',
+    'emit_monster_memory_added',
+
+    # Dungeon Domain Event Emission Functions
+    'emit_dungeon_monster_revealed',
 
     # Inventory Domain Event Emission Functions
     'emit_inventory_item_added',
