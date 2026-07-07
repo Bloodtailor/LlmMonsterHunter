@@ -203,6 +203,10 @@ def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[s
             )
         )
         cocatok = generate_victory_cocatok(ctx.location, battle_story, defeated_names)
+        # Keepsakes minted mid-run are provisional until the exit
+        from backend.game.dungeon.spoils import record_run_cocatok
+
+        record_run_cocatok(cocatok.id)
         cocatok_data = cocatok.to_dict()
         ctx.step.data.update({"cocatok": cocatok_data})
 
@@ -213,10 +217,13 @@ def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[s
     battle.save_battle_state(state)
 
     defeat_reflection = None
+    spoils_lost = None
     if outcome == 'defeat':
         # The run is over. The party takes one collective lesson out
-        # of the dungeon, the run's history row closes - all BEFORE
-        # the wipes below destroy the run state.
+        # of the dungeon, THE STAKES are enforced (this run's recruits
+        # released, its items and keepsakes taken back - memories
+        # remain), and the run's history row closes - all BEFORE the
+        # wipes below destroy the run state.
         if dungeon.is_in_dungeon():
             ctx.step.emit("defeat_reflection")
             try:
@@ -228,6 +235,11 @@ def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[s
                 )
             except Exception as lesson_error:
                 print(f"❌ Defeat lesson failed (the defeat stands): {lesson_error}")
+
+            ctx.step.emit("forfeit_run_spoils")
+            from backend.game.dungeon.spoils import forfeit_run_spoils
+
+            spoils_lost = forfeit_run_spoils('defeat')
 
             from backend.models.dungeon_run import DungeonRun
 
@@ -244,6 +256,7 @@ def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[s
             "outcome_text": outcome_text,
             "cocatok": cocatok_data,
             "defeat_reflection": defeat_reflection,
+            "spoils_lost": spoils_lost,
             "battle_snapshot": battle.get_battle_snapshot(),
         }
     )

@@ -414,14 +414,19 @@ def abandon_run() -> dict[str, Any]:
     """
 
     from backend.game.battle import manager as battle_manager
+    from backend.game.dungeon.spoils import forfeit_run_spoils
     from backend.models.dungeon_run import DungeonRun
 
     if not manager.is_in_dungeon():
         return success_response({'abandoned': False, 'in_dungeon': False})
+
+    # Walking away is not exiting alive - this run's provisional
+    # recruits and possessions stay behind (memories remain)
+    spoils_lost = forfeit_run_spoils('abandoned')
 
     manager.snapshot_last_run_log('abandoned')
     DungeonRun.close('abandoned')
     battle_manager.end_battle()
     manager.exit_dungeon()
 
-    return success_response({'abandoned': True, 'in_dungeon': False})
+    return success_response({'abandoned': True, 'in_dungeon': False, 'spoils_lost': spoils_lost})

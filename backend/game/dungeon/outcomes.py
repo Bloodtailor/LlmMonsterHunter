@@ -42,12 +42,16 @@ def apply_dialogue_outcome(
     item_data = None
 
     if outcome == 'join_party':
+        from backend.game.dungeon.spoils import record_run_recruit
         from backend.models.following_monsters import FollowingMonster
 
         for monster_id in monster_ids:
             monster = Monster.get_monster_by_id(int(monster_id))
             if monster:
-                FollowingMonster.add_follower(int(monster_id))
+                # Provisional until the party exits alive (only NEW
+                # followers are at stake)
+                if FollowingMonster.add_follower(int(monster_id)):
+                    record_run_recruit(int(monster_id))
                 joined_names.append(monster.name)
         log_note = f"{', '.join(joined_names) or 'The monster'} joined the party as a follower."
 
@@ -69,6 +73,9 @@ def apply_dialogue_outcome(
                 giver,
                 get_encounter_dialogue_text(),
             )
+            from backend.game.dungeon.spoils import record_run_item
+
+            record_run_item(item.id)  # provisional until the exit
             item_data = item.to_dict()
             log_note = f"{giver.name} rewarded the party with {item.name} ({item.description})"
         else:

@@ -83,8 +83,11 @@ Facts about the party's possessions, emitted from the inventory generator
 and the item-consumption flows:
 - `inventory.item_added` — `{ item }` (`ItemObject` — treasure or dialogue reward)
 - `inventory.item_updated` — `{ item }` (a use was spent, uses remain)
-- `inventory.item_consumed` — `{ item_id, name }` (last use spent; the item is gone)
+- `inventory.item_consumed` — `{ item_id, name }` (last use spent OR the
+  item was forfeited with the run's spoils; either way it is gone)
 - `inventory.cocatok_added` — `{ cocatok }` (`CoCaTokObject` — a victory was minted)
+- `inventory.cocatok_removed` — `{ cocatok_id, title }` (a keepsake minted
+  mid-run was taken back — the run's spoils were forfeited on defeat/abandon)
 
 `workflow_type` values seen in workflow events: `generate_detailed_monster`,
 `generate_ability`, `evolve_monster`, `enter_dungeon`, `choose_path`,

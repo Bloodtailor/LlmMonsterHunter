@@ -242,13 +242,17 @@ per-monster waiting counts) / turn history / battle log, and paths
 debug panel in the frontend. Synchronous. Never use for game UI.
 
 ### POST /dungeon/abandon
-Call the party home mid-run. The active run closes as `abandoned` — its
-log is snapshotted to `last_run_log` first so home-base chats can still
-look back on it — any battle ends, and the run state wipes. Synchronous,
-no LLM. A quiet no-op when not in a dungeon, so the frontend can use it
-to clear stale run state (a run otherwise only ends by taking an exit
-path, being defeated, or entering the dungeon again).
-**Success:** `{ "success": true, "abandoned": boolean, "in_dungeon": false }`
+Call the party home mid-run. Walking away is not exiting alive: **the
+run's provisional spoils are forfeited first** (recruits joined this run
+are released with a `bond_broken` memory; items and CoCaToks gained this
+run are deleted, emitting `inventory.item_consumed` /
+`inventory.cocatok_removed`). Then the active run closes as `abandoned` —
+its log is snapshotted to `last_run_log` first so home-base chats can
+still look back on it — any battle ends, and the run state wipes.
+Synchronous, no LLM. A quiet no-op when not in a dungeon, so the frontend
+can use it to clear stale run state (a run otherwise only ends by taking
+an exit path, being defeated, or entering the dungeon again).
+**Success:** `{ "success": true, "abandoned": boolean, "in_dungeon": false, "spoils_lost": { "released_names": string[], "lost_item_names": string[] } }`
 
 ### GET /dungeon/state
 Public dungeon state (hidden path events/destinations stripped). Synchronous.
@@ -326,14 +330,18 @@ these for click-through. The `battle_turn` `workflow.completed` result is
 one of:
 - `{ pending: "player_turn", pending_actor, pending_actor_name, battle_snapshot }`
 - `{ pending: "player_response", pending_talk: { speaker_name, dialogue }, battle_snapshot }`
-- `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, cocatok, defeat_reflection: string|null, battle_snapshot }`
+- `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, cocatok, defeat_reflection: string|null, spoils_lost: { released_names, lost_item_names } | null, battle_snapshot }`
 
 `resolution` explains *how* it ended: `combat | joined | yielded | fled |
 spared`. On `joined`, the surviving enemies are added to the following list
-(`joined_names` lists them) — this is the capture mechanic. `defeat` clears
-the dungeon run backend-side — but first the party takes ONE collective
-`defeat_reflection` (the lesson of the loss; a shared `lesson` memory lands
-on every member) and the run's history row closes as `defeat`.
+(`joined_names` lists them) — this is the capture mechanic; **recruits are
+provisional until the party exits alive**. `defeat` clears the dungeon run
+backend-side — but first the party takes ONE collective `defeat_reflection`
+(the lesson of the loss; a shared `lesson` memory lands on every member),
+**the run's spoils are forfeited** (`spoils_lost`: recruits joined this run
+released with `bond_broken` memories — prime returning-monster fuel — and
+this run's items/CoCaToks deleted with inventory events), and the run's
+history row closes as `defeat`.
 
 ## Memory & evolution
 

@@ -37,9 +37,13 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     run_context.clear_pending_notices()
 
     # A leftover run (the player walked away mid-run) still deserves
-    # its place in the chat context - snapshot its log before begin()
-    # closes it and start_dungeon wipes it
+    # its place in the chat context - its provisional spoils are
+    # forfeited (walking away is not exiting alive), then its log is
+    # snapshotted before begin() closes it and start_dungeon wipes it
     if manager.is_in_dungeon():
+        from backend.game.dungeon.spoils import forfeit_run_spoils
+
+        forfeit_run_spoils('abandoned')
         manager.snapshot_last_run_log('abandoned')
 
     # Open this run's row in the run history (closes any dangling

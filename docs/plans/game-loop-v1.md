@@ -64,7 +64,7 @@ ignores `complete` before `GOAL_MIN_EVENTS` (default 3). Completing the
 goal earns an exit ceremony: one rare themed item + a `notable` growth
 tier for the party. Defeat forfeits the reward.
 
-### M4 — Stakes: provisional spoils — PLANNED
+### M4 — Stakes: provisional spoils — IMPLEMENTED
 Dungeon state tracks `run_recruits`, run items, and run CoCaToks at
 their sources (battle joins, dialogue joins, reunion joins, treasure,
 rewards, victory keepsakes). Defeat and abandonment release the
@@ -124,3 +124,9 @@ recruit acting on its own, then earning `familiar` and taking commands.
   `game/dungeon/fallbacks.py`, and the developer X-ray →
   `services/dungeon_debug_service.py`. The entrance auto-enter effect
   (replaced by the notice board) was deleted.
+- **M4:** CoCaToks were documented as "permanent — deliberately no delete
+  path" (models/cocatok.py). Stakes overrules that for keepsakes minted
+  MID-RUN: they are provisional spoils like everything else the run
+  gathered and are taken back on defeat/abandonment (new
+  `inventory.cocatok_removed` event). Keepsakes carried out alive remain
+  permanent; the model comment was updated in the same commit.

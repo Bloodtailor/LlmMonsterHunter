@@ -7,12 +7,16 @@ from .context import TurnContext
 def apply_talk_decision(ctx: TurnContext, decision: str):
     """Turn a negotiation decision into a battle ending (or not)"""
     from backend.game.battle import manager as battle
+    from backend.game.dungeon.spoils import record_run_recruit
     from backend.models.following_monsters import FollowingMonster
 
     if decision == 'enemies_join':
         joined = []
         for monster_id in battle.active_ids(ctx.state, 'enemies'):
-            FollowingMonster.add_follower(int(monster_id))
+            # Provisional until the party exits alive (only NEW followers
+            # count - a monster already on the roster is not at stake)
+            if FollowingMonster.add_follower(int(monster_id)):
+                record_run_recruit(int(monster_id))
             joined.append(ctx.entry_name('enemies', monster_id))
         return 'victory', 'joined', joined
     if decision == 'enemies_yield':
