@@ -1,13 +1,19 @@
 # Monster Evolution — Implementation Plan
 
-**Status:** IN PROGRESS (July 2026, branch `feature/monster-evolution`,
-Evo-M1…Evo-M4). Offline suites must stay green; live soak checklist in §8.
+**Status:** IMPLEMENTED (July 2026, branch `feature/monster-evolution`,
+Evo-M1…Evo-M4). Offline suites green (59-check evolution suite + template
+regression + growth/returning regressions); UI verified against the running
+app (altar renders, run-state gate and lineage endpoint live). Pending the
+user's live soak — checklist in §8.
 **Commit prefix:** `Evo-M#`
 
 **Deviations from the original plan (all deliberate):**
 - `monster.evolved` SSE event registration moved from Evo-M2 into Evo-M1 —
   `apply_evolution_form` emits it at the moment of the transform (domain
   facts are emitted where they happen, matching the generator layer).
+- No separate `EvolutionMonsterPicker` component — `MonsterChatPicker`
+  gained optional `title`/`emptyTitle`/`emptyDescription` props and is
+  reused by the altar (one following-roster picker, two screens).
 
 Evolution is the big, earned leap — distinct from the small in-run growth
 nudges. A FOLLOWING monster is transformed at home base: same monster id
