@@ -60,9 +60,9 @@ def run_generate_notices(context: dict, step: WorkflowStep) -> dict[str, Any]:
             'expedition_notices', workflow_name, {'notice_count': NOTICE_COUNT}
         )
         raw = batch.get('notices') or []
-        generated = [
-            n for n in raw if isinstance(n, dict) and n.get('title') and n.get('theme')
-        ][:NOTICE_COUNT]
+        generated = [n for n in raw if isinstance(n, dict) and n.get('title') and n.get('theme')][
+            :NOTICE_COUNT
+        ]
     except Exception:
         generated = []
 

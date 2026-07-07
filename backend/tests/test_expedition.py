@@ -82,7 +82,9 @@ def main():
             )
 
             run_context.begin_run_context(theme='drowned halls', danger='perilous')
-            check('begin stores the theme', run_context.get_run_context()['theme'] == 'drowned halls')
+            check(
+                'begin stores the theme', run_context.get_run_context()['theme'] == 'drowned halls'
+            )
             check('begin stores the danger', run_context.active_danger() == 'perilous')
             check(
                 'danger_knob reads the active profile',
@@ -131,7 +133,11 @@ def main():
                 assert template == 'expedition_notices'
                 return {
                     'notices': [
-                        {'title': 'The Sunken Belfry', 'pitch': 'Bells below.', 'theme': 'drowned bells'},
+                        {
+                            'title': 'The Sunken Belfry',
+                            'pitch': 'Bells below.',
+                            'theme': 'drowned bells',
+                        },
                         {'title': 'Mosswood', 'pitch': 'It hums.', 'theme': 'singing moss'},
                         {'title': 'Ash Vaults', 'pitch': 'Still warm.', 'theme': 'ash and cinders'},
                     ]
@@ -144,7 +150,10 @@ def main():
             check('three notices posted', len(board) == 3, f'got {len(board)}')
             check(
                 'every notice carries id/title/theme/danger',
-                all(n.get('id') and n.get('title') and n.get('theme') and n.get('danger') for n in board),
+                all(
+                    n.get('id') and n.get('title') and n.get('theme') and n.get('danger')
+                    for n in board
+                ),
             )
             check(
                 'every danger word is on the ladder (Python rolled it)',
@@ -157,7 +166,9 @@ def main():
                 'the stored board answers by id',
                 run_context.get_pending_notice(first['id'])['title'] == first['title'],
             )
-            check('unknown notice id is rejected', run_context.get_pending_notice('notice_99') is None)
+            check(
+                'unknown notice id is rejected', run_context.get_pending_notice('notice_99') is None
+            )
 
             print('\n-- notice fallbacks --')
 
@@ -174,7 +185,9 @@ def main():
             )
 
             run_context.clear_pending_notices()
-            check('cleared board answers nothing', run_context.get_pending_notice('notice_1') is None)
+            check(
+                'cleared board answers nothing', run_context.get_pending_notice('notice_1') is None
+            )
 
             # ===== run goals (Game Loop M3) =====
             print('\n-- goal generation --')

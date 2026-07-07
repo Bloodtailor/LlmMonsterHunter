@@ -99,7 +99,9 @@ def main():
             check('the pointer round-trips', player_manager.get_player_monster_id() == player.id)
             check('the player exists', player_manager.player_exists())
             check('the player is the player', player_manager.is_player_monster(player.id))
-            check('a companion is not the player', not player_manager.is_player_monster(companion.id))
+            check(
+                'a companion is not the player', not player_manager.is_player_monster(companion.id)
+            )
 
             # ===== always in the party =====
             print('\n-- always in the party --')
@@ -217,9 +219,7 @@ def main():
                 str(monster_id): {'name': Monster.get_monster_by_id(monster_id).name}
                 for monster_id in state_manager.get_party_monster_ids()
             }
-            state = battle_manager.start_battle(
-                party_conditions, {'999': {'name': 'Test Enemy'}}
-            )
+            state = battle_manager.start_battle(party_conditions, {'999': {'name': 'Test Enemy'}})
             check('the player stands among the allies', str(player.id) in state['allies'])
 
             battle_manager.apply_impact(state, 'allies', str(player.id), 'devastating')

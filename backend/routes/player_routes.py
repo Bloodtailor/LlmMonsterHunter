@@ -57,7 +57,5 @@ def upload_portrait():
     if uploaded is None:
         return jsonify({'success': False, 'error': "An 'image' file field is required"}), 400
 
-    result = player_service.upload_portrait(
-        filename=uploaded.filename or '', data=uploaded.read()
-    )
+    result = player_service.upload_portrait(filename=uploaded.filename or '', data=uploaded.read())
     return jsonify(result), 200 if result['success'] else 400

@@ -84,7 +84,9 @@ def create_player_character(
 
         existing = get_player_monster()
         if existing is not None and existing.generation_stage == 'complete':
-            raise Exception(f'A character already exists ({existing.name}) - start a New Game first')
+            raise Exception(
+                f'A character already exists ({existing.name}) - start a New Game first'
+            )
         discard_partial_player()
 
         # Step 1 - taxonomy placement + code-derived stats (row saved

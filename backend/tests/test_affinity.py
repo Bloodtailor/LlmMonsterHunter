@@ -112,7 +112,10 @@ def main():
             run_state.update({'in_dungeon': True, 'dungeon_log': []})
             dungeon.save_dungeon_state(run_state)
 
-            check('step 1 in a run lands', affinity.step_affinity(valved.id, 'camp_rest') == 'familiar')
+            check(
+                'step 1 in a run lands',
+                affinity.step_affinity(valved.id, 'camp_rest') == 'familiar',
+            )
             check(
                 'step 2 in a run lands',
                 affinity.step_affinity(valved.id, 'healed_by_ally') == 'trusting',

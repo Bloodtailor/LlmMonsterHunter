@@ -19,8 +19,7 @@ _PARTING_MEMORIES = {
         "surface - the bond never made it out of the dungeon."
     ),
     'abandoned': (
-        "Joined the party mid-run, but they turned back and the bond "
-        "was left behind in the dark."
+        "Joined the party mid-run, but they turned back and the bond was left behind in the dark."
     ),
 }
 
