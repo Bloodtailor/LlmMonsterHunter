@@ -155,4 +155,14 @@ purpose → 401 surfaces clearly, no silent fallback.
 
 ## Deviations
 
-- None yet.
+- **M3 (thinking param):** `thinking: {type: 'disabled'}` is NOT sent to
+  the legacy `deepseek-reasoner` id — that id IS thinking mode by
+  definition (an alias of v4-flash thinking until 2026-07-24), and
+  disabling would contradict the player's pick. `reasoning_content`
+  deltas are skipped either way, so game text stays clean.
+- **M4 (soak fix):** the test-generation endpoint read `prompt_tokens`
+  as None — the queue worker writes token counts in its own session
+  while the request's MySQL REPEATABLE READ snapshot is already open.
+  The service now rolls the snapshot back before reading the log.
+  Found live in the browser soak; the panel then reported the real
+  count (33 prompt tokens).
