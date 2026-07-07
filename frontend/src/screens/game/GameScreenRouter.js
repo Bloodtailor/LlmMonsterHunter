@@ -29,7 +29,7 @@ function GameScreenRouter() {
   switch (currentGameScreen) {
     case 'homebase':
       return <HomeBaseScreen />;
-      
+
     case 'sanctuary':
       return <MonsterSanctuaryScreen />;
 
@@ -41,7 +41,7 @@ function GameScreenRouter() {
 
     case 'dungeon-entrance':
       return <DungeonEntranceScreen />;
-      
+
     case 'dungeon-doors':
       return <DungeonDoorsScreen />;
 

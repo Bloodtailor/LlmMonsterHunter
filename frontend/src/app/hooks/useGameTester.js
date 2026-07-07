@@ -9,31 +9,31 @@ import { getTestFiles, runTest } from '../../api/services/gameTester.js';
 export function useGameTester() {
   // State for loading and managing test files list
   const testFilesState = useAsyncState(getTestFiles);
-  
+
   // State for running individual tests
   const runTestState = useAsyncState(runTest);
-  
+
   // Load test files on mount
   useEffect(() => {
     testFilesState.execute();
   }, [testFilesState.execute]);
-  
+
   // Computed values
   const testFilesCount = testFilesState.data?.testFiles?.length ?? 0;
-  
+
   return {
     // ==== TEST FILES MANAGEMENT ====
-    
+
     /** @type {string[]} Array of available test file names */
     testFiles: testFilesState.data?.testFiles ?? [],
-    
+
     testFilesCount,
     isLoadingTestFiles: testFilesState.isLoading,
     testFilesError: testFilesState.error,
-    
+
     isRunningTest: runTestState.isLoading,
     testRunError: runTestState.error,
-    
+
     testResult: runTestState.data,
 
     /**
@@ -42,9 +42,9 @@ export function useGameTester() {
      * @returns {Promise<object>} Test execution results
      */
     runTest: runTestState.execute,
-    
+
     // ==== RESET FUNCTIONS ====
-    
-    resetTestRun: runTestState.reset
+
+    resetTestRun: runTestState.reset,
   };
 }

@@ -3,8 +3,13 @@
 // These are facts about the game world (monster exists, has art, has ability),
 // not machinery progress - subscribe to react the moment they become true
 
-import { transformMonster, transformAbility, transformMemory, transformEvolution } from "../transformers/monsters.js";
-import { broadcastEvent } from "../core/eventBroadcast.js";
+import {
+  transformMonster,
+  transformAbility,
+  transformMemory,
+  transformEvolution,
+} from '../transformers/monsters.js';
+import { broadcastEvent } from '../core/eventBroadcast.js';
 
 /**
  * Monster Event Handlers - External event processing system
@@ -13,7 +18,7 @@ import { broadcastEvent } from "../core/eventBroadcast.js";
 export const monsterEventHandlers = {
   'monster.created': (eventData) => {
     const transformedData = {
-      monster: transformMonster(eventData.monster)
+      monster: transformMonster(eventData.monster),
     };
     broadcastEvent('monsterCreated', transformedData);
   },
@@ -21,7 +26,7 @@ export const monsterEventHandlers = {
   // Staged generation filled in more of an existing monster (persona, story)
   'monster.updated': (eventData) => {
     const transformedData = {
-      monster: transformMonster(eventData.monster)
+      monster: transformMonster(eventData.monster),
     };
     broadcastEvent('monsterUpdated', transformedData);
   },
@@ -29,7 +34,7 @@ export const monsterEventHandlers = {
   'monster.ability_added': (eventData) => {
     const transformedData = {
       monsterId: eventData.monster_id || null,
-      ability: transformAbility(eventData.ability)
+      ability: transformAbility(eventData.ability),
     };
     broadcastEvent('monsterAbilityAdded', transformedData);
   },
@@ -37,7 +42,7 @@ export const monsterEventHandlers = {
   'monster.art_ready': (eventData) => {
     const transformedData = {
       monsterId: eventData.monster_id || null,
-      imagePath: eventData.image_path || null
+      imagePath: eventData.image_path || null,
     };
     broadcastEvent('monsterArtReady', transformedData);
   },
@@ -46,7 +51,7 @@ export const monsterEventHandlers = {
   'monster.memory_added': (eventData) => {
     const transformedData = {
       monsterId: eventData.monster_id || null,
-      memory: transformMemory(eventData.memory)
+      memory: transformMemory(eventData.memory),
     };
     broadcastEvent('monsterMemoryAdded', transformedData);
   },
@@ -56,8 +61,8 @@ export const monsterEventHandlers = {
   'monster.evolved': (eventData) => {
     const transformedData = {
       monster: transformMonster(eventData.monster),
-      evolution: transformEvolution(eventData.evolution)
+      evolution: transformEvolution(eventData.evolution),
     };
     broadcastEvent('monsterEvolved', transformedData);
-  }
+  },
 };

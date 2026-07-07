@@ -6,7 +6,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import { useEventSubscription } from '../../api/events/useEventSubscription.js';
-import * as monstersApi from '../../api/services/monster.js'
+import * as monstersApi from '../../api/services/monster.js';
 
 // ===== MONSTER COLLECTION HOOKS =====
 
@@ -20,11 +20,11 @@ export function useMonsterCollection() {
 
   return {
     // Clean transformed data (guaranteed shapes from function.defaults!)
-    monsters: api.data.monsters,     // Always an array
-    total: api.data.total,           // Always a number
-    count: api.data.count,           // Always a number
-    limit: api.data.limit,           // Always a number
-    offset: api.data.offset,         // Always a number
+    monsters: api.data.monsters, // Always an array
+    total: api.data.total, // Always a number
+    count: api.data.count, // Always a number
+    limit: api.data.limit, // Always a number
+    offset: api.data.offset, // Always a number
 
     // Raw data (for debugging)
     rawResponse: api.data._raw,
@@ -36,7 +36,7 @@ export function useMonsterCollection() {
 
     // Actions
     loadMonsters: api.execute,
-    reset: api.reset
+    reset: api.reset,
   };
 }
 
@@ -58,25 +58,27 @@ export function useLiveMonsterCollection() {
 
   // Helper - update one monster in place, leave the rest untouched
   const patchMonster = (monsterId, patch) => {
-    setMonsters(prev => prev.map(monster =>
-      monster.id === monsterId ? { ...monster, ...patch(monster) } : monster
-    ));
+    setMonsters((prev) =>
+      prev.map((monster) =>
+        monster.id === monsterId ? { ...monster, ...patch(monster) } : monster,
+      ),
+    );
   };
 
   // Staged generation filled in more of the monster (persona, story) -
   // replace it wholesale; the event payload is the complete monster
   useEventSubscription('monsterUpdated', ({ monster }) => {
     if (!monster?.id) return;
-    setMonsters(prev => prev.map(existing =>
-      existing.id === monster.id ? monster : existing
-    ));
+    setMonsters((prev) =>
+      prev.map((existing) => (existing.id === monster.id ? monster : existing)),
+    );
   });
 
   // Card art finished - attach it to just that monster's card
   useEventSubscription('monsterArtReady', ({ monsterId, imagePath }) => {
     if (!monsterId || !imagePath) return;
     patchMonster(monsterId, () => ({
-      cardArt: { exists: true, relativePath: imagePath }
+      cardArt: { exists: true, relativePath: imagePath },
     }));
   });
 
@@ -85,13 +87,13 @@ export function useLiveMonsterCollection() {
     if (!monsterId || !ability) return;
     patchMonster(monsterId, (monster) => ({
       abilities: [...(monster.abilities || []), ability],
-      abilityCount: (monster.abilityCount || 0) + 1
+      abilityCount: (monster.abilityCount || 0) + 1,
     }));
   });
 
   return {
     ...collection,
-    monsters
+    monsters,
   };
 }
 
@@ -111,21 +113,26 @@ export function useMonsterMemories(monsterId) {
     }
     let cancelled = false;
     setIsLoading(true);
-    monstersApi.loadMonsterMemories(monsterId)
-      .then(result => {
+    monstersApi
+      .loadMonsterMemories(monsterId)
+      .then((result) => {
         if (!cancelled) setMemories(result.memories);
       })
-      .catch(() => { /* memories are flavor - never break the card */ })
+      .catch(() => {
+        /* memories are flavor - never break the card */
+      })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [monsterId]);
 
   useEventSubscription('monsterMemoryAdded', ({ monsterId: eventMonsterId, memory }) => {
     if (!memory || eventMonsterId !== monsterId) return;
-    setMemories(prev =>
-      prev.some(existing => existing.id === memory.id) ? prev : [...prev, memory]
+    setMemories((prev) =>
+      prev.some((existing) => existing.id === memory.id) ? prev : [...prev, memory],
     );
   });
 
@@ -140,14 +147,13 @@ export function useMonsterGeneration() {
   const api = useAsyncState(monstersApi.generateMonster);
 
   const generate = useCallback(async () => {
-    
     return await api.execute();
   }, [api.execute]);
 
   return {
     // Clean generation result (guaranteed shapes!)
-    success: api.data.success,           // false initially, then boolean
-    workflowId: api.data.workflowId,           // null initially, then monster object
+    success: api.data.success, // false initially, then boolean
+    workflowId: api.data.workflowId, // null initially, then monster object
 
     // Raw data (for debugging)
     rawResponse: api.data._raw,
@@ -171,11 +177,11 @@ export function useAbilityGeneration() {
 
   return {
     // Clean generation result
-    success: api.data.success,           // false initially
-    ability: api.data.ability,           // null initially, then ability object
-    requestId: api.data.requestId,       // null initially, then string
-    logId: api.data.logId,               // null initially, then string
-    generationError: api.data.error,     // null initially, then string
+    success: api.data.success, // false initially
+    ability: api.data.ability, // null initially, then ability object
+    requestId: api.data.requestId, // null initially, then string
+    logId: api.data.logId, // null initially, then string
+    generationError: api.data.error, // null initially, then string
 
     // Raw data (for debugging)
     rawResponse: api.data._raw,
@@ -187,6 +193,6 @@ export function useAbilityGeneration() {
 
     // Actions
     generate: api.execute,
-    reset: api.reset
+    reset: api.reset,
   };
 }

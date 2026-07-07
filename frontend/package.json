@@ -35,6 +35,7 @@
         "files": [
           "src/screens/developer/BYOComponentTestScreen.js",
           "src/screens/developer/ExplosionDemo.js",
+          "src/screens/developer/StyleTestScreen.js",
           "src/components/UiExamples/*.js"
         ],
         "rules": {

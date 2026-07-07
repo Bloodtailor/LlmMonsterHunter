@@ -27,7 +27,6 @@ function Select({
   className = '',
   ...rest
 }) {
-  
   // Normalize options to {value, label, icon} format
   const normalizedOptions = options.map((option, index) => {
     if (typeof option === 'string') {
@@ -36,7 +35,7 @@ function Select({
     return {
       value: option.value,
       label: option.label || option.value,
-      icon: option.icon || null
+      icon: option.icon || null,
     };
   });
 
@@ -44,8 +43,10 @@ function Select({
     'form-select',
     disabled && 'form-select-disabled',
     error && 'form-select-error',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="form-select-container">
@@ -61,7 +62,7 @@ function Select({
             {placeholder}
           </option>
         )}
-        
+
         {normalizedOptions.map((option, index) => {
           const displayLabel = option.icon ? `${option.icon} ${option.label}` : option.label;
           return (
@@ -71,12 +72,8 @@ function Select({
           );
         })}
       </select>
-      
-      {error && (
-        <div className="form-select-error-message">
-          {error}
-        </div>
-      )}
+
+      {error && <div className="form-select-error-message">{error}</div>}
     </div>
   );
 }

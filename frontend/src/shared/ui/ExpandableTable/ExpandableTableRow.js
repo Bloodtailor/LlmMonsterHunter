@@ -9,7 +9,7 @@ import ExpandableContent from './ExpandableContent.js';
 /**
  * Individual expandable table row component
  * Renders main row + optional expanded content row
- * 
+ *
  * @param {object} props - ExpandableTableRow props
  * @param {object} props.row - Row data object (must have id property)
  * @param {number} props.rowIndex - Row index in the data array
@@ -27,18 +27,17 @@ function ExpandableTableRow({
   expandableRows,
   renderExpandedContent,
   iconColumnKey,
-  animateExpansion
+  animateExpansion,
 }) {
-  
   // Get expansion state for this row
   const isExpanded = expandableRows.isRowExpanded(row.id);
-  
+
   // Handle row expansion toggle
   const handleToggleExpansion = (e) => {
     e.stopPropagation(); // Prevent event bubbling
     expandableRows.toggleRow(row.id);
   };
-  
+
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -50,7 +49,7 @@ function ExpandableTableRow({
   return (
     <>
       {/* Main Row */}
-      <TableRow 
+      <TableRow
         className={`expandable-row ${isExpanded ? 'expandable-row-expanded' : ''}`}
         onClick={handleToggleExpansion}
         onKeyDown={handleKeyDown}
@@ -62,12 +61,12 @@ function ExpandableTableRow({
         {columns.map((col, colIndex) => {
           const value = row[col.key];
           const displayValue = col.render ? col.render(value, row) : value;
-          
+
           // Add expand icon to the designated column
           const isIconColumn = col.key === iconColumnKey;
-          
+
           return (
-            <TableCell 
+            <TableCell
               key={col.key || colIndex}
               truncate={col.truncate !== false}
               className={`${col.cellClass || ''} ${isIconColumn ? 'expandable-icon-cell' : ''}`}
@@ -85,11 +84,9 @@ function ExpandableTableRow({
                     {isExpanded ? '▼' : '▶'}
                   </button>
                 )}
-                
+
                 {/* Cell Content */}
-                <span className="cell-value">
-                  {displayValue}
-                </span>
+                <span className="cell-value">{displayValue}</span>
               </div>
             </TableCell>
           );
@@ -99,12 +96,8 @@ function ExpandableTableRow({
       {/* Expanded Content Row */}
       {isExpanded && (
         <TableRow className="expandable-content-row">
-          <TableCell 
-            colSpan={columns.length}
-            className="expandable-content-cell"
-            truncate={false}
-          >
-            <ExpandableContent 
+          <TableCell colSpan={columns.length} className="expandable-content-cell" truncate={false}>
+            <ExpandableContent
               row={row}
               renderContent={renderExpandedContent}
               animateExpansion={animateExpansion}

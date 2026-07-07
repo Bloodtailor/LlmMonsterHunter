@@ -11,7 +11,7 @@ import {
   getNextPage,
   getPrevPage,
   createPaginationInfo,
-  normalizePage
+  normalizePage,
 } from './paginationUtils.js';
 
 /**
@@ -23,11 +23,7 @@ import {
  * @returns {object} Pagination state and actions
  */
 export function usePagination(options = {}) {
-  const {
-    limit = 12,
-    total = null,
-    initialPage = 1
-  } = options;
+  const { limit = 12, total = null, initialPage = 1 } = options;
 
   // Core pagination state
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -62,17 +58,20 @@ export function usePagination(options = {}) {
    * Automatically normalizes page to valid range if total is known
    * @param {number} page - Target page (1-based)
    */
-  const goToPage = useCallback((page) => {
-    if (totalPages !== null) {
-      // Normalize page to valid range when total is known
-      const validPage = normalizePage(page, totalPages);
-      setCurrentPage(validPage);
-    } else {
-      // When total unknown, just ensure page >= 1
-      const safePage = Math.max(1, page);
-      setCurrentPage(safePage);
-    }
-  }, [totalPages]);
+  const goToPage = useCallback(
+    (page) => {
+      if (totalPages !== null) {
+        // Normalize page to valid range when total is known
+        const validPage = normalizePage(page, totalPages);
+        setCurrentPage(validPage);
+      } else {
+        // When total unknown, just ensure page >= 1
+        const safePage = Math.max(1, page);
+        setCurrentPage(safePage);
+      }
+    },
+    [totalPages],
+  );
 
   /**
    * Navigate to next page
@@ -87,7 +86,7 @@ export function usePagination(options = {}) {
       }
     } else {
       // When total unknown, just increment (component should handle limits)
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   }, [currentPage, totalPages]);
 
@@ -130,17 +129,20 @@ export function usePagination(options = {}) {
    * Useful when user changes items per page
    * @param {number} newLimit - New items per page
    */
-  const setLimit = useCallback((newLimit) => {
-    if (total !== null) {
-      // Calculate what the current page should be with new limit
-      const currentOffset = calculateOffset(currentPage, limit);
-      const newPage = Math.floor(currentOffset / newLimit) + 1;
-      const newTotalPages = calculateTotalPages(total, newLimit);
-      const validPage = normalizePage(newPage, newTotalPages);
-      setCurrentPage(validPage);
-    }
-    // Note: Component should update the limit in its own state
-  }, [currentPage, limit, total]);
+  const setLimit = useCallback(
+    (newLimit) => {
+      if (total !== null) {
+        // Calculate what the current page should be with new limit
+        const currentOffset = calculateOffset(currentPage, limit);
+        const newPage = Math.floor(currentOffset / newLimit) + 1;
+        const newTotalPages = calculateTotalPages(total, newLimit);
+        const validPage = normalizePage(newPage, newTotalPages);
+        setCurrentPage(validPage);
+      }
+      // Note: Component should update the limit in its own state
+    },
+    [currentPage, limit, total],
+  );
 
   return {
     // Current state
@@ -179,8 +181,8 @@ export function usePagination(options = {}) {
       hasNextPage,
       hasPrevPage,
       createPaginationInfo,
-      normalizePage
-    }
+      normalizePage,
+    },
   };
 }
 
@@ -192,17 +194,17 @@ export function usePagination(options = {}) {
  */
 export function useSimplePagination(initialPage = 1) {
   const [currentPage, setCurrentPage] = useState(initialPage);
-  
+
   const goToPage = useCallback((page) => {
     setCurrentPage(Math.max(1, page));
   }, []);
 
   const nextPage = useCallback(() => {
-    setCurrentPage(prev => prev + 1);
+    setCurrentPage((prev) => prev + 1);
   }, []);
 
   const prevPage = useCallback(() => {
-    setCurrentPage(prev => Math.max(1, prev - 1));
+    setCurrentPage((prev) => Math.max(1, prev - 1));
   }, []);
 
   const reset = useCallback(() => {
@@ -215,16 +217,16 @@ export function useSimplePagination(initialPage = 1) {
     goToPage,
     nextPage,
     prevPage,
-    reset
+    reset,
   };
 }
 
 // Usage Examples:
 //
 // Basic usage (when you know total):
-// const pagination = usePagination({ 
-//   limit: 12, 
-//   total: 150 
+// const pagination = usePagination({
+//   limit: 12,
+//   total: 150
 // });
 //
 // Usage when total unknown (infinite scroll, etc.):

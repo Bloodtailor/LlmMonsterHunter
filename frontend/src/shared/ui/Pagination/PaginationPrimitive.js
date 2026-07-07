@@ -22,32 +22,21 @@ function Pagination({
   className = '',
   ...rest
 }) {
-  
   // Don't render if no pagination data
   if (!pagination || !pagination.paginationInfo) {
     return null;
   }
 
-  const {
-    currentPage,
-    totalPages,
-    hasNext,
-    hasPrev,
-    isFirstPage,
-    isLastPage,
-    paginationInfo
-  } = pagination;
+  const { currentPage, totalPages, hasNext, hasPrev, isFirstPage, isLastPage, paginationInfo } =
+    pagination;
 
-  const paginationClasses = [
-    'pagination',
-    className
-  ].filter(Boolean).join(' ');
+  const paginationClasses = ['pagination', className].filter(Boolean).join(' ');
 
   // Render page number or ellipsis - FIXED VERSION
   const renderPageItem = (page, index) => {
     // Use index as key to avoid conflicts between numbers and "..."
     const itemKey = `page-item-${index}`;
-    
+
     if (page === '...') {
       return (
         <span key={itemKey} className="pagination-ellipsis" style={{ margin: '0 4px' }}>
@@ -57,7 +46,7 @@ function Pagination({
     }
 
     const isCurrentPage = page === currentPage;
-    
+
     return (
       <Button
         key={itemKey}
@@ -74,9 +63,15 @@ function Pagination({
   };
 
   return (
-    <div className={paginationClasses} style={{ display: 'flex', alignItems: 'center', gap: '8px' }} {...rest}>
-      <div className="pagination-controls" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        
+    <div
+      className={paginationClasses}
+      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+      {...rest}
+    >
+      <div
+        className="pagination-controls"
+        style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+      >
         {/* First Page Button */}
         {showFirstLast && (
           <IconButton
@@ -133,7 +128,6 @@ function Pagination({
             className="pagination-last"
           />
         )}
-
       </div>
     </div>
   );

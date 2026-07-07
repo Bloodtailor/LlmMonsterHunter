@@ -24,7 +24,6 @@ function ContextBlock({ title, text, note }) {
 }
 
 function DungeonContextPanel() {
-
   // Start minimized - this is a monitoring tool, not the main show
   const [isMinimized, setIsMinimized] = useState(true);
   const [context, setContext] = useState(null);
@@ -75,20 +74,14 @@ function DungeonContextPanel() {
 
   return (
     <div className={`debug-panel ${isMinimized ? 'debug-panel-minimized' : ''}`}>
-
       {/* Header - always visible, click to toggle */}
-      <div
-        className="debug-panel-header"
-        onClick={() => setIsMinimized(!isMinimized)}
-      >
+      <div className="debug-panel-header" onClick={() => setIsMinimized(!isMinimized)}>
         <div className="debug-panel-status">
           <Badge variant={inBattle ? 'error' : inDungeon ? 'success' : 'info'}>
             {inBattle ? '⚔️ Battle' : inDungeon ? '🧭 Dungeon' : '🔍 Context'}
           </Badge>
           {!isMinimized && lastRefreshed && (
-            <span className="debug-panel-note">
-              {lastRefreshed.toLocaleTimeString()}
-            </span>
+            <span className="debug-panel-note">{lastRefreshed.toLocaleTimeString()}</span>
           )}
         </div>
 
@@ -97,7 +90,10 @@ function DungeonContextPanel() {
             <Button
               size="sm"
               variant="ghost"
-              onClick={(e) => { e.stopPropagation(); refresh(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                refresh();
+              }}
             >
               🔄
             </Button>
@@ -112,7 +108,6 @@ function DungeonContextPanel() {
       {!isMinimized && (
         <Card>
           <div className="debug-panel-scroll">
-
             {!inDungeon && (
               <CardSection size="sm" title="Not in a dungeon">
                 <div className="debug-panel-note">
@@ -149,7 +144,8 @@ function DungeonContextPanel() {
                   <>
                     <CardSection size="sm" title={`🎭 Encounter: ${encounter.event}`}>
                       <div className="debug-panel-note">
-                        {encounter.monsters_present != null && `monsters_present: ${encounter.monsters_present} · `}
+                        {encounter.monsters_present != null &&
+                          `monsters_present: ${encounter.monsters_present} · `}
                         {encounter.camped != null && `camped: ${encounter.camped} · `}
                         monster_ids: {JSON.stringify(encounter.monster_ids)}
                       </div>
@@ -168,7 +164,10 @@ function DungeonContextPanel() {
                 {/* Battle context - what the referee and turn director see */}
                 {inBattle && (
                   <>
-                    <CardSection size="sm" title={`⚔️ Battle (phase: ${battle.phase}, turn ${battle.turn_count})`} />
+                    <CardSection
+                      size="sm"
+                      title={`⚔️ Battle (phase: ${battle.phase}, turn ${battle.turn_count})`}
+                    />
                     <ContextBlock
                       title="Battle Situation (as sent to LLM)"
                       text={battle.situation_text}

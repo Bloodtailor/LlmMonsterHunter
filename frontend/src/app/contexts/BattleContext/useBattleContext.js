@@ -16,7 +16,7 @@ export function useBattleContext() {
   if (context === null) {
     throw new Error(
       'useBattleContext must be used within a BattleProvider. ' +
-      'Make sure your component is wrapped with <BattleProvider>.'
+        'Make sure your component is wrapped with <BattleProvider>.',
     );
   }
 

@@ -27,11 +27,7 @@ function DungeonEntryText() {
 
   const displayText = entryText || 'Preparing your dungeon entry...';
 
-  return (
-    <div style={textStyles}>
-      {displayText}
-    </div>
-  );
+  return <div style={textStyles}>{displayText}</div>;
 }
 
 export default DungeonEntryText;

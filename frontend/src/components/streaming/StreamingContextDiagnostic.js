@@ -9,14 +9,13 @@ import { useEventSubscription } from '../../api/events/useEventSubscription.js';
 import './streamingContextDiagnostic.css';
 
 function StreamingContextDiagnostic() {
-
   // Connection state and controls from context
   const { isConnected, connectionError, connect, disconnect } = useEventContext();
 
   // Capture the last payload of every broadcast event via wildcard subscription
   const [lastEvents, setLastEvents] = useState({});
   useEventSubscription('*', (eventData, eventName) => {
-    setLastEvents(prev => ({ ...prev, [`${eventName}Event`]: eventData }));
+    setLastEvents((prev) => ({ ...prev, [`${eventName}Event`]: eventData }));
   });
 
   // Same display shape the old context provided: connection + one key per event
@@ -28,7 +27,7 @@ function StreamingContextDiagnostic() {
 
   // Get all keys except functions and sort alphabetically
   const allKeys = Object.keys(streamingState)
-    .filter(key => typeof streamingState[key] !== 'function')
+    .filter((key) => typeof streamingState[key] !== 'function')
     .sort();
 
   const toggleExpanded = (itemKey) => {
@@ -43,10 +42,10 @@ function StreamingContextDiagnostic() {
 
   const expandAll = () => {
     const allExpandableItems = new Set();
-    
+
     const findExpandableItems = (obj, basePath) => {
       if (typeof obj === 'object' && obj !== null) {
-        Object.keys(obj).forEach(objKey => {
+        Object.keys(obj).forEach((objKey) => {
           const itemPath = `${basePath}.${objKey}`;
           if (typeof obj[objKey] === 'object' && obj[objKey] !== null) {
             allExpandableItems.add(itemPath);
@@ -56,7 +55,7 @@ function StreamingContextDiagnostic() {
       }
     };
 
-    allKeys.forEach(key => {
+    allKeys.forEach((key) => {
       const value = streamingState[key];
       if (typeof value === 'object' && value !== null) {
         // This matches the path created in renderObjectProperty: parentPath.key
@@ -110,13 +109,16 @@ function StreamingContextDiagnostic() {
 
   // Object property renderer with expand functionality
   const renderObjectProperty = (key, value, parentPath = '') => {
-
     const formatSimpleValue = (val) => {
       if (val === null || val === undefined) {
         return <span className="value-null">null</span>;
       }
       if (typeof val === 'boolean') {
-        return <StatusBadge status={val ? 'success' : 'error'} size="sm">{String(val)}</StatusBadge>;
+        return (
+          <StatusBadge status={val ? 'success' : 'error'} size="sm">
+            {String(val)}
+          </StatusBadge>
+        );
       }
       if (val instanceof Date) {
         return <code>{val.toLocaleString()}</code>;
@@ -126,9 +128,7 @@ function StreamingContextDiagnostic() {
           return (
             <details>
               <summary>({val.length} characters)</summary>
-              <pre className="value-string-long-content">
-                {val}
-              </pre>
+              <pre className="value-string-long-content">{val}</pre>
             </details>
           );
         }
@@ -144,32 +144,27 @@ function StreamingContextDiagnostic() {
       const objectKeys = Object.keys(value);
       const currentPath = parentPath ? `${parentPath}.${key}` : key;
       const isExpanded = expandedItems.has(currentPath);
-      
+
       return (
         <div key={key} className="object-property">
           <div className="object-header">
             <strong>{key}:</strong>
             <span className="property-count">({objectKeys.length} properties)</span>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              onClick={() => toggleExpanded(currentPath)}
-            >
+            <Button size="sm" variant="ghost" onClick={() => toggleExpanded(currentPath)}>
               {isExpanded ? '▼' : '▶'} {isExpanded ? 'Collapse' : 'Expand'}
             </Button>
           </div>
-          
+
           {isExpanded && (
             <div className="nested-object-container">
-              {objectKeys.map(objKey => (
+              {objectKeys.map((objKey) => (
                 <div key={objKey} className="nested-property">
                   <div className="nested-property-row">
                     <span className="property-key">{objKey}:</span>
                     <div>
-                      {typeof value[objKey] === 'object' && value[objKey] !== null ? 
-                        renderObjectProperty(objKey, value[objKey], currentPath) :
-                        formatSimpleValue(value[objKey])
-                      }
+                      {typeof value[objKey] === 'object' && value[objKey] !== null
+                        ? renderObjectProperty(objKey, value[objKey], currentPath)
+                        : formatSimpleValue(value[objKey])}
                     </div>
                   </div>
                 </div>
@@ -179,7 +174,7 @@ function StreamingContextDiagnostic() {
         </div>
       );
     }
-    
+
     return formatSimpleValue(value);
   };
 
@@ -188,43 +183,44 @@ function StreamingContextDiagnostic() {
     if (typeof value === 'object' && value !== null) {
       return renderObjectProperty('root', value, key);
     }
-    
+
     if (value === null || value === undefined) {
       return <span className="value-null">null</span>;
     }
-    
+
     if (typeof value === 'boolean') {
-      return <StatusBadge status={value ? 'success' : 'error'} size="sm">{String(value)}</StatusBadge>;
+      return (
+        <StatusBadge status={value ? 'success' : 'error'} size="sm">
+          {String(value)}
+        </StatusBadge>
+      );
     }
-    
+
     if (value instanceof Date) {
       return <code>{value.toLocaleString()}</code>;
     }
-    
+
     if (typeof value === 'string') {
       if (value.length > 100) {
         return (
           <details>
             <summary>({value.length} characters)</summary>
-            <pre className="value-string-long-content">
-              {value}
-            </pre>
+            <pre className="value-string-long-content">{value}</pre>
           </details>
         );
       }
       return <code>"{value}"</code>;
     }
-    
+
     if (typeof value === 'number') {
       return <strong>{value}</strong>;
     }
-    
+
     return String(value);
   };
 
   return (
     <div>
-      
       {/* Connection Controls */}
       <Card className="section-spacing">
         <CardSection>
@@ -258,9 +254,9 @@ function StreamingContextDiagnostic() {
             <Button onClick={collapseAll} size="sm" variant="secondary">
               📁 Collapse All
             </Button>
-            <Button 
-              onClick={() => setShowRawMode(!showRawMode)} 
-              size="sm" 
+            <Button
+              onClick={() => setShowRawMode(!showRawMode)}
+              size="sm"
               variant={showRawMode ? 'primary' : 'secondary'}
             >
               {showRawMode ? '📋 Formatted View' : '🔍 Raw JSON View'}
@@ -274,17 +270,17 @@ function StreamingContextDiagnostic() {
 
       {/* All State Keys */}
       <h2>All Streaming State ({allKeys.length} fields)</h2>
-      
-      {allKeys.map(key => (
+
+      {allKeys.map((key) => (
         <Card key={key} className="card-spacing">
           {showRawMode ? (
-            <CardSection 
+            <CardSection
               title={
                 <div className="object-header">
                   <span>{key}</span>
-                  <Button 
-                    onClick={() => copyIndividualData(key, streamingState[key])} 
-                    size="sm" 
+                  <Button
+                    onClick={() => copyIndividualData(key, streamingState[key])}
+                    size="sm"
                     variant="ghost"
                   >
                     📋 Copy
@@ -292,18 +288,13 @@ function StreamingContextDiagnostic() {
                 </div>
               }
             >
-              <pre className="raw-json-pre">
-                {JSON.stringify(streamingState[key], null, 2)}
-              </pre>
+              <pre className="raw-json-pre">{JSON.stringify(streamingState[key], null, 2)}</pre>
             </CardSection>
           ) : (
-            <CardSection title={key}>
-              {formatValue(key, streamingState[key])}
-            </CardSection>
+            <CardSection title={key}>{formatValue(key, streamingState[key])}</CardSection>
           )}
         </Card>
       ))}
-
     </div>
   );
 }

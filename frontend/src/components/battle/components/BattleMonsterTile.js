@@ -14,7 +14,7 @@ const CONDITION_VARIANTS = {
   wounded: 'warning',
   battered: 'warning',
   critical: 'error',
-  incapacitated: 'error'
+  incapacitated: 'error',
 };
 
 /**
@@ -27,14 +27,16 @@ function BattleMonsterTile({ monster, entry }) {
   const isDown = condition === 'incapacitated';
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '8px',
-      opacity: isDown ? 0.4 : 1,
-      transition: 'opacity 0.4s ease'
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '8px',
+        opacity: isDown ? 0.4 : 1,
+        transition: 'opacity 0.4s ease',
+      }}
+    >
       {monster ? (
         <MonsterCard monster={monster} size="sm" hideFlipHint={true} />
       ) : (
@@ -50,7 +52,9 @@ function BattleMonsterTile({ monster, entry }) {
           {condition}
         </Badge>
         {entry?.defending && !isDown && (
-          <Badge variant="secondary" size="sm">🛡️ defending</Badge>
+          <Badge variant="secondary" size="sm">
+            🛡️ defending
+          </Badge>
         )}
       </div>
 

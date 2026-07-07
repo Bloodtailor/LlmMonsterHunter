@@ -15,28 +15,28 @@
 /* For page-level headings, main page titles */
 
 .title-sm {
-  font-size: var(--font-size-lg);   
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .title-md {
-  font-size: var(--font-size-xl);   
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .title-lg {
-  font-size: var(--font-size-2xl);  
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .title-xl {
-  font-size: var(--font-size-3xl);   
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
@@ -46,28 +46,28 @@
 /* For section headings, card titles, component headers */
 
 .header-sm {
-  font-size: var(--font-size-md);    
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .header-md {
-  font-size: var(--font-size-lg);    
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .header-lg {
-  font-size: var(--font-size-xl);   
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
 }
 
 .header-xl {
-  font-size: var(--font-size-2xl);    
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
@@ -77,28 +77,28 @@
 /* For secondary headings, species, type labels */
 
 .subtitle-sm {
-  font-size: var(--font-size-xs);    /* 12px */
+  font-size: var(--font-size-xs); /* 12px */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
   color: var(--color-text-secondary);
 }
 
 .subtitle-md {
-  font-size: var(--font-size-sm);    /* 14px */
+  font-size: var(--font-size-sm); /* 14px */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
   color: var(--color-text-secondary);
 }
 
 .subtitle-lg {
-  font-size: var(--font-size-md);    /* 16px */
+  font-size: var(--font-size-md); /* 16px */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
   color: var(--color-text-secondary);
 }
 
 .subtitle-xl {
-  font-size: var(--font-size-lg);    /* 18px */
+  font-size: var(--font-size-lg); /* 18px */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-normal);
   color: var(--color-text-secondary);
@@ -108,28 +108,28 @@
 /* For descriptions, main content, paragraphs */
 
 .body-sm {
-  font-size: var(--font-size-xs);    /* 12px */
+  font-size: var(--font-size-xs); /* 12px */
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-primary);
 }
 
 .body-md {
-  font-size: var(--font-size-sm);    /* 14px */
+  font-size: var(--font-size-sm); /* 14px */
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-primary);
 }
 
 .body-lg {
-  font-size: var(--font-size-md);    /* 16px */
+  font-size: var(--font-size-md); /* 16px */
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-primary);
 }
 
 .body-xl {
-  font-size: var(--font-size-lg);    /* 18px */
+  font-size: var(--font-size-lg); /* 18px */
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-primary);
@@ -139,28 +139,28 @@
 /* For small labels, level indicators, meta info */
 
 .caption-sm {
-  font-size: var(--font-size-xs);    /* 12px */
+  font-size: var(--font-size-xs); /* 12px */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
   color: var(--color-text-muted);
 }
 
 .caption-md {
-  font-size: var(--font-size-xs);    /* 12px - stays small */
+  font-size: var(--font-size-xs); /* 12px - stays small */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
   color: var(--color-text-muted);
 }
 
 .caption-lg {
-  font-size: var(--font-size-sm);    /* 14px */
+  font-size: var(--font-size-sm); /* 14px */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
   color: var(--color-text-muted);
 }
 
 .caption-xl {
-  font-size: var(--font-size-sm);    /* 14px - conservative scaling */
+  font-size: var(--font-size-sm); /* 14px - conservative scaling */
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
   color: var(--color-text-muted);
@@ -170,7 +170,7 @@
 /* For text displayed over images (white text with shadows) */
 
 .overlay-sm {
-  font-size: var(--font-size-sm);    /* 14px */
+  font-size: var(--font-size-sm); /* 14px */
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: white;
@@ -178,7 +178,7 @@
 }
 
 .overlay-md {
-  font-size: var(--font-size-md);    /* 16px */
+  font-size: var(--font-size-md); /* 16px */
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: white;
@@ -186,7 +186,7 @@
 }
 
 .overlay-lg {
-  font-size: var(--font-size-lg);    /* 18px */
+  font-size: var(--font-size-lg); /* 18px */
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: white;
@@ -194,7 +194,7 @@
 }
 
 .overlay-xl {
-  font-size: var(--font-size-xl);    /* 20px */
+  font-size: var(--font-size-xl); /* 20px */
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   color: white;
@@ -206,18 +206,30 @@
 
 @media (max-width: var(--breakpoint-tablet)) {
   /* Reduce xl typography by one step on tablets */
-  .title-xl, .header-xl, .subtitle-xl, .body-xl, .overlay-xl {
+  .title-xl,
+  .header-xl,
+  .subtitle-xl,
+  .body-xl,
+  .overlay-xl {
     font-size: var(--font-size-lg);
   }
 }
 
 @media (max-width: var(--breakpoint-mobile)) {
   /* More aggressive scaling on mobile */
-  .title-lg, .header-lg, .subtitle-lg, .body-lg, .overlay-lg {
+  .title-lg,
+  .header-lg,
+  .subtitle-lg,
+  .body-lg,
+  .overlay-lg {
     font-size: var(--font-size-md);
   }
-  
-  .title-xl, .header-xl, .subtitle-xl, .body-xl, .overlay-xl {
+
+  .title-xl,
+  .header-xl,
+  .subtitle-xl,
+  .body-xl,
+  .overlay-xl {
     font-size: var(--font-size-md);
   }
 }

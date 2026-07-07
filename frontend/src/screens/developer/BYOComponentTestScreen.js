@@ -1,25 +1,49 @@
 import React, { useState } from 'react';
 import {
-  Button, IconButton, ButtonGroup,
-  Badge, StatusBadge, CountBadge,
-  LoadingSpinner, LoadingContainer, LoadingSkeleton,
-  Alert, EmptyState,
-  Card, CardSection,
-  Input, Textarea, Select, SearchInput, FormField,
-  BUTTON_VARIANTS, BUTTON_SIZES,
-  BADGE_VARIANTS, BADGE_SIZES, STATUS_TYPES, COUNT_FORMATS,
-  LOADING_SIZES, LOADING_COLORS, LOADING_TYPES,
-  ALERT_TYPES, ALERT_SIZES,
-  EMPTY_STATE_SIZES, EMPTY_STATE_VARIANTS, EMPTY_STATE_PRESETS,
-  CARD_VARIANTS, CARD_PADDING, CARD_BACKGROUNDS,
-  CARD_SECTION_TYPES, CARD_SECTION_ALIGNMENT
+  Button,
+  IconButton,
+  ButtonGroup,
+  Badge,
+  StatusBadge,
+  CountBadge,
+  LoadingSpinner,
+  LoadingContainer,
+  LoadingSkeleton,
+  Alert,
+  EmptyState,
+  Card,
+  CardSection,
+  Input,
+  Textarea,
+  Select,
+  SearchInput,
+  FormField,
+  BUTTON_VARIANTS,
+  BUTTON_SIZES,
+  BADGE_VARIANTS,
+  BADGE_SIZES,
+  STATUS_TYPES,
+  COUNT_FORMATS,
+  LOADING_SIZES,
+  LOADING_COLORS,
+  LOADING_TYPES,
+  ALERT_TYPES,
+  ALERT_SIZES,
+  EMPTY_STATE_SIZES,
+  EMPTY_STATE_VARIANTS,
+  EMPTY_STATE_PRESETS,
+  CARD_VARIANTS,
+  CARD_PADDING,
+  CARD_BACKGROUNDS,
+  CARD_SECTION_TYPES,
+  CARD_SECTION_ALIGNMENT,
 } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 
 function BYOComponentTestScreen() {
   // Component selection state
   const [selectedComponent, setSelectedComponent] = useState('Button');
-  
+
   // Component configuration states
   const [buttonConfig, setButtonConfig] = useState({
     variant: 'primary',
@@ -28,7 +52,7 @@ function BYOComponentTestScreen() {
     loading: false,
     icon: '',
     iconPosition: 'left',
-    children: 'Click Me'
+    children: 'Click Me',
   });
 
   const [badgeConfig, setBadgeConfig] = useState({
@@ -37,7 +61,7 @@ function BYOComponentTestScreen() {
     pill: false,
     outlined: false,
     removable: false,
-    children: 'Badge Text'
+    children: 'Badge Text',
   });
 
   const [statusBadgeConfig, setStatusBadgeConfig] = useState({
@@ -45,7 +69,7 @@ function BYOComponentTestScreen() {
     size: 'md',
     showIcon: true,
     outlined: false,
-    children: ''
+    children: '',
   });
 
   const [countBadgeConfig, setCountBadgeConfig] = useState({
@@ -55,13 +79,13 @@ function BYOComponentTestScreen() {
     size: 'md',
     label: '',
     icon: '',
-    warningThreshold: ''
+    warningThreshold: '',
   });
 
   const [loadingSpinnerConfig, setLoadingSpinnerConfig] = useState({
     size: 'md',
     color: 'primary',
-    type: 'spin'
+    type: 'spin',
   });
 
   const [alertConfig, setAlertConfig] = useState({
@@ -71,7 +95,7 @@ function BYOComponentTestScreen() {
     closeable: false,
     showIcon: true,
     title: 'Alert Title',
-    children: 'This is an alert message.'
+    children: 'This is an alert message.',
   });
 
   const [emptyStateConfig, setEmptyStateConfig] = useState({
@@ -80,7 +104,7 @@ function BYOComponentTestScreen() {
     centered: true,
     icon: '📋',
     title: 'No Data Found',
-    message: 'Nothing to display here.'
+    message: 'Nothing to display here.',
   });
 
   const [cardConfig, setCardConfig] = useState({
@@ -89,7 +113,7 @@ function BYOComponentTestScreen() {
     padding: 'md',
     background: 'default',
     interactive: false,
-    children: 'Card content goes here.'
+    children: 'Card content goes here.',
   });
 
   const [inputConfig, setInputConfig] = useState({
@@ -97,13 +121,24 @@ function BYOComponentTestScreen() {
     placeholder: 'Enter text...',
     disabled: false,
     error: '',
-    value: ''
+    value: '',
   });
 
   // Available component types
   const componentTypes = [
-    'Button', 'IconButton', 'Badge', 'StatusBadge', 'CountBadge',
-    'LoadingSpinner', 'Alert', 'EmptyState', 'Card', 'Input', 'Textarea', 'Select', 'SearchInput'
+    'Button',
+    'IconButton',
+    'Badge',
+    'StatusBadge',
+    'CountBadge',
+    'LoadingSpinner',
+    'Alert',
+    'EmptyState',
+    'Card',
+    'Input',
+    'Textarea',
+    'Select',
+    'SearchInput',
   ];
 
   // Icon options for components
@@ -122,7 +157,7 @@ function BYOComponentTestScreen() {
       Card: setCardConfig,
       Input: setInputConfig,
       Textarea: setInputConfig,
-      SearchInput: setInputConfig
+      SearchInput: setInputConfig,
     };
 
     const configs = {
@@ -136,12 +171,12 @@ function BYOComponentTestScreen() {
       Card: cardConfig,
       Input: inputConfig,
       Textarea: inputConfig,
-      SearchInput: inputConfig
+      SearchInput: inputConfig,
     };
 
     const setter = setters[component];
     const currentConfig = configs[component];
-    
+
     if (setter && currentConfig) {
       setter({ ...currentConfig, [field]: value });
     }
@@ -152,7 +187,13 @@ function BYOComponentTestScreen() {
     switch (selectedComponent) {
       case 'Button':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Variant">
               <Select
                 value={buttonConfig.variant}
@@ -171,7 +212,7 @@ function BYOComponentTestScreen() {
               <Select
                 value={buttonConfig.icon}
                 onChange={(e) => updateConfig('Button', 'icon', e.target.value)}
-                options={iconOptions.map(icon => ({ value: icon, label: icon || 'None' }))}
+                options={iconOptions.map((icon) => ({ value: icon, label: icon || 'None' }))}
               />
             </FormField>
             <FormField label="Icon Position">
@@ -211,7 +252,13 @@ function BYOComponentTestScreen() {
 
       case 'IconButton':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Variant">
               <Select
                 value={buttonConfig.variant}
@@ -230,7 +277,9 @@ function BYOComponentTestScreen() {
               <Select
                 value={buttonConfig.icon || '🚀'}
                 onChange={(e) => updateConfig('Button', 'icon', e.target.value)}
-                options={iconOptions.filter(icon => icon).map(icon => ({ value: icon, label: icon }))}
+                options={iconOptions
+                  .filter((icon) => icon)
+                  .map((icon) => ({ value: icon, label: icon }))}
               />
             </FormField>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -246,7 +295,13 @@ function BYOComponentTestScreen() {
 
       case 'Badge':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Variant">
               <Select
                 value={badgeConfig.variant}
@@ -299,7 +354,13 @@ function BYOComponentTestScreen() {
 
       case 'StatusBadge':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Status">
               <Select
                 value={statusBadgeConfig.status}
@@ -344,7 +405,13 @@ function BYOComponentTestScreen() {
 
       case 'CountBadge':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Count">
               <Input
                 type="number"
@@ -357,7 +424,9 @@ function BYOComponentTestScreen() {
               <Input
                 type="number"
                 value={countBadgeConfig.max || ''}
-                onChange={(e) => updateConfig('CountBadge', 'max', parseInt(e.target.value) || null)}
+                onChange={(e) =>
+                  updateConfig('CountBadge', 'max', parseInt(e.target.value) || null)
+                }
                 placeholder="10"
               />
             </FormField>
@@ -386,7 +455,7 @@ function BYOComponentTestScreen() {
               <Select
                 value={countBadgeConfig.icon}
                 onChange={(e) => updateConfig('CountBadge', 'icon', e.target.value)}
-                options={iconOptions.map(icon => ({ value: icon, label: icon || 'None' }))}
+                options={iconOptions.map((icon) => ({ value: icon, label: icon || 'None' }))}
               />
             </FormField>
           </div>
@@ -394,7 +463,13 @@ function BYOComponentTestScreen() {
 
       case 'LoadingSpinner':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Type">
               <Select
                 value={loadingSpinnerConfig.type}
@@ -421,7 +496,13 @@ function BYOComponentTestScreen() {
 
       case 'Alert':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Type">
               <Select
                 value={alertConfig.type}
@@ -482,7 +563,13 @@ function BYOComponentTestScreen() {
 
       case 'EmptyState':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Size">
               <Select
                 value={emptyStateConfig.size}
@@ -501,7 +588,9 @@ function BYOComponentTestScreen() {
               <Select
                 value={emptyStateConfig.icon}
                 onChange={(e) => updateConfig('EmptyState', 'icon', e.target.value)}
-                options={iconOptions.filter(icon => icon).map(icon => ({ value: icon, label: icon }))}
+                options={iconOptions
+                  .filter((icon) => icon)
+                  .map((icon) => ({ value: icon, label: icon }))}
               />
             </FormField>
             <FormField label="Title">
@@ -532,7 +621,13 @@ function BYOComponentTestScreen() {
 
       case 'Card':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Variant">
               <Select
                 value={cardConfig.variant}
@@ -583,7 +678,13 @@ function BYOComponentTestScreen() {
       case 'Input':
       case 'SearchInput':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             {selectedComponent === 'Input' && (
               <FormField label="Type">
                 <Select
@@ -627,7 +728,13 @@ function BYOComponentTestScreen() {
 
       case 'Textarea':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Placeholder">
               <Input
                 value={inputConfig.placeholder}
@@ -663,7 +770,13 @@ function BYOComponentTestScreen() {
 
       case 'Select':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem',
+            }}
+          >
             <FormField label="Placeholder">
               <Input
                 value={inputConfig.placeholder}
@@ -847,7 +960,7 @@ function BYOComponentTestScreen() {
               { value: 'fire', label: '🔥 Fire', icon: '🔥' },
               { value: 'water', label: '💧 Water', icon: '💧' },
               { value: 'earth', label: '🌍 Earth', icon: '🌍' },
-              { value: 'air', label: '💨 Air', icon: '💨' }
+              { value: 'air', label: '💨 Air', icon: '💨' },
             ]}
             onChange={() => {}}
           />
@@ -874,24 +987,27 @@ function BYOComponentTestScreen() {
     switch (selectedComponent) {
       case 'Button':
         const buttonProps = [];
-        if (buttonConfig.variant !== 'primary') buttonProps.push(`variant="${buttonConfig.variant}"`);
+        if (buttonConfig.variant !== 'primary')
+          buttonProps.push(`variant="${buttonConfig.variant}"`);
         if (buttonConfig.size !== 'md') buttonProps.push(`size="${buttonConfig.size}"`);
         if (buttonConfig.disabled) buttonProps.push('disabled');
         if (buttonConfig.loading) buttonProps.push('loading');
         if (buttonConfig.icon) buttonProps.push(`icon="${buttonConfig.icon}"`);
-        if (buttonConfig.iconPosition !== 'left') buttonProps.push(`iconPosition="${buttonConfig.iconPosition}"`);
-        
+        if (buttonConfig.iconPosition !== 'left')
+          buttonProps.push(`iconPosition="${buttonConfig.iconPosition}"`);
+
         return `<Button${buttonProps.length ? ' ' + buttonProps.join(' ') : ''}>
   ${buttonConfig.children}
 </Button>`;
 
       case 'StatusBadge':
         const statusProps = [];
-        if (statusBadgeConfig.status !== 'success') statusProps.push(`status="${statusBadgeConfig.status}"`);
+        if (statusBadgeConfig.status !== 'success')
+          statusProps.push(`status="${statusBadgeConfig.status}"`);
         if (statusBadgeConfig.size !== 'md') statusProps.push(`size="${statusBadgeConfig.size}"`);
         if (!statusBadgeConfig.showIcon) statusProps.push('showIcon={false}');
         if (statusBadgeConfig.outlined) statusProps.push('outlined');
-        
+
         return `<StatusBadge${statusProps.length ? ' ' + statusProps.join(' ') : ''}${statusBadgeConfig.children ? '>' : ' />'} ${statusBadgeConfig.children ? '\n  ' + statusBadgeConfig.children + '\n</StatusBadge>' : ''}`;
 
       // Add more cases for other components as needed
@@ -901,14 +1017,15 @@ function BYOComponentTestScreen() {
   };
 
   return (
-    <div style={{ 
-      padding: '2rem',
-      backgroundColor: '#1a1a2e',
-      minHeight: '100vh',
-      fontFamily: 'Segoe UI, sans-serif'
-    }}>
+    <div
+      style={{
+        padding: '2rem',
+        backgroundColor: '#1a1a2e',
+        minHeight: '100vh',
+        fontFamily: 'Segoe UI, sans-serif',
+      }}
+    >
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <h1 style={{ color: '#f39c12', fontSize: '2.5rem', marginBottom: '1rem' }}>
@@ -936,14 +1053,18 @@ function BYOComponentTestScreen() {
         </div>
 
         {/* Main Layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
-          
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '2rem',
+            alignItems: 'start',
+          }}
+        >
           {/* Configuration Panel */}
           <Card variant="elevated" padding="md" style={{ height: 'fit-content' }}>
             <CardSection type="header" title="⚙️ Configuration" />
-            <CardSection type="content">
-              {renderConfigControls()}
-            </CardSection>
+            <CardSection type="content">{renderConfigControls()}</CardSection>
           </Card>
 
           {/* Preview Panel */}
@@ -952,16 +1073,18 @@ function BYOComponentTestScreen() {
             <Card variant="outlined" padding="lg">
               <CardSection type="header" title="👀 Live Preview" />
               <CardSection type="content">
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center',
-                  minHeight: '150px',
-                  padding: '2rem',
-                  border: '2px dashed #4a90e2',
-                  borderRadius: '8px',
-                  backgroundColor: '#16213e'
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '150px',
+                    padding: '2rem',
+                    border: '2px dashed #4a90e2',
+                    borderRadius: '8px',
+                    backgroundColor: '#16213e',
+                  }}
+                >
                   {renderComponent()}
                 </div>
               </CardSection>
@@ -971,22 +1094,23 @@ function BYOComponentTestScreen() {
             <Card variant="flat" padding="md" background="dark">
               <CardSection type="header" title="📝 Generated Code" />
               <CardSection type="content">
-                <pre style={{ 
-                  backgroundColor: '#0f3460',
-                  padding: '1rem',
-                  borderRadius: '4px',
-                  overflow: 'auto',
-                  fontSize: '14px',
-                  fontFamily: 'Courier New, monospace',
-                  color: '#e0e0e0',
-                  border: '1px solid #4a90e2'
-                }}>
+                <pre
+                  style={{
+                    backgroundColor: '#0f3460',
+                    padding: '1rem',
+                    borderRadius: '4px',
+                    overflow: 'auto',
+                    fontSize: '14px',
+                    fontFamily: 'Courier New, monospace',
+                    color: '#e0e0e0',
+                    border: '1px solid #4a90e2',
+                  }}
+                >
                   {generateCode()}
                 </pre>
               </CardSection>
             </Card>
           </div>
-
         </div>
 
         {/* Tips */}
@@ -1001,7 +1125,6 @@ function BYOComponentTestScreen() {
             </ul>
           </Alert>
         </div>
-
       </div>
     </div>
   );

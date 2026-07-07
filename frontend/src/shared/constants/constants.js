@@ -17,33 +17,33 @@ export const GAME_RULES = {
 // REPLACES: Any component-specific sizing systems (FLIPPABLE_CARD_SIZES, etc.)
 //
 // USAGE:
-// - Game cards: <MonsterCard size={CARD_SIZES.LG} /> 
+// - Game cards: <MonsterCard size={CARD_SIZES.LG} />
 // - UI cards: <Card size={CARD_SIZES.MD} />
 // - CardSection typography scaling via formatText prop
 //
 // SIZE MEANINGS:
 // GAME CARDS (MonsterCard, FlippableCard):
 // - SM: Thumbnail/preview mode, compact grid display
-// - MD: Standard card size for normal gameplay - DEFAULT  
+// - MD: Standard card size for normal gameplay - DEFAULT
 // - LG: Detailed view, emphasized display
 // - XL: Focused/fullscreen mode, primary display
 //
 // UI CARDS (Card primitive containers):
 // - SM: Small content container
 // - MD: Medium content container - DEFAULT
-// - LG: Large content container  
+// - LG: Large content container
 // - XL: Extra large content container (just a really big card)
 //
-// NOTE: For full-width UI cards, override max-width separately while keeping 
+// NOTE: For full-width UI cards, override max-width separately while keeping
 // size family for consistent padding/margins and CardSection typography scaling
 //
 // TYPOGRAPHY SCALING:
 // CardSection automatically scales text based on these sizes
 export const CARD_SIZES = {
   SM: 'sm',
-  MD: 'md', 
+  MD: 'md',
   LG: 'lg',
-  XL: 'xl'
+  XL: 'xl',
 };
 
 // Application States
@@ -51,7 +51,7 @@ export const APP_STATES = {
   LOADING: 'loading',
   ERROR: 'error',
   SUCCESS: 'success',
-  IDLE: 'idle'
+  IDLE: 'idle',
 };
 
 // Environment
@@ -67,7 +67,14 @@ export const COLOR_THEMES = {
   electric: ['yellow-electric', 'blue-electric', 'white-pure', 'yellow-bright'],
   poison: ['green-electric', 'green-nature', 'yellow-citrus', 'green-emerald'],
   magic: ['purple-mystic', 'pink-vibrant', 'blue-electric', 'purple-cosmic'],
-  rainbow: ['red-intense', 'orange-vibrant', 'yellow-bright', 'green-electric', 'blue-cool', 'purple-mystic'],
+  rainbow: [
+    'red-intense',
+    'orange-vibrant',
+    'yellow-bright',
+    'green-electric',
+    'blue-cool',
+    'purple-mystic',
+  ],
   gold: ['gold-bright', 'yellow-golden', 'orange-golden', 'yellow-bright'],
-  shadow: ['gray-dark', 'black-soft', 'purple-deep', 'gray-medium']
+  shadow: ['gray-dark', 'black-soft', 'purple-deep', 'gray-medium'],
 };

@@ -3,7 +3,7 @@
 // All manual filter/sort UI replaced with FilterSelectGroup components
 
 import React, { useMemo } from 'react';
-import { 
+import {
   ExpandableTable,
   useExpandableRows,
   EmptyState,
@@ -13,7 +13,7 @@ import {
   LoadingSpinner,
   FilterSelectGroup,
   Pagination,
-  Button
+  Button,
 } from '../../../shared/ui/index.js';
 import LlmLogDetails from './LlmLogDetails.js';
 import ImageLogDetails from './ImageLogDetails.js';
@@ -62,71 +62,73 @@ function AiLogTableView({
   onRefresh = null,
   onClearFilters = null,
   className = '',
-  style = {}
+  style = {},
 }) {
-
   // Expandable table functionality
   const expandableRows = useExpandableRows({
     allowMultiple: false,
-    defaultExpanded: []
+    defaultExpanded: [],
   });
 
   // Column definitions for the table
-  const columns = useMemo(() => [
-    { 
-      key: 'id', 
-      header: 'ID', 
-      width: '8%',
-      render: (value) => (
-        <span className="log-id" title={value}>
-          #{value.toString().slice(-6)}
-        </span>
-      )
-    },
-    { 
-      key: 'generationType', 
-      header: 'Type', 
-      width: '10%'
-    },
-    { 
-      key: 'promptType', 
-      header: 'Prompt Type', 
-      width: '20%' 
-    },
-    { 
-      key: 'promptName', 
-      header: 'Prompt Name', 
-      width: '20%' 
-    },
-    { 
-      key: 'status', 
-      header: 'Status', 
-      width: '12%'
-    },
-    { 
-      key: 'durationSeconds', 
-      header: 'Duration', 
-      width: '10%',
-      render: (value) => value ? `${value}s` : 'N/A'
-    },
-    { 
-      key: 'generationAttempt', 
-      header: 'Attempt', 
-      width: '10%',
-      render: (value, log) => {
-        if (log.generationAttempt && log.maxAttempts) {
-          return `${log.generationAttempt}/${log.maxAttempts}`;
-        }
-        return 'N/A';
-      }
-    },
-    { 
-      key: 'startTime', 
-      header: 'Date', 
-      width: '10%',
-      render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
-    },
-  ], []);
+  const columns = useMemo(
+    () => [
+      {
+        key: 'id',
+        header: 'ID',
+        width: '8%',
+        render: (value) => (
+          <span className="log-id" title={value}>
+            #{value.toString().slice(-6)}
+          </span>
+        ),
+      },
+      {
+        key: 'generationType',
+        header: 'Type',
+        width: '10%',
+      },
+      {
+        key: 'promptType',
+        header: 'Prompt Type',
+        width: '20%',
+      },
+      {
+        key: 'promptName',
+        header: 'Prompt Name',
+        width: '20%',
+      },
+      {
+        key: 'status',
+        header: 'Status',
+        width: '12%',
+      },
+      {
+        key: 'durationSeconds',
+        header: 'Duration',
+        width: '10%',
+        render: (value) => (value ? `${value}s` : 'N/A'),
+      },
+      {
+        key: 'generationAttempt',
+        header: 'Attempt',
+        width: '10%',
+        render: (value, log) => {
+          if (log.generationAttempt && log.maxAttempts) {
+            return `${log.generationAttempt}/${log.maxAttempts}`;
+          }
+          return 'N/A';
+        },
+      },
+      {
+        key: 'startTime',
+        header: 'Date',
+        width: '10%',
+        render: (value) => (value ? new Date(value).toLocaleDateString() : 'N/A'),
+      },
+    ],
+    [],
+  );
 
   // Expanded content renderer
   const renderExpandedContent = (log) => {
@@ -154,30 +156,23 @@ function AiLogTableView({
 
   return (
     <div className={`ai-log-table ${className}`} style={style}>
-      
       {/* Filter and Sort Controls */}
-      <Card size='lg'>
-        <CardSection type="header" title="Generation Logs"/>
-        <div type="content" style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px' 
-        }}>
+      <Card size="lg">
+        <CardSection type="header" title="Generation Logs" />
+        <div
+          type="content"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+          }}
+        >
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={onRefresh}
-              disabled={isLoading}
-            >
+            <Button variant="secondary" size="sm" onClick={onRefresh} disabled={isLoading}>
               🔄 Refresh
             </Button>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={onClearFilters}
-            >
+            <Button variant="secondary" size="sm" onClick={onClearFilters}>
               🗑️ Clear Filters
             </Button>
           </div>
@@ -191,7 +186,7 @@ function AiLogTableView({
               layout="horizontal"
               customLabels={{
                 field: 'Sort Field',
-                order: 'Sort Order'
+                order: 'Sort Order',
               }}
             />
           </div>
@@ -206,7 +201,6 @@ function AiLogTableView({
               layout="horizontal"
             />
           </div>
-
         </div>
         {/* Pagination (Top) */}
         {logs.length > 0 && pagination && (
@@ -225,15 +219,17 @@ function AiLogTableView({
         {isError ? (
           <Card>
             <CardSection type="content">
-              <div style={{ color: 'var(--color-red-intense)', padding: '1rem', textAlign: 'center' }}>
+              <div
+                style={{ color: 'var(--color-red-intense)', padding: '1rem', textAlign: 'center' }}
+              >
                 <strong>Error:</strong> {error?.message || 'Failed to load generation logs'}
               </div>
             </CardSection>
           </Card>
         ) : isLoading ? (
-            <div style={{ padding: '50px', textAlign: 'center' }}>
-              <LoadingSpinner size="screen" />
-            </div>
+          <div style={{ padding: '50px', textAlign: 'center' }}>
+            <LoadingSpinner size="screen" />
+          </div>
         ) : logs.length === 0 ? (
           <EmptyState
             {...EMPTY_STATE_PRESETS.NO_DATA}
@@ -248,7 +244,7 @@ function AiLogTableView({
             data={logs}
             expandableRows={expandableRows}
             renderExpandedContent={renderExpandedContent}
-            emptyMessage={isLoading ? "Loading..." : "No logs found"}
+            emptyMessage={isLoading ? 'Loading...' : 'No logs found'}
             size="sm"
             striped
             hover
@@ -265,7 +261,7 @@ function AiLogTableView({
             style={{ marginTop: '20px' }}
           />
         )}
-        </Card>
+      </Card>
     </div>
   );
 }

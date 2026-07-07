@@ -17,40 +17,32 @@ import './scroll.css';
  * @param {object} props.rest - Additional div attributes
  * @returns {React.ReactElement} Scroll component
  */
-const Scroll = forwardRef(function Scroll({
-  children,
-  maxHeight = '200px',
-  direction = 'vertical',
-  size = 'md',
-  className = '',
-  style = {},
-  ...rest
-}, ref) {
-  
+const Scroll = forwardRef(function Scroll(
+  {
+    children,
+    maxHeight = '200px',
+    direction = 'vertical',
+    size = 'md',
+    className = '',
+    style = {},
+    ...rest
+  },
+  ref,
+) {
   // Build CSS classes
-  const scrollClasses = [
-    'scroll-container',
-    `scroll-${direction}`,
-    `scroll-${size}`,
-    className
-  ].filter(Boolean).join(' ');
+  const scrollClasses = ['scroll-container', `scroll-${direction}`, `scroll-${size}`, className]
+    .filter(Boolean)
+    .join(' ');
 
   // Combine styles with maxHeight
   const containerStyle = {
     maxHeight,
-    ...style
+    ...style,
   };
 
   return (
-    <div 
-      ref={ref}
-      className={scrollClasses}
-      style={containerStyle}
-      {...rest}
-    >
-      <div className="scroll-content">
-        {children}
-      </div>
+    <div ref={ref} className={scrollClasses} style={containerStyle} {...rest}>
+      <div className="scroll-content">{children}</div>
     </div>
   );
 });
@@ -59,14 +51,14 @@ const Scroll = forwardRef(function Scroll({
 export const SCROLL_DIRECTIONS = {
   VERTICAL: 'vertical',
   HORIZONTAL: 'horizontal',
-  BOTH: 'both'
+  BOTH: 'both',
 };
 
 // Size constants for easy imports
 export const SCROLL_SIZES = {
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
 };
 
 export default Scroll;

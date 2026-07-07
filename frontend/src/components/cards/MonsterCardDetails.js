@@ -4,13 +4,13 @@
 
 import React from 'react';
 import './monsterCard.css';
-import { 
+import {
   Card,
   CardSection,
-  IconButton, 
+  IconButton,
   StatusBadge,
   Badge,
-  EmptyState
+  EmptyState,
 } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 import { useTypographyScale } from '../../shared/hooks/useTypographyScale.js';
@@ -34,7 +34,7 @@ const MEMORY_KIND_ICONS = {
   growth: '🌱',
   lesson: '📿',
   returned: '🔁',
-  run_complete: '🏆'
+  run_complete: '🏆',
 };
 
 const MAX_MEMORIES_SHOWN = 10;
@@ -45,18 +45,15 @@ const RARITY_COLORS = {
   uncommon: '#2f9e44',
   rare: '#1c7ed6',
   epic: '#9c36b5',
-  legendary: '#e8590c'
+  legendary: '#e8590c',
 };
 
-function MonsterCardDetails({
-  monster,
-  size = 'md',
-}) {
+function MonsterCardDetails({ monster, size = 'md' }) {
   const classType = 'monster';
 
   const { generate: generateAbility, isGenerating: isGeneratingAbility } = useAbilityGeneration();
   const { isOnCooldown, startCooldown } = useCooldown();
-  
+
   // Get typography scaling functions
   const { getTextSize } = useTypographyScale(size, classType);
 
@@ -70,44 +67,64 @@ function MonsterCardDetails({
   // Determine badge size based on card size
   const getBadgeSize = () => {
     switch (size) {
-      case CARD_SIZES.SM: return "sm";
-      case CARD_SIZES.MD: return "md";
-      case CARD_SIZES.LG: return "md";
-      case CARD_SIZES.XL: return "lg";
-      default: return "sm";
+      case CARD_SIZES.SM:
+        return 'sm';
+      case CARD_SIZES.MD:
+        return 'md';
+      case CARD_SIZES.LG:
+        return 'md';
+      case CARD_SIZES.XL:
+        return 'lg';
+      default:
+        return 'sm';
     }
   };
 
-  // Determine button size based on card size  
+  // Determine button size based on card size
   const getButtonSize = () => {
     switch (size) {
-      case CARD_SIZES.SM: return "sm";
-      case CARD_SIZES.MD: return "sm";
-      case CARD_SIZES.LG: return "md";
-      case CARD_SIZES.XL: return "md";
-      default: return "sm";
+      case CARD_SIZES.SM:
+        return 'sm';
+      case CARD_SIZES.MD:
+        return 'sm';
+      case CARD_SIZES.LG:
+        return 'md';
+      case CARD_SIZES.XL:
+        return 'md';
+      default:
+        return 'sm';
     }
   };
 
   // Helper to get ability count based on card size
   const getMaxAbilities = () => {
     switch (size) {
-      case CARD_SIZES.SM: return 2;
-      case CARD_SIZES.MD: return 3;
-      case CARD_SIZES.LG: return 4;
-      case CARD_SIZES.XL: return undefined; // Show all
-      default: return 3;
+      case CARD_SIZES.SM:
+        return 2;
+      case CARD_SIZES.MD:
+        return 3;
+      case CARD_SIZES.LG:
+        return 4;
+      case CARD_SIZES.XL:
+        return undefined; // Show all
+      default:
+        return 3;
     }
   };
 
   // Helper to get trait count based on card size
   const getMaxTraits = () => {
     switch (size) {
-      case CARD_SIZES.SM: return 2;
-      case CARD_SIZES.MD: return 3;
-      case CARD_SIZES.LG: return 4;
-      case CARD_SIZES.XL: return 5; 
-      default: return 3;
+      case CARD_SIZES.SM:
+        return 2;
+      case CARD_SIZES.MD:
+        return 3;
+      case CARD_SIZES.LG:
+        return 4;
+      case CARD_SIZES.XL:
+        return 5;
+      default:
+        return 3;
     }
   };
 
@@ -146,7 +163,7 @@ function MonsterCardDetails({
     ['Would join a party for', persona.recruitment_lever],
     ['Drawn to', persona.social_bonds?.drawn_to],
     ['Clashes with', persona.social_bonds?.clashes_with],
-    ['Grudges & bonds', joinList(persona.grudges_and_bonds)]
+    ['Grudges & bonds', joinList(persona.grudges_and_bonds)],
   ].filter(([, value]) => value);
 
   const lineage = ['domain', 'kingdom', 'family', 'genus', 'species']
@@ -157,12 +174,18 @@ function MonsterCardDetails({
   const habitat = ecology.habitat || {};
   const diet = ecology.diet || {};
   const classChain = (monster.classTaxonomy || [])
-    .map((entry) => [entry.domain, entry.discipline, entry.specialization].filter(Boolean).join(' › '))
+    .map((entry) =>
+      [entry.domain, entry.discipline, entry.specialization].filter(Boolean).join(' › '),
+    )
     .join('; ');
 
   const ecologyRows = [
     ['Size', ecology.size_class],
-    ['Habitat', habitat.primary && `${habitat.primary}${(habitat.biomes || []).length ? ` (${joinList(habitat.biomes)})` : ''}`],
+    [
+      'Habitat',
+      habitat.primary &&
+        `${habitat.primary}${(habitat.biomes || []).length ? ` (${joinList(habitat.biomes)})` : ''}`,
+    ],
     ['Diet', diet.feeding_style && `${diet.feeding_style}${diet.notes ? ` — ${diet.notes}` : ''}`],
     ['Sustained by', joinList(diet.sustenance)],
     ['Social life', ecology.social_structure?.primary],
@@ -172,19 +195,18 @@ function MonsterCardDetails({
     ['Came to be', ecology.creation_mechanism],
     ['Lifecycle', ecology.lifecycle_stage],
     ['Active', ecology.activity_cycle],
-    ['Class', classChain]
+    ['Class', classChain],
   ].filter(([, value]) => value);
 
   return (
     <Card variant="flat" padding="md" className="monster-card-details">
-      
       {/* Header - CardSection automatically handles title typography */}
       <CardSection
         type="header"
         size={size}
         classType={classType}
         title={monster.name}
-        alignment='center'
+        alignment="center"
       >
         <Badge variant="info" size={getBadgeSize()}>
           {taxonomy.race_label || monster.species}
@@ -212,23 +234,13 @@ function MonsterCardDetails({
 
       {/* Backstory - Hide on small size */}
       {size !== CARD_SIZES.SM && monster.backstory && (
-        <CardSection 
-          type="content" 
-          size={size} 
-          classType={classType}
-          title="📖 Backstory"
-        >
+        <CardSection type="content" size={size} classType={classType} title="📖 Backstory">
           <p className={getTextSize('body')}>{monster.backstory}</p>
         </CardSection>
       )}
 
       {/* Stats */}
-      <CardSection 
-        type="content" 
-        size={size} 
-        classType={classType}
-        title="Stats"
-      >
+      <CardSection type="content" size={size} classType={classType} title="Stats">
         <div className="monster-card-stats-grid">
           <div className="stat-item">
             <span className={getTextSize('caption')}>Health:</span>
@@ -258,9 +270,9 @@ function MonsterCardDetails({
       </CardSection>
 
       {/* Abilities */}
-      <CardSection 
-        type="content" 
-        size={size} 
+      <CardSection
+        type="content"
+        size={size}
         classType={classType}
         title="Abilities"
         action={
@@ -278,20 +290,17 @@ function MonsterCardDetails({
         {monster.abilities && monster.abilities.length > 0 ? (
           <div className="monster-card-abilities-list">
             {/* Show limited abilities based on card size */}
-            {monster.abilities
-              .slice(0, maxAbilities)
-              .map((ability, index) => (
-                <div key={index} className="monster-card-ability-item">
-                  <div className={`monster-card-ability-name ${getTextSize('subtitle')}`}>
-                    {ability.name}
-                  </div>
-                  <div className={`monster-card-ability-description ${getTextSize('caption')}`}>
-                    {ability.description}
-                  </div>
+            {monster.abilities.slice(0, maxAbilities).map((ability, index) => (
+              <div key={index} className="monster-card-ability-item">
+                <div className={`monster-card-ability-name ${getTextSize('subtitle')}`}>
+                  {ability.name}
                 </div>
-              ))
-            }
-            
+                <div className={`monster-card-ability-description ${getTextSize('caption')}`}>
+                  {ability.description}
+                </div>
+              </div>
+            ))}
+
             {/* Show "more abilities" indicator if there are more */}
             {maxAbilities && monster.abilities.length > maxAbilities && (
               <div className={`more-abilities-indicator ${getTextSize('caption')}`}>
@@ -311,22 +320,14 @@ function MonsterCardDetails({
 
       {/* Personality Traits - Hide on small size */}
       {maxTraits > 0 && monster.personalityTraits && monster.personalityTraits.length > 0 && (
-        <CardSection 
-          type="content" 
-          size={size} 
-          classType={classType}
-          title="Personality"
-        >
+        <CardSection type="content" size={size} classType={classType} title="Personality">
           <div className="monster-card-traits-list">
-            {monster.personalityTraits
-              .slice(0, maxTraits)
-              .map((trait, index) => (
-                <Badge key={index} variant="secondary" size={getBadgeSize()}>
-                  {trait}
-                </Badge>
-              ))
-            }
-            
+            {monster.personalityTraits.slice(0, maxTraits).map((trait, index) => (
+              <Badge key={index} variant="secondary" size={getBadgeSize()}>
+                {trait}
+              </Badge>
+            ))}
+
             {/* Show "more traits" indicator if there are more */}
             {maxTraits && monster.personalityTraits.length > maxTraits && (
               <span className={`more-traits-indicator ${getTextSize('caption')}`}>
@@ -339,16 +340,13 @@ function MonsterCardDetails({
 
       {/* Persona dossier - full-size card only */}
       {isXL && personaRows.length > 0 && (
-        <CardSection
-          type="content"
-          size={size}
-          classType={classType}
-          title="🧠 Persona"
-        >
+        <CardSection type="content" size={size} classType={classType} title="🧠 Persona">
           <div className="monster-card-dossier">
             {personaRows.map(([label, value]) => (
               <div key={label} className="monster-card-dossier-row">
-                <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>{label}</span>
+                <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>
+                  {label}
+                </span>
                 <span className={getTextSize('caption')}>{value}</span>
               </div>
             ))}
@@ -359,22 +357,20 @@ function MonsterCardDetails({
       {/* Memories - full-size card only; what this monster remembers of
           the party, newest first (live-appends as new moments happen) */}
       {isXL && memories.length > 0 && (
-        <CardSection
-          type="content"
-          size={size}
-          classType={classType}
-          title="🕯️ Memories"
-        >
+        <CardSection type="content" size={size} classType={classType} title="🕯️ Memories">
           <div className="monster-card-dossier">
-            {[...memories].reverse().slice(0, MAX_MEMORIES_SHOWN).map((memory) => (
-              <div key={memory.id} className="monster-card-dossier-row">
-                <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>
-                  {MEMORY_KIND_ICONS[memory.kind] || '🕯️'}{' '}
-                  {memory.runNumber ? `run ${memory.runNumber}` : 'long ago'}
-                </span>
-                <span className={getTextSize('caption')}>{memory.content}</span>
-              </div>
-            ))}
+            {[...memories]
+              .reverse()
+              .slice(0, MAX_MEMORIES_SHOWN)
+              .map((memory) => (
+                <div key={memory.id} className="monster-card-dossier-row">
+                  <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>
+                    {MEMORY_KIND_ICONS[memory.kind] || '🕯️'}{' '}
+                    {memory.runNumber ? `run ${memory.runNumber}` : 'long ago'}
+                  </span>
+                  <span className={getTextSize('caption')}>{memory.content}</span>
+                </div>
+              ))}
             {memories.length > MAX_MEMORIES_SHOWN && (
               <div className={`more-abilities-indicator ${getTextSize('caption')}`}>
                 +{memories.length - MAX_MEMORIES_SHOWN} older memories
@@ -386,19 +382,14 @@ function MonsterCardDetails({
 
       {/* Taxonomy & Ecology - full-size card only */}
       {isXL && (lineage || ecologyRows.length > 0) && (
-        <CardSection
-          type="content"
-          size={size}
-          classType={classType}
-          title="🌿 Taxonomy & Ecology"
-        >
-          {lineage && (
-            <p className={`monster-card-lineage ${getTextSize('caption')}`}>{lineage}</p>
-          )}
+        <CardSection type="content" size={size} classType={classType} title="🌿 Taxonomy & Ecology">
+          {lineage && <p className={`monster-card-lineage ${getTextSize('caption')}`}>{lineage}</p>}
           <div className="monster-card-dossier">
             {ecologyRows.map(([label, value]) => (
               <div key={label} className="monster-card-dossier-row">
-                <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>{label}</span>
+                <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>
+                  {label}
+                </span>
                 <span className={getTextSize('caption')}>{value}</span>
               </div>
             ))}
@@ -407,7 +398,6 @@ function MonsterCardDetails({
       )}
 
       <CardSection type="footer" size={size} classType={classType}></CardSection>
-
     </Card>
   );
 }

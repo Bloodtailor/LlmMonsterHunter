@@ -6,31 +6,16 @@ import { useSyncExternalStore } from 'react';
 import { aiStateStore } from './aiStateStore.js';
 
 export const useActiveGeneration = () =>
-  useSyncExternalStore(
-    aiStateStore.subscribeToActiveGeneration,
-    aiStateStore.getActiveGeneration
-  );
+  useSyncExternalStore(aiStateStore.subscribeToActiveGeneration, aiStateStore.getActiveGeneration);
 
 export const useCurrentActivity = () =>
-  useSyncExternalStore(
-    aiStateStore.subscribeToCurrentActivity,
-    aiStateStore.getCurrentActivity
-  );
+  useSyncExternalStore(aiStateStore.subscribeToCurrentActivity, aiStateStore.getCurrentActivity);
 
 export const useQueueStatus = () =>
-  useSyncExternalStore(
-    aiStateStore.subscribeToQueueStatus,
-    aiStateStore.getQueueStatus
-  );
+  useSyncExternalStore(aiStateStore.subscribeToQueueStatus, aiStateStore.getQueueStatus);
 
 export const useLlmStatus = () =>
-  useSyncExternalStore(
-    aiStateStore.subscribeToLlmStatus,
-    aiStateStore.getLlmStatus
-  );
+  useSyncExternalStore(aiStateStore.subscribeToLlmStatus, aiStateStore.getLlmStatus);
 
 export const useImageStatus = () =>
-  useSyncExternalStore(
-    aiStateStore.subscribeToImageStatus,
-    aiStateStore.getImageStatus
-  );
+  useSyncExternalStore(aiStateStore.subscribeToImageStatus, aiStateStore.getImageStatus);

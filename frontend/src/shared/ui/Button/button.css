@@ -299,7 +299,7 @@
     padding: var(--spacing-md) var(--spacing-lg);
     font-size: var(--font-size-md);
   }
-  
+
   .button-group-horizontal {
     flex-wrap: wrap;
   }

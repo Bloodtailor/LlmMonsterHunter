@@ -72,7 +72,7 @@
 }
 
 /* Selected page highlighting */
-.pagination-page-button[data-selected="true"] {
+.pagination-page-button[data-selected='true'] {
   background-color: var(--primary-color, #2196f3) !important;
   color: white !important;
   font-weight: bold;

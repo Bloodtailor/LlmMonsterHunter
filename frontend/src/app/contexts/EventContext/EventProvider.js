@@ -18,11 +18,10 @@ const sseEventHandlers = {
   ...workflowEventHandlers,
   ...monsterEventHandlers,
   ...inventoryEventHandlers,
-  ...dungeonEventHandlers
+  ...dungeonEventHandlers,
 };
 
 function EventProvider({ children }) {
-
   // Call useSSE once with the pure (non-React) handlers
   const { isConnected, connectionError, connect, disconnect } = useSSE(sseEventHandlers);
 
@@ -31,14 +30,10 @@ function EventProvider({ children }) {
     isConnected,
     connectionError,
     connect,
-    disconnect
+    disconnect,
   };
 
-  return (
-    <EventContext.Provider value={contextValue}>
-      {children}
-    </EventContext.Provider>
-  );
+  return <EventContext.Provider value={contextValue}>{children}</EventContext.Provider>;
 }
 
 export default EventProvider;

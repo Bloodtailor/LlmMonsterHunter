@@ -16,18 +16,18 @@ export function useCooldown(cooldownMs = 3000) {
    */
   const startCooldown = useCallback(() => {
     if (isOnCooldown) return false; // Already on cooldown
-    
+
     setIsOnCooldown(true);
     setTimeout(() => {
       setIsOnCooldown(false);
     }, cooldownMs);
-    
+
     return true; // Cooldown started
   }, [isOnCooldown, cooldownMs]);
 
   return {
     startCooldown,
-    isOnCooldown
+    isOnCooldown,
   };
 }
 

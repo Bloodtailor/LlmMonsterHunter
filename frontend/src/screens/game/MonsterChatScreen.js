@@ -28,7 +28,7 @@ function MonsterChatScreen() {
       setRunCheck({
         loading: false,
         inDungeon: !!state.inDungeon,
-        location: state.currentLocation?.name || null
+        location: state.currentLocation?.name || null,
       });
     } catch (checkError) {
       // If the check itself fails, let the chat try - the backend
@@ -59,8 +59,8 @@ function MonsterChatScreen() {
       <Card size="xl" background="light">
         <CardSection type="header" size="xl" title="🔥 Campfire Chat" alignment="center">
           <p>
-            Time between dungeon runs belongs to your companions. What you talk
-            about stays with them.
+            Time between dungeon runs belongs to your companions. What you talk about stays with
+            them.
           </p>
         </CardSection>
         <CardSection type="content" alignment="center">
@@ -79,7 +79,15 @@ function MonsterChatScreen() {
       {runCheck.loading && (
         <Card size="lg" background="light">
           <CardSection type="content" alignment="center">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                justifyContent: 'center',
+                color: 'var(--color-text-muted)',
+              }}
+            >
               <LoadingSpinner size="sm" type="spin" />
               Checking on the party...
             </div>
@@ -89,17 +97,27 @@ function MonsterChatScreen() {
 
       {!runCheck.loading && runCheck.inDungeon && (
         <Card size="lg" background="light">
-          <CardSection type="header" size="md" title="⛰️ Your party is still in the dungeon" alignment="center" />
+          <CardSection
+            type="header"
+            size="md"
+            title="⛰️ Your party is still in the dungeon"
+            alignment="center"
+          />
           <CardSection type="content" alignment="center">
-            <p style={{ color: 'var(--color-text-secondary)', maxWidth: '560px', margin: '0 auto 12px' }}>
-              {runCheck.location
-                ? `They were last seen at ${runCheck.location}. `
-                : ''}
-              Campfire talks happen at home base. Return to the dungeon and
-              finish the run - or call everyone home now, which abandons the
-              run where it stands.
+            <p
+              style={{
+                color: 'var(--color-text-secondary)',
+                maxWidth: '560px',
+                margin: '0 auto 12px',
+              }}
+            >
+              {runCheck.location ? `They were last seen at ${runCheck.location}. ` : ''}
+              Campfire talks happen at home base. Return to the dungeon and finish the run - or call
+              everyone home now, which abandons the run where it stands.
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div
+              style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}
+            >
               <Button
                 size="md"
                 icon="🏰"
@@ -120,7 +138,9 @@ function MonsterChatScreen() {
             </div>
             {runError && (
               <div style={{ marginTop: '12px' }}>
-                <Alert type="error" size="md">{runError}</Alert>
+                <Alert type="error" size="md">
+                  {runError}
+                </Alert>
               </div>
             )}
           </CardSection>
@@ -133,7 +153,7 @@ function MonsterChatScreen() {
             display: 'grid',
             gridTemplateColumns: 'minmax(240px, 320px) 1fr',
             gap: '24px',
-            alignItems: 'start'
+            alignItems: 'start',
           }}
         >
           <MonsterChatPicker

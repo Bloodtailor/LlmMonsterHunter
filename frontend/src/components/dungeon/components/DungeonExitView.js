@@ -38,7 +38,7 @@ function DungeonExitView() {
     color: 'var(--color-text-primary)',
     padding: '24px',
     whiteSpace: 'pre-wrap',
-    fontFamily: 'var(--font-family-serif)'
+    fontFamily: 'var(--font-family-serif)',
   };
 
   const reflectionStyles = {
@@ -48,7 +48,7 @@ function DungeonExitView() {
     fontFamily: 'var(--font-family-serif)',
     fontStyle: 'italic',
     whiteSpace: 'pre-wrap',
-    margin: 0
+    margin: 0,
   };
 
   return (
@@ -59,24 +59,42 @@ function DungeonExitView() {
 
       <Card size="xl" background="dark">
         <CardSection type="content" padding="none">
-          <div style={textStyles}>
-            {exitText}
-          </div>
+          <div style={textStyles}>{exitText}</div>
         </CardSection>
       </Card>
 
       {/* The exit ceremony - what the run made of each member */}
       {growthResults && growthResults.length > 0 && (
         <Card size="xl" background="dark">
-          <CardSection type="header" size="md" title="🌱 What the Journey Made of Them" alignment="center" />
+          <CardSection
+            type="header"
+            size="md"
+            title="🌱 What the Journey Made of Them"
+            alignment="center"
+          />
           <CardSection type="content">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '720px', margin: '0 auto' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                maxWidth: '720px',
+                margin: '0 auto',
+              }}
+            >
               {growthResults.map((growth) => (
-                <div key={growth.monster_id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div
+                  key={growth.monster_id}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+                >
+                  <div
+                    style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}
+                  >
                     <strong>{growth.monster_name}</strong>
                     {growthBadges(growth).map((text, index) => (
-                      <Badge key={index} variant="success" size="sm" pill>{text}</Badge>
+                      <Badge key={index} variant="success" size="sm" pill>
+                        {text}
+                      </Badge>
                     ))}
                   </div>
                   {growth.reflection && <p style={reflectionStyles}>{growth.reflection}</p>}
@@ -89,12 +107,7 @@ function DungeonExitView() {
 
       <Card size="xl" background="light">
         <CardSection type="content" alignment="center">
-          <Button
-            size="xl"
-            icon="🏠"
-            variant="primary"
-            onClick={handleReturnHome}
-          >
+          <Button size="xl" icon="🏠" variant="primary" onClick={handleReturnHome}>
             Return to Home Base
           </Button>
         </CardSection>

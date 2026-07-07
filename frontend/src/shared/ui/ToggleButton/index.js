@@ -1,1 +1,1 @@
-export {default as ToggleButton} from './ToggleButton.js';
+export { default as ToggleButton } from './ToggleButton.js';

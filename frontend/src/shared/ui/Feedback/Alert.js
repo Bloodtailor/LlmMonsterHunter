@@ -38,39 +38,38 @@ function Alert({
   style = {},
   ...rest
 }) {
-  
   // Alert type configuration
   const alertTypeConfig = {
     success: {
       variant: 'success',
       icon: '✅',
-      defaultTitle: 'Success'
+      defaultTitle: 'Success',
     },
     error: {
       variant: 'error',
       icon: '❌',
-      defaultTitle: 'Error'
+      defaultTitle: 'Error',
     },
     warning: {
       variant: 'warning',
       icon: '⚠️',
-      defaultTitle: 'Warning'
+      defaultTitle: 'Warning',
     },
     info: {
       variant: 'info',
       icon: 'ℹ️',
-      defaultTitle: 'Information'
+      defaultTitle: 'Information',
     },
     loading: {
       variant: 'info',
       icon: '🔄',
-      defaultTitle: 'Loading'
-    }
+      defaultTitle: 'Loading',
+    },
   };
 
   // Get alert configuration
   const config = alertTypeConfig[type] || alertTypeConfig.info;
-  
+
   // Build CSS classes based on props
   const alertClasses = [
     'alert', // Base alert class
@@ -79,8 +78,10 @@ function Alert({
     outlined && 'alert-outlined', // Outlined styling
     closeable && 'alert-closeable', // Closeable styling
     action && 'alert-with-action', // Has action styling
-    className // Additional classes
-  ].filter(Boolean).join(' ');
+    className, // Additional classes
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Handle close button click
   const handleClose = () => {
@@ -92,9 +93,9 @@ function Alert({
   // Render alert icon
   const renderIcon = () => {
     if (!showIcon) return null;
-    
+
     const iconToShow = icon || config.icon;
-    
+
     return (
       <div className="alert-icon" aria-hidden="true">
         {iconToShow}
@@ -105,7 +106,7 @@ function Alert({
   // Render close button
   const renderCloseButton = () => {
     if (!closeable) return null;
-    
+
     return (
       <button
         type="button"
@@ -122,15 +123,11 @@ function Alert({
   const renderHeader = () => {
     const hasHeader = showIcon || title || closeable;
     if (!hasHeader) return null;
-    
+
     return (
       <div className="alert-header">
         {renderIcon()}
-        {title && (
-          <div className="alert-title">
-            {title}
-          </div>
-        )}
+        {title && <div className="alert-title">{title}</div>}
         <div className="alert-header-spacer" />
         {renderCloseButton()}
       </div>
@@ -140,33 +137,19 @@ function Alert({
   // Render alert content
   const renderContent = () => {
     if (!children) return null;
-    
-    return (
-      <div className="alert-content">
-        {children}
-      </div>
-    );
+
+    return <div className="alert-content">{children}</div>;
   };
 
   // Render action area
   const renderAction = () => {
     if (!action) return null;
-    
-    return (
-      <div className="alert-action">
-        {action}
-      </div>
-    );
+
+    return <div className="alert-action">{action}</div>;
   };
 
   return (
-    <div
-      className={alertClasses}
-      style={style}
-      role="alert"
-      aria-live="polite"
-      {...rest}
-    >
+    <div className={alertClasses} style={style} role="alert" aria-live="polite" {...rest}>
       {renderHeader()}
       {renderContent()}
       {renderAction()}
@@ -180,14 +163,14 @@ export const ALERT_TYPES = {
   ERROR: 'error',
   WARNING: 'warning',
   INFO: 'info',
-  LOADING: 'loading'
+  LOADING: 'loading',
 };
 
 // Alert size constants for easy imports
 export const ALERT_SIZES = {
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
 };
 
 export default Alert;

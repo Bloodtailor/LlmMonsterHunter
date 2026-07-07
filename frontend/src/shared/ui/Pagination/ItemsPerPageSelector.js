@@ -25,16 +25,12 @@ function ItemsPerPageSelector({
   className = '',
   ...rest
 }) {
-  
-  const selectorClasses = [
-    'items-per-page-selector',
-    className
-  ].filter(Boolean).join(' ');
+  const selectorClasses = ['items-per-page-selector', className].filter(Boolean).join(' ');
 
   // Format options for Select component
-  const selectOptions = options.map(option => ({
+  const selectOptions = options.map((option) => ({
     value: option,
-    label: `${option} ${itemName} per page`
+    label: `${option} ${itemName} per page`,
   }));
 
   const handleSelectChange = (event) => {
@@ -48,7 +44,7 @@ function ItemsPerPageSelector({
     <div className={selectorClasses} {...rest}>
       <div className="items-per-page-controls">
         <span className="items-per-page-label">Show:</span>
-        
+
         <Select
           value={value}
           onChange={handleSelectChange}

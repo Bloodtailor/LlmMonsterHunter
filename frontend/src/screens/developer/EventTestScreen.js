@@ -3,12 +3,11 @@
 // Includes monster generation button to test streaming with real operations
 
 import React from 'react';
-import { Button, Alert, StatusBadge, Card, CardSection} from '../../shared/ui/index.js';
+import { Button, Alert, StatusBadge, Card, CardSection } from '../../shared/ui/index.js';
 import { useMonsterGeneration } from '../../app/hooks/useMonsters.js';
 import StreamingContextDiagnostic from '../../components/streaming/StreamingContextDiagnostic.js';
 
 function EventTestScreen() {
-  
   // Monster generation hook for testing streaming
   const {
     generationResult,
@@ -16,7 +15,7 @@ function EventTestScreen() {
     isGenerating,
     isError: isGenerationError,
     error: generationError,
-    generate
+    generate,
   } = useMonsterGeneration();
 
   // Handle monster generation
@@ -24,13 +23,12 @@ function EventTestScreen() {
     console.log('🎲 Generating new monster...');
     await generate({
       prompt_name: 'detailed_monster',
-      generate_card_art: true
+      generate_card_art: true,
     });
   };
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      
       {/* Header */}
       <h1>🧪 Event Context Test</h1>
       <p>Test Event context state display</p>
@@ -41,9 +39,10 @@ function EventTestScreen() {
           🎲 Generate Monster (Test Streaming)
         </h2>
         <p style={{ marginBottom: '1.5rem', color: 'var(--color-text-secondary, #666)' }}>
-          Generate a monster to see real LLM and Image streaming events in the diagnostic panel below
+          Generate a monster to see real LLM and Image streaming events in the diagnostic panel
+          below
         </p>
-        
+
         <Button
           variant="primary"
           size="lg"
@@ -52,7 +51,7 @@ function EventTestScreen() {
           style={{
             fontSize: '16px',
             padding: '12px 24px',
-            minWidth: '200px'
+            minWidth: '200px',
           }}
         >
           {isGenerating ? (
@@ -71,13 +70,15 @@ function EventTestScreen() {
         {/* Generation Status */}
         <div style={{ marginTop: '1.5rem' }}>
           {isGenerating && (
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: '10px',
-              marginBottom: '1rem'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                marginBottom: '1rem',
+              }}
+            >
               <StatusBadge status="warning" size="md" />
               <span>Creating your monster with AI... Watch the streaming events below!</span>
             </div>
@@ -85,13 +86,15 @@ function EventTestScreen() {
 
           {generationResult?.success && generatedMonster && (
             <Alert type="success" size="md" style={{ maxWidth: '600px', margin: '0 auto' }}>
-              <strong>🎉 Success!</strong> Generated "{generatedMonster.name}" - {generatedMonster.species}
+              <strong>🎉 Success!</strong> Generated "{generatedMonster.name}" -{' '}
+              {generatedMonster.species}
             </Alert>
           )}
 
           {isGenerationError && (
             <Alert type="error" size="md" style={{ maxWidth: '600px', margin: '0 auto' }}>
-              <strong>❌ Generation Failed:</strong> {generationError?.message || 'Unknown error occurred'}
+              <strong>❌ Generation Failed:</strong>{' '}
+              {generationError?.message || 'Unknown error occurred'}
             </Alert>
           )}
         </div>
@@ -103,12 +106,12 @@ function EventTestScreen() {
           📊 Streaming Context Diagnostic
         </h2>
         <p style={{ marginBottom: '2rem', color: 'var(--color-text-secondary, #666)' }}>
-          Real-time display of all streaming context states. Generate a monster above to see events populate.
+          Real-time display of all streaming context states. Generate a monster above to see events
+          populate.
         </p>
-        
+
         <StreamingContextDiagnostic />
       </div>
-
     </div>
   );
 }

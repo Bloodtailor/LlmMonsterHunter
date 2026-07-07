@@ -82,9 +82,10 @@
 
 /* Smooth rotation animation for expand icon */
 .expandable-table-animated .expand-icon {
-  transition: transform var(--transition-medium), 
-              color var(--transition-fast),
-              background-color var(--transition-fast);
+  transition:
+    transform var(--transition-medium),
+    color var(--transition-fast),
+    background-color var(--transition-fast);
 }
 
 .cell-value {
@@ -170,13 +171,13 @@
 
 /* ===== STRIPED VARIATION ===== */
 
-.expandable-table-striped .expandable-row:nth-child(4n+1) {
+.expandable-table-striped .expandable-row:nth-child(4n + 1) {
   /* Every other main row (accounting for expanded content rows) */
   background-color: var(--background-medium);
 }
 
-.expandable-table-striped .expandable-row:nth-child(4n+1):hover,
-.expandable-table-striped .expandable-row:nth-child(4n+1).expandable-row-expanded {
+.expandable-table-striped .expandable-row:nth-child(4n + 1):hover,
+.expandable-table-striped .expandable-row:nth-child(4n + 1).expandable-row-expanded {
   background-color: var(--background-light);
 }
 

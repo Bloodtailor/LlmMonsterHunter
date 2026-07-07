@@ -25,27 +25,27 @@ export class ApiError extends Error {
  */
 export function processRequest(url, options = {}) {
   const config = getApiConfig();
-  
+
   // Add default headers
   const headers = {
     ...config.DEFAULT_HEADERS,
-    ...options.headers
+    ...options.headers,
   };
-  
+
   // Add timestamp for request tracking
   const processedOptions = {
     ...options,
-    headers
+    headers,
   };
-  
+
   // Log request in development
   if (config.LOG_REQUESTS) {
     console.log(`🔗 API Request: ${options.method || 'GET'} ${url}`, {
       options: processedOptions,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
-  
+
   return processedOptions;
 }
 
@@ -57,7 +57,7 @@ export function processRequest(url, options = {}) {
  */
 export async function processResponse(response, endpoint = 'unknown') {
   const config = getApiConfig();
-  
+
   try {
     // Check if response is ok
     if (!response.ok) {
@@ -65,46 +65,40 @@ export async function processResponse(response, endpoint = 'unknown') {
         `API request failed: ${response.status} ${response.statusText}`,
         response.status,
         response,
-        endpoint
+        endpoint,
       );
     }
-    
+
     // Parse JSON response
     const data = await response.json();
-    
+
     // Log successful response in development
     if (config.LOG_RESPONSES) {
       console.log(`✅ API Response: ${endpoint}`, {
         status: response.status,
         data,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-    
+
     return data;
-    
   } catch (error) {
     // If it's already an ApiError, just re-throw
     if (error instanceof ApiError) {
       throw error;
     }
-    
+
     // Handle JSON parsing errors
     if (error.name === 'SyntaxError') {
-      throw new ApiError(
-        `Invalid JSON response from server`,
-        response.status,
-        response,
-        endpoint
-      );
+      throw new ApiError(`Invalid JSON response from server`, response.status, response, endpoint);
     }
-    
+
     // Handle other parsing errors
     throw new ApiError(
       `Response processing error: ${error.message}`,
       response.status,
       response,
-      endpoint
+      endpoint,
     );
   }
 }
@@ -120,42 +114,32 @@ export function processError(error, endpoint = 'unknown') {
   if (error instanceof ApiError) {
     return error;
   }
-  
+
   // Handle specific error types
   if (error.message === 'Request timeout') {
     return new ApiError(
       'Request timed out - backend server may be slow or unresponsive',
       null,
       null,
-      endpoint
+      endpoint,
     );
   }
-  
+
   if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
     return new ApiError(
       'Cannot connect to backend server - make sure it is running on localhost:5000',
       null,
       null,
-      endpoint
+      endpoint,
     );
   }
-  
+
   if (error.name === 'AbortError') {
-    return new ApiError(
-      'Request was cancelled',
-      null,
-      null,
-      endpoint
-    );
+    return new ApiError('Request was cancelled', null, null, endpoint);
   }
-  
+
   // Generic error fallback
-  return new ApiError(
-    `Unexpected error: ${error.message}`,
-    null,
-    null,
-    endpoint
-  );
+  return new ApiError(`Unexpected error: ${error.message}`, null, null, endpoint);
 }
 
 /**
@@ -166,23 +150,23 @@ export function processError(error, endpoint = 'unknown') {
  */
 export function logApiCall(endpoint, data = null, error = null) {
   const config = getApiConfig();
-  
+
   if (config.ENABLE_LOGGING) {
     const logData = {
       endpoint,
       timestamp: new Date().toISOString(),
-      success: !error
+      success: !error,
     };
-    
+
     if (data) {
       logData.data = data;
     }
-    
+
     if (error) {
       logData.error = {
         message: error.message,
         status: error.status,
-        endpoint: error.endpoint
+        endpoint: error.endpoint,
       };
       console.error(`❌ API Call Failed: ${endpoint}`, logData);
     } else {

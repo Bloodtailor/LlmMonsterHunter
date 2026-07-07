@@ -4,8 +4,8 @@
 //   2. Subscriber registry - components subscribe to specific events via subscribeToEvent
 // Keeps SSE events separate from computed state management
 
-import { aiStatusRouter } from "../stores/aiStateStore";
-import { workflowStatusRouter } from "../stores/workflowStateStore.js";
+import { aiStatusRouter } from '../stores/aiStateStore';
+import { workflowStatusRouter } from '../stores/workflowStateStore.js';
 
 // ===== EVENT SUBSCRIBER REGISTRY =====
 // eventName -> Set of callbacks. Use '*' to subscribe to every event.
@@ -39,7 +39,7 @@ const notifySubscribers = (eventName, eventData) => {
   const exact = subscribers.get(eventName);
   const wildcard = subscribers.get('*');
 
-  [...(exact || []), ...(wildcard || [])].forEach(callback => {
+  [...(exact || []), ...(wildcard || [])].forEach((callback) => {
     try {
       callback(eventData, eventName);
     } catch (error) {

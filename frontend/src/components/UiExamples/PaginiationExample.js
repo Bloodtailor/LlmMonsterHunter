@@ -3,12 +3,12 @@
 // Perfect for development reference and testing different pagination setups
 
 import React, { useState } from 'react';
-import { 
+import {
   Pagination,
   PaginationInfo,
   PageJumper,
   ItemsPerPageSelector,
-  PaginationPrimitive
+  PaginationPrimitive,
 } from '../../shared/ui/Pagination/index.js';
 import { usePagination } from '../../shared/ui/Pagination/usePagination.js';
 import { Card, CardSection } from '../../shared/ui/Card/index.js';
@@ -24,46 +24,46 @@ function PaginationExamples() {
     currentPage: 5,
     itemName: 'items',
     showFirstLast: true,
-    showPrevNext: true
+    showPrevNext: true,
   });
 
   // Example pagination instances for showcases
-  const smallPagination = usePagination({ 
-    limit: 5, 
+  const smallPagination = usePagination({
+    limit: 5,
     total: 23,
-    initialPage: 3
+    initialPage: 3,
   });
 
-  const mediumPagination = usePagination({ 
-    limit: 10, 
+  const mediumPagination = usePagination({
+    limit: 10,
     total: 156,
-    initialPage: 8
+    initialPage: 8,
   });
 
-  const largePagination = usePagination({ 
-    limit: 25, 
+  const largePagination = usePagination({
+    limit: 25,
     total: 2847,
-    initialPage: 15
+    initialPage: 15,
   });
 
   // Builder pagination instance
   const builderPagination = usePagination({
     limit: builderConfig.limit,
     total: builderConfig.total,
-    initialPage: builderConfig.currentPage
+    initialPage: builderConfig.currentPage,
   });
 
   const handleBuilderChange = (field, value) => {
-    setBuilderConfig(prev => ({
+    setBuilderConfig((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleLimitChange = (newLimit) => {
-    setBuilderConfig(prev => ({
+    setBuilderConfig((prev) => ({
       ...prev,
-      limit: newLimit
+      limit: newLimit,
     }));
     // Note: In real usage, you'd also call builderPagination.setLimit(newLimit)
   };
@@ -71,18 +71,13 @@ function PaginationExamples() {
   const renderBuilderPagination = () => {
     const commonProps = {
       pagination: builderPagination,
-      itemName: builderConfig.itemName
+      itemName: builderConfig.itemName,
     };
 
     switch (builderConfig.layout) {
       case 'simple':
-        return (
-          <Pagination
-            layout="simple"
-            {...commonProps}
-          />
-        );
-      
+        return <Pagination layout="simple" {...commonProps} />;
+
       case 'full':
         return (
           <Pagination
@@ -93,48 +88,42 @@ function PaginationExamples() {
             {...commonProps}
           />
         );
-      
+
       default:
-        return (
-          <Pagination
-            layout="default"
-            {...commonProps}
-          />
-        );
+        return <Pagination layout="default" {...commonProps} />;
     }
   };
 
   return (
     <Card size="lg" padding="lg" className="pagination-examples">
       <CardSection type="header" title="Pagination Components Showcase" />
-      
+
       {/* Layout Examples */}
       <CardSection type="content" title="Pagination Layouts">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
           {/* Default Layout */}
           <div>
             <h4 style={{ marginBottom: '16px', color: 'var(--color-text-primary)' }}>
               Default Layout (Centered Pagination)
             </h4>
-            <div style={{ 
-              padding: '20px', 
-              background: 'var(--color-surface-secondary)', 
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-text-muted)'
-            }}>
-              <Pagination
-                layout="default"
-                pagination={mediumPagination}
-                itemName="monsters"
-              />
+            <div
+              style={{
+                padding: '20px',
+                background: 'var(--color-surface-secondary)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-text-muted)',
+              }}
+            >
+              <Pagination layout="default" pagination={mediumPagination} itemName="monsters" />
             </div>
-            <p style={{ 
-              fontSize: '14px', 
-              color: 'var(--color-text-muted)', 
-              marginTop: '8px',
-              margin: '8px 0 0 0'
-            }}>
+            <p
+              style={{
+                fontSize: '14px',
+                color: 'var(--color-text-muted)',
+                marginTop: '8px',
+                margin: '8px 0 0 0',
+              }}
+            >
               Clean centered pagination with first/last and prev/next buttons
             </p>
           </div>
@@ -144,24 +133,24 @@ function PaginationExamples() {
             <h4 style={{ marginBottom: '16px', color: 'var(--color-text-primary)' }}>
               Simple Layout (Info + Basic Pagination)
             </h4>
-            <div style={{ 
-              padding: '20px', 
-              background: 'var(--color-surface-secondary)', 
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-text-muted)'
-            }}>
-              <Pagination
-                layout="simple"
-                pagination={smallPagination}
-                itemName="items"
-              />
+            <div
+              style={{
+                padding: '20px',
+                background: 'var(--color-surface-secondary)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-text-muted)',
+              }}
+            >
+              <Pagination layout="simple" pagination={smallPagination} itemName="items" />
             </div>
-            <p style={{ 
-              fontSize: '14px', 
-              color: 'var(--color-text-muted)', 
-              marginTop: '8px',
-              margin: '8px 0 0 0'
-            }}>
+            <p
+              style={{
+                fontSize: '14px',
+                color: 'var(--color-text-muted)',
+                marginTop: '8px',
+                margin: '8px 0 0 0',
+              }}
+            >
               Info display with simplified pagination controls (no first/last buttons)
             </p>
           </div>
@@ -171,12 +160,14 @@ function PaginationExamples() {
             <h4 style={{ marginBottom: '16px', color: 'var(--color-text-primary)' }}>
               Full Layout (Items Per Page + Pagination + Jumper)
             </h4>
-            <div style={{ 
-              padding: '20px', 
-              background: 'var(--color-surface-secondary)', 
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-text-muted)'
-            }}>
+            <div
+              style={{
+                padding: '20px',
+                background: 'var(--color-surface-secondary)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-text-muted)',
+              }}
+            >
               <Pagination
                 layout="full"
                 pagination={largePagination}
@@ -186,12 +177,14 @@ function PaginationExamples() {
                 itemsPerPageOptions={[10, 25, 50, 100]}
               />
             </div>
-            <p style={{ 
-              fontSize: '14px', 
-              color: 'var(--color-text-muted)', 
-              marginTop: '8px',
-              margin: '8px 0 0 0'
-            }}>
+            <p
+              style={{
+                fontSize: '14px',
+                color: 'var(--color-text-muted)',
+                marginTop: '8px',
+                margin: '8px 0 0 0',
+              }}
+            >
               Complete pagination with items-per-page selector and page jumper
             </p>
           </div>
@@ -201,25 +194,28 @@ function PaginationExamples() {
       {/* Individual Components */}
       <CardSection type="content" title="Individual Pagination Components">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
           {/* PaginationInfo */}
           <div>
             <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
               PaginationInfo - Status Display
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ 
-                padding: '12px', 
-                background: 'var(--color-surface-secondary)', 
-                borderRadius: 'var(--radius-sm)' 
-              }}>
+              <div
+                style={{
+                  padding: '12px',
+                  background: 'var(--color-surface-secondary)',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
                 <PaginationInfo pagination={mediumPagination} itemName="monsters" />
               </div>
-              <div style={{ 
-                padding: '12px', 
-                background: 'var(--color-surface-secondary)', 
-                borderRadius: 'var(--radius-sm)' 
-              }}>
+              <div
+                style={{
+                  padding: '12px',
+                  background: 'var(--color-surface-secondary)',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
                 <PaginationInfo pagination={smallPagination} itemName="party members" />
               </div>
             </div>
@@ -230,13 +226,15 @@ function PaginationExamples() {
             <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
               PageJumper - Direct Page Navigation
             </h4>
-            <div style={{ 
-              padding: '16px', 
-              background: 'var(--color-surface-secondary)', 
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex',
-              justifyContent: 'center'
-            }}>
+            <div
+              style={{
+                padding: '16px',
+                background: 'var(--color-surface-secondary)',
+                borderRadius: 'var(--radius-sm)',
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
               <PageJumper pagination={largePagination} />
             </div>
           </div>
@@ -246,13 +244,15 @@ function PaginationExamples() {
             <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
               ItemsPerPageSelector - Change Page Size
             </h4>
-            <div style={{ 
-              padding: '16px', 
-              background: 'var(--color-surface-secondary)', 
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex',
-              justifyContent: 'center'
-            }}>
+            <div
+              style={{
+                padding: '16px',
+                background: 'var(--color-surface-secondary)',
+                borderRadius: 'var(--radius-sm)',
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
               <ItemsPerPageSelector
                 value={25}
                 onChange={(newValue) => console.log('Items per page changed to:', newValue)}
@@ -268,26 +268,30 @@ function PaginationExamples() {
               PaginationPrimitive - Core Navigation Controls
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ 
-                padding: '16px', 
-                background: 'var(--color-surface-secondary)', 
-                borderRadius: 'var(--radius-sm)',
-                display: 'flex',
-                justifyContent: 'center'
-              }}>
+              <div
+                style={{
+                  padding: '16px',
+                  background: 'var(--color-surface-secondary)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
                 <PaginationPrimitive
                   pagination={mediumPagination}
                   showFirstLast={true}
                   showPrevNext={true}
                 />
               </div>
-              <div style={{ 
-                padding: '16px', 
-                background: 'var(--color-surface-secondary)', 
-                borderRadius: 'var(--radius-sm)',
-                display: 'flex',
-                justifyContent: 'center'
-              }}>
+              <div
+                style={{
+                  padding: '16px',
+                  background: 'var(--color-surface-secondary)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              >
                 <PaginationPrimitive
                   pagination={mediumPagination}
                   showFirstLast={false}
@@ -302,27 +306,35 @@ function PaginationExamples() {
       {/* Interactive Builder */}
       <CardSection type="content" title="Interactive Pagination Builder">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
           {/* Builder Result */}
-          <div style={{ 
-            padding: '24px', 
-            background: 'var(--color-surface-secondary)', 
-            borderRadius: 'var(--radius-md)',
-            border: '2px dashed var(--color-text-muted)'
-          }}>
-            <h4 style={{ marginBottom: '16px', color: 'var(--color-text-primary)', textAlign: 'center' }}>
+          <div
+            style={{
+              padding: '24px',
+              background: 'var(--color-surface-secondary)',
+              borderRadius: 'var(--radius-md)',
+              border: '2px dashed var(--color-text-muted)',
+            }}
+          >
+            <h4
+              style={{
+                marginBottom: '16px',
+                color: 'var(--color-text-primary)',
+                textAlign: 'center',
+              }}
+            >
               Your Pagination
             </h4>
             {renderBuilderPagination()}
           </div>
 
           {/* Builder Controls */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-            gap: '16px' 
-          }}>
-            
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '16px',
+            }}
+          >
             <FormField label="Layout">
               <Select
                 value={builderConfig.layout}
@@ -330,7 +342,7 @@ function PaginationExamples() {
                 options={[
                   { value: 'default', label: 'Default (Centered)' },
                   { value: 'simple', label: 'Simple (Info + Pagination)' },
-                  { value: 'full', label: 'Full (Complete Controls)' }
+                  { value: 'full', label: 'Full (Complete Controls)' },
                 ]}
               />
             </FormField>
@@ -344,7 +356,7 @@ function PaginationExamples() {
                   { value: '150', label: '150 items' },
                   { value: '500', label: '500 items' },
                   { value: '1247', label: '1,247 items' },
-                  { value: '5000', label: '5,000 items' }
+                  { value: '5000', label: '5,000 items' },
                 ]}
               />
             </FormField>
@@ -358,7 +370,7 @@ function PaginationExamples() {
                   { value: '10', label: '10 per page' },
                   { value: '12', label: '12 per page' },
                   { value: '25', label: '25 per page' },
-                  { value: '50', label: '50 per page' }
+                  { value: '50', label: '50 per page' },
                 ]}
               />
             </FormField>
@@ -387,7 +399,7 @@ function PaginationExamples() {
                   { value: 'monsters', label: 'monsters' },
                   { value: 'results', label: 'results' },
                   { value: 'records', label: 'records' },
-                  { value: 'entries', label: 'entries' }
+                  { value: 'entries', label: 'entries' },
                 ]}
               />
             </FormField>
@@ -405,7 +417,7 @@ function PaginationExamples() {
                     { value: 'firstlast-prevnext', label: 'All Controls' },
                     { value: 'nofirstlast-prevnext', label: 'Prev/Next Only' },
                     { value: 'firstlast-noprevnext', label: 'First/Last Only' },
-                    { value: 'nofirstlast-noprevnext', label: 'Numbers Only' }
+                    { value: 'nofirstlast-noprevnext', label: 'Numbers Only' },
                   ]}
                 />
               </FormField>
@@ -413,17 +425,15 @@ function PaginationExamples() {
           </div>
 
           {/* Quick Actions */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '12px', 
-            justifyContent: 'center',
-            flexWrap: 'wrap'
-          }}>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => builderPagination.firstPage()}
-            >
+          <div
+            style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Button variant="secondary" size="sm" onClick={() => builderPagination.firstPage()}>
               Go to First
             </Button>
             <Button
@@ -442,32 +452,34 @@ function PaginationExamples() {
             >
               Next
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => builderPagination.lastPage()}
-            >
+            <Button variant="secondary" size="sm" onClick={() => builderPagination.lastPage()}>
               Go to Last
             </Button>
           </div>
 
           {/* Code Example */}
-          <div style={{ 
-            background: 'var(--color-surface-primary)', 
-            padding: '16px', 
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-text-muted)'
-          }}>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)', fontSize: '14px' }}>
+          <div
+            style={{
+              background: 'var(--color-surface-primary)',
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-text-muted)',
+            }}
+          >
+            <h4
+              style={{ marginBottom: '12px', color: 'var(--color-text-primary)', fontSize: '14px' }}
+            >
               Code Example:
             </h4>
-            <code style={{ 
-              fontFamily: 'var(--font-family-mono)', 
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              display: 'block',
-              whiteSpace: 'pre-wrap'
-            }}>
+            <code
+              style={{
+                fontFamily: 'var(--font-family-mono)',
+                fontSize: '12px',
+                color: 'var(--color-text-secondary)',
+                display: 'block',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
               {(() => {
                 const baseCode = `// Setup pagination hook
 const pagination = usePagination({
@@ -483,42 +495,57 @@ const pagination = usePagination({
   itemName="${builderConfig.itemName}"`;
 
                 if (builderConfig.layout === 'full') {
-                  return baseCode + `
+                  return (
+                    baseCode +
+                    `
   currentLimit={${builderConfig.limit}}
   onLimitChange={handleLimitChange}
   itemsPerPageOptions={[5, 10, 25, 50]}
-/>`;
+/>`
+                  );
                 } else if (builderConfig.layout === 'default') {
-                  return baseCode + `
+                  return (
+                    baseCode +
+                    `
   showFirstLast={${builderConfig.showFirstLast}}
   showPrevNext={${builderConfig.showPrevNext}}
-/>`;
+/>`
+                  );
                 } else {
-                  return baseCode + `
-/>`;
+                  return (
+                    baseCode +
+                    `
+/>`
+                  );
                 }
               })()}
             </code>
           </div>
 
           {/* Pagination State Info */}
-          <div style={{ 
-            background: 'var(--color-surface-primary)', 
-            padding: '16px', 
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-text-muted)'
-          }}>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)', fontSize: '14px' }}>
+          <div
+            style={{
+              background: 'var(--color-surface-primary)',
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-text-muted)',
+            }}
+          >
+            <h4
+              style={{ marginBottom: '12px', color: 'var(--color-text-primary)', fontSize: '14px' }}
+            >
               Current Pagination State:
             </h4>
-            <div style={{ 
-              fontFamily: 'var(--font-family-mono)', 
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-              gap: '8px'
-            }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-family-mono)',
+                fontSize: '12px',
+                color: 'var(--color-text-secondary)',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                gap: '8px',
+              }}
+            >
               <div>Page: {builderPagination.currentPage}</div>
               <div>Total Pages: {builderPagination.totalPages}</div>
               <div>Total Items: {builderPagination.total}</div>

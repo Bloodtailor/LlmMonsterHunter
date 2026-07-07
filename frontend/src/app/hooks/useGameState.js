@@ -13,8 +13,8 @@ export function useFollowingMonsters() {
 
   return {
     // Clean transformed data
-    ids: api.data.ids,                           // Always an array
-    count: api.data.count,                       // Always a number
+    ids: api.data.ids, // Always an array
+    count: api.data.count, // Always a number
     followingMonsters: api.data.followingMonsters, // Always an array
 
     // Raw data (for debugging)
@@ -31,7 +31,7 @@ export function useFollowingMonsters() {
 
     // Computed helpers
     hasFollowing: api.data.count > 0,
-    isEmpty: api.data.count === 0
+    isEmpty: api.data.count === 0,
   };
 }
 
@@ -44,8 +44,8 @@ export function useActiveParty() {
 
   return {
     // Clean transformed data
-    ids: api.data.ids,                     // Always an array
-    count: api.data.count,                 // Always a number
+    ids: api.data.ids, // Always an array
+    count: api.data.count, // Always a number
     partyMonsters: api.data.partyMonsters, // Always an array
 
     // Raw data (for debugging)
@@ -63,7 +63,7 @@ export function useActiveParty() {
     // Computed helpers
     hasParty: api.data.count > 0,
     isEmpty: api.data.count === 0,
-    isFull: api.data.count >= 4
+    isFull: api.data.count >= 4,
   };
 }
 
@@ -76,10 +76,10 @@ export function useSetActiveParty() {
 
   return {
     // Clean set result
-    success: api.data.success,           // false initially, then boolean
-    message: api.data.message,           // null initially, then string
-    partyCount: api.data.partyCount,     // 0 initially, then number
-    partyIds: api.data.partyIds,         // [] initially, then array
+    success: api.data.success, // false initially, then boolean
+    message: api.data.message, // null initially, then string
+    partyCount: api.data.partyCount, // 0 initially, then number
+    partyIds: api.data.partyIds, // [] initially, then array
 
     // Raw data (for debugging)
     rawResponse: api.data._raw,
@@ -91,6 +91,6 @@ export function useSetActiveParty() {
 
     // Actions
     setActiveParty: api.execute,
-    reset: api.reset
+    reset: api.reset,
   };
 }

@@ -37,17 +37,20 @@ function CardSection({
   style = {},
   ...rest
 }) {
-  
   // Get typography scaling
   const { getTextSize } = useTypographyScale(size, classType);
 
   // Determine typography for titles based on section type
   const getTitleTypography = () => {
     switch (type) {
-      case 'header': return 'title';   // Header titles use title typography
-      case 'content': return 'header'; // Content titles use header typography  
-      case 'footer': return null;      // Footer never has titles
-      default: return 'header';
+      case 'header':
+        return 'title'; // Header titles use title typography
+      case 'content':
+        return 'header'; // Content titles use header typography
+      case 'footer':
+        return null; // Footer never has titles
+      default:
+        return 'header';
     }
   };
 
@@ -61,18 +64,20 @@ function CardSection({
     type === 'content' && title && 'card-section-has-title',
     bordered && 'card-section-bordered',
     highlighted && 'card-section-highlighted',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Render title + action (if any)
   const renderTitleArea = () => {
     if (!title && !action) return null;
-    
+
     // Footer should never render title area
     if (type === 'footer') return null;
-    
+
     const titleTypography = getTitleTypography();
-    
+
     return (
       <div className="card-section-title-container">
         {title && (
@@ -84,11 +89,7 @@ function CardSection({
             )}
           </div>
         )}
-        {action && (
-          <div className="card-section-action">
-            {action}
-          </div>
-        )}
+        {action && <div className="card-section-action">{action}</div>}
       </div>
     );
   };
@@ -96,20 +97,12 @@ function CardSection({
   // Render content area
   const renderContentArea = () => {
     if (!children) return null;
-    
-    return (
-      <div className="card-section-content-area">
-        {children}
-      </div>
-    );
+
+    return <div className="card-section-content-area">{children}</div>;
   };
 
   return (
-    <div
-      className={sectionClasses}
-      style={style}
-      {...rest}
-    >
+    <div className={sectionClasses} style={style} {...rest}>
       {renderTitleArea()}
       {renderContentArea()}
     </div>
@@ -119,15 +112,15 @@ function CardSection({
 // Section type constants
 export const CARD_SECTION_TYPES = {
   HEADER: 'header',
-  CONTENT: 'content', 
-  FOOTER: 'footer'
+  CONTENT: 'content',
+  FOOTER: 'footer',
 };
 
 // Alignment constants
 export const CARD_SECTION_ALIGNMENT = {
   LEFT: 'left',
   CENTER: 'center',
-  RIGHT: 'right'
+  RIGHT: 'right',
 };
 
 export default CardSection;

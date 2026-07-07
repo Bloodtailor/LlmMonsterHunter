@@ -16,7 +16,6 @@ import TalkResponsePanel from '../components/TalkResponsePanel.js';
  * Pure layout with ZERO context subscriptions
  */
 function DungeonBattleScreen() {
-
   // Pure layout - never changes, never rerenders
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

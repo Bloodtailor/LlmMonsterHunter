@@ -2,12 +2,12 @@
 // Provides consistent, robust API communication with centralized error handling
 
 import { API_CONFIG, getApiConfig } from './config.js';
-import { 
-  processRequest, 
-  processResponse, 
-  processError, 
+import {
+  processRequest,
+  processResponse,
+  processError,
   logApiCall,
-  ApiError 
+  ApiError,
 } from './interceptors.js';
 
 /**
@@ -18,47 +18,43 @@ import {
  */
 export async function apiClient(endpoint, options = {}) {
   const config = getApiConfig();
-  
+
   // Build full URL
   const url = `${config.BASE_URL}${endpoint}`;
-  
+
   // Process request (add headers, logging, etc.)
   const processedOptions = processRequest(url, {
     method: 'GET',
     timeout: config.DEFAULT_TIMEOUT,
-    ...options
+    ...options,
   });
 
   try {
     // Create timeout promise
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(
-        () => reject(new Error('Request timeout')), 
-        processedOptions.timeout
-      );
+      setTimeout(() => reject(new Error('Request timeout')), processedOptions.timeout);
     });
 
     // Make the fetch request
     const fetchPromise = fetch(url, processedOptions);
-    
+
     // Race between fetch and timeout
     const response = await Promise.race([fetchPromise, timeoutPromise]);
-    
+
     // Process response (parse JSON, handle errors, log)
     const data = await processResponse(response, endpoint);
-    
+
     // Log successful API call
     logApiCall(endpoint, data);
-    
+
     return data;
-    
   } catch (error) {
     // Process and normalize the error
     const processedError = processError(error, endpoint);
-    
+
     // Log failed API call
     logApiCall(endpoint, null, processedError);
-    
+
     // Re-throw the processed error
     throw processedError;
   }
@@ -77,7 +73,7 @@ export async function apiClient(endpoint, options = {}) {
 export function get(endpoint, options = {}) {
   return apiClient(endpoint, {
     method: 'GET',
-    ...options
+    ...options,
   });
 }
 
@@ -91,14 +87,14 @@ export function get(endpoint, options = {}) {
 export function post(endpoint, data = null, options = {}) {
   const requestOptions = {
     method: 'POST',
-    ...options
+    ...options,
   };
-  
+
   // Add body if data provided
   if (data !== null) {
     requestOptions.body = JSON.stringify(data);
   }
-  
+
   return apiClient(endpoint, requestOptions);
 }
 
@@ -112,14 +108,14 @@ export function post(endpoint, data = null, options = {}) {
 export function put(endpoint, data = null, options = {}) {
   const requestOptions = {
     method: 'PUT',
-    ...options
+    ...options,
   };
-  
+
   // Add body if data provided
   if (data !== null) {
     requestOptions.body = JSON.stringify(data);
   }
-  
+
   return apiClient(endpoint, requestOptions);
 }
 
@@ -132,7 +128,7 @@ export function put(endpoint, data = null, options = {}) {
 export function deleteRequest(endpoint, options = {}) {
   return apiClient(endpoint, {
     method: 'DELETE',
-    ...options
+    ...options,
   });
 }
 
@@ -143,13 +139,13 @@ export function deleteRequest(endpoint, options = {}) {
  */
 export function buildQueryString(params = {}) {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== '') {
       searchParams.append(key, value.toString());
     }
   });
-  
+
   const queryString = searchParams.toString();
   return queryString ? `?${queryString}` : '';
 }

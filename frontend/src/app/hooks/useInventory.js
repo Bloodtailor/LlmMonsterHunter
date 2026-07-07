@@ -18,10 +18,13 @@ export function useInventoryCollection(kind = 'items') {
   // Remember the last query so event-driven refetches reuse it
   const lastQuery = useRef({ kind, limit: undefined, offset: 0 });
 
-  const load = useCallback(async ({ limit, offset } = {}) => {
-    lastQuery.current = { kind, limit, offset };
-    return await api.execute({ kind, limit, offset });
-  }, [api.execute, kind]);
+  const load = useCallback(
+    async ({ limit, offset } = {}) => {
+      lastQuery.current = { kind, limit, offset };
+      return await api.execute({ kind, limit, offset });
+    },
+    [api.execute, kind],
+  );
 
   const reload = useCallback(() => {
     const { limit, offset } = lastQuery.current;
@@ -29,19 +32,27 @@ export function useInventoryCollection(kind = 'items') {
   }, [api.execute, kind]);
 
   // The party's possessions changed - refresh whichever page is showing
-  useEventSubscription('inventoryItemAdded', () => { if (kind === 'items') reload(); });
-  useEventSubscription('inventoryItemUpdated', () => { if (kind === 'items') reload(); });
-  useEventSubscription('inventoryItemConsumed', () => { if (kind === 'items') reload(); });
-  useEventSubscription('inventoryCocatokAdded', () => { if (kind === 'cocatoks') reload(); });
+  useEventSubscription('inventoryItemAdded', () => {
+    if (kind === 'items') reload();
+  });
+  useEventSubscription('inventoryItemUpdated', () => {
+    if (kind === 'items') reload();
+  });
+  useEventSubscription('inventoryItemConsumed', () => {
+    if (kind === 'items') reload();
+  });
+  useEventSubscription('inventoryCocatokAdded', () => {
+    if (kind === 'cocatoks') reload();
+  });
 
   return {
-    entries: api.data.entries,   // Always an array
-    total: api.data.total,       // Always a number
+    entries: api.data.entries, // Always an array
+    total: api.data.total, // Always a number
     isLoading: api.isLoading,
     isError: api.isError,
     error: api.error,
     load,
-    reload
+    reload,
   };
 }
 
@@ -57,7 +68,7 @@ export function useUsableItems() {
   }, [load]);
 
   return {
-    items: (entries || []).filter(item => item.usesRemaining > 0),
-    isLoading
+    items: (entries || []).filter((item) => item.usesRemaining > 0),
+    isLoading,
   };
 }

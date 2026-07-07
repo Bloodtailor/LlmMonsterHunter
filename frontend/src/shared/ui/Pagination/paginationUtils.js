@@ -151,7 +151,7 @@ export function getPageRange(currentPage, totalPages, rangeSize = 5) {
 export function createPaginationInfo(currentPage, total, limit) {
   const totalPages = calculateTotalPages(total, limit);
   const offset = calculateOffset(currentPage, limit);
-  
+
   return {
     currentPage,
     totalPages,
@@ -165,13 +165,13 @@ export function createPaginationInfo(currentPage, total, limit) {
     isFirstPage: currentPage === 1,
     isLastPage: currentPage === totalPages,
     pageRange: getPageRange(currentPage, totalPages),
-    
+
     // Useful for display
     startItem: total > 0 ? offset + 1 : 0,
     endItem: Math.min(offset + limit, total),
-    
+
     // Validation
-    isValid: isValidPage(currentPage, totalPages)
+    isValid: isValidPage(currentPage, totalPages),
   };
 }
 
@@ -200,5 +200,5 @@ export const paginationUtils = {
   getPrevPage,
   getPageRange,
   createPaginationInfo,
-  normalizePage
+  normalizePage,
 };

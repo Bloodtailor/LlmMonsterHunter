@@ -13,7 +13,7 @@ import {
   useSetupCamp,
   useDungeonAbility,
   useDungeonItem,
-  useContinueExploring
+  useContinueExploring,
 } from '../../../hooks/useDungeon.js';
 
 /**
@@ -22,10 +22,7 @@ import {
  * @returns {object} Action functions
  */
 export function useDungeonActions(stateHook) {
-  const {
-    setters,
-    resetState
-  } = stateHook;
+  const { setters, resetState } = stateHook;
 
   const {
     setErrorState,
@@ -42,7 +39,7 @@ export function useDungeonActions(stateHook) {
     setIsUsingItem,
     setItemResult,
     setExitText,
-    clearEncounter
+    clearEncounter,
   } = setters;
 
   // App hooks for the API calls
@@ -78,16 +75,28 @@ export function useDungeonActions(stateHook) {
       setIsUsingAbility(false);
     }
   }, [
-    enterApi.isError, enterApi.error,
-    choosePathApi.isError, choosePathApi.error,
-    respondApi.isError, respondApi.error,
-    sneakApi.isError, sneakApi.error,
-    surpriseApi.isError, surpriseApi.error,
-    campApi.isError, campApi.error,
-    abilityApi.isError, abilityApi.error,
-    continueApi.isError, continueApi.error,
-    setErrorState, setIsMonsterResponding, setIsSneaking,
-    setIsAmbushing, setIsCamping, setIsUsingAbility
+    enterApi.isError,
+    enterApi.error,
+    choosePathApi.isError,
+    choosePathApi.error,
+    respondApi.isError,
+    respondApi.error,
+    sneakApi.isError,
+    sneakApi.error,
+    surpriseApi.isError,
+    surpriseApi.error,
+    campApi.isError,
+    campApi.error,
+    abilityApi.isError,
+    abilityApi.error,
+    continueApi.isError,
+    continueApi.error,
+    setErrorState,
+    setIsMonsterResponding,
+    setIsSneaking,
+    setIsAmbushing,
+    setIsCamping,
+    setIsUsingAbility,
   ]);
 
   // Enter dungeon action - a fresh run starts clean, so any leftover
@@ -104,35 +113,65 @@ export function useDungeonActions(stateHook) {
     setPaths(null);
     setArePathsReady(false);
     await enterApi.enterDungeon();
-  }, [enterApi.isLoading, enterApi.enterDungeon, setErrorState, clearEncounter, setExitText, setCurrentLocation, setPaths, setArePathsReady]);
+  }, [
+    enterApi.isLoading,
+    enterApi.enterDungeon,
+    setErrorState,
+    clearEncounter,
+    setExitText,
+    setCurrentLocation,
+    setPaths,
+    setArePathsReady,
+  ]);
 
   // Take a path - clear everything from the previous junction first
-  const choosePath = useCallback(async (pathId) => {
-    if (choosePathApi.isLoading) {
-      return;
-    }
+  const choosePath = useCallback(
+    async (pathId) => {
+      if (choosePathApi.isLoading) {
+        return;
+      }
 
-    setErrorState(null);
-    clearEncounter();
-    setExitText(null);
-    setCurrentLocation(null);   // traveling... until location_generated arrives
-    setPaths(null);
-    setArePathsReady(false);
-    await choosePathApi.choosePath(pathId);
-  }, [choosePathApi.isLoading, choosePathApi.choosePath, setErrorState, clearEncounter, setExitText, setCurrentLocation, setPaths, setArePathsReady]);
+      setErrorState(null);
+      clearEncounter();
+      setExitText(null);
+      setCurrentLocation(null); // traveling... until location_generated arrives
+      setPaths(null);
+      setArePathsReady(false);
+      await choosePathApi.choosePath(pathId);
+    },
+    [
+      choosePathApi.isLoading,
+      choosePathApi.choosePath,
+      setErrorState,
+      clearEncounter,
+      setExitText,
+      setCurrentLocation,
+      setPaths,
+      setArePathsReady,
+    ],
+  );
 
   // Speak to the encounter monsters - the party's words appear
   // immediately; the monster's response (and its decision) arrive via SSE
-  const respondToMonster = useCallback(async (message) => {
-    if (respondApi.isLoading) {
-      return;
-    }
+  const respondToMonster = useCallback(
+    async (message) => {
+      if (respondApi.isLoading) {
+        return;
+      }
 
-    setErrorState(null);
-    setIsMonsterResponding(true);
-    setDialogue(prev => [...prev, { speaker: 'The party', text: message }]);
-    await respondApi.respondToMonster(message);
-  }, [respondApi.isLoading, respondApi.respondToMonster, setErrorState, setIsMonsterResponding, setDialogue]);
+      setErrorState(null);
+      setIsMonsterResponding(true);
+      setDialogue((prev) => [...prev, { speaker: 'The party', text: message }]);
+      await respondApi.respondToMonster(message);
+    },
+    [
+      respondApi.isLoading,
+      respondApi.respondToMonster,
+      setErrorState,
+      setIsMonsterResponding,
+      setDialogue,
+    ],
+  );
 
   // Try to slip past the monsters spotted while exploring
   const sneakPast = useCallback(async () => {
@@ -169,29 +208,41 @@ export function useDungeonActions(stateHook) {
 
   // A party monster uses an ability on anything - the LLM decides
   // whether it does anything at all
-  const activateAbility = useCallback(async ({ monsterId, abilityId, targetType, targetId, targetText }) => {
-    if (abilityApi.isLoading) {
-      return;
-    }
+  const activateAbility = useCallback(
+    async ({ monsterId, abilityId, targetType, targetId, targetText }) => {
+      if (abilityApi.isLoading) {
+        return;
+      }
 
-    setErrorState(null);
-    setIsUsingAbility(true);
-    setAbilityResult(null);
-    await abilityApi.activateAbility({ monsterId, abilityId, targetType, targetId, targetText });
-  }, [abilityApi.isLoading, abilityApi.activateAbility, setErrorState, setIsUsingAbility, setAbilityResult]);
+      setErrorState(null);
+      setIsUsingAbility(true);
+      setAbilityResult(null);
+      await abilityApi.activateAbility({ monsterId, abilityId, targetType, targetId, targetText });
+    },
+    [
+      abilityApi.isLoading,
+      abilityApi.activateAbility,
+      setErrorState,
+      setIsUsingAbility,
+      setAbilityResult,
+    ],
+  );
 
   // The party uses an inventory item on anything - the LLM reads the
   // item's description and decides what actually happens
-  const activateItem = useCallback(async ({ itemId, targetType, targetId, targetText }) => {
-    if (itemApi.isLoading) {
-      return;
-    }
+  const activateItem = useCallback(
+    async ({ itemId, targetType, targetId, targetText }) => {
+      if (itemApi.isLoading) {
+        return;
+      }
 
-    setErrorState(null);
-    setIsUsingItem(true);
-    setItemResult(null);
-    await itemApi.activateItem({ itemId, targetType, targetId, targetText });
-  }, [itemApi.isLoading, itemApi.activateItem, setErrorState, setIsUsingItem, setItemResult]);
+      setErrorState(null);
+      setIsUsingItem(true);
+      setItemResult(null);
+      await itemApi.activateItem({ itemId, targetType, targetId, targetText });
+    },
+    [itemApi.isLoading, itemApi.activateItem, setErrorState, setIsUsingItem, setItemResult],
+  );
 
   // Continue exploring - fresh paths from the current location
   const continueExploring = useCallback(async () => {
@@ -205,7 +256,15 @@ export function useDungeonActions(stateHook) {
     setPaths(null);
     setArePathsReady(false);
     await continueApi.continueExploring();
-  }, [continueApi.isLoading, continueApi.continueExploring, setErrorState, clearEncounter, setExitText, setPaths, setArePathsReady]);
+  }, [
+    continueApi.isLoading,
+    continueApi.continueExploring,
+    setErrorState,
+    clearEncounter,
+    setExitText,
+    setPaths,
+    setArePathsReady,
+  ]);
 
   // Reset dungeon state
   const resetDungeon = useCallback(() => {
@@ -223,7 +282,7 @@ export function useDungeonActions(stateHook) {
       activateAbility,
       activateItem,
       continueExploring,
-      resetDungeon
-    }
+      resetDungeon,
+    },
   };
 }

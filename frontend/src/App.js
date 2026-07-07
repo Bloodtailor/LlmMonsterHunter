@@ -26,62 +26,59 @@ import DeveloperScreen from './screens/developer/DeveloperScreen.js';
 import UiExamplesScreen from './screens/developer/UiExamplesScreen.js';
 
 function App() {
-
   // Top-level navigation state - separates game from developer screens
-  const [currentScreen, setCurrentScreen] = useState('game'); 
+  const [currentScreen, setCurrentScreen] = useState('game');
 
-  
   // Navigation button configurations - single Game entry point
   const navigationButtons = [
     {
       screen: 'game',
-      label: '🎮 Game'
+      label: '🎮 Game',
     },
     {
       screen: 'api-services',
-      label: '🧪 API Tests'
+      label: '🧪 API Tests',
     },
     {
       screen: 'dev',
-      label: '🧪 Developer'
+      label: '🧪 Developer',
     },
     {
       screen: 'event-test',
-      label: '🧪 Event Context Test'
+      label: '🧪 Event Context Test',
     },
     {
       screen: 'cocatok-demo',
-      label: '❄️ CoCaTok Demo'
+      label: '❄️ CoCaTok Demo',
     },
     {
-      screen: 'explosion-demo', 
-      label: '💥 Explosion Demo'
+      screen: 'explosion-demo',
+      label: '💥 Explosion Demo',
     },
     {
       screen: 'style-test',
-      label: '🧪 Style Test'
+      label: '🧪 Style Test',
     },
     {
       screen: 'ui-examples',
-      label: '🧪 UI Examples'
+      label: '🧪 UI Examples',
     },
     {
       screen: 'byo-component',
-      label: '🧱 BYO Component'
-    }
+      label: '🧱 BYO Component',
+    },
   ];
 
   // Main application
   return (
     <AppProvider>
       <div className="App">
-
         {/* App Header with Title Left, Navigation Centered */}
         <header className="app-header">
           <h1>🎮 Monster Hunter Game</h1>
-          
+
           {/* Navigation using NavButtons component */}
-          <NavButtons 
+          <NavButtons
             buttons={navigationButtons}
             activeScreen={currentScreen}
             onScreenChange={setCurrentScreen}
@@ -109,8 +106,7 @@ function App() {
           {currentScreen === 'byo-component' && <BYOComponentTestScreen />}
         </main>
 
-        <footer className='app-footer'>LLM Monster Hunter</footer>
-
+        <footer className="app-footer">LLM Monster Hunter</footer>
       </div>
     </AppProvider>
   );

@@ -5,7 +5,15 @@
 // the adventurer just talks.
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Card, CardSection, Button, Textarea, LoadingSpinner, Alert, EmptyState } from '../../shared/ui/index.js';
+import {
+  Card,
+  CardSection,
+  Button,
+  Textarea,
+  LoadingSpinner,
+  Alert,
+  EmptyState,
+} from '../../shared/ui/index.js';
 import { useMonsterChat } from './hooks/useMonsterChat.js';
 
 // Everything the monster says shares one voice
@@ -16,7 +24,7 @@ const monsterSpeechStyles = {
   fontFamily: 'var(--font-family-serif)',
   fontStyle: 'italic',
   whiteSpace: 'pre-wrap',
-  margin: 0
+  margin: 0,
 };
 
 // The adventurer's words look plainer - spoken, not performed
@@ -25,14 +33,14 @@ const playerSpeechStyles = {
   lineHeight: 'var(--line-height-relaxed)',
   color: 'var(--color-text-secondary)',
   whiteSpace: 'pre-wrap',
-  margin: 0
+  margin: 0,
 };
 
 const speakerLabelStyles = {
   fontSize: 'var(--font-size-sm)',
   fontWeight: 'bold',
   color: 'var(--color-text-muted)',
-  marginBottom: '4px'
+  marginBottom: '4px',
 };
 
 /**
@@ -49,7 +57,7 @@ function MonsterChatPanel({ monster }) {
     error,
     memoryToasts,
     send,
-    loadOlder
+    loadOlder,
   } = useMonsterChat(monster?.id || null);
 
   const [draft, setDraft] = useState('');
@@ -92,7 +100,15 @@ function MonsterChatPanel({ monster }) {
 
       {/* The thread */}
       <CardSection type="content">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '720px', margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            maxWidth: '720px',
+            margin: '0 auto',
+          }}
+        >
           {hasMore && (
             <div style={{ textAlign: 'center' }}>
               <Button size="sm" variant="secondary" onClick={loadOlder}>
@@ -108,7 +124,9 @@ function MonsterChatPanel({ monster }) {
           )}
 
           {!isLoadingHistory && messages.length === 0 && !streamingText && (
-            <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+            <p
+              style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontStyle: 'italic' }}
+            >
               {monster.name} settles in beside you. Say something.
             </p>
           )}
@@ -117,9 +135,7 @@ function MonsterChatPanel({ monster }) {
             const isPlayer = line.role === 'player';
             return (
               <div key={line.id} style={{ textAlign: isPlayer ? 'right' : 'left' }}>
-                <div style={speakerLabelStyles}>
-                  {isPlayer ? '🧑 You' : `👹 ${monster.name}`}
-                </div>
+                <div style={speakerLabelStyles}>{isPlayer ? '🧑 You' : `👹 ${monster.name}`}</div>
                 <p style={isPlayer ? playerSpeechStyles : monsterSpeechStyles}>"{line.text}"</p>
               </div>
             );
@@ -129,14 +145,22 @@ function MonsterChatPanel({ monster }) {
           {isReplying && (
             <div style={{ textAlign: 'left' }}>
               <div style={speakerLabelStyles}>👹 {monster.name}</div>
-              {streamingText
-                ? <p style={monsterSpeechStyles}>"{streamingText}"</p>
-                : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-                    <LoadingSpinner size="sm" type="spin" />
-                    {monster.name} considers your words...
-                  </div>
-                )}
+              {streamingText ? (
+                <p style={monsterSpeechStyles}>"{streamingText}"</p>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: 'var(--color-text-muted)',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  <LoadingSpinner size="sm" type="spin" />
+                  {monster.name} considers your words...
+                </div>
+              )}
             </div>
           )}
 
@@ -154,7 +178,7 @@ function MonsterChatPanel({ monster }) {
                 fontSize: 'var(--font-size-sm)',
                 color: 'var(--color-text-muted)',
                 fontStyle: 'italic',
-                margin: '4px 0'
+                margin: '4px 0',
               }}
             >
               ✨ {monster.name} will remember this: “{memory.content}”
@@ -165,13 +189,24 @@ function MonsterChatPanel({ monster }) {
 
       {error && (
         <CardSection type="content" alignment="center">
-          <Alert type="error" size="md">{error}</Alert>
+          <Alert type="error" size="md">
+            {error}
+          </Alert>
         </CardSection>
       )}
 
       {/* The adventurer speaks */}
       <CardSection type="content" alignment="center">
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '640px', margin: '0 auto' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            maxWidth: '640px',
+            margin: '0 auto',
+          }}
+        >
           <Textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

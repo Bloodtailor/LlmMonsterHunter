@@ -13,13 +13,15 @@ import './FilterControls.css';
  * @returns {string} Formatted label (e.g., 'Prompt Name', 'Generation Type')
  */
 function formatFieldLabel(fieldName) {
-  return fieldName
-    // Handle camelCase: insert space before uppercase letters
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    // Handle snake_case: replace underscores with spaces
-    .replace(/_/g, ' ')
-    // Capitalize first letter of each word
-    .replace(/\b\w/g, letter => letter.toUpperCase());
+  return (
+    fieldName
+      // Handle camelCase: insert space before uppercase letters
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      // Handle snake_case: replace underscores with spaces
+      .replace(/_/g, ' ')
+      // Capitalize first letter of each word
+      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  );
 }
 
 /**
@@ -49,15 +51,14 @@ function FilterSelectGroup({
   className = '',
   ...rest
 }) {
-
   // Handle individual filter change
   const handleFilterChange = (fieldName) => (event) => {
     const newValue = event.target.value;
-    
+
     // Create updated values object
     const updatedValues = {
       ...values,
-      [fieldName]: newValue || undefined // Remove empty values
+      [fieldName]: newValue || undefined, // Remove empty values
     };
 
     // Call onChange with field name, new value, and complete values object
@@ -71,34 +72,36 @@ function FilterSelectGroup({
     'filter-select-group',
     `filter-select-group-${layout}`,
     disabled && 'filter-select-group-disabled',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Generate filter fields from options
   const filterFields = Object.entries(filterOptions).map(([fieldName, options]) => {
     // Determine label (custom or auto-formatted)
     const label = customLabels[fieldName] || formatFieldLabel(fieldName);
-    
+
     // Handle different option formats
     let selectOptions = [];
-    
+
     if (Array.isArray(options)) {
       // Simple array of values
-      selectOptions = options.map(option => ({
+      selectOptions = options.map((option) => ({
         value: option,
-        label: String(option)
+        label: String(option),
       }));
     } else if (typeof options === 'object' && options !== null) {
       // Object with {value: label} pairs
       selectOptions = Object.entries(options).map(([value, label]) => ({
         value,
-        label: String(label)
+        label: String(label),
       }));
     }
 
     // Get current value for this field
     const currentValue = values[fieldName] || '';
-    
+
     // Get error for this field
     const fieldError = errors[fieldName] || null;
 
@@ -107,10 +110,7 @@ function FilterSelectGroup({
 
     return (
       <div key={fieldName} className="filter-select-item">
-        <FormField
-          label={label}
-          error={fieldError}
-        >
+        <FormField label={label} error={fieldError}>
           <Select
             value={currentValue}
             onChange={handleFilterChange(fieldName)}

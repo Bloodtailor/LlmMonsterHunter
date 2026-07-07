@@ -30,7 +30,7 @@ function MonsterEvolutionScreen() {
       setRunCheck({
         loading: false,
         inDungeon: !!state.inDungeon,
-        location: state.currentLocation?.name || null
+        location: state.currentLocation?.name || null,
       });
     } catch (checkError) {
       // If the check itself fails, let the altar try - the backend
@@ -60,7 +60,8 @@ function MonsterEvolutionScreen() {
   // following list in place as the ceremony's SSE events land, so the
   // card on the altar transforms in real time
   const liveMonster = selectedMonster
-    ? (followingMonsters || []).find((monster) => monster.id === selectedMonster.id) || selectedMonster
+    ? (followingMonsters || []).find((monster) => monster.id === selectedMonster.id) ||
+      selectedMonster
     : null;
 
   return (
@@ -68,8 +69,8 @@ function MonsterEvolutionScreen() {
       <Card size="xl" background="light">
         <CardSection type="header" size="xl" title="⬆️ Evolution Altar" alignment="center">
           <p>
-            Everything a companion has lived - every battle, wish, and word -
-            gathers here. Evolution makes it more of what it already is.
+            Everything a companion has lived - every battle, wish, and word - gathers here.
+            Evolution makes it more of what it already is.
           </p>
         </CardSection>
         <CardSection type="content" alignment="center">
@@ -88,7 +89,15 @@ function MonsterEvolutionScreen() {
       {runCheck.loading && (
         <Card size="lg" background="light">
           <CardSection type="content" alignment="center">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                justifyContent: 'center',
+                color: 'var(--color-text-muted)',
+              }}
+            >
               <LoadingSpinner size="sm" type="spin" />
               Checking on the party...
             </div>
@@ -98,17 +107,27 @@ function MonsterEvolutionScreen() {
 
       {!runCheck.loading && runCheck.inDungeon && (
         <Card size="lg" background="light">
-          <CardSection type="header" size="md" title="⛰️ Your party is still in the dungeon" alignment="center" />
+          <CardSection
+            type="header"
+            size="md"
+            title="⛰️ Your party is still in the dungeon"
+            alignment="center"
+          />
           <CardSection type="content" alignment="center">
-            <p style={{ color: 'var(--color-text-secondary)', maxWidth: '560px', margin: '0 auto 12px' }}>
-              {runCheck.location
-                ? `They were last seen at ${runCheck.location}. `
-                : ''}
-              Evolutions happen at home base. Return to the dungeon and finish
-              the run - or call everyone home now, which abandons the run
-              where it stands.
+            <p
+              style={{
+                color: 'var(--color-text-secondary)',
+                maxWidth: '560px',
+                margin: '0 auto 12px',
+              }}
+            >
+              {runCheck.location ? `They were last seen at ${runCheck.location}. ` : ''}
+              Evolutions happen at home base. Return to the dungeon and finish the run - or call
+              everyone home now, which abandons the run where it stands.
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div
+              style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}
+            >
               <Button
                 size="md"
                 icon="🏰"
@@ -129,7 +148,9 @@ function MonsterEvolutionScreen() {
             </div>
             {runError && (
               <div style={{ marginTop: '12px' }}>
-                <Alert type="error" size="md">{runError}</Alert>
+                <Alert type="error" size="md">
+                  {runError}
+                </Alert>
               </div>
             )}
           </CardSection>
@@ -142,7 +163,7 @@ function MonsterEvolutionScreen() {
             display: 'grid',
             gridTemplateColumns: 'minmax(240px, 320px) 1fr',
             gap: '24px',
-            alignItems: 'start'
+            alignItems: 'start',
           }}
         >
           <MonsterChatPicker

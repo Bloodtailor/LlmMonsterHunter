@@ -64,7 +64,7 @@ body {
 
 /*fat scroll bar only applies to app screen*/
 ::-webkit-scrollbar {
-  width: 12px; 
+  width: 12px;
 }
 
 /* Universal scroll bar applies to all*/

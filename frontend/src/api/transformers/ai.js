@@ -9,7 +9,7 @@
  *   generation_id, generation_type, prompt_type, prompt_name,
  *   priority, created_at, status, result, error, started_at, completed_at
  * }
- * 
+ *
  * @param {Object|null} aiQueueItem - Queue item from backend event
  * @returns {Object|null} Transformed queue item in camelCase
  */
@@ -30,14 +30,14 @@ export function transformAiQueueItem(aiQueueItem) {
     result: aiQueueItem.result || null,
     error: aiQueueItem.error || null,
     startedAt: aiQueueItem.started_at || null,
-    completedAt: aiQueueItem.completed_at || null
+    completedAt: aiQueueItem.completed_at || null,
   };
 }
 
 /**
  * Transform array of AI queue items
  * Used by ai.queue.update event which sends all_items array
- * 
+ *
  * @param {Array|null} aiQueueItems - Array of queue items from backend
  * @returns {Array|null} Array of transformed queue items
  */
@@ -47,7 +47,7 @@ export function transformAiQueueItems(aiQueueItems) {
     return null;
   }
 
-  return aiQueueItems.map(item => transformAiQueueItem(item));
+  return aiQueueItems.map((item) => transformAiQueueItem(item));
 }
 
 /**
@@ -57,7 +57,7 @@ export function transformAiQueueItems(aiQueueItems) {
  *   text, parsed_data, tokens, duration, tokens_per_second,
  *   generation_id, attempt, parsing_success, parsing_error
  * }
- * 
+ *
  * @param {Object|null} LlmResult - LLM result from backend event
  * @returns {Object|null} Transformed LLM result in camelCase
  */
@@ -76,7 +76,7 @@ export function transformLlmGenerationResult(LlmResult) {
     generationId: LlmResult.generation_id || null,
     attempt: LlmResult.attempt || null,
     parsingSuccess: LlmResult.parsing_success || null,
-    parsingError: LlmResult.parsing_error || null
+    parsingError: LlmResult.parsing_error || null,
   };
 }
 
@@ -87,7 +87,7 @@ export function transformLlmGenerationResult(LlmResult) {
  *   image_path, execution_time, generation_id, workflow_used,
  *   prompt_id, image_dimensions
  * }
- * 
+ *
  * @param {Object|null} imageResult - Image result from backend event
  * @returns {Object|null} Transformed image result in camelCase
  */
@@ -103,6 +103,6 @@ export function transformImageGenerationResult(imageResult) {
     generationId: imageResult.generation_id || null,
     workflowUsed: imageResult.workflow_used || null,
     promptId: imageResult.prompt_id || null,
-    imageDimensions: imageResult.image_dimensions || null
+    imageDimensions: imageResult.image_dimensions || null,
   };
 }

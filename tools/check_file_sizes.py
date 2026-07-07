@@ -37,14 +37,17 @@ GRANDFATHERED = {
     'backend/tests/test_chat_and_summaries.py': 548,
     'backend/tests/test_evolution.py': 522,
     'setup/user_messages.py': 1092,
-    'frontend/src/screens/developer/BYOComponentTestScreen.js': 1010,
-    'frontend/src/screens/developer/ExplosionDemo.js': 678,
-    'frontend/src/components/UiExamples/TableExample.js': 676,
-    'frontend/src/components/UiExamples/ExplosionExamples.js': 650,
-    'frontend/src/components/UiExamples/ButtonExample.js': 572,
-    'frontend/src/components/UiExamples/ExpandableTableExample.js': 551,
-    'frontend/src/components/UiExamples/PaginiationExample.js': 536,
-    'frontend/src/components/UiExamples/CardExamples.js': 513,
+    # Dev/example screens, measured after prettier's one-time reformat
+    'frontend/src/screens/developer/BYOComponentTestScreen.js': 1133,
+    'frontend/src/screens/developer/ExplosionDemo.js': 801,
+    'frontend/src/screens/developer/StyleTestScreen.js': 545,
+    'frontend/src/components/UiExamples/TableExample.js': 808,
+    'frontend/src/components/UiExamples/ExplosionExamples.js': 682,
+    'frontend/src/components/UiExamples/ButtonExample.js': 663,
+    'frontend/src/components/UiExamples/CardExamples.js': 603,
+    'frontend/src/components/UiExamples/ExpandableTableExample.js': 592,
+    'frontend/src/components/UiExamples/PaginiationExample.js': 563,
+    'frontend/src/components/UiExamples/FeedbackExamples.js': 536,
 }
 
 

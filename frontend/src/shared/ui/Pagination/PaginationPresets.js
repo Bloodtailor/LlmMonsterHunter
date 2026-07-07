@@ -6,7 +6,7 @@ import React from 'react';
 import { default as PaginationInfo } from './PaginationInfo';
 import { default as PageJumper } from './PageJumper';
 import { default as ItemsPerPageSelector } from './ItemsPerPageSelector';
-import { default as PaginationPrimitive } from './PaginationPrimitive.js'
+import { default as PaginationPrimitive } from './PaginationPrimitive.js';
 
 import './pagination.css';
 
@@ -33,28 +33,21 @@ function Pagination({
   className = '',
   ...rest
 }) {
-  
   // Don't render if no pagination data
   if (!pagination || !pagination.paginationInfo) {
     return null;
   }
 
-  const fullPaginationClasses = [
-    'full-pagination',
-    `full-pagination-${layout}`,
-    className
-  ].filter(Boolean).join(' ');
+  const fullPaginationClasses = ['full-pagination', `full-pagination-${layout}`, className]
+    .filter(Boolean)
+    .join(' ');
 
   // Default Layout: Just the main pagination primitive
   if (layout === 'default') {
     return (
       <div className={fullPaginationClasses} {...rest}>
         <div className="full-pagination-default">
-          <PaginationPrimitive
-            pagination={pagination}
-            showFirstLast={true}
-            showPrevNext={true}
-          />
+          <PaginationPrimitive pagination={pagination} showFirstLast={true} showPrevNext={true} />
         </div>
       </div>
     );
@@ -85,7 +78,6 @@ function Pagination({
     return (
       <div className={fullPaginationClasses} {...rest}>
         <div className="full-pagination-full">
-          
           <div className="full-pagination-full-left">
             {currentLimit && onLimitChange && (
               <ItemsPerPageSelector
@@ -96,19 +88,14 @@ function Pagination({
               />
             )}
           </div>
-          
+
           <div className="full-pagination-full-center">
-            <PaginationPrimitive
-              pagination={pagination}
-              showFirstLast={true}
-              showPrevNext={true}
-            />
+            <PaginationPrimitive pagination={pagination} showFirstLast={true} showPrevNext={true} />
           </div>
-          
+
           <div className="full-pagination-full-right">
             <PageJumper pagination={pagination} />
           </div>
-          
         </div>
       </div>
     );
@@ -124,9 +111,9 @@ function Pagination({
 
 // Layout constants for easy imports
 export const PAGINATION_LAYOUTS = {
-  DEFAULT: 'default',   // Just pagination primitive
-  SIMPLE: 'simple',     // Info + basic pagination
-  FULL: 'full'          // Items per page + pagination + jumper
+  DEFAULT: 'default', // Just pagination primitive
+  SIMPLE: 'simple', // Info + basic pagination
+  FULL: 'full', // Items per page + pagination + jumper
 };
 
 export default Pagination;

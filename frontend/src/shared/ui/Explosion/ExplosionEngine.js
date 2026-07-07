@@ -3,11 +3,11 @@
 // This is the core rendering engine used by ExplosionPreset
 
 import React, { useEffect, useState } from 'react';
-import { 
-  SIZE_MULTIPLIERS, 
-  EXPLOSION_PATTERNS, 
-  ENGINE_DEFAULTS, 
-  RANDOMIZATION_RANGES 
+import {
+  SIZE_MULTIPLIERS,
+  EXPLOSION_PATTERNS,
+  ENGINE_DEFAULTS,
+  RANDOMIZATION_RANGES,
 } from './ExplosionConstants.js';
 import './explosion.css';
 
@@ -62,9 +62,21 @@ function ExplosionEngine({
   // Generate random colors
   const generateRandomColors = () => {
     const colorOptions = [
-      '#ff6b35', '#f7931e', '#ffd700', '#32cd32', '#1e90ff', 
-      '#9370db', '#ff1493', '#00ced1', '#ff4500', '#7fff00',
-      '#dc143c', '#00bfff', '#ba55d3', '#ff6347', '#adff2f'
+      '#ff6b35',
+      '#f7931e',
+      '#ffd700',
+      '#32cd32',
+      '#1e90ff',
+      '#9370db',
+      '#ff1493',
+      '#00ced1',
+      '#ff4500',
+      '#7fff00',
+      '#dc143c',
+      '#00bfff',
+      '#ba55d3',
+      '#ff6347',
+      '#adff2f',
     ];
     const count = 2 + Math.floor(Math.random() * 3); // 2-4 colors
     const shuffled = [...colorOptions].sort(() => 0.5 - Math.random());
@@ -74,7 +86,7 @@ function ExplosionEngine({
   // Generate final configuration with randomization
   const generateFinalConfig = () => {
     const patterns = Object.values(EXPLOSION_PATTERNS);
-    
+
     return {
       particles: particles !== null ? particles : randomInRange(RANDOMIZATION_RANGES.particles),
       streaks: streaks !== null ? streaks : randomInRange(RANDOMIZATION_RANGES.streaks),
@@ -89,7 +101,7 @@ function ExplosionEngine({
       size,
       intensity: intensity + (Math.random() - 0.5) * 0.3, // Small random variation
       speed: speed + (Math.random() - 0.5) * 0.2,
-      duration
+      duration,
     };
   };
 
@@ -100,9 +112,9 @@ function ExplosionEngine({
     if (!finalConfig) {
       setFinalConfig(generateFinalConfig());
     }
-    
+
     setIsActive(true);
-    
+
     const actualDuration = config.duration / config.speed;
     setTimeout(() => {
       setIsActive(false);
@@ -121,8 +133,10 @@ function ExplosionEngine({
     `explosion-${config.pattern}`,
     `explosion-${config.size}`,
     isActive && 'explosion-active',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const actualDuration = config.duration / config.speed;
   const finalIntensity = config.intensity * sizeMultiplier;
@@ -138,19 +152,15 @@ function ExplosionEngine({
         '--color-secondary': config.colors[1] || config.colors[0],
         '--color-tertiary': config.colors[2] || config.colors[0],
         '--color-accent': config.colors[3] || config.colors[0],
-        ...style
+        ...style,
       }}
       {...rest}
     >
       {/* CENTER FLASH */}
-      {config.hasFlash && (
-        <div className="explosion-flash" />
-      )}
+      {config.hasFlash && <div className="explosion-flash" />}
 
       {/* SHOCKWAVE */}
-      {config.hasShockwave && (
-        <div className="explosion-shockwave" />
-      )}
+      {config.hasShockwave && <div className="explosion-shockwave" />}
 
       {/* PARTICLES */}
       {config.particles > 0 && (

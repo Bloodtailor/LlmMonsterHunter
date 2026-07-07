@@ -22,10 +22,13 @@ export async function loadInventory(options = {}) {
 
   return {
     kind: response.kind ?? params.kind,
-    entries: transformInventoryEntries(response.entries ?? loadInventory.defaults.entries, params.kind),
+    entries: transformInventoryEntries(
+      response.entries ?? loadInventory.defaults.entries,
+      params.kind,
+    ),
     total: response.total ?? loadInventory.defaults.total,
     count: response.count ?? loadInventory.defaults.count,
-    _raw: response
+    _raw: response,
   };
 }
 
@@ -33,7 +36,7 @@ loadInventory.defaults = {
   kind: 'items',
   entries: [],
   total: 0,
-  count: 0
+  count: 0,
 };
 
 /**
@@ -46,11 +49,11 @@ export async function loadInventoryCounts() {
   return {
     itemCount: response.item_count ?? loadInventoryCounts.defaults.itemCount,
     cocatokCount: response.cocatok_count ?? loadInventoryCounts.defaults.cocatokCount,
-    _raw: response
+    _raw: response,
   };
 }
 
 loadInventoryCounts.defaults = {
   itemCount: 0,
-  cocatokCount: 0
+  cocatokCount: 0,
 };

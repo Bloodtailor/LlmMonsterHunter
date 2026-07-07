@@ -17,25 +17,17 @@ const getPlaceholderBaseStyles = (size) => ({
  * Empty Party Slot - Placeholder for adding monsters to party
  */
 export function EmptyPartySlot({ children, size = 'md', className = '', style = {}, ...props }) {
-  
   const combinedStyles = {
     ...getPlaceholderBaseStyles(size),
-    ...style
+    ...style,
   };
 
-  const classes = [
-    'placeholder-card',
-    'empty-party-slot',
-    `placeholder-card-${size}`,
-    className
-  ].filter(Boolean).join(' ');
+  const classes = ['placeholder-card', 'empty-party-slot', `placeholder-card-${size}`, className]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div 
-      className={classes}
-      style={combinedStyles}
-      {...props}
-    >
+    <div className={classes} style={combinedStyles} {...props}>
       {children}
     </div>
   );
@@ -43,4 +35,3 @@ export function EmptyPartySlot({ children, size = 'md', className = '', style = 
 
 // Default export for backwards compatibility
 export default EmptyPartySlot;
-

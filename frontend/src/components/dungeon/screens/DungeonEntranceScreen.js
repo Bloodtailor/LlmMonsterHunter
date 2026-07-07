@@ -1,5 +1,5 @@
 // DungeonEntranceScreen.js - Pure layout component
-// PERFORMANCE OPTIMIZED - NO context subscriptions, never rerenders on context changes  
+// PERFORMANCE OPTIMIZED - NO context subscriptions, never rerenders on context changes
 // Completely layout-only, all context logic handled by child components
 
 import React from 'react';
@@ -17,13 +17,12 @@ import DungeonResetButton from '../components/DungeonResetButton.js';
  * Will never rerender due to dungeon context changes
  */
 function DungeonEntranceScreen() {
-
   // Pure layout - never changes, never rerenders
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Side effect component - handles auto-enter logic */}
       <AutoEnterDungeonEffect />
-      
+
       {/* Header */}
       <Card size="xl" background="light">
         <CardSection type="header" size="xl" title="🏰 Dungeon Entrance" alignment="center">
@@ -42,7 +41,7 @@ function DungeonEntranceScreen() {
       <Card size="xl" background="light">
         <CardSection type="content" alignment="center" padding="sm">
           <ContinueToDoorsButton />
-          
+
           {/* Back button - Isolated component with context subscription */}
           <div style={{ marginTop: '16px' }}>
             <DungeonResetButton />

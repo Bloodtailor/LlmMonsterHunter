@@ -11,7 +11,6 @@ import { useState, useCallback } from 'react';
  * @returns {object} State values, setters, and reset function
  */
 export function useBattleState() {
-
   // The battle as the PLAYER currently sees it (lags backend on purpose)
   const [displayedBattle, setDisplayedBattle] = useState(null);
 
@@ -41,10 +40,10 @@ export function useBattleState() {
   const [turnResult, setTurnResult] = useState(null);
 
   // Battle end
-  const [outcome, setOutcome] = useState(null);        // 'victory' | 'defeat'
-  const [resolution, setResolution] = useState(null);  // 'combat'|'joined'|'yielded'|'fled'|'spared'
+  const [outcome, setOutcome] = useState(null); // 'victory' | 'defeat'
+  const [resolution, setResolution] = useState(null); // 'combat'|'joined'|'yielded'|'fled'|'spared'
   const [outcomeText, setOutcomeText] = useState(null);
-  const [joinedNames, setJoinedNames] = useState([]);  // monsters who joined the party
+  const [joinedNames, setJoinedNames] = useState([]); // monsters who joined the party
   const [victoryCocatok, setVictoryCocatok] = useState(null); // the minted keepsake (pickup ceremony)
   const [defeatReflection, setDefeatReflection] = useState(null); // the lesson the party carries out
 
@@ -93,7 +92,7 @@ export function useBattleState() {
       joinedNames,
       victoryCocatok,
       defeatReflection,
-      battleError
+      battleError,
     },
 
     // Internal setters (for other hooks)
@@ -115,10 +114,10 @@ export function useBattleState() {
       setJoinedNames,
       setVictoryCocatok,
       setDefeatReflection,
-      setBattleError
+      setBattleError,
     },
 
     // Utilities
-    resetState
+    resetState,
   };
 }

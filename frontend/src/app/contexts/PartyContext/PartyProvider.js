@@ -8,13 +8,13 @@ import { GAME_RULES } from '../../../shared/constants/constants.js';
 import {
   useFollowingMonsters,
   useActiveParty,
-  useSetActiveParty
+  useSetActiveParty,
 } from '../../hooks/useGameState.js';
 import { useEventSubscription } from '../../../api/events/useEventSubscription.js';
 
 function PartyProvider({ children }) {
   // Domain hooks for game state
-  const followingHook  = useFollowingMonsters();
+  const followingHook = useFollowingMonsters();
   const partyHook = useActiveParty();
   const setPartyHook = useSetActiveParty();
 
@@ -28,7 +28,9 @@ function PartyProvider({ children }) {
   // ceremonies, and fresh card art patch cards in place, so party panels
   // and pickers (chat, evolution) show changes without a refetch
   const [livePartyMonsters, setLivePartyMonsters] = useState(partyHook.partyMonsters);
-  const [liveFollowingMonsters, setLiveFollowingMonsters] = useState(followingHook.followingMonsters);
+  const [liveFollowingMonsters, setLiveFollowingMonsters] = useState(
+    followingHook.followingMonsters,
+  );
 
   useEffect(() => {
     setLivePartyMonsters(partyHook.partyMonsters);
@@ -39,30 +41,34 @@ function PartyProvider({ children }) {
   }, [followingHook.followingMonsters]);
 
   const patchRosterLists = (patchMonster) => {
-    setLivePartyMonsters(prev => (prev || []).map(patchMonster));
-    setLiveFollowingMonsters(prev => (prev || []).map(patchMonster));
+    setLivePartyMonsters((prev) => (prev || []).map(patchMonster));
+    setLiveFollowingMonsters((prev) => (prev || []).map(patchMonster));
   };
 
   useEventSubscription('monsterUpdated', ({ monster }) => {
     if (!monster?.id) return;
-    patchRosterLists(existing => (existing.id === monster.id ? monster : existing));
+    patchRosterLists((existing) => (existing.id === monster.id ? monster : existing));
   });
 
   useEventSubscription('monsterAbilityAdded', ({ monsterId, ability }) => {
     if (!monsterId || !ability) return;
-    patchRosterLists(monster =>
+    patchRosterLists((monster) =>
       monster.id === monsterId
-        ? { ...monster, abilities: [...(monster.abilities || []), ability], abilityCount: (monster.abilityCount || 0) + 1 }
-        : monster
+        ? {
+            ...monster,
+            abilities: [...(monster.abilities || []), ability],
+            abilityCount: (monster.abilityCount || 0) + 1,
+          }
+        : monster,
     );
   });
 
   useEventSubscription('monsterArtReady', ({ monsterId, imagePath }) => {
     if (!monsterId || !imagePath) return;
-    patchRosterLists(monster =>
+    patchRosterLists((monster) =>
       monster.id === monsterId
         ? { ...monster, cardArt: { exists: true, relativePath: imagePath } }
-        : monster
+        : monster,
     );
   });
 
@@ -83,9 +89,9 @@ function PartyProvider({ children }) {
   const addToParty = async (monster) => {
     // Don't add if already in party or party is full
     if (isInParty(monster.id) || isPartyFull()) {
-      console.warn('Cannot add monster to party:', { 
-        alreadyInParty: isInParty(monster.id), 
-        partyFull: isPartyFull() 
+      console.warn('Cannot add monster to party:', {
+        alreadyInParty: isInParty(monster.id),
+        partyFull: isPartyFull(),
       });
       return;
     }
@@ -94,12 +100,11 @@ function PartyProvider({ children }) {
       // Add to active party
       const newPartyIds = [...partyHook.ids, monster.id];
       await setPartyHook.setActiveParty(newPartyIds);
-      
+
       // Refresh party data after backend confirms
       await partyHook.getActiveParty();
-      
+
       console.log('✅ Added monster to party:', monster.id);
-      
     } catch (error) {
       console.error('Failed to add monster to party:', error);
     }
@@ -114,14 +119,13 @@ function PartyProvider({ children }) {
 
     try {
       // Remove from active party
-      const newPartyIds = partyHook.ids.filter(id => id !== monsterId);
+      const newPartyIds = partyHook.ids.filter((id) => id !== monsterId);
       await setPartyHook.setActiveParty(newPartyIds);
-      
+
       // Refresh party data after backend confirms
       await partyHook.getActiveParty();
-      
+
       console.log('✅ Removed monster from party:', monsterId);
-      
     } catch (error) {
       console.error('Failed to remove monster from party:', error);
     }
@@ -141,7 +145,7 @@ function PartyProvider({ children }) {
     try {
       await setPartyHook.setActiveParty([]);
       await partyHook.getActiveParty();
-      
+
       console.log('✅ Cleared party');
     } catch (error) {
       console.error('Failed to clear party:', error);
@@ -166,30 +170,25 @@ function PartyProvider({ children }) {
     followingMonsters: liveFollowingMonsters, // Full monster objects, live-patched like the party
     followingSize: followingHook.count,
     loadingFollowers,
-    
-    
+
     // Computed values - use hook data
     partySize: partyHook.count,
     isPartyFull: isPartyFull(),
     isPartyEmpty: partyHook.count === 0,
-    
+
     // Helper functions
     isInParty,
     isFollowing,
     canAddToParty,
-    
+
     // Actions
     addToParty,
     removeFromParty,
     toggleParty,
-    clearParty
+    clearParty,
   };
 
-  return (
-    <PartyContext.Provider value={value}>
-      {children}
-    </PartyContext.Provider>
-  );
+  return <PartyContext.Provider value={value}>{children}</PartyContext.Provider>;
 }
 
 export default PartyProvider;

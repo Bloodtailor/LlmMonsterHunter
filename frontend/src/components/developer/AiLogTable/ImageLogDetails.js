@@ -12,7 +12,7 @@ import React from 'react';
  */
 function ImageLogDetails({ log }) {
   const imageLog = log.imageLogId;
-  
+
   if (!imageLog) {
     return (
       <div style={{ padding: '16px', color: 'var(--text-dim)' }}>
@@ -23,17 +23,23 @@ function ImageLogDetails({ log }) {
 
   return (
     <div style={{ padding: '16px', background: 'var(--background-dark)' }}>
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: '16px'
-      }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+        }}
+      >
         {/* Image Info */}
         <div>
           <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-light)' }}>Image Details</h4>
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-dim)' }}>
-            <div><strong>Filename:</strong> {imageLog.imageFilename || 'Unknown'}</div>
-            <div><strong>Path:</strong> {imageLog.imagePath || 'Unknown'}</div>
+            <div>
+              <strong>Filename:</strong> {imageLog.imageFilename || 'Unknown'}
+            </div>
+            <div>
+              <strong>Path:</strong> {imageLog.imagePath || 'Unknown'}
+            </div>
           </div>
         </div>
 
@@ -48,16 +54,14 @@ function ImageLogDetails({ log }) {
                 maxWidth: '200px',
                 maxHeight: '200px',
                 borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--background-light)'
+                border: '1px solid var(--background-light)',
               }}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'block';
               }}
             />
-            <div style={{ display: 'none', color: 'var(--text-dim)' }}>
-              Image not found
-            </div>
+            <div style={{ display: 'none', color: 'var(--text-dim)' }}>Image not found</div>
           </div>
         )}
       </div>

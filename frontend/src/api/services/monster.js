@@ -1,5 +1,5 @@
 // Monster API Service - PERFECT ARCHITECTURE VERSION
-// Co-located: HTTP calls + transformations + defaults in one place  
+// Co-located: HTTP calls + transformations + defaults in one place
 // 1:1 with backend routes, no separate constants needed
 // Functions carry their own defaults for perfect pairing with useAsyncState
 
@@ -25,22 +25,22 @@ import {
  */
 export async function loadMonsters(options = {}) {
   const params = {};
-  
+
   // Only include non-empty parameters
   if (options.limit !== undefined) params.limit = options.limit;
   if (options.offset !== undefined) params.offset = options.offset;
   if (options.filter && options.filter !== 'all') params.filter = options.filter;
   if (options.sort) params.sort = options.sort;
-  
+
   const response = await getWithParams('/api/monsters', params);
-  
+
   return {
     monsters: transformMonsters(response.monsters ?? loadMonsters.defaults.monsters),
     total: response.total ?? loadMonsters.defaults.total,
     count: response.count ?? loadMonsters.defaults.count,
     limit: response.limit ?? loadMonsters.defaults.limit,
     offset: response.offset ?? loadMonsters.defaults.offset,
-    _raw: response // Raw response for debugging
+    _raw: response, // Raw response for debugging
   };
 }
 
@@ -50,9 +50,8 @@ loadMonsters.defaults = {
   total: 0,
   count: 0,
   limit: 50,
-  offset: 0
+  offset: 0,
 };
-
 
 /**
  * Load one monster's permanent memories (oldest first - its life in order)
@@ -64,11 +63,11 @@ export async function loadMonsterMemories(monsterId) {
 
   return {
     memories: transformMemories(response.memories ?? loadMonsterMemories.defaults.memories),
-    _raw: response
+    _raw: response,
   };
 }
 loadMonsterMemories.defaults = {
-  memories: []
+  memories: [],
 };
 
 /**
@@ -76,13 +75,12 @@ loadMonsterMemories.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function generateMonster() {
-
   const response = await get('/api/monsters/generate');
-  
+
   return {
     success: response.success ?? generateMonster.defaults.success,
     workflowId: response.workflow_id ?? generateMonster.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 generateMonster.defaults = {
@@ -98,17 +96,17 @@ generateMonster.defaults = {
  * @returns {Promise<object>} Clean transformed response with ability data
  */
 export async function generateAbility(monsterId) {
-
-  
   const response = await post(`/api/monsters/${monsterId}/abilities`);
-  
+
   return {
     success: response.success ?? generateAbility.defaults.success,
-    ability: response.ability ? transformAbility(response.ability) : generateAbility.defaults.ability,
+    ability: response.ability
+      ? transformAbility(response.ability)
+      : generateAbility.defaults.ability,
     requestId: response.request_id ?? generateAbility.defaults.requestId,
     logId: response.log_id ?? generateAbility.defaults.logId,
     error: response.error ?? generateAbility.defaults.error,
-    _raw: response
+    _raw: response,
   };
 }
 
@@ -117,7 +115,7 @@ generateAbility.defaults = {
   ability: null,
   requestId: null,
   logId: null,
-  error: null
+  error: null,
 };
 
 /**
@@ -131,14 +129,13 @@ generateAbility.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function evolveMonster(monsterId, guidance) {
-
   const body = guidance && String(guidance).trim() ? { guidance: String(guidance).trim() } : {};
   const response = await post(`/api/monsters/${monsterId}/evolve`, body);
 
   return {
     success: response.success ?? evolveMonster.defaults.success,
     workflowId: response.workflow_id ?? evolveMonster.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 evolveMonster.defaults = {
@@ -155,12 +152,14 @@ export async function loadMonsterEvolutions(monsterId) {
   const response = await get(`/api/monsters/${monsterId}/evolutions`);
 
   return {
-    evolutions: transformEvolutions(response.evolutions ?? loadMonsterEvolutions.defaults.evolutions),
-    _raw: response
+    evolutions: transformEvolutions(
+      response.evolutions ?? loadMonsterEvolutions.defaults.evolutions,
+    ),
+    _raw: response,
   };
 }
 loadMonsterEvolutions.defaults = {
-  evolutions: []
+  evolutions: [],
 };
 
 /**

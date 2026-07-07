@@ -14,27 +14,22 @@ import { useDungeonEvents } from './hooks/useDungeonEvents.js';
  * @param {React.ReactNode} props.children - Child components
  */
 function DungeonProvider({ children }) {
-  
   // State management (minimal: workflow + text)
   const stateHook = useDungeonState();
-  
+
   // Actions (minimal: just enter dungeon)
   const actionsHook = useDungeonActions(stateHook);
-  
+
   // SSE event processing (minimal: generation ID + text streaming)
   useDungeonEvents(stateHook);
 
   // Clean context value using spread syntax
   const contextValue = {
-    ...stateHook.state,      // currentWorkflowId, isLoading, error, entryText, etc.
-    ...actionsHook.actions   // enterDungeon, resetDungeon
+    ...stateHook.state, // currentWorkflowId, isLoading, error, entryText, etc.
+    ...actionsHook.actions, // enterDungeon, resetDungeon
   };
 
-  return (
-    <DungeonContext.Provider value={contextValue}>
-      {children}
-    </DungeonContext.Provider>
-  );
+  return <DungeonContext.Provider value={contextValue}>{children}</DungeonContext.Provider>;
 }
 
 export default DungeonProvider;

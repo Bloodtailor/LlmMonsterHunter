@@ -21,15 +21,13 @@ function EncounterTextDisplay() {
     color: 'var(--color-text-primary)',
     padding: '24px',
     whiteSpace: 'pre-wrap',
-    fontFamily: 'var(--font-family-serif)'
+    fontFamily: 'var(--font-family-serif)',
   };
 
   return (
     <Card size="xl" background="dark">
       <CardSection type="content" padding="none">
-        <div style={textStyles}>
-          {encounterText}
-        </div>
+        <div style={textStyles}>{encounterText}</div>
       </CardSection>
     </Card>
   );

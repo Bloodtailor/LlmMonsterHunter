@@ -3,11 +3,8 @@
 // No React state - just pure event transformation and routing
 // Mirror of aiEventHandlers.js for the workflow domain
 
-import {
-  transformWorkflowItem,
-  transformWorkflowItems
-} from "../transformers/workflows.js";
-import { broadcastEvent } from "../core/eventBroadcast.js";
+import { transformWorkflowItem, transformWorkflowItems } from '../transformers/workflows.js';
+import { broadcastEvent } from '../core/eventBroadcast.js';
 
 /**
  * Workflow Event Handlers - External event processing system
@@ -18,7 +15,7 @@ export const workflowEventHandlers = {
     const transformedData = {
       workflowItem: transformWorkflowItem(eventData.item),
       workflowId: eventData.workflow_id || null,
-      timestamp: eventData.timestamp || null
+      timestamp: eventData.timestamp || null,
     };
     broadcastEvent('workflowStarted', transformedData);
   },
@@ -28,7 +25,7 @@ export const workflowEventHandlers = {
       workflowItem: transformWorkflowItem(eventData.item),
       workflowId: eventData.workflow_id || null,
       result: eventData.result || null,
-      timestamp: eventData.timestamp || null
+      timestamp: eventData.timestamp || null,
     };
     broadcastEvent('workflowCompleted', transformedData);
   },
@@ -38,7 +35,7 @@ export const workflowEventHandlers = {
       workflowItem: transformWorkflowItem(eventData.item),
       workflowId: eventData.workflow_id || null,
       error: eventData.error || null,
-      timestamp: eventData.timestamp || null
+      timestamp: eventData.timestamp || null,
     };
     broadcastEvent('workflowFailed', transformedData);
   },
@@ -49,7 +46,7 @@ export const workflowEventHandlers = {
       workflowType: eventData.workflow_type || null,
       step: eventData.step || null,
       data: eventData.data || null,
-      timestamp: eventData.timestamp || null
+      timestamp: eventData.timestamp || null,
     };
     broadcastEvent('workflowUpdate', transformedData);
   },
@@ -58,8 +55,8 @@ export const workflowEventHandlers = {
     const transformedData = {
       trigger: eventData.trigger || null,
       allWorkflowItems: transformWorkflowItems(eventData.all_items),
-      timestamp: eventData.timestamp || null
+      timestamp: eventData.timestamp || null,
     };
     broadcastEvent('workflowQueueUpdate', transformedData);
-  }
+  },
 };

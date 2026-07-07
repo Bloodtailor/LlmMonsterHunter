@@ -248,7 +248,7 @@
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-xs);
   }
-  
+
   .count-badge-format-fraction {
     min-width: 40px;
   }

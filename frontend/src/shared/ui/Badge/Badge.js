@@ -38,7 +38,6 @@ function Badge({
   ariaLabel = null,
   ...rest
 }) {
-  
   // Build CSS classes based on props
   const badgeClasses = [
     'badge', // Base badge class
@@ -48,8 +47,10 @@ function Badge({
     outlined && 'badge-outlined', // Outlined styling
     onClick && 'badge-interactive', // Clickable styling
     removable && 'badge-removable', // Removable styling
-    className // Additional classes
-  ].filter(Boolean).join(' ');
+    className, // Additional classes
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Handle click events
   const handleClick = (event) => {
@@ -69,7 +70,7 @@ function Badge({
   // Render remove button
   const renderRemoveButton = () => {
     if (!removable) return null;
-    
+
     return (
       <button
         type="button"
@@ -88,17 +89,13 @@ function Badge({
     className: badgeClasses,
     style: color ? { ...style, backgroundColor: color } : style,
     'aria-label': ariaLabel,
-    ...rest
+    ...rest,
   };
 
   // Interactive badge (button element)
   if (onClick) {
     return (
-      <button
-        type="button"
-        onClick={handleClick}
-        {...elementProps}
-      >
+      <button type="button" onClick={handleClick} {...elementProps}>
         <span className="badge-content">{children}</span>
         {renderRemoveButton()}
       </button>
@@ -121,14 +118,14 @@ export const BADGE_VARIANTS = {
   SUCCESS: 'success',
   ERROR: 'error',
   WARNING: 'warning',
-  INFO: 'info'
+  INFO: 'info',
 };
 
 // Size constants for easy imports
 export const BADGE_SIZES = {
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
 };
 
 export default Badge;

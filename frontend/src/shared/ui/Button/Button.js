@@ -38,7 +38,6 @@ function Button({
   ariaLabel = null,
   ...rest
 }) {
-  
   // Build CSS classes based on props
   const buttonClasses = [
     'btn', // Base button class
@@ -47,8 +46,10 @@ function Button({
     loading && 'btn-loading', // Loading state
     disabled && 'btn-disabled', // Disabled state
     icon && !children && 'btn-icon-only', // Icon-only styling
-    className // Additional classes
-  ].filter(Boolean).join(' ');
+    className, // Additional classes
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Handle click events (prevent when loading or disabled)
   const handleClick = (event) => {
@@ -56,7 +57,7 @@ function Button({
       event.preventDefault();
       return;
     }
-    
+
     if (onClick) {
       onClick(event);
     }
@@ -65,7 +66,7 @@ function Button({
   // Render icon element
   const renderIcon = (iconContent) => {
     if (!iconContent) return null;
-    
+
     return (
       <span className="btn-icon" aria-hidden="true">
         {iconContent}
@@ -76,7 +77,7 @@ function Button({
   // Render loading spinner
   const renderLoadingSpinner = () => {
     if (!loading) return null;
-    
+
     return (
       <span className="btn-loading-spinner" aria-hidden="true">
         🔄
@@ -138,20 +139,20 @@ function Button({
 // Variant constants for easy imports
 export const BUTTON_VARIANTS = {
   PRIMARY: 'primary',
-  SECONDARY: 'secondary', 
+  SECONDARY: 'secondary',
   DANGER: 'danger',
   SUCCESS: 'success',
   WARNING: 'warning',
   GHOST: 'ghost',
-  LINK: 'link'
+  LINK: 'link',
 };
 
 // Size constants for easy imports
 export const BUTTON_SIZES = {
   SM: 'sm',
-  MD: 'md', 
+  MD: 'md',
   LG: 'lg',
-  XL: 'xl'
+  XL: 'xl',
 };
 
 export default Button;

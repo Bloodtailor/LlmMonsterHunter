@@ -26,23 +26,19 @@ function ButtonGroup({
   style = {},
   ...rest
 }) {
-  
   // Build CSS classes based on props
   const groupClasses = [
     'button-group', // Base button group class
     `button-group-${orientation}`, // Orientation styling
     `button-group-spacing-${spacing}`, // Spacing styling
     `button-group-align-${alignment}`, // Alignment styling
-    className // Additional classes
-  ].filter(Boolean).join(' ');
+    className, // Additional classes
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div
-      className={groupClasses}
-      style={style}
-      role="group"
-      {...rest}
-    >
+    <div className={groupClasses} style={style} role="group" {...rest}>
       {children}
     </div>
   );
@@ -51,22 +47,22 @@ function ButtonGroup({
 // Orientation constants for easy imports
 export const BUTTON_GROUP_ORIENTATIONS = {
   HORIZONTAL: 'horizontal',
-  VERTICAL: 'vertical'
+  VERTICAL: 'vertical',
 };
 
 // Spacing constants for easy imports
 export const BUTTON_GROUP_SPACING = {
   TIGHT: 'tight',
   NORMAL: 'normal',
-  LOOSE: 'loose'
+  LOOSE: 'loose',
 };
 
 // Alignment constants for easy imports
 export const BUTTON_GROUP_ALIGNMENT = {
   START: 'start',
-  CENTER: 'center', 
+  CENTER: 'center',
   END: 'end',
-  STRETCH: 'stretch'
+  STRETCH: 'stretch',
 };
 
 export default ButtonGroup;

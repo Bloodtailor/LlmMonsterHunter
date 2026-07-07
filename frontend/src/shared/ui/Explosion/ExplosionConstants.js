@@ -10,7 +10,7 @@ export const EXPLOSION_TYPES = {
   NUCLEAR_DOME: 'nuclear-dome',
   CHAIN_REACTION: 'chain-reaction',
   SHOCKWAVE_BLAST: 'shockwave-blast',
-  SHATTER_BREAK: 'shatter-break'
+  SHATTER_BREAK: 'shatter-break',
 };
 
 // Size multipliers for explosion scaling
@@ -19,7 +19,7 @@ export const SIZE_MULTIPLIERS = {
   md: 1.0,
   lg: 1.4,
   xl: 1.8,
-  massive: 2.5
+  massive: 2.5,
 };
 
 // Explosion type configurations - defines how each preset explosion works
@@ -33,7 +33,7 @@ export const EXPLOSION_CONFIGS = {
     sparks: 25,
     pattern: 'radial',
     hasFlash: true,
-    hasShockwave: true
+    hasShockwave: true,
   },
   'lightning-crack': {
     particles: 5,
@@ -44,7 +44,7 @@ export const EXPLOSION_CONFIGS = {
     sparks: 30,
     pattern: 'lightning',
     hasFlash: true,
-    hasShockwave: false
+    hasShockwave: false,
   },
   'gravity-implosion': {
     particles: 30,
@@ -55,7 +55,7 @@ export const EXPLOSION_CONFIGS = {
     sparks: 15,
     pattern: 'implosion',
     hasFlash: true,
-    hasShockwave: true
+    hasShockwave: true,
   },
   'plasma-vortex': {
     particles: 35,
@@ -66,7 +66,7 @@ export const EXPLOSION_CONFIGS = {
     sparks: 20,
     pattern: 'spiral',
     hasFlash: false,
-    hasShockwave: false
+    hasShockwave: false,
   },
   'nuclear-dome': {
     particles: 20,
@@ -77,7 +77,7 @@ export const EXPLOSION_CONFIGS = {
     sparks: 10,
     pattern: 'dome',
     hasFlash: true,
-    hasShockwave: true
+    hasShockwave: true,
   },
   'chain-reaction': {
     particles: 25,
@@ -88,7 +88,7 @@ export const EXPLOSION_CONFIGS = {
     sparks: 35,
     pattern: 'chain',
     hasFlash: true,
-    hasShockwave: false
+    hasShockwave: false,
   },
   'shockwave-blast': {
     particles: 15,
@@ -99,7 +99,7 @@ export const EXPLOSION_CONFIGS = {
     sparks: 5,
     pattern: 'shockwave',
     hasFlash: true,
-    hasShockwave: true
+    hasShockwave: true,
   },
   'shatter-break': {
     particles: 10,
@@ -110,20 +110,20 @@ export const EXPLOSION_CONFIGS = {
     sparks: 15,
     pattern: 'shatter',
     hasFlash: true,
-    hasShockwave: false
-  }
+    hasShockwave: false,
+  },
 };
 
 // Pattern identifiers for different movement types
 export const EXPLOSION_PATTERNS = {
   RADIAL: 'radial',
-  LIGHTNING: 'lightning', 
+  LIGHTNING: 'lightning',
   IMPLOSION: 'implosion',
   SPIRAL: 'spiral',
   DOME: 'dome',
   CHAIN: 'chain',
   SHOCKWAVE: 'shockwave',
-  SHATTER: 'shatter'
+  SHATTER: 'shatter',
 };
 
 // Default values for ExplosionEngine
@@ -140,7 +140,7 @@ export const ENGINE_DEFAULTS = {
   size: 'md',
   intensity: 1,
   speed: 1,
-  duration: 1800
+  duration: 1800,
 };
 
 // Randomization ranges for ExplosionEngine
@@ -152,7 +152,7 @@ export const RANDOMIZATION_RANGES = {
   waves: { min: 0, max: 12 },
   sparks: { min: 0, max: 40 },
   intensity: { min: 0.5, max: 2.5 },
-  speed: { min: 0.6, max: 2.8 }
+  speed: { min: 0.6, max: 2.8 },
 };
 
 export default {
@@ -161,5 +161,5 @@ export default {
   EXPLOSION_CONFIGS,
   EXPLOSION_PATTERNS,
   ENGINE_DEFAULTS,
-  RANDOMIZATION_RANGES
+  RANDOMIZATION_RANGES,
 };

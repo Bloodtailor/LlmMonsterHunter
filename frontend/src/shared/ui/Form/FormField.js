@@ -14,31 +14,22 @@ import './form.css';
  * @param {string} props.className - Additional CSS classes
  * @param {Object} props.rest - Additional HTML div attributes
  */
-function FormField({
-  children,
-  label = null,
-  error = null,
-  className = '',
-  ...rest
-}) {
-  
+function FormField({ children, label = null, error = null, className = '', ...rest }) {
   // Generate unique ID for accessibility
   const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`;
 
   // Add ID and error to child component
-  const enhancedChild = isValidElement(children) 
+  const enhancedChild = isValidElement(children)
     ? cloneElement(children, {
         id: fieldId,
         error: error || children.props.error, // Allow error on child or FormField
-        ...children.props
+        ...children.props,
       })
     : children;
 
-  const fieldClasses = [
-    'form-field',
-    error && 'form-field-with-error',
-    className
-  ].filter(Boolean).join(' ');
+  const fieldClasses = ['form-field', error && 'form-field-with-error', className]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={fieldClasses} {...rest}>

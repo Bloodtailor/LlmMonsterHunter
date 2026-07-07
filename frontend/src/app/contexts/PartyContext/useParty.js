@@ -10,12 +10,12 @@ import { PartyContext } from './PartyContext.js';
  */
 function useParty() {
   const context = useContext(PartyContext);
-  
+
   // Make sure the hook is used inside a PartyProvider
   if (context === null) {
     throw new Error('useParty must be used within a PartyProvider');
   }
-  
+
   return context;
 }
 

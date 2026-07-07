@@ -21,8 +21,8 @@ function BattleSideDisplay({ side }) {
   if (Object.keys(entries).length === 0) return null;
 
   // Full monster objects for the cards
-  const pool = side === 'enemies' ? (encounterMonsters || []) : (partyMonsters || []);
-  const findMonster = (monsterId) => pool.find(m => String(m.id) === String(monsterId)) || null;
+  const pool = side === 'enemies' ? encounterMonsters || [] : partyMonsters || [];
+  const findMonster = (monsterId) => pool.find((m) => String(m.id) === String(monsterId)) || null;
 
   return (
     <Card size="xl" background={side === 'enemies' ? 'dark' : 'light'}>
@@ -35,11 +35,7 @@ function BattleSideDisplay({ side }) {
       <CardSection type="content" alignment="center">
         <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
           {Object.entries(entries).map(([monsterId, entry]) => (
-            <BattleMonsterTile
-              key={monsterId}
-              monster={findMonster(monsterId)}
-              entry={entry}
-            />
+            <BattleMonsterTile key={monsterId} monster={findMonster(monsterId)} entry={entry} />
           ))}
         </div>
       </CardSection>

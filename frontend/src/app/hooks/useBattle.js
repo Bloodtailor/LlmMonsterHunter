@@ -13,10 +13,12 @@ export function useTakeTurn() {
   // ✨ Automatically uses takeTurn.defaults
   const api = useAsyncState(battleApi.takeTurn);
 
-  const takeTurn = useCallback(async (action) => {
-
-    return await api.execute(action);
-  }, [api.execute]);
+  const takeTurn = useCallback(
+    async (action) => {
+      return await api.execute(action);
+    },
+    [api.execute],
+  );
 
   return {
     success: api.data.success,
@@ -38,10 +40,12 @@ export function useRespondToTalk() {
   // ✨ Automatically uses respondToTalk.defaults
   const api = useAsyncState(battleApi.respondToTalk);
 
-  const respondToTalk = useCallback(async (responseText) => {
-
-    return await api.execute(responseText);
-  }, [api.execute]);
+  const respondToTalk = useCallback(
+    async (responseText) => {
+      return await api.execute(responseText);
+    },
+    [api.execute],
+  );
 
   return {
     success: api.data.success,

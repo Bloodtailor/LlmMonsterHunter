@@ -11,7 +11,15 @@ import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
 
 function BattleOutcomeView() {
-  const { outcome, outcomeText, joinedNames, victoryCocatok, defeatReflection, isProcessing, resetBattle } = useBattleContext();
+  const {
+    outcome,
+    outcomeText,
+    joinedNames,
+    victoryCocatok,
+    defeatReflection,
+    isProcessing,
+    resetBattle,
+  } = useBattleContext();
   const { continueExploring, resetDungeon } = useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
@@ -41,7 +49,7 @@ function BattleOutcomeView() {
     lineHeight: 'var(--line-height-relaxed)',
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-family-serif)',
-    whiteSpace: 'pre-wrap'
+    whiteSpace: 'pre-wrap',
   };
 
   return (
@@ -60,7 +68,8 @@ function BattleOutcomeView() {
       {joinedNames && joinedNames.length > 0 && (
         <CardSection type="content" alignment="center">
           <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'bold' }}>
-            🎉 {joinedNames.join(' and ')} {joinedNames.length === 1 ? 'has' : 'have'} joined your followers!
+            🎉 {joinedNames.join(' and ')} {joinedNames.length === 1 ? 'has' : 'have'} joined your
+            followers!
           </p>
         </CardSection>
       )}
@@ -68,14 +77,16 @@ function BattleOutcomeView() {
       {/* The lesson the party carries out of a defeat */}
       {!isVictory && defeatReflection && (
         <CardSection type="content" alignment="center">
-          <p style={{
-            ...textStyles,
-            fontStyle: 'italic',
-            fontSize: 'var(--font-size-md)',
-            color: 'var(--color-text-secondary)',
-            maxWidth: '560px',
-            margin: '0 auto'
-          }}>
+          <p
+            style={{
+              ...textStyles,
+              fontStyle: 'italic',
+              fontSize: 'var(--font-size-md)',
+              color: 'var(--color-text-secondary)',
+              maxWidth: '560px',
+              margin: '0 auto',
+            }}
+          >
             📿 {defeatReflection}
           </p>
         </CardSection>
@@ -84,7 +95,9 @@ function BattleOutcomeView() {
       {/* The victory's CoCaTok - click it to claim your keepsake */}
       {isVictory && victoryCocatok && (
         <CardSection type="content" alignment="center">
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}
+          >
             <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'bold', margin: 0 }}>
               {cocatokCollected
                 ? `✨ "${victoryCocatok.title}" joins your collection!`
@@ -98,14 +111,16 @@ function BattleOutcomeView() {
                 onActivate={() => setCocatokCollected(true)}
               />
             )}
-            <p style={{
-              fontSize: 'var(--font-size-sm)',
-              fontStyle: 'italic',
-              fontFamily: 'var(--font-family-serif)',
-              color: 'var(--color-text-secondary)',
-              maxWidth: '480px',
-              margin: 0
-            }}>
+            <p
+              style={{
+                fontSize: 'var(--font-size-sm)',
+                fontStyle: 'italic',
+                fontFamily: 'var(--font-family-serif)',
+                color: 'var(--color-text-secondary)',
+                maxWidth: '480px',
+                margin: 0,
+              }}
+            >
               {victoryCocatok.commemoration}
             </p>
           </div>

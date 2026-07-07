@@ -25,7 +25,7 @@ function MonsterChatPicker({
   onSelect,
   title = '🐾 Your companions',
   emptyTitle = 'No one to talk to yet',
-  emptyDescription = 'Monsters that join you in the dungeon will gather here, ready to talk.'
+  emptyDescription = 'Monsters that join you in the dungeon will gather here, ready to talk.',
 }) {
   const { followingMonsters, loadingFollowers } = useParty();
 
@@ -39,11 +39,9 @@ function MonsterChatPicker({
       ? '2px solid var(--color-primary)'
       : '2px solid var(--color-border, transparent)',
     borderRadius: '10px',
-    background: isSelected
-      ? 'var(--color-background-medium)'
-      : 'var(--color-background-light)',
+    background: isSelected ? 'var(--color-background-medium)' : 'var(--color-background-light)',
     cursor: 'pointer',
-    textAlign: 'left'
+    textAlign: 'left',
   });
 
   const thumbStyles = {
@@ -52,7 +50,7 @@ function MonsterChatPicker({
     borderRadius: '8px',
     objectFit: 'cover',
     flexShrink: 0,
-    background: 'var(--color-background-dark)'
+    background: 'var(--color-background-dark)',
   };
 
   return (
@@ -66,11 +64,7 @@ function MonsterChatPicker({
         )}
 
         {!loadingFollowers && (!followingMonsters || followingMonsters.length === 0) && (
-          <EmptyState
-            size="md"
-            title={emptyTitle}
-            description={emptyDescription}
-          />
+          <EmptyState size="md" title={emptyTitle} description={emptyDescription} />
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -84,14 +78,28 @@ function MonsterChatPicker({
                 style={rowStyles(isSelected)}
                 onClick={() => onSelect(monster)}
               >
-                {artUrl
-                  ? <img src={artUrl} alt={monster.name} style={thumbStyles} />
-                  : <div style={{ ...thumbStyles, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>👹</div>}
+                {artUrl ? (
+                  <img src={artUrl} alt={monster.name} style={thumbStyles} />
+                ) : (
+                  <div
+                    style={{
+                      ...thumbStyles,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '22px',
+                    }}
+                  >
+                    👹
+                  </div>
+                )}
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 'bold', color: 'var(--color-text-primary)' }}>
                     {monster.name}
                   </div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
+                  <div
+                    style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}
+                  >
                     {monster.species}
                   </div>
                 </div>

@@ -5,7 +5,6 @@
 
 import { get, post } from '../core/client.js';
 
-
 /**
  * Take a battle turn (queues battle_turn workflow)
  * @param {object|null} action - null for opening initiative, or
@@ -13,13 +12,12 @@ import { get, post } from '../core/client.js';
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function takeTurn(action) {
-
   const response = await post('/api/battle/turn', { action });
 
   return {
     success: response.success ?? takeTurn.defaults.success,
     workflowId: response.workflow_id ?? takeTurn.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 takeTurn.defaults = {
@@ -33,13 +31,12 @@ takeTurn.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function respondToTalk(responseText) {
-
   const response = await post('/api/battle/respond', { response: responseText });
 
   return {
     success: response.success ?? respondToTalk.defaults.success,
     workflowId: response.workflow_id ?? respondToTalk.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 respondToTalk.defaults = {
@@ -52,13 +49,12 @@ respondToTalk.defaults = {
  * @returns {Promise<object>} Battle snapshot
  */
 export async function getBattleState() {
-
   const response = await get('/api/battle/state');
 
   return {
     success: response.success ?? getBattleState.defaults.success,
     battle: response.battle ?? getBattleState.defaults.battle,
-    _raw: response
+    _raw: response,
   };
 }
 getBattleState.defaults = {

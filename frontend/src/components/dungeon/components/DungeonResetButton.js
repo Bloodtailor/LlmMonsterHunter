@@ -14,7 +14,7 @@ import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
  */
 function DungeonResetButton() {
   const { navigateToGameScreen } = useNavigation();
-  
+
   // Only consume what we need - just the reset action
   const { resetDungeon } = useDungeon();
 
@@ -25,11 +25,7 @@ function DungeonResetButton() {
   };
 
   return (
-    <Button 
-      size="md" 
-      variant="tertiary"
-      onClick={handleBackToHome}
-    >
+    <Button size="md" variant="tertiary" onClick={handleBackToHome}>
       ← Back to Home Base
     </Button>
   );

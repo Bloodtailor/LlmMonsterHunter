@@ -3,13 +3,13 @@
 // Works seamlessly with existing pagination and maintains responsive behavior
 
 import React from 'react';
-import { 
+import {
   Table,
-  TableHead, 
-  TableBody, 
-  TableRow, 
-  TableHeaderCell, 
-  TableCell 
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeaderCell,
+  TableCell,
 } from '../Table/index.js';
 import ExpandableTableRow from './ExpandableTableRow.js';
 import './expandableTable.css';
@@ -17,7 +17,7 @@ import './expandableTable.css';
 /**
  * Expandable table component with inline row expansion
  * Extends existing Table functionality with expansion capabilities
- * 
+ *
  * @param {object} props - ExpandableTable props
  * @param {Array} props.columns - Column definitions (same as Table)
  * @param {Array} props.data - Row data (same as Table)
@@ -40,49 +40,50 @@ function ExpandableTable({
   data = [],
   expandableRows = null,
   renderExpandedContent = null,
-  
+
   // Optional configuration
   expandIconColumn = null, // Auto-detect first column if null
   emptyMessage = 'No data available',
-  
+
   // Table styling (same as existing Table)
   size = 'md',
   striped = false,
   bordered = false,
   hover = false,
-  
+
   // Expansion behavior
   animateExpansion = true,
-  
+
   // Standard props
   className = '',
   ...rest
 }) {
-  
   // Validation
   if (!expandableRows) {
     console.error('ExpandableTable requires expandableRows prop from useExpandableRows hook');
     return null;
   }
-  
+
   if (!renderExpandedContent) {
     console.error('ExpandableTable requires renderExpandedContent function');
     return null;
   }
-  
+
   // Determine which column should show the expand icon
-  const iconColumnKey = expandIconColumn || (columns[0]?.key);
-  
+  const iconColumnKey = expandIconColumn || columns[0]?.key;
+
   // Build CSS classes (same pattern as existing Table)
   const tableClasses = [
     'expandable-table',
     `expandable-table-${size}`,
     striped && 'expandable-table-striped',
-    bordered && 'expandable-table-bordered', 
+    bordered && 'expandable-table-bordered',
     hover && 'expandable-table-hover',
     animateExpansion && 'expandable-table-animated',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Handle empty state
   if (data.length === 0) {
@@ -92,7 +93,7 @@ function ExpandableTable({
           <TableHead>
             <TableRow>
               {columns.map((col, index) => (
-                <TableHeaderCell 
+                <TableHeaderCell
                   key={col.key || index}
                   style={col.width ? { width: col.width } : undefined}
                 >
@@ -103,11 +104,7 @@ function ExpandableTable({
           </TableHead>
           <TableBody>
             <TableRow>
-              <TableCell 
-                colSpan={columns.length}
-                className="table-empty"
-                truncate={false}
-              >
+              <TableCell colSpan={columns.length} className="table-empty" truncate={false}>
                 {emptyMessage}
               </TableCell>
             </TableRow>
@@ -124,7 +121,7 @@ function ExpandableTable({
         <TableHead>
           <TableRow>
             {columns.map((col, index) => (
-              <TableHeaderCell 
+              <TableHeaderCell
                 key={col.key || index}
                 style={col.width ? { width: col.width } : undefined}
               >
@@ -133,7 +130,7 @@ function ExpandableTable({
             ))}
           </TableRow>
         </TableHead>
-        
+
         {/* Table Body with Expandable Rows */}
         <TableBody>
           {data.map((row, rowIndex) => (

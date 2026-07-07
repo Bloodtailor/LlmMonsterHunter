@@ -14,7 +14,7 @@ import { APP_STATES } from '../constants/constants';
 export function useAsyncState(asyncFunction, initialData = null) {
   // Use function.defaults if available, otherwise use explicit initialData
   const resolvedInitialData = asyncFunction.defaults ?? initialData;
-  
+
   const [state, setState] = useState(APP_STATES.IDLE);
   const [data, setData] = useState(resolvedInitialData);
   const [error, setError] = useState(null);
@@ -60,17 +60,20 @@ export function useAsyncState(asyncFunction, initialData = null) {
    * @param {...any} args - Arguments to pass to the bound async function
    * @returns {Promise<any>} Result of the async function
    */
-  const execute = useCallback(async (...args) => {
-    try {
-      setLoading();
-      const result = await asyncFunction(...args);
-      setSuccess(result);
-      return result;
-    } catch (err) {
-      setErrorState(err);
-      throw err; // Re-throw so caller can handle if needed
-    }
-  }, [asyncFunction, setLoading, setSuccess, setErrorState]);
+  const execute = useCallback(
+    async (...args) => {
+      try {
+        setLoading();
+        const result = await asyncFunction(...args);
+        setSuccess(result);
+        return result;
+      } catch (err) {
+        setErrorState(err);
+        throw err; // Re-throw so caller can handle if needed
+      }
+    },
+    [asyncFunction, setLoading, setSuccess, setErrorState],
+  );
 
   // Computed state flags for convenience
   const isLoading = state === APP_STATES.LOADING;
@@ -83,20 +86,20 @@ export function useAsyncState(asyncFunction, initialData = null) {
     state,
     data,
     error,
-    
+
     // Computed flags
     isLoading,
     isError,
     isSuccess,
     isIdle,
-    
+
     // State setters
     setLoading,
     setSuccess,
     setError: setErrorState,
     reset,
-    
+
     // Main execution function - bound to the asyncFunction
-    execute
+    execute,
   };
 }

@@ -38,7 +38,7 @@ export function transformMonster(rawMonster) {
       defense: rawMonster.stats?.defense || rawMonster.defense || 0,
       speed: rawMonster.stats?.speed || rawMonster.speed || 0,
       currentHealth: rawMonster.stats?.current_health || rawMonster.current_health || 0,
-      maxHealth: rawMonster.stats?.max_health || rawMonster.max_health || 0
+      maxHealth: rawMonster.stats?.max_health || rawMonster.max_health || 0,
     },
 
     // Ability metadata
@@ -48,12 +48,12 @@ export function transformMonster(rawMonster) {
     // Card art (simplified structure)
     cardArt: {
       exists: rawMonster.card_art?.exists || false,
-      relativePath: rawMonster.card_art?.relative_path || rawMonster.card_art_path || null
+      relativePath: rawMonster.card_art?.relative_path || rawMonster.card_art_path || null,
     },
 
     // Timestamps as Date objects
     createdAt: rawMonster.created_at ? new Date(rawMonster.created_at) : null,
-    updatedAt: rawMonster.updated_at ? new Date(rawMonster.updated_at) : null
+    updatedAt: rawMonster.updated_at ? new Date(rawMonster.updated_at) : null,
   };
 }
 
@@ -63,16 +63,12 @@ export function transformMonster(rawMonster) {
  * @returns {Array} Array of clean monster objects (filters out invalid ones)
  */
 export function transformMonsters(rawMonsters) {
-
-    if (!Array.isArray(rawMonsters)) {
+  if (!Array.isArray(rawMonsters)) {
     console.warn('transformMonsters expects an array, received:', typeof rawMonsters);
     return [];
   }
 
-  return rawMonsters
-    .map(transformMonster)
-    .filter(Boolean); // Remove any null results from invalid abilities
-
+  return rawMonsters.map(transformMonster).filter(Boolean); // Remove any null results from invalid abilities
 }
 
 /**
@@ -93,7 +89,7 @@ export function transformAbility(rawAbility) {
     type: rawAbility.ability_type || rawAbility.type,
     monsterId: rawAbility.monster_id,
     createdAt: rawAbility.created_at ? new Date(rawAbility.created_at) : null,
-    updatedAt: rawAbility.updated_at ? new Date(rawAbility.updated_at) : null
+    updatedAt: rawAbility.updated_at ? new Date(rawAbility.updated_at) : null,
   };
 }
 
@@ -108,9 +104,7 @@ export function transformAbilities(rawAbilities) {
     return [];
   }
 
-  return rawAbilities
-    .map(transformAbility)
-    .filter(Boolean); // Remove any null results from invalid abilities
+  return rawAbilities.map(transformAbility).filter(Boolean); // Remove any null results from invalid abilities
 }
 
 /**
@@ -132,7 +126,7 @@ export function transformMemory(rawMemory) {
     kind: rawMemory.kind,
     content: rawMemory.content,
     details: rawMemory.details || {},
-    createdAt: rawMemory.created_at ? new Date(rawMemory.created_at) : null
+    createdAt: rawMemory.created_at ? new Date(rawMemory.created_at) : null,
   };
 }
 
@@ -173,12 +167,12 @@ export function transformEvolution(rawEvolution) {
       maxHealth: rawEvolution.old_stats?.max_health ?? 0,
       attack: rawEvolution.old_stats?.attack ?? 0,
       defense: rawEvolution.old_stats?.defense ?? 0,
-      speed: rawEvolution.old_stats?.speed ?? 0
+      speed: rawEvolution.old_stats?.speed ?? 0,
     },
     appliedBoostPct: rawEvolution.applied_boost_pct ?? 0,
     oldCardArtPath: rawEvolution.old_card_art_path || null,
     details: rawEvolution.details || {},
-    createdAt: rawEvolution.created_at ? new Date(rawEvolution.created_at) : null
+    createdAt: rawEvolution.created_at ? new Date(rawEvolution.created_at) : null,
   };
 }
 
@@ -208,9 +202,9 @@ export function transformMonsterStats(rawStats) {
         withCardArt: 0,
         withoutCardArt: 0,
         avgAbilitiesPerMonster: 0,
-        cardArtPercentage: 0
+        cardArtPercentage: 0,
       },
-      speciesBreakdown: {}
+      speciesBreakdown: {},
     };
   }
 
@@ -222,13 +216,13 @@ export function transformMonsterStats(rawStats) {
       withCardArt: rawStats.with_card_art || 0,
       withoutCardArt: rawStats.without_card_art || 0,
       avgAbilitiesPerMonster: rawStats.avg_abilities_per_monster || 0,
-      cardArtPercentage: rawStats.card_art_percentage || 0
+      cardArtPercentage: rawStats.card_art_percentage || 0,
     },
-    
+
     speciesBreakdown: rawStats.species_breakdown || {},
-    
+
     // Transform featured monsters if they exist
     newestMonster: rawStats.newest_monster ? transformMonster(rawStats.newest_monster) : null,
-    oldestMonster: rawStats.oldest_monster ? transformMonster(rawStats.oldest_monster) : null
+    oldestMonster: rawStats.oldest_monster ? transformMonster(rawStats.oldest_monster) : null,
   };
 }

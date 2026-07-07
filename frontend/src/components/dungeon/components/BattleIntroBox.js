@@ -16,7 +16,7 @@ function BattleIntroBox() {
   if (exitText || !battleIntro || !displayedBattle?.in_battle) return null;
 
   const handleBeginBattle = () => {
-    beginBattle();  // opening initiative - the LLM decides who moves first
+    beginBattle(); // opening initiative - the LLM decides who moves first
     navigateToGameScreen('dungeon-battle');
   };
 
@@ -26,24 +26,24 @@ function BattleIntroBox() {
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-family-serif)',
     fontStyle: 'italic',
-    whiteSpace: 'pre-wrap'
+    whiteSpace: 'pre-wrap',
   };
 
   return (
     <Card size="xl" background="light">
-      <CardSection type="header" size="lg" title="⚔️ The monsters confront you!" alignment="center" />
+      <CardSection
+        type="header"
+        size="lg"
+        title="⚔️ The monsters confront you!"
+        alignment="center"
+      />
 
       <CardSection type="content" alignment="center">
         <p style={speechStyles}>"{battleIntro}"</p>
       </CardSection>
 
       <CardSection type="content" alignment="center">
-        <Button
-          size="xl"
-          icon="⚔️"
-          variant="primary"
-          onClick={handleBeginBattle}
-        >
+        <Button size="xl" icon="⚔️" variant="primary" onClick={handleBeginBattle}>
           Begin Battle
         </Button>
       </CardSection>

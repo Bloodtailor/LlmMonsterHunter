@@ -33,7 +33,7 @@ function DungeonDoorsScreen() {
       if (typeof value === 'object' && value.type) {
         pathEntries.push({
           id: key,
-          ...value
+          ...value,
         });
       }
     });
@@ -59,13 +59,13 @@ function DungeonDoorsScreen() {
   const pathCardStyles = {
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    border: '2px solid transparent'
+    border: '2px solid transparent',
   };
 
   const pathCardHoverStyles = {
     transform: 'translateY(-2px)',
     boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
-    borderColor: 'var(--color-primary)'
+    borderColor: 'var(--color-primary)',
   };
 
   return (
@@ -99,11 +99,13 @@ function DungeonDoorsScreen() {
           </CardSection>
         </Card>
       ) : pathArray.length > 0 ? (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px'
-        }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '24px',
+          }}
+        >
           {pathArray.map((path) => {
             const typeInfo = getPathTypeInfo(path.type);
 
@@ -122,34 +124,40 @@ function DungeonDoorsScreen() {
                 }}
               >
                 <CardSection type="header" size="lg" alignment="center">
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    justifyContent: 'center',
-                    flexWrap: 'wrap'
-                  }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      justifyContent: 'center',
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     <span style={{ fontSize: '2rem' }}>{typeInfo.icon}</span>
                     <Badge variant={typeInfo.variant} size="md">
                       {typeInfo.label}
                     </Badge>
                   </div>
-                  <h3 style={{
-                    margin: '8px 0 0 0',
-                    fontSize: 'var(--font-size-lg)',
-                    color: 'var(--color-text-primary)'
-                  }}>
+                  <h3
+                    style={{
+                      margin: '8px 0 0 0',
+                      fontSize: 'var(--font-size-lg)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
                     {path.name}
                   </h3>
                 </CardSection>
 
                 <CardSection type="content" alignment="center">
-                  <p style={{
-                    color: 'var(--color-text-secondary)',
-                    lineHeight: 'var(--line-height-relaxed)',
-                    fontSize: 'var(--font-size-md)',
-                    textAlign: 'center'
-                  }}>
+                  <p
+                    style={{
+                      color: 'var(--color-text-secondary)',
+                      lineHeight: 'var(--line-height-relaxed)',
+                      fontSize: 'var(--font-size-md)',
+                      textAlign: 'center',
+                    }}
+                  >
                     {path.description}
                   </p>
                 </CardSection>

@@ -9,7 +9,7 @@
  *   workflow_id, workflow_type, context, priority, created_at, status,
  *   result, error, started_at, completed_at
  * }
- * 
+ *
  * @param {Object|null} workflowItem - Workflow item from backend event
  * @returns {Object|null} Transformed workflow item in camelCase
  */
@@ -29,14 +29,14 @@ export function transformWorkflowItem(workflowItem) {
     result: workflowItem.result || null,
     error: workflowItem.error || null,
     startedAt: workflowItem.started_at || null,
-    completedAt: workflowItem.completed_at || null
+    completedAt: workflowItem.completed_at || null,
   };
 }
 
 /**
  * Transform array of workflow items
  * Used by workflow.queue.update event which sends all_items array
- * 
+ *
  * @param {Array|null} workflowItems - Array of workflow items from backend
  * @returns {Array|null} Array of transformed workflow items
  */
@@ -46,5 +46,5 @@ export function transformWorkflowItems(workflowItems) {
     return null;
   }
 
-  return workflowItems.map(item => transformWorkflowItem(item));
+  return workflowItems.map((item) => transformWorkflowItem(item));
 }

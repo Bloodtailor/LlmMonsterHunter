@@ -1,6 +1,6 @@
-// DeveloperScreen 
-// 
-// 
+// DeveloperScreen
+//
+//
 
 import UiExamplesScreen from './UiExamplesScreen.js';
 import AiLogTableContainer from '../../components/developer/AiLogTable/AiLogTableContainer.js';
@@ -9,20 +9,15 @@ import { Card, CardSection } from '../../shared/ui/index.js';
 
 function DeveloperScreen() {
   return (
-    <div 
-    style={{display: 'flex', flexDirection:'column', gap:'24px'}}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header */}
-      <Card  background='light' size='xl' >
-        <CardSection type="header" title="Developer Screen" alignment='center'>
-          <p >
-            Monitor LLM and Image generation logs with expandable details. 
-            Run backend tests
-          </p>
+      <Card background="light" size="xl">
+        <CardSection type="header" title="Developer Screen" alignment="center">
+          <p>Monitor LLM and Image generation logs with expandable details. Run backend tests</p>
         </CardSection>
       </Card>
 
-      <TestRunner/>
+      <TestRunner />
 
       {/* Main Log Table */}
       <AiLogTableContainer />

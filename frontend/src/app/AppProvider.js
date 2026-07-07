@@ -27,15 +27,15 @@ function AppInitializer({ children }) {
 
   // Check if contexts are ready
   const isEventProviderReady = eventContext.isConnected && !eventContext.connectionError;
-  const isPartyProviderReady = !partyContext.isLoading  && !partyContext.loadingFollowers;
-  
+  const isPartyProviderReady = !partyContext.isLoading && !partyContext.loadingFollowers;
+
   const allContextsReady = isEventProviderReady && isPartyProviderReady;
 
   // Check if this is first load of the session
   useEffect(() => {
     const hasInitialized = sessionStorage.getItem(SESSION_KEY);
     const isFirstTime = !hasInitialized;
-    
+
     setIsFirstLoad(isFirstTime);
     setShowLoadingScreen(isFirstTime);
 
@@ -50,10 +50,10 @@ function AppInitializer({ children }) {
   useEffect(() => {
     if (allContextsReady && isFirstLoad) {
       console.log('✅ All contexts ready - hiding loading screen');
-      
+
       // Mark app as initialized in session storage
       sessionStorage.setItem(SESSION_KEY, 'true');
-      
+
       // Hide loading screen after brief delay to avoid flash
       setTimeout(() => {
         setShowLoadingScreen(false);
@@ -66,18 +66,23 @@ function AppInitializer({ children }) {
     return (
       <AppLoadingScreen
         loadingStates={[
-          { isLoading: true, message: "Connecting to server..." },
-          { isLoading: false, message: "Creating SSE connections..." },
-          { isLoading: false, message: "Loading party states..." }
+          { isLoading: true, message: 'Connecting to server...' },
+          { isLoading: false, message: 'Creating SSE connections...' },
+          { isLoading: false, message: 'Loading party states...' },
         ]}
         errorStates={[
-          { hasError: false, message: "Could not connect to server"  },
-          { hasError: false, message: "Error subscribing to SSE events", error: "eventError this is a very long message that spanse multile lines and I can barely type. idk what happened to my ability to type really fast but I have slowed down a whole lot. It is really hard for me to do the punctuation as fast as I do the other things, so I end up stopping? what about now! Hahaha! this is great!!! we love to see it? Now is the time for BATTLE!!!" },
-          { hasError: false, message: "Error fetching party state", error: "partyError" }
+          { hasError: false, message: 'Could not connect to server' },
+          {
+            hasError: false,
+            message: 'Error subscribing to SSE events',
+            error:
+              'eventError this is a very long message that spanse multile lines and I can barely type. idk what happened to my ability to type really fast but I have slowed down a whole lot. It is really hard for me to do the punctuation as fast as I do the other things, so I end up stopping? what about now! Hahaha! this is great!!! we love to see it? Now is the time for BATTLE!!!',
+          },
+          { hasError: false, message: 'Error fetching party state', error: 'partyError' },
         ]}
         title="🎮 Monster Hunter Game"
         successMessage="The game is ready!"
-        />
+      />
     );
   }
 
@@ -96,9 +101,7 @@ function AppProvider({ children }) {
         <DungeonProvider>
           <BattleProvider>
             <PartyProvider>
-              <AppInitializer>
-                {children}
-              </AppInitializer>
+              <AppInitializer>{children}</AppInitializer>
             </PartyProvider>
           </BattleProvider>
         </DungeonProvider>

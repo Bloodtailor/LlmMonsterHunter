@@ -41,10 +41,10 @@
 /* Empty state for preview */
 .color-preview-empty {
   background: linear-gradient(
-    45deg, 
-    transparent 40%, 
-    var(--text-dim) 40%, 
-    var(--text-dim) 60%, 
+    45deg,
+    transparent 40%,
+    var(--text-dim) 40%,
+    var(--text-dim) 60%,
     transparent 60%
   );
   background-size: 8px 8px;

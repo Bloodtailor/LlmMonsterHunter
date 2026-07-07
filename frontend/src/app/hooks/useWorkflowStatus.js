@@ -5,18 +5,12 @@
 
 import {
   useWorkflowStatusSlice,
-  useWorkflowQueueStatus
+  useWorkflowQueueStatus,
 } from '../../api/stores/useWorkflowStore.js';
 
 export function useWorkflowStatus() {
-
-  const {
-    activeWorkflow,
-    status,
-    currentStep,
-    currentData,
-    isWorkflowActive
-  } = useWorkflowStatusSlice();
+  const { activeWorkflow, status, currentStep, currentData, isWorkflowActive } =
+    useWorkflowStatusSlice();
 
   const workflowQueueStatus = useWorkflowQueueStatus();
 
@@ -27,6 +21,6 @@ export function useWorkflowStatus() {
     currentStep,
     currentData,
     isWorkflowActive,
-    workflowQueueStatus
+    workflowQueueStatus,
   };
 }

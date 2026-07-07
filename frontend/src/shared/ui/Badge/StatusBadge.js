@@ -29,92 +29,95 @@ function StatusBadge({
   className = '',
   ...rest
 }) {
-  
   // Status configuration mapping
   const statusConfig = {
     success: {
       variant: 'success',
       icon: '✅',
-      defaultText: 'Success'
+      defaultText: 'Success',
     },
     error: {
-      variant: 'error', 
+      variant: 'error',
       icon: '❌',
-      defaultText: 'Error'
+      defaultText: 'Error',
     },
     pending: {
       variant: 'warning',
       icon: '⏳',
-      defaultText: 'Pending'
+      defaultText: 'Pending',
     },
     warning: {
       variant: 'warning',
       icon: '⚠️',
-      defaultText: 'Warning'
+      defaultText: 'Warning',
     },
     info: {
       variant: 'info',
       icon: 'ℹ️',
-      defaultText: 'Info'
+      defaultText: 'Info',
     },
     generating: {
       variant: 'info',
       icon: '🔄',
-      defaultText: 'Generating'
+      defaultText: 'Generating',
     },
     completed: {
       variant: 'success',
       icon: '✅',
-      defaultText: 'Completed'
+      defaultText: 'Completed',
     },
     failed: {
       variant: 'error',
-      icon: '❌', 
-      defaultText: 'Failed'
+      icon: '❌',
+      defaultText: 'Failed',
     },
     ready: {
       variant: 'success',
       icon: '✅',
-      defaultText: 'Ready'
+      defaultText: 'Ready',
     },
     loading: {
       variant: 'info',
       icon: '🔄',
-      defaultText: 'Loading'
-    }
+      defaultText: 'Loading',
+    },
   };
 
   // Get status configuration
   const config = statusConfig[status] || statusConfig.info;
-  
+
   // Determine icon to display
   const icon = iconOverride || (showIcon ? config.icon : null);
-  
+
   // Determine content to display
   const content = children || config.defaultText;
-  
+
   // Build status-specific CSS classes
   const statusClasses = [
     'status-badge', // Status badge specific styling
     `status-badge-${status}`, // Status-specific styling
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Render content with optional icon
   const renderContent = () => {
     if (icon && content) {
       return (
         <>
-          <span className="status-badge-icon" aria-hidden="true">{icon}</span>
+          <span className="status-badge-icon" aria-hidden="true">
+            {icon}
+          </span>
           <span className="status-badge-text">{content}</span>
         </>
       );
     }
-    
+
     if (icon && !content) {
       return <span className="status-badge-icon">{icon}</span>;
     }
-    
+
     return content;
   };
 
@@ -142,7 +145,7 @@ export const STATUS_TYPES = {
   COMPLETED: 'completed',
   FAILED: 'failed',
   READY: 'ready',
-  LOADING: 'loading'
+  LOADING: 'loading',
 };
 
 export default StatusBadge;

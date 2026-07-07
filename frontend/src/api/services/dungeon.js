@@ -5,19 +5,17 @@
 
 import { get, post } from '../core/client.js';
 
-
 /**
  * Enter the dungeon using the enter_dungeon workflow
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function enterDungeon() {
-
   const response = await get('/api/dungeon/enter');
 
   return {
     success: response.success ?? enterDungeon.defaults.success,
     workflowId: response.workflow_id ?? enterDungeon.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 enterDungeon.defaults = {
@@ -31,13 +29,12 @@ enterDungeon.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function choosePath(pathId) {
-
   const response = await post('/api/dungeon/choose-path', { path_id: pathId });
 
   return {
     success: response.success ?? choosePath.defaults.success,
     workflowId: response.workflow_id ?? choosePath.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 choosePath.defaults = {
@@ -53,13 +50,12 @@ choosePath.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function respondToMonster(message) {
-
   const response = await post('/api/dungeon/respond', { message });
 
   return {
     success: response.success ?? respondToMonster.defaults.success,
     workflowId: response.workflow_id ?? respondToMonster.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 respondToMonster.defaults = {
@@ -72,13 +68,12 @@ respondToMonster.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function sneakPast() {
-
   const response = await post('/api/dungeon/sneak');
 
   return {
     success: response.success ?? sneakPast.defaults.success,
     workflowId: response.workflow_id ?? sneakPast.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 sneakPast.defaults = {
@@ -91,13 +86,12 @@ sneakPast.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function surpriseAttack() {
-
   const response = await post('/api/dungeon/surprise-attack');
 
   return {
     success: response.success ?? surpriseAttack.defaults.success,
     workflowId: response.workflow_id ?? surpriseAttack.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 surpriseAttack.defaults = {
@@ -110,13 +104,12 @@ surpriseAttack.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function setupCamp() {
-
   const response = await post('/api/dungeon/camp');
 
   return {
     success: response.success ?? setupCamp.defaults.success,
     workflowId: response.workflow_id ?? setupCamp.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 setupCamp.defaults = {
@@ -135,20 +128,25 @@ setupCamp.defaults = {
  * @param {string} [params.targetText] - Free-text target description (for custom targets)
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
-export async function useDungeonAbility({ monsterId, abilityId, targetType, targetId, targetText }) {
-
+export async function useDungeonAbility({
+  monsterId,
+  abilityId,
+  targetType,
+  targetId,
+  targetText,
+}) {
   const response = await post('/api/dungeon/use-ability', {
     monster_id: monsterId,
     ability_id: abilityId,
     target_type: targetType,
     target_id: targetId,
-    target_text: targetText
+    target_text: targetText,
   });
 
   return {
     success: response.success ?? useDungeonAbility.defaults.success,
     workflowId: response.workflow_id ?? useDungeonAbility.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 useDungeonAbility.defaults = {
@@ -167,18 +165,17 @@ useDungeonAbility.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function useDungeonItem({ itemId, targetType, targetId, targetText }) {
-
   const response = await post('/api/dungeon/use-item', {
     item_id: itemId,
     target_type: targetType,
     target_id: targetId,
-    target_text: targetText
+    target_text: targetText,
   });
 
   return {
     success: response.success ?? useDungeonItem.defaults.success,
     workflowId: response.workflow_id ?? useDungeonItem.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 useDungeonItem.defaults = {
@@ -194,7 +191,6 @@ useDungeonItem.defaults = {
  *   purpose - the panel shows backend truth)
  */
 export async function getDungeonDebugContext() {
-
   const response = await get('/api/dungeon/debug-context');
 
   return {
@@ -206,7 +202,7 @@ export async function getDungeonDebugContext() {
     encounter: response.encounter ?? getDungeonDebugContext.defaults.encounter,
     pathsFull: response.paths_full ?? getDungeonDebugContext.defaults.pathsFull,
     battle: response.battle ?? getDungeonDebugContext.defaults.battle,
-    _raw: response
+    _raw: response,
   };
 }
 getDungeonDebugContext.defaults = {
@@ -225,13 +221,12 @@ getDungeonDebugContext.defaults = {
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function continueExploring() {
-
   const response = await post('/api/dungeon/continue');
 
   return {
     success: response.success ?? continueExploring.defaults.success,
     workflowId: response.workflow_id ?? continueExploring.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 continueExploring.defaults = {
@@ -246,14 +241,13 @@ continueExploring.defaults = {
  * @returns {Promise<object>} Clean transformed response
  */
 export async function getDungeonState() {
-
   const response = await get('/api/dungeon/state');
 
   return {
     success: response.success ?? getDungeonState.defaults.success,
     inDungeon: response.in_dungeon ?? getDungeonState.defaults.inDungeon,
     currentLocation: response.current_location ?? getDungeonState.defaults.currentLocation,
-    _raw: response
+    _raw: response,
   };
 }
 getDungeonState.defaults = {
@@ -269,14 +263,13 @@ getDungeonState.defaults = {
  * @returns {Promise<object>} Clean transformed response
  */
 export async function abandonRun() {
-
   const response = await post('/api/dungeon/abandon');
 
   return {
     success: response.success ?? abandonRun.defaults.success,
     abandoned: response.abandoned ?? abandonRun.defaults.abandoned,
     inDungeon: response.in_dungeon ?? abandonRun.defaults.inDungeon,
-    _raw: response
+    _raw: response,
   };
 }
 abandonRun.defaults = {

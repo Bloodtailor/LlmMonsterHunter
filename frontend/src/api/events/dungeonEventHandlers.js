@@ -4,14 +4,14 @@
 // the current encounter (returning monsters and blend-ins) - new monsters
 // announce themselves via monster.created instead.
 
-import { transformMonster } from "../transformers/monsters.js";
-import { broadcastEvent } from "../core/eventBroadcast.js";
+import { transformMonster } from '../transformers/monsters.js';
+import { broadcastEvent } from '../core/eventBroadcast.js';
 
 export const dungeonEventHandlers = {
   'dungeon.monster_revealed': (eventData) => {
     const transformedData = {
-      monster: transformMonster(eventData.monster)
+      monster: transformMonster(eventData.monster),
     };
     broadcastEvent('dungeonMonsterRevealed', transformedData);
-  }
+  },
 };
