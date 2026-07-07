@@ -5,13 +5,13 @@ domain — this file covers the conventions that apply everywhere, then
 links to the per-domain files.
 
 ## Reference files
-- [Monsters & Roster](backend-api/monsters-and-roster.md) — monster generation, listing, abilities, card art, following list, and active party
-- [Chat](backend-api/chat.md) — home-base conversations with following monsters: persistent threads, streamed replies, memory extraction, and the rolling summaries that keep indefinite chats affordable
-- [Inventory](backend-api/inventory.md) — the party's items (LLM-adjudicated consumables) and CoCaTok victory keepsakes, where they come from, and how items are used
-- [Dungeon & Battle](backend-api/dungeon-and-battle.md) — the gameplay loop: entering dungeons, choosing paths, exploring locations, monster dialogues, free-form ability use, and turn-based battles
-- [Generation & System](backend-api/generation-and-system.md) — generation logs, health check, and the in-app test runner
-- [Events & SSE](backend-api/events-and-sse.md) — the SSE endpoint, the full event catalog, and how the frontend event registry consumes it
-- [Data Models](backend-api/data-models.md) — shared object shapes referenced across endpoints
+- [Monsters & Roster](monsters-and-roster.md) — monster generation, listing, abilities, card art, following list, and active party
+- [Chat](chat.md) — home-base conversations with following monsters: persistent threads, streamed replies, memory extraction, and the rolling summaries that keep indefinite chats affordable
+- [Inventory](inventory.md) — the party's items (LLM-adjudicated consumables) and CoCaTok victory keepsakes, where they come from, and how items are used
+- [Dungeon & Battle](dungeon-and-battle.md) — the gameplay loop: entering dungeons, choosing paths, exploring locations, monster dialogues, free-form ability use, and turn-based battles
+- [Generation & System](generation-and-system.md) — generation logs, health check, and the in-app test runner
+- [Events & SSE](events-and-sse.md) — the SSE endpoint, the full event catalog, and how the frontend event registry consumes it
+- [Data Models](data-models.md) — shared object shapes referenced across endpoints
 
 ## Base URL
 - Development: `http://localhost:5000/api`
@@ -42,7 +42,7 @@ the client over **SSE** (Server-Sent Events). A consumer must:
 
 The only endpoints that return data synchronously are the read-only ones
 (listing monsters, fetching state, reading logs) and the roster mutations
-(following/party changes). See [Events & SSE](backend-api/events-and-sse.md)
+(following/party changes). See [Events & SSE](events-and-sse.md)
 for the event catalog and the workflow types.
 
 ## HTTP status conventions

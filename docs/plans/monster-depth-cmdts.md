@@ -267,7 +267,7 @@ checking out the branch. No migration tooling added (out of scope; note for late
   single-speaker + secret rules, dialogue template updates.
 - **M4 Frontend**: badges, viewer sections, updated-event handling.
 - **M5 Tuning & docs**: run verification suite, iterate prompt wording, update
-  `notes_for_claude/backend-api/` (data-models, monsters-and-roster).
+  `docs/api/` (data-models, monsters-and-roster).
 
 ## 10. Risks and flagged decisions
 

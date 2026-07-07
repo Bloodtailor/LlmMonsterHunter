@@ -3,6 +3,12 @@
 **Date:** February 28, 2025  
 **Document Type:** Design Phase Deliverable
 
+> 📜 **Historical document.** This is the original design-phase vision and
+> is kept for the record. The wish-granting premise still drives monster
+> generation, but implementation details are documented in
+> [docs/plans/](../plans/) (the accurate record) and
+> [docs/architecture.md](../architecture.md).
+
 ## Purpose and Requirements of the Story
 
 The story in this game serves as a foundational tool to enhance the creativity and depth of the AI-generated monsters. While the player will not directly experience the written story, it will guide the language model (LLM) to generate richer and more compelling interactions through the monsters' motivations and behaviors. 
@@ -43,5 +49,3 @@ This premise is intentionally broad and open-ended, providing endless room for t
 
 **Related Documents:**
 - [Gameplay Design](gameplay_design.md)
-- [Requirements Document](requirements.md)
-- [MVP Development Strategy](../strategy/mvp_development_strategy.md)

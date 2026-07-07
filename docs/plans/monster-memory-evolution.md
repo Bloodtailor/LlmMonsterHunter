@@ -146,7 +146,7 @@ unless noted)
   generate_ability growth_context.
 - **Mem-M6** Frontend: resource pips, memories on the card, reunion banner,
   growth display, party liveness.
-- **Mem-M7** Docs (notes_for_claude API refs), test consolidation, soak.
+- **Mem-M7** Docs (docs/api refs (formerly notes_for_claude)), test consolidation, soak.
 
 ## 8. Verification
 

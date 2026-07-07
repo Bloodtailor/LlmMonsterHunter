@@ -3,6 +3,14 @@
 **Date:** February 28, 2025  
 **Document Type:** Design Phase Deliverable
 
+> 📜 **Historical document.** This is the original design-phase vision and
+> is kept for the record. The built game has since evolved (e.g. "doors"
+> became *paths*, XP/leveling became journal-earned *growth reflections*,
+> and recruitment happens mid-battle). For what actually shipped, see
+> [docs/plans/](../plans/) and [docs/architecture.md](../architecture.md);
+> for unbuilt ideas from this document (affinity, traps, titles), see the
+> Game Loop v1 proposal in docs/plans/.
+
 ## Gameplay Introduction
 
 ### Overview
@@ -196,5 +204,3 @@ Monster's will give reactions to various things that happen in the game. For exa
 
 **Related Documents:**
 - [Story Design](story_design.md)
-- [UI Design](ui_design.md)
-- [Use Cases](../use_cases/use_cases.md)
