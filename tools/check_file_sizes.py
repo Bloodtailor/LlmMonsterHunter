@@ -29,7 +29,6 @@ SOURCE_GLOBS = (
 
 # path -> line count when grandfathered (a file may shrink, never grow)
 GRANDFATHERED = {
-    'backend/game/dungeon/registered_workflows.py': 1544,  # splits in Arch-M4
     'backend/game/battle/registered_workflows.py': 969,  # splits in Arch-M5
     'backend/game/dungeon/generator.py': 685,
     'backend/game/monster/evolution.py': 556,
