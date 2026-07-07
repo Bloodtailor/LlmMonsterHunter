@@ -29,19 +29,23 @@ def check_nodejs():
     except (FileNotFoundError, subprocess.CalledProcessError):
         return False, "Node.js not found"
 
+
 def check_npm():
     """Check if npm is available."""
     npm_path = shutil.which("npm") or shutil.which("npm.cmd") or shutil.which("npm.exe")
 
     if npm_path:
         try:
-            result = subprocess.run([npm_path, "--version"], capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                [npm_path, "--version"], capture_output=True, text=True, check=True
+            )
             version = result.stdout.strip()
             return True, f"npm {version}"
         except subprocess.CalledProcessError:
             return True, f"npm at {npm_path}"
     else:
         return False, "npm not found in PATH"
+
 
 def check_frontend_dependencies():
     """Check if React frontend dependencies are installed."""
@@ -56,6 +60,7 @@ def check_frontend_dependencies():
     else:
         return False, "Frontend dependencies not installed"
 
+
 def check_nodejs_requirements():
     """Check all Node.js related requirements (for orchestration)."""
 
@@ -64,6 +69,7 @@ def check_nodejs_requirements():
     deps_ok, _ = check_frontend_dependencies()
 
     return nodejs_ok and npm_ok and deps_ok
+
 
 def get_nodejs_diagnostic(include_overall=False):
     """
@@ -88,6 +94,9 @@ def get_nodejs_diagnostic(include_overall=False):
 
     if include_overall:
         overall_ok = check_nodejs_requirements()
-        result['overall'] = (overall_ok, "All Node.js requirements met" if overall_ok else "Some Node.js requirements missing")
+        result['overall'] = (
+            overall_ok,
+            "All Node.js requirements met" if overall_ok else "Some Node.js requirements missing",
+        )
 
     return result

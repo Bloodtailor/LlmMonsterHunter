@@ -22,7 +22,9 @@ def auto_setup_basic_backend():
     """Perform automatic installation of basic requirements that do not require user attention"""
 
     from setup.flows.basic_backend_flow import auto_setup_basic_backend
+
     auto_setup_basic_backend()
+
 
 def main_interactive_setup(dry_run=False):
     """Interactive setup for missing requirements."""
@@ -36,7 +38,6 @@ def main_interactive_setup(dry_run=False):
     total_components = len(component_names)
 
     for current, component_name in enumerate(component_names, 1):
-
         # Check if already working
         check_function = COMPONENT_CHECKS[component_name]
         try:
@@ -47,7 +48,9 @@ def main_interactive_setup(dry_run=False):
             print_error(f"\nError checking {component_name}: {e}\n")
 
         # Ask user if they want to set this up
-        print(f"\n{component_name} needs to be set up. (component {current} of {total_components})\n")
+        print(
+            f"\n{component_name} needs to be set up. (component {current} of {total_components})\n"
+        )
         run_component_diagnostic(component_name)
 
         if prompt_user_confirmation(f"Do you want to set up {component_name} now? [Y/n]: "):
@@ -75,7 +78,6 @@ def main_interactive_setup(dry_run=False):
             print()
             print_continue(f"Skipping {component_name} setup.")
 
-
     # Final summary
     print()
     print_header("Interactive Environment Setup: FINISHED")
@@ -83,9 +85,10 @@ def main_interactive_setup(dry_run=False):
     if prompt_user_confirmation("Would you like to recheck requirments before exiting? [Y/n]: "):
         check_requirements()
 
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "auto":
         auto_setup_basic_backend()
     else:
-        #from setup.utils.dry_run_utils import run_as_standalone_component
+        # from setup.utils.dry_run_utils import run_as_standalone_component
         main_interactive_setup()

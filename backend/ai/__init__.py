@@ -5,8 +5,7 @@ from .queue import get_ai_queue
 
 __all__ = [
     'text_generation_request',
-    'image_generation_request'
-    'warm_up_model',
+    'image_generation_requestwarm_up_model',
     'get_template_config',
     'build_prompt',
     'get_ai_queue',

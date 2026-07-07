@@ -22,8 +22,9 @@ def check_llama_cpp_installed():
         return False, "Virtual environment pip not found"
 
     try:
-        result = subprocess.run([str(pip_path), "show", "llama-cpp-python"],
-                              capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            [str(pip_path), "show", "llama-cpp-python"], capture_output=True, text=True, check=True
+        )
 
         # Extract version information
         version_line = [line for line in result.stdout.split('\n') if line.startswith('Version:')]
@@ -35,6 +36,7 @@ def check_llama_cpp_installed():
 
     except subprocess.CalledProcessError:
         return False, "llama-cpp-python not installed"
+
 
 def test_llama_cpp_import():
     """
@@ -65,8 +67,9 @@ except Exception as e:
     print(f"OTHER_ERROR: {e}")
 """
 
-        result = subprocess.run([str(python_path), "-c", test_code],
-                              capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            [str(python_path), "-c", test_code], capture_output=True, text=True, timeout=30
+        )
 
         output = result.stdout.strip()
 
@@ -82,6 +85,7 @@ except Exception as e:
         return False, "Import test timed out"
     except Exception as e:
         return False, f"Import test error: {e}"
+
 
 def test_llama_cpp_performance():
     """
@@ -103,6 +107,7 @@ def test_llama_cpp_performance():
 
     # Get model path from .env
     from setup.utils.env_utils import load_env_config
+
     env_vars = load_env_config()
     model_path = env_vars.get('LLM_MODEL_PATH', '')
 
@@ -162,16 +167,21 @@ except Exception as e:
     print(f"PERFORMANCE_ERROR: {{e}}")
 """
 
-        result = subprocess.run([str(python_path), "-c", test_code],
-                              capture_output=True, text=True, timeout=120)
+        result = subprocess.run(
+            [str(python_path), "-c", test_code], capture_output=True, text=True, timeout=120
+        )
 
         output = result.stdout.strip()
 
         if "PERFORMANCE_RESULT:" in output:
             # Extract tokens per second
             try:
-                tokens_line = [line for line in output.split('\n') if 'PERFORMANCE_RESULT:' in line][0]
-                tokens_per_sec = float(tokens_line.split('PERFORMANCE_RESULT:')[1].strip().split()[0])
+                tokens_line = [
+                    line for line in output.split('\n') if 'PERFORMANCE_RESULT:' in line
+                ][0]
+                tokens_per_sec = float(
+                    tokens_line.split('PERFORMANCE_RESULT:')[1].strip().split()[0]
+                )
 
                 # Categorize performance
                 if tokens_per_sec >= 50:
@@ -205,7 +215,11 @@ except Exception as e:
         elif "PERFORMANCE_MODEL_ERROR" in output:
             return False, "Model file not found or inaccessible"
         elif "PERFORMANCE_IMPORT_ERROR" in output:
-            error_msg = output.split('PERFORMANCE_IMPORT_ERROR:', 1)[1].strip() if ':' in output else "unknown import error"
+            error_msg = (
+                output.split('PERFORMANCE_IMPORT_ERROR:', 1)[1].strip()
+                if ':' in output
+                else "unknown import error"
+            )
             return False, f"Import failed: {error_msg}"
         else:
             return False, f"Performance test failed: {output or result.stderr.strip()}"
@@ -214,6 +228,7 @@ except Exception as e:
         return False, "Performance test timed out (model may be too large or system too slow)"
     except Exception as e:
         return False, f"Performance test error: {e}"
+
 
 def check_llama_cpp_requirements():
     """
@@ -232,6 +247,7 @@ def check_llama_cpp_requirements():
     import_ok, _ = test_llama_cpp_import()
 
     return installed_ok and import_ok
+
 
 def get_llama_cpp_diagnostic(include_overall=False):
     """
@@ -256,6 +272,11 @@ def get_llama_cpp_diagnostic(include_overall=False):
 
     if include_overall:
         overall_ok = check_llama_cpp_requirements()
-        result['overall'] = (overall_ok, "All llama-cpp-python requirements met" if overall_ok else "Some llama-cpp-python requirements missing")
+        result['overall'] = (
+            overall_ok,
+            "All llama-cpp-python requirements met"
+            if overall_ok
+            else "Some llama-cpp-python requirements missing",
+        )
 
     return result

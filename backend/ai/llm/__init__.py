@@ -14,5 +14,5 @@ __all__ = [
     'unload_model',
     'warm_up_model',
     'get_template_config',
-    'build_prompt'
+    'build_prompt',
 ]

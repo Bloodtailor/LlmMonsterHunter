@@ -17,16 +17,14 @@ MESSAGES = {
         "   5. Once installed, please re-run start_game.bat",
         "",
         "💡 This usually takes 2–3 minutes to download and install.",
-        "💡 You'll need to restart your command prompt after installation."
-        "",
+        "💡 You'll need to restart your command prompt after installation.",
         "",
         "You have the following options to continue:",
         "   1. Skip and move on to next component (recommended)",
         "   2. Try to install frontend dependencies anyways (if nodejs is installed, but not detected)",
         "   3. Exit the setup and restart when nodejs is installed",
-        ""
+        "",
     ],
-
     'mysql_installation': [
         "📋 MYSQL INSTALLATION REQUIRED:",
         "",
@@ -52,9 +50,8 @@ MESSAGES = {
         "If the installer fails, try:",
         "- Running as Administrator",
         "- Temporarily disabling antivirus",
-        "- Using the ZIP archive instead of MSI installer"
+        "- Using the ZIP archive instead of MSI installer",
     ],
-
     'mysql_service_start': [
         "📋 STARTING MYSQL SERVICE MANUALLY:",
         "",
@@ -81,9 +78,8 @@ MESSAGES = {
         "If all methods fail:",
         "- Check Windows Event Viewer for MySQL errors",
         "- MySQL may have configuration issues",
-        "- Consider reinstalling MySQL"
+        "- Consider reinstalling MySQL",
     ],
-
     'mysql_troubleshooting': [
         "📋 MYSQL TROUBLESHOOTING:",
         "",
@@ -120,9 +116,8 @@ MESSAGES = {
         "Last resort:",
         "- Completely uninstall MySQL",
         "- Delete all MySQL folders",
-        "- Reinstall with default settings"
+        "- Reinstall with default settings",
     ],
-
     'mysql_cli_path': [
         "📋 ADDING MYSQL CLI TO SYSTEM PATH:",
         "",
@@ -149,9 +144,8 @@ MESSAGES = {
         "If it still doesn't work:",
         "- Make sure you closed ALL command prompt windows",
         "- Try restarting your computer",
-        "- Verify the path exists and contains mysql.exe"
+        "- Verify the path exists and contains mysql.exe",
     ],
-
     'mysql_cli_path_generic': [
         "📋 ADDING MYSQL CLI TO SYSTEM PATH:",
         "",
@@ -181,17 +175,15 @@ MESSAGES = {
         "If you can't find MySQL installation:",
         "- MySQL may not be properly installed",
         "- Try reinstalling MySQL with default settings",
-        "- Make sure to include 'MySQL Command Line Client' during installation"
+        "- Make sure to include 'MySQL Command Line Client' during installation",
     ],
-
     'database_password_setup': [
         "📋 DATABASE PASSWORD SETUP:",
         "",
         "The game needs your MySQL root password to connect to the database.",
         "This is the password you set when installing MySQL.",
-        ""
+        "",
     ],
-
     'database_connection_troubleshooting': [
         "📋 START MYSQL SERVER:",
         "",
@@ -216,9 +208,8 @@ MESSAGES = {
         "2. Look for 'Server Status' or 'Server Administration'",
         "3. Click 'Start Server'",
         "",
-        "💡 MySQL server must be running every time you play the game"
+        "💡 MySQL server must be running every time you play the game",
     ],
-
     'database_troubleshooting': [
         "📋 GENERAL DATABASE TROUBLESHOOTING:",
         "",
@@ -253,9 +244,8 @@ MESSAGES = {
         "Last resort - Reinstall MySQL:",
         "1. Uninstall MySQL completely",
         "2. Delete all MySQL folders and data",
-        "3. Reinstall with default settings"
+        "3. Reinstall with default settings",
     ],
-
     'database_manual_creation': [
         "📋 MANUAL DATABASE CREATION:",
         "",
@@ -293,7 +283,6 @@ MESSAGES = {
         "",
         "💡 Database name must be exactly: monster_hunter_game",
     ],
-
     'gpu_driver_issue_detected': [
         "📋 DIAGNOSIS: NVIDIA Driver Issue Detected",
         "",
@@ -306,9 +295,8 @@ MESSAGES = {
         "      • Windows Update overwrote NVIDIA drivers with generic ones",
         "      • GPU hardware is present but drivers can't communicate with it",
         "",
-        "💡 This is usually fixable with a proper driver reinstall."
+        "💡 This is usually fixable with a proper driver reinstall.",
     ],
-
     'gpu_hardware_missing': [
         "📋 DIAGNOSIS: NVIDIA GPU Not Found",
         "",
@@ -320,9 +308,8 @@ MESSAGES = {
         "      • GPU hardware is not properly connected",
         "      • No NVIDIA software has ever been installed",
         "",
-        "💡 Verify your hardware meets the requirements before proceeding."
+        "💡 Verify your hardware meets the requirements before proceeding.",
     ],
-
     'gpu_requirement_explanation': [
         "📋 NVIDIA GPU REQUIREMENT:",
         "",
@@ -339,9 +326,8 @@ MESSAGES = {
         "      • CUDA 11.8+ or CUDA 12.x toolkit",
         "",
         "   The game is designed for GPU acceleration and becomes practically",
-        "   unplayable without it due to the real-time AI interaction requirements."
+        "   unplayable without it due to the real-time AI interaction requirements.",
     ],
-
     'gpu_driver_troubleshooting': [
         "📋 NVIDIA DRIVER TROUBLESHOOTING:",
         "",
@@ -369,9 +355,8 @@ MESSAGES = {
         "      • Check BIOS settings (disable Secure Boot if enabled)",
         "      • Verify GPU power connections and seating",
         "",
-        "💡 Driver issues are the #1 cause of 'GPU not detected' problems"
+        "💡 Driver issues are the #1 cause of 'GPU not detected' problems",
     ],
-
     'gpu_hardware_troubleshooting': [
         "📋 GPU HARDWARE TROUBLESHOOTING:",
         "",
@@ -410,9 +395,8 @@ MESSAGES = {
         "      • Power supply may be insufficient",
         "      • GPU may not be compatible with this motherboard",
         "",
-        "⚠️  If you don't have an NVIDIA GPU, this game requires one for good performance"
+        "⚠️  If you don't have an NVIDIA GPU, this game requires one for good performance",
     ],
-
     'gpu_hardware_capable': [
         "",
         "✅ GPU HARDWARE CONFIRMED",
@@ -425,9 +409,8 @@ MESSAGES = {
         "🤖  The recommended AI models should work without any manual configuration.",
         "",
         "Any remaining setup issues are likely with software configuration rather than hardware limitations.",
-        "This means that they should be solvable since your hardware is confirmed working and capable."
+        "This means that they should be solvable since your hardware is confirmed working and capable.",
     ],
-
     'gpu_hardware_not_capable': [
         "",
         "⚠️  GPU CAPABILITY CONCERN",
@@ -448,9 +431,8 @@ MESSAGES = {
         "   Minimum recommended: GTX 1060 6GB or RTX 2060",
         "   Ideal for smooth gameplay: RTX 3070 or better",
         "",
-        "The setup will continue, but performance expectations should be adjusted."
+        "The setup will continue, but performance expectations should be adjusted.",
     ],
-
     'gpu_driver_outdated': [
         "",
         "",
@@ -466,7 +448,6 @@ MESSAGES = {
         "",
         "💡 Driver updates are usually quick (5-10 minutes) and solve most issues",
     ],
-
     'gpu_driver_general_issues': [
         "",
         "",
@@ -491,7 +472,6 @@ MESSAGES = {
         "",
         "",
     ],
-
     'gpu_driver_fix_instructions': [
         "",
         "",
@@ -509,7 +489,6 @@ MESSAGES = {
         "",
         "",
     ],
-
     'cuda_toolkit_missing': [
         "",
         "",
@@ -531,7 +510,6 @@ MESSAGES = {
         "💡 CUDA installation is required for this game to be playable",
         "",
     ],
-
     'cuda_toolkit_installation': [
         "",
         "",
@@ -552,7 +530,6 @@ MESSAGES = {
         "",
         "",
     ],
-
     'cuda_environment_issues': [
         "",
         "",
@@ -574,7 +551,6 @@ MESSAGES = {
         "",
         "",
     ],
-
     'cuda_environment_fix': [
         "",
         "",
@@ -626,8 +602,6 @@ MESSAGES = {
         "         - Restart computer when done",
         "",
     ],
-
-
     'visual_studio_requirement_explanation': [
         "",
         "",
@@ -650,7 +624,6 @@ MESSAGES = {
         "💡 You only need 'Build Tools' - not the full Visual Studio IDE",
         "",
     ],
-
     'visual_studio_installation_instructions': [
         "",
         "",
@@ -679,7 +652,6 @@ MESSAGES = {
         "",
         "",
     ],
-
     'visual_studio_modify_for_cpp_tools': [
         "",
         "",
@@ -736,7 +708,6 @@ MESSAGES = {
         "💡 This can be fixed by modifying your current Visual Studio installation",
         "",
     ],
-
     'visual_studio_sdk_detection_issue': [
         "",
         "📋 WINDOWS SDK DETECTION ISSUE:",
@@ -757,23 +728,23 @@ MESSAGES = {
         "",
     ],
     'visual_studio_partial_installation_detected': [
-    "",
-    "📋 PARTIAL DEVELOPMENT ENVIRONMENT DETECTED:",
-    "",
-    "   Some development components were found but Visual Studio is not installed",
-    "   in the expected locations. This suggests an incomplete or non-standard setup.",
-    "",
-    "   What was detected:",
-    "      ❌ Visual Studio installation (not found in standard directories)",
-    "      ✅ Some development components (Windows SDK or build tools)",
-    "",
-    "   Possible causes:",
-    "      • Visual Studio installed in non-standard location",
-    "      • Standalone Windows SDK installation without Visual Studio",
-    "      • Incomplete or corrupted Visual Studio installation",
-    "",
-    "💡 A complete Visual Studio Build Tools installation is recommended",
-    "",
+        "",
+        "📋 PARTIAL DEVELOPMENT ENVIRONMENT DETECTED:",
+        "",
+        "   Some development components were found but Visual Studio is not installed",
+        "   in the expected locations. This suggests an incomplete or non-standard setup.",
+        "",
+        "   What was detected:",
+        "      ❌ Visual Studio installation (not found in standard directories)",
+        "      ✅ Some development components (Windows SDK or build tools)",
+        "",
+        "   Possible causes:",
+        "      • Visual Studio installed in non-standard location",
+        "      • Standalone Windows SDK installation without Visual Studio",
+        "      • Incomplete or corrupted Visual Studio installation",
+        "",
+        "💡 A complete Visual Studio Build Tools installation is recommended",
+        "",
     ],
     'llama_cpp_requirement_explanation': [
         "",
@@ -798,7 +769,6 @@ MESSAGES = {
         "💡 CUDA acceleration is essential for playable game performance",
         "",
     ],
-
     'llama_cpp_cuda_install_failed': [
         "",
         "📋 CUDA INSTALLATION FAILED:",
@@ -821,7 +791,6 @@ MESSAGES = {
         "💡 CPU-only version lets you test the game while fixing CUDA issues",
         "",
     ],
-
     'llama_cpp_cpu_warning': [
         "",
         "⚠️  CPU-ONLY INSTALLATION WARNING:",
@@ -850,7 +819,6 @@ MESSAGES = {
         "💡 This is only recommended for testing, not actual gameplay",
         "",
     ],
-
     'llama_cpp_broken_installation': [
         "",
         "📋 BROKEN INSTALLATION DETECTED:",
@@ -872,7 +840,6 @@ MESSAGES = {
         "💡 Reinstallation usually resolves import and compatibility issues",
         "",
     ],
-
     'llama_cpp_cpu_detected': [
         "",
         "📋 CPU-ONLY PERFORMANCE DETECTED:",
@@ -904,7 +871,6 @@ MESSAGES = {
         "💡 The game is designed for GPU acceleration and needs it to be fun",
         "",
     ],
-
     'llama_cpp_weak_gpu_detected': [
         "",
         "📋 WEAK GPU PERFORMANCE DETECTED:",
@@ -929,8 +895,7 @@ MESSAGES = {
         "      • Install a smaller faster model (quality will drop)",
         "      • Adjust model settings later for better performance",
         "",
-        "💡 You may need to adjust timeout limits in lmm config"
-        "",
+        "💡 You may need to adjust timeout limits in lmm config",
         "",
     ],
     'llm_model_requirement_explanation': [
@@ -961,7 +926,6 @@ MESSAGES = {
         "💡 The game is designed to work with most 7B+ parameter models in GGUF format",
         "",
     ],
-
     'llm_model_path_placeholder': [
         "",
         "📋 SETTING LLM MODEL PATH:",
@@ -976,7 +940,6 @@ MESSAGES = {
         "💡 Use forward slashes (/) in the path, even on Windows",
         "",
     ],
-
     'llm_model_file_missing': [
         "",
         "📋 MODEL FILE NOT FOUND:",
@@ -999,7 +962,6 @@ MESSAGES = {
         "💡 You can download models from Hugging Face or TheBloke's collection",
         "",
     ],
-
     'llm_model_path_invalid': [
         "",
         "📋 INVALID MODEL PATH CONFIGURATION:",
@@ -1106,6 +1068,7 @@ MESSAGES = {
     ],
 }
 
+
 def get_message(key):
     """
     Get user messages by key
@@ -1117,6 +1080,7 @@ def get_message(key):
         list: List of message lines, or empty list if key not found
     """
     return MESSAGES.get(key, [])
+
 
 def get_available_messages():
     """

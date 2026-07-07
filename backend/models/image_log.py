@@ -25,21 +25,23 @@ class ImageLog(BaseModel):
     generation_log = relationship("GenerationLog", back_populates="image_log")
 
     # === Image Results (Only Essential Fields) ===
-    image_path = Column(String(500), nullable=True)        # Full path to generated image
-    image_filename = Column(String(200), nullable=True)    # Just the filename
+    image_path = Column(String(500), nullable=True)  # Full path to generated image
+    image_filename = Column(String(200), nullable=True)  # Just the filename
 
     def to_dict(self):
         """Convert to dictionary for API responses"""
         result = super().to_dict()
 
         # Add essential fields
-        result.update({
-            'generation_id': self.generation_id,
-            'image_path': self.image_path,
-            'image_filename': self.image_filename,
-            'has_image': bool(self.image_path),
-            'image_exists': self._check_image_exists()
-        })
+        result.update(
+            {
+                'generation_id': self.generation_id,
+                'image_path': self.image_path,
+                'image_filename': self.image_filename,
+                'has_image': bool(self.image_path),
+                'image_exists': self._check_image_exists(),
+            }
+        )
 
         return result
 
@@ -75,7 +77,7 @@ class ImageLog(BaseModel):
         return cls(
             # Initialize as not yet generated
             image_path=None,
-            image_filename=None
+            image_filename=None,
         )
 
     def __repr__(self):

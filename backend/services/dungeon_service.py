@@ -27,6 +27,7 @@ def _encounter_blocks_travel(encounter: Optional[dict[str, Any]]) -> bool:
         return bool(encounter.get('monster_ids'))
     return True
 
+
 def enter_dungeon() -> dict[str, Any]:
     """
     Enter dungeon with validation
@@ -46,6 +47,7 @@ def enter_dungeon() -> dict[str, Any]:
     else:
         return error_response("Failed to queue enter dungeon workflow")
 
+
 def choose_path(path_id: str) -> dict[str, Any]:
     """
     Choose a path with validation
@@ -63,14 +65,14 @@ def choose_path(path_id: str) -> dict[str, Any]:
         return error_response("Cannot take a path while an encounter demands attention")
 
     success, workflow_id = request_workflow(
-        workflow_type="choose_path",
-        context={"path_id": path_id}
+        workflow_type="choose_path", context={"path_id": path_id}
     )
 
     if success:
         return success_response({'workflow_id': workflow_id})
     else:
         return error_response("Failed to queue choose path workflow")
+
 
 def respond_to_monster(message: str) -> dict[str, Any]:
     """
@@ -96,14 +98,14 @@ def respond_to_monster(message: str) -> dict[str, Any]:
         return error_response(f"Message too long (max {PLAYER_TEXT_MAX_CHARS} characters)")
 
     success, workflow_id = request_workflow(
-        workflow_type="respond_to_monster",
-        context={"message": text}
+        workflow_type="respond_to_monster", context={"message": text}
     )
 
     if success:
         return success_response({'workflow_id': workflow_id})
     else:
         return error_response("Failed to queue respond to monster workflow")
+
 
 def sneak_past() -> dict[str, Any]:
     """
@@ -115,7 +117,11 @@ def sneak_past() -> dict[str, Any]:
         return error_response("Not currently in a dungeon")
 
     encounter = manager.get_active_encounter()
-    if not encounter or encounter.get('event') != 'location_explore' or not encounter.get('monster_ids'):
+    if (
+        not encounter
+        or encounter.get('event') != 'location_explore'
+        or not encounter.get('monster_ids')
+    ):
         return error_response("There are no monsters to sneak past")
 
     success, workflow_id = request_workflow(workflow_type="sneak_past")
@@ -124,6 +130,7 @@ def sneak_past() -> dict[str, Any]:
         return success_response({'workflow_id': workflow_id})
     else:
         return error_response("Failed to queue sneak past workflow")
+
 
 def surprise_attack() -> dict[str, Any]:
     """
@@ -135,7 +142,11 @@ def surprise_attack() -> dict[str, Any]:
         return error_response("Not currently in a dungeon")
 
     encounter = manager.get_active_encounter()
-    if not encounter or encounter.get('event') != 'location_explore' or not encounter.get('monster_ids'):
+    if (
+        not encounter
+        or encounter.get('event') != 'location_explore'
+        or not encounter.get('monster_ids')
+    ):
         return error_response("There are no monsters to ambush")
 
     success, workflow_id = request_workflow(workflow_type="surprise_attack")
@@ -144,6 +155,7 @@ def surprise_attack() -> dict[str, Any]:
         return success_response({'workflow_id': workflow_id})
     else:
         return error_response("Failed to queue surprise attack workflow")
+
 
 def setup_camp() -> dict[str, Any]:
     """
@@ -169,7 +181,14 @@ def setup_camp() -> dict[str, Any]:
     else:
         return error_response("Failed to queue setup camp workflow")
 
-def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, target_id: Any = None, target_text: str = None) -> dict[str, Any]:
+
+def use_ability(
+    monster_id: Any,
+    ability_id: Any,
+    target_type: str = None,
+    target_id: Any = None,
+    target_text: str = None,
+) -> dict[str, Any]:
     """
     A party monster uses an ability on anything, outside battle
     Trust boundary: validates ownership, party membership, and the target
@@ -189,6 +208,7 @@ def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, targe
         return error_response("monster_id and ability_id must be numbers")
 
     from backend.game.state.manager import get_party_monster_ids
+
     if monster_id not in get_party_monster_ids():
         return error_response("Only monsters in the active party can act")
 
@@ -196,7 +216,9 @@ def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, targe
     if not monster or not any(a.id == ability_id for a in (monster.abilities or [])):
         return error_response("That monster does not have that ability")
 
-    target_error, target_type, target_id = _validate_dungeon_target(target_type, target_id, target_text)
+    target_error, target_type, target_id = _validate_dungeon_target(
+        target_type, target_id, target_text
+    )
     if target_error:
         return target_error
 
@@ -207,8 +229,8 @@ def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, targe
             "ability_id": ability_id,
             "target_type": target_type,
             "target_id": target_id,
-            "target_text": str(target_text or '').strip()
-        }
+            "target_text": str(target_text or '').strip(),
+        },
     )
 
     if success:
@@ -216,7 +238,10 @@ def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, targe
     else:
         return error_response("Failed to queue use ability workflow")
 
-def use_item(item_id: Any, target_type: str = None, target_id: Any = None, target_text: str = None) -> dict[str, Any]:
+
+def use_item(
+    item_id: Any, target_type: str = None, target_id: Any = None, target_text: str = None
+) -> dict[str, Any]:
     """
     The party uses an inventory item on anything, outside battle
     Trust boundary: validates the item and the target
@@ -235,11 +260,14 @@ def use_item(item_id: Any, target_type: str = None, target_id: Any = None, targe
         return error_response("item_id must be a number")
 
     from backend.models.item import Item
+
     item = Item.get_item_by_id(item_id)
     if not item or item.uses_remaining < 1:
         return error_response("That item is not in the party's inventory")
 
-    target_error, target_type, target_id = _validate_dungeon_target(target_type, target_id, target_text)
+    target_error, target_type, target_id = _validate_dungeon_target(
+        target_type, target_id, target_text
+    )
     if target_error:
         return target_error
 
@@ -249,8 +277,8 @@ def use_item(item_id: Any, target_type: str = None, target_id: Any = None, targe
             "item_id": item_id,
             "target_type": target_type,
             "target_id": target_id,
-            "target_text": str(target_text or '').strip()
-        }
+            "target_text": str(target_text or '').strip(),
+        },
     )
 
     if success:
@@ -258,13 +286,18 @@ def use_item(item_id: Any, target_type: str = None, target_id: Any = None, targe
     else:
         return error_response("Failed to queue use item workflow")
 
+
 def _validate_dungeon_target(target_type: str, target_id: Any, target_text: str):
     """Shared out-of-battle target validation for abilities and items.
     Returns (error_response|None, normalized_target_type, normalized_target_id)"""
 
     target_type = str(target_type or 'location')
     if target_type not in ('path', 'monster', 'location', 'custom'):
-        return error_response("Invalid target type. Valid: path, monster, location, custom"), target_type, target_id
+        return (
+            error_response("Invalid target type. Valid: path, monster, location, custom"),
+            target_type,
+            target_id,
+        )
 
     if target_type == 'path':
         if not target_id or not manager.get_path(str(target_id)):
@@ -281,9 +314,16 @@ def _validate_dungeon_target(target_type: str, target_id: Any, target_text: str)
         if not text:
             return error_response("A custom target needs a description"), target_type, target_id
         if len(text) > PLAYER_TEXT_MAX_CHARS:
-            return error_response(f"Target description too long (max {PLAYER_TEXT_MAX_CHARS} characters)"), target_type, target_id
+            return (
+                error_response(
+                    f"Target description too long (max {PLAYER_TEXT_MAX_CHARS} characters)"
+                ),
+                target_type,
+                target_id,
+            )
 
     return None, target_type, target_id
+
 
 def continue_exploring() -> dict[str, Any]:
     """
@@ -303,6 +343,7 @@ def continue_exploring() -> dict[str, Any]:
         return success_response({'workflow_id': workflow_id})
     else:
         return error_response("Failed to queue continue exploring workflow")
+
 
 def get_debug_context() -> dict[str, Any]:
     """
@@ -325,9 +366,9 @@ def get_debug_context() -> dict[str, Any]:
     encounter = dungeon_state.get('active_encounter') or {}
 
     encounter_monsters = [
-        m for m in (
-            Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', [])
-        ) if m
+        m
+        for m in (Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', []))
+        if m
     ]
 
     battle_state = battle_manager.get_battle_state()
@@ -337,56 +378,59 @@ def get_debug_context() -> dict[str, Any]:
             for monster_id in battle_state.get(side, {}):
                 battle_monsters[monster_id] = Monster.get_monster_by_id(int(monster_id))
 
-    return success_response({
-        'in_dungeon': dungeon_state.get('in_dungeon', False),
-        'current_location': dungeon_state.get('current_location'),
+    return success_response(
+        {
+            'in_dungeon': dungeon_state.get('in_dungeon', False),
+            'current_location': dungeon_state.get('current_location'),
+            # The rolling story of the run: raw entries + the budget-clamped
+            # text actually injected into every dungeon prompt
+            'dungeon_log': {
+                'entries': manager.get_dungeon_log_entries(),
+                'clamped_text': manager.get_dungeon_log_text(),
+            },
+            # The party exactly as dungeon prompts describe it
+            'party': {
+                'summary': get_party_summary(),
+                'details_text': build_party_dungeon_details(),
+                'conditions': dungeon_state.get('party_conditions', {}),
+                'resources': dungeon_state.get('party_resources', {}),
+            },
+            # Run identity and the per-monster journal feeding growth reflections
+            'run_id': dungeon_state.get('run_id'),
+            'run_journal': dungeon_state.get('run_journal', {}),
+            'seen_monster_ids': dungeon_state.get('seen_monster_ids', []),
+            # The active encounter's context blocks
+            'encounter': {
+                'event': encounter.get('event'),
+                'monster_ids': encounter.get('monster_ids', []),
+                'monsters_present': encounter.get('monsters_present'),
+                'camped': encounter.get('camped'),
+                'dialogue_entries': encounter.get('dialogue', []),
+                'dialogue_clamped_text': manager.get_encounter_dialogue_text() if encounter else '',
+                'monster_details_text': build_monsters_details(encounter_monsters)
+                if encounter_monsters
+                else '',
+            }
+            if encounter
+            else None,
+            # Paths WITH their hidden events and destinations (the X-ray part)
+            'paths_full': dungeon_state.get('available_paths', {}),
+            # The battle's context blocks, as the referee/director prompts see them
+            'battle': {
+                'in_battle': battle_state.get('in_battle', False),
+                'phase': battle_state.get('phase'),
+                'turn_count': battle_state.get('turn_count', 0),
+                'situation_text': build_battle_situation(battle_state),
+                'combatant_summary_text': build_combatant_summary(battle_monsters, battle_state),
+                'turn_history_text': build_turn_history(battle_state),
+                'recent_log_text': build_recent_log(battle_state),
+                'recent_log_entries': battle_state.get('recent_log', []),
+            }
+            if battle_state.get('in_battle')
+            else {'in_battle': False},
+        }
+    )
 
-        # The rolling story of the run: raw entries + the budget-clamped
-        # text actually injected into every dungeon prompt
-        'dungeon_log': {
-            'entries': manager.get_dungeon_log_entries(),
-            'clamped_text': manager.get_dungeon_log_text()
-        },
-
-        # The party exactly as dungeon prompts describe it
-        'party': {
-            'summary': get_party_summary(),
-            'details_text': build_party_dungeon_details(),
-            'conditions': dungeon_state.get('party_conditions', {}),
-            'resources': dungeon_state.get('party_resources', {})
-        },
-
-        # Run identity and the per-monster journal feeding growth reflections
-        'run_id': dungeon_state.get('run_id'),
-        'run_journal': dungeon_state.get('run_journal', {}),
-        'seen_monster_ids': dungeon_state.get('seen_monster_ids', []),
-
-        # The active encounter's context blocks
-        'encounter': {
-            'event': encounter.get('event'),
-            'monster_ids': encounter.get('monster_ids', []),
-            'monsters_present': encounter.get('monsters_present'),
-            'camped': encounter.get('camped'),
-            'dialogue_entries': encounter.get('dialogue', []),
-            'dialogue_clamped_text': manager.get_encounter_dialogue_text() if encounter else '',
-            'monster_details_text': build_monsters_details(encounter_monsters) if encounter_monsters else ''
-        } if encounter else None,
-
-        # Paths WITH their hidden events and destinations (the X-ray part)
-        'paths_full': dungeon_state.get('available_paths', {}),
-
-        # The battle's context blocks, as the referee/director prompts see them
-        'battle': {
-            'in_battle': battle_state.get('in_battle', False),
-            'phase': battle_state.get('phase'),
-            'turn_count': battle_state.get('turn_count', 0),
-            'situation_text': build_battle_situation(battle_state),
-            'combatant_summary_text': build_combatant_summary(battle_monsters, battle_state),
-            'turn_history_text': build_turn_history(battle_state),
-            'recent_log_text': build_recent_log(battle_state),
-            'recent_log_entries': battle_state.get('recent_log', [])
-        } if battle_state.get('in_battle') else {'in_battle': False}
-    })
 
 def get_dungeon_state() -> dict[str, Any]:
     """
@@ -397,20 +441,25 @@ def get_dungeon_state() -> dict[str, Any]:
     state = manager.get_dungeon_state()
     encounter = state.get('active_encounter') or {}
 
-    return success_response({
-        'in_dungeon': state.get('in_dungeon', False),
-        'current_location': state.get('current_location'),
-        'paths': manager.get_public_paths(),
-        'party_conditions': state.get('party_conditions', {}),
-        'party_resources': state.get('party_resources', {}),
-        'active_encounter': {
-            'event': encounter.get('event'),
-            'monster_ids': encounter.get('monster_ids', []),
-            'monsters_present': encounter.get('monsters_present'),
-            'camped': encounter.get('camped'),
-            'dialogue': encounter.get('dialogue', [])
-        } if encounter else None
-    })
+    return success_response(
+        {
+            'in_dungeon': state.get('in_dungeon', False),
+            'current_location': state.get('current_location'),
+            'paths': manager.get_public_paths(),
+            'party_conditions': state.get('party_conditions', {}),
+            'party_resources': state.get('party_resources', {}),
+            'active_encounter': {
+                'event': encounter.get('event'),
+                'monster_ids': encounter.get('monster_ids', []),
+                'monsters_present': encounter.get('monsters_present'),
+                'camped': encounter.get('camped'),
+                'dialogue': encounter.get('dialogue', []),
+            }
+            if encounter
+            else None,
+        }
+    )
+
 
 def abandon_run() -> dict[str, Any]:
     """

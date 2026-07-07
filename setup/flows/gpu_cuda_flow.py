@@ -3,6 +3,7 @@
 GPU CUDA Interactive Setup Flow
 Orchestrates the complete NVIDIA GPU and CUDA setup experience with clean UX
 """
+
 COMPONENT_NAME = "NVIDIA GPU & CUDA"
 
 from setup.checks.gpu_cuda_checks import (
@@ -33,7 +34,7 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
         component_name=COMPONENT_NAME,
         current=current,
         total=total,
-        description="Required for GPU-accelerated AI model inference"
+        description="Required for GPU-accelerated AI model inference",
     )
 
     print("Checking current status...")
@@ -46,19 +47,18 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
     nvcc_ok, nvcc_message = check_nvcc_compiler()
     cuda_path_ok, cuda_path_message = check_cuda_path_env()
 
-
     # Dry run mode - simulate common first-time setup scenario
     if dry_run:
         print_dry_run_header()
 
         from setup.utils.dry_run_utils import set_dry_run
+
         gpu_ok, gpu_message = set_dry_run('check_nvidia_gpu')
         compute_ok, compute_message = set_dry_run('check_gpu_compute_capability')
         driver_ok, driver_message = set_dry_run('check_nvidia_driver_version')
         cuda_dirs_ok, cuda_dirs_message = set_dry_run('check_cuda_directories')
         nvcc_ok, nvcc_message = set_dry_run('check_nvcc_compiler')
         cuda_path_ok, cuda_path_message = set_dry_run('check_cuda_path_env')
-
 
     # Package results for display
     check_results = {
@@ -67,8 +67,7 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
         "NVIDIA Drivers": (driver_ok, driver_message),
         "CUDA Toolkit": (cuda_dirs_ok, cuda_dirs_message),
         "CUDA Compiler": (nvcc_ok, nvcc_message),
-        "CUDA Environment": (cuda_path_ok, cuda_path_message),\
-
+        "CUDA Environment": (cuda_path_ok, cuda_path_message),
     }
 
     # Display results beautifully
@@ -126,7 +125,6 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
     # SECTION 3: FINAL CHECKS AND DISPLAY
     # ================================================================
 
-
     # Final verification - run all checks again
     print("Verifying complete GPU and CUDA setup...")
     print()
@@ -139,7 +137,6 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
     nvcc_ok, nvcc_message = check_nvcc_compiler()
     cuda_path_ok, cuda_path_message = check_cuda_path_env()
 
-
     # Package final results
     final_check_results = {
         "NVIDIA GPU": (gpu_ok, gpu_message),
@@ -147,8 +144,7 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
         "NVIDIA Drivers": (driver_ok, driver_message),
         "CUDA Toolkit": (cuda_dirs_ok, cuda_dirs_message),
         "CUDA Compiler": (nvcc_ok, nvcc_message),
-        "CUDA Environment": (cuda_path_ok, cuda_path_message)
-
+        "CUDA Environment": (cuda_path_ok, cuda_path_message),
     }
 
     # Display final results
@@ -165,6 +161,7 @@ def run_gpu_cuda_interactive_setup(current=None, total=None, dry_run=False):
         print()
         return True  # Return True to continue - partial setup is better than nothing
 
+
 def handle_no_gpu_detected(check_results):
     """
     Handle case where NVIDIA GPU is not detected
@@ -178,11 +175,13 @@ def handle_no_gpu_detected(check_results):
     """
 
     # Analyze diagnostic information
-    cuda_signs = any([
-        check_results["CUDA Toolkit"][0],      # CUDA directories exist
-        check_results["CUDA Compiler"][0],     # nvcc command works
-        check_results["CUDA Environment"][0]   # CUDA_PATH set
-    ])
+    cuda_signs = any(
+        [
+            check_results["CUDA Toolkit"][0],  # CUDA directories exist
+            check_results["CUDA Compiler"][0],  # nvcc command works
+            check_results["CUDA Environment"][0],  # CUDA_PATH set
+        ]
+    )
 
     print("Diagnosing GPU detection failure...")
     print()
@@ -193,9 +192,7 @@ def handle_no_gpu_detected(check_results):
     else:
         show_message('gpu_hardware_missing')
 
-    options = [
-        ("G", "Get troubleshooting instructions to fix GPU detection")
-    ]
+    options = [("G", "Get troubleshooting instructions to fix GPU detection")]
 
     choice = handle_user_choice(options, COMPONENT_NAME)
 
@@ -228,15 +225,14 @@ def handle_driver_issues(driver_message):
     else:
         show_message('gpu_driver_general_issues')
 
-    options = [
-        ("G", "Get instructions to fix driver issues")
-    ]
+    options = [("G", "Get instructions to fix driver issues")]
 
     choice = handle_user_choice(options, COMPONENT_NAME)
 
     if choice == "G":
         return handle_driver_fix_instructions()
     return choice == "CONTINUE"
+
 
 def handle_driver_fix_instructions():
     """Display instructions on how to manually fix driver issue"""
@@ -262,9 +258,7 @@ def handle_cuda_toolkit_missing(cuda_dirs_message):
 
     show_message('cuda_toolkit_missing')
 
-    options = [
-        ("G", "Get CUDA toolkit installation instructions")
-    ]
+    options = [("G", "Get CUDA toolkit installation instructions")]
 
     choice = handle_user_choice(options, COMPONENT_NAME)
 
@@ -272,20 +266,20 @@ def handle_cuda_toolkit_missing(cuda_dirs_message):
         return handle_cuda_toolkit_installation_instructions()
     return choice == "CONTINUE"
 
+
 def handle_cuda_toolkit_installation_instructions():
     """Display instruction on how to manually install cuda toolkit"""
 
     show_message('cuda_toolkit_installation')
 
-    options = [
-        ("R", "Re-check CUDA toolkit installation")
-    ]
+    options = [("R", "Re-check CUDA toolkit installation")]
 
     choice = handle_user_choice(options, COMPONENT_NAME)
 
     if choice == "R":
         return handle_cuda_toolkit_recheck()
     return choice == "CONTINUE"
+
 
 def handle_cuda_toolkit_recheck():
     """Run cuda toolkit check and displays results"""
@@ -306,6 +300,7 @@ def handle_cuda_toolkit_recheck():
         print()
         print("You can try the installation instructions again or continue anyway.")
         handle_cuda_environment_issues(cuda_message)
+
 
 def handle_cuda_environment_issues(nvcc_ok, nvcc_message, cuda_path_ok, cuda_path_message):
     """
@@ -341,9 +336,7 @@ def handle_cuda_environment_issues(nvcc_ok, nvcc_message, cuda_path_ok, cuda_pat
 
     show_message('cuda_environment_issues')
 
-    options = [
-        ("G", "Get instructions to fix CUDA environment")
-    ]
+    options = [("G", "Get instructions to fix CUDA environment")]
 
     choice = handle_user_choice(options, COMPONENT_NAME)
 
@@ -351,20 +344,20 @@ def handle_cuda_environment_issues(nvcc_ok, nvcc_message, cuda_path_ok, cuda_pat
         return handle_cuda_environment_fix_instructions()
     return choice == "CONTINUE"
 
+
 def handle_cuda_environment_fix_instructions():
-    """Display instructions on how to manually fix CUDA environment """
+    """Display instructions on how to manually fix CUDA environment"""
 
     show_message('cuda_environment_fix')
 
-    options = [
-        ("R", "Re-check CUDA environment")
-    ]
+    options = [("R", "Re-check CUDA environment")]
 
     choice = handle_user_choice(options, COMPONENT_NAME)
 
     if choice == "R":
         return handle_recheck_cuda()
     return choice == "CONTINUE"
+
 
 def handle_recheck_cuda():
     """Run CUDA environment checks and displays results"""
@@ -394,4 +387,5 @@ def handle_recheck_cuda():
 
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
+
     run_as_standalone_component(COMPONENT_NAME, run_gpu_cuda_interactive_setup)

@@ -30,19 +30,23 @@ def create_app(config_name='development'):
 
     # Initialize database
     from backend.startup import initialize_database
+
     initialize_database(app)
 
     # Initialize AI systems
     from backend.startup import initialize_ai_systems
+
     initialize_ai_systems(app)
 
     from backend.startup import initialize_workflows
+
     initialize_workflows(app)
 
     # Register routes
     _register_routes(app)
 
     return app
+
 
 def _configure_app(app):
     """Configure Flask app settings"""
@@ -56,8 +60,11 @@ def _configure_app(app):
     db_port = os.getenv('DB_PORT', '3306')
     db_name = os.getenv('DB_NAME', 'monster_hunter_game')
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 def _register_routes(app):
     """Register all API route blueprints"""
@@ -85,6 +92,7 @@ def _register_routes(app):
     # development only, never in a production configuration
     if app.config['DEBUG']:
         from backend.routes.game_tester_routes import game_tester_bp
+
         app.register_blueprint(game_tester_bp)
 
     # Simple health check
@@ -94,5 +102,5 @@ def _register_routes(app):
         return {
             'status': 'healthy',
             'message': 'Monster Hunter Game API is running',
-            'api_version': '2.0'
+            'api_version': '2.0',
         }

@@ -3,6 +3,7 @@
 Visual Studio Interactive Setup Flow
 Orchestrates the complete Visual Studio Build Tools setup experience with clean UX
 """
+
 COMPONENT_NAME = "Visual Studio Build Tools"
 
 from setup.checks.vs_checks import (
@@ -30,7 +31,7 @@ def run_visual_studio_interactive_setup(current=None, total=None, dry_run=False)
         component_name=COMPONENT_NAME,
         current=current,
         total=total,
-        description="Required for compiling Python packages like llama-cpp-python"
+        description="Required for compiling Python packages like llama-cpp-python",
     )
 
     print("Checking current status...")
@@ -45,6 +46,7 @@ def run_visual_studio_interactive_setup(current=None, total=None, dry_run=False)
         print_dry_run_header()
 
         from setup.utils.dry_run_utils import set_dry_run
+
         installations_ok, installations_message = set_dry_run('check_visual_studio_installations')
         sdk_ok, sdk_message = set_dry_run('check_windows_sdk')
         cpp_tools_ok, cpp_tools_message = set_dry_run('check_cpp_build_tools')
@@ -53,7 +55,7 @@ def run_visual_studio_interactive_setup(current=None, total=None, dry_run=False)
     check_results = {
         "Visual Studio": (installations_ok, installations_message),
         "Windows SDK": (sdk_ok, sdk_message),
-        "C++ Build Tools": (cpp_tools_ok, cpp_tools_message)
+        "C++ Build Tools": (cpp_tools_ok, cpp_tools_message),
     }
 
     # Display results beautifully
@@ -94,18 +96,15 @@ def run_visual_studio_interactive_setup(current=None, total=None, dry_run=False)
             show_message('visual_studio_sdk_detection_issue')
             return prompt_continue_or_skip(COMPONENT_NAME)
 
-
     if not (installations_ok and cpp_tools_ok and sdk_ok):
         show_message('visual_studio_installation_instructions')
     else:
         show_message('visual_studio_installation_instructions')
 
-
     return prompt_continue_or_skip(COMPONENT_NAME)
+
 
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
+
     run_as_standalone_component(COMPONENT_NAME, run_visual_studio_interactive_setup)
-
-
-

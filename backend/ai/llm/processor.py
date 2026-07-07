@@ -10,7 +10,9 @@ from .inference import generate_streaming
 from .parser import parse_response
 
 
-def process_llm_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> dict[str, Any]:
+def process_llm_request(
+    generation_id: int, callback: Optional[Callable[[str], None]] = None
+) -> dict[str, Any]:
     """
     Complete LLM inference + parsing pipeline with automatic retries
 
@@ -28,18 +30,22 @@ def process_llm_request(generation_id: int, callback: Optional[Callable[[str], N
 
         generation_log = GenerationLog.query.get(generation_id)
         if not generation_log:
-            return error_response(f'Generation log {generation_id} not found', generation_id=generation_id)
+            return error_response(
+                f'Generation log {generation_id} not found', generation_id=generation_id
+            )
 
         if generation_log.generation_type != 'llm':
             return error_response(
                 f'Generation {generation_id} is not an LLM generation (type: {generation_log.generation_type})',
-                generation_id=generation_id
+                generation_id=generation_id,
             )
 
         # Get LLM-specific data
         llm_log = generation_log.llm_log
         if not llm_log:
-            return error_response(f'LLM log not found for generation {generation_id}', generation_id=generation_id)
+            return error_response(
+                f'LLM log not found for generation {generation_id}', generation_id=generation_id
+            )
 
         # Extract parameters
         prompt_text = generation_log.prompt_text
@@ -57,25 +63,21 @@ def process_llm_request(generation_id: int, callback: Optional[Callable[[str], N
 
             # Generate text
             generation_result = generate_streaming(
-                prompt=prompt_text,
-                callback=callback,
-                **inference_params
+                prompt=prompt_text, callback=callback, **inference_params
             )
 
             if not generation_result['success']:
                 generation_log.mark_failed(generation_result['error'])
                 generation_log.save()
                 return error_response(
-                    generation_result['error'],
-                    generation_id=generation_id,
-                    attempt=current_attempt
+                    generation_result['error'], generation_id=generation_id, attempt=current_attempt
                 )
 
             # Update LLM log with generation results
             llm_log.mark_response_completed(
                 response_text=generation_result['text'],
                 response_tokens=generation_result.get('tokens', 0),
-                tokens_per_second=generation_result.get('tokens_per_second', 0)
+                tokens_per_second=generation_result.get('tokens_per_second', 0),
             )
             llm_log.save()
 
@@ -94,16 +96,18 @@ def process_llm_request(generation_id: int, callback: Optional[Callable[[str], N
 
                     print_success(f"LLM parsing succeeded on attempt {current_attempt}")
 
-                    return success_response({
-                        'text': generation_result['text'],
-                        'parsed_data': parse_result.data,
-                        'tokens': generation_result.get('tokens', 0),
-                        'duration': generation_result.get('duration', 0),
-                        'tokens_per_second': generation_result.get('tokens_per_second', 0),
-                        'generation_id': generation_id,
-                        'attempt': current_attempt,
-                        'parsing_success': True
-                    })
+                    return success_response(
+                        {
+                            'text': generation_result['text'],
+                            'parsed_data': parse_result.data,
+                            'tokens': generation_result.get('tokens', 0),
+                            'duration': generation_result.get('duration', 0),
+                            'tokens_per_second': generation_result.get('tokens_per_second', 0),
+                            'generation_id': generation_id,
+                            'attempt': current_attempt,
+                            'parsing_success': True,
+                        }
+                    )
                 else:
                     # Parsing failed
                     llm_log.mark_parse_failed(parse_result.error)
@@ -121,36 +125,41 @@ def process_llm_request(generation_id: int, callback: Optional[Callable[[str], N
                         generation_log.mark_completed()
                         generation_log.save()
 
-                        return success_response({
-                            'text': generation_result['text'],
-                            'parsed_data': None,
-                            'tokens': generation_result.get('tokens', 0),
-                            'duration': generation_result.get('duration', 0),
-                            'tokens_per_second': generation_result.get('tokens_per_second', 0),
-                            'generation_id': generation_id,
-                            'attempt': current_attempt,
-                            'parsing_success': False,
-                            'parsing_error': parse_result.error
-                        })
+                        return success_response(
+                            {
+                                'text': generation_result['text'],
+                                'parsed_data': None,
+                                'tokens': generation_result.get('tokens', 0),
+                                'duration': generation_result.get('duration', 0),
+                                'tokens_per_second': generation_result.get('tokens_per_second', 0),
+                                'generation_id': generation_id,
+                                'attempt': current_attempt,
+                                'parsing_success': False,
+                                'parsing_error': parse_result.error,
+                            }
+                        )
             else:
                 # No parsing needed, just return generation result
                 generation_log.mark_completed()
                 generation_log.save()
 
-                return success_response({
-                    'text': generation_result['text'],
-                    'tokens': generation_result.get('tokens', 0),
-                    'duration': generation_result.get('duration', 0),
-                    'tokens_per_second': generation_result.get('tokens_per_second', 0),
-                    'generation_id': generation_id,
-                    'attempt': current_attempt,
-                    'parsing_success': None  # No parsing attempted
-                })
+                return success_response(
+                    {
+                        'text': generation_result['text'],
+                        'tokens': generation_result.get('tokens', 0),
+                        'duration': generation_result.get('duration', 0),
+                        'tokens_per_second': generation_result.get('tokens_per_second', 0),
+                        'generation_id': generation_id,
+                        'attempt': current_attempt,
+                        'parsing_success': None,  # No parsing attempted
+                    }
+                )
 
     except Exception as e:
         # Try to mark as failed in database
         try:
             from backend.models.generation_log import GenerationLog
+
             log = GenerationLog.query.get(generation_id)
             if log:
                 log.mark_failed(str(e))

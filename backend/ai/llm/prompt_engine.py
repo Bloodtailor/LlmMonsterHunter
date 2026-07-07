@@ -11,6 +11,7 @@ from backend.core.utils import print_error, print_success, print_warning
 @dataclass
 class PromptTemplate:
     """A single prompt template"""
+
     name: str
     description: str
     template: str
@@ -18,6 +19,7 @@ class PromptTemplate:
     temperature: float
     parser_config: dict[str, Any]
     category: str = "general"
+
 
 class PromptEngine:
     """Manages prompt templates"""
@@ -69,7 +71,7 @@ class PromptEngine:
                 max_tokens=config.get('max_tokens', 256),
                 temperature=config.get('temperature', 0.8),
                 parser_config=config.get('parser', {}),
-                category=category
+                category=category,
             )
 
             self._templates[name] = template
@@ -88,7 +90,9 @@ class PromptEngine:
 
         return list(self._templates.keys())
 
-    def build_prompt(self, template_name: str, variables: Optional[dict[str, Any]] = None) -> Optional[str]:
+    def build_prompt(
+        self, template_name: str, variables: Optional[dict[str, Any]] = None
+    ) -> Optional[str]:
         """Build a prompt from template"""
         template = self.get_template(template_name)
         if not template:
@@ -118,11 +122,13 @@ class PromptEngine:
             'max_tokens': template.max_tokens,
             'temperature': template.temperature,
             'parser': template.parser_config,
-            'category': template.category
+            'category': template.category,
         }
+
 
 # Global instance
 _engine = None
+
 
 def get_prompt_engine() -> PromptEngine:
     """Get global prompt engine"""
@@ -134,9 +140,11 @@ def get_prompt_engine() -> PromptEngine:
 
     return _engine
 
+
 def build_prompt(template_name: str, variables: Optional[dict[str, Any]] = None) -> Optional[str]:
     """Build a prompt"""
     return get_prompt_engine().build_prompt(template_name, variables)
+
 
 def get_template_config(name: str) -> Optional[dict[str, Any]]:
     """Get template config"""

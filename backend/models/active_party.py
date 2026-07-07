@@ -41,10 +41,7 @@ class ActiveParty(BaseModel):
         """Convert to dictionary for API responses"""
         result = super().to_dict()
 
-        result.update({
-            'monster_id': self.monster_id,
-            'party_position': self.party_position
-        })
+        result.update({'monster_id': self.monster_id, 'party_position': self.party_position})
 
         # Include monster details if loaded
         if self.monster:
@@ -82,10 +79,7 @@ class ActiveParty(BaseModel):
 
         # Add new party members with positions
         for position, monster_id in enumerate(monster_ids, 1):
-            party_member = cls(
-                monster_id=monster_id,
-                party_position=position
-            )
+            party_member = cls(monster_id=monster_id, party_position=position)
             party_member.save()
 
     @classmethod
@@ -111,10 +105,7 @@ class ActiveParty(BaseModel):
         # Find next position
         next_position = current_count + 1
 
-        party_member = cls(
-            monster_id=monster_id,
-            party_position=next_position
-        )
+        party_member = cls(monster_id=monster_id, party_position=next_position)
         return party_member.save()
 
     @classmethod

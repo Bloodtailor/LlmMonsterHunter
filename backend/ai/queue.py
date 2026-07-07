@@ -30,15 +30,18 @@ from backend.models.generation_log import GenerationLog
 _global_queue = None
 _queue_lock = threading.Lock()
 
+
 class QueueItemStatus(Enum):
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
 
+
 @dataclass
 class QueueItem:
     """Queue item representing a generation request - ENHANCED with prompt details"""
+
     generation_id: int  # References generation_logs.id
     generation_type: str  # 'llm' or 'image'
     prompt_type: str  # From GenerationLog.prompt_type
@@ -63,8 +66,9 @@ class QueueItem:
             'result': self.result,
             'error': self.error,
             'started_at': self.started_at.isoformat() if self.started_at else None,
-            'completed_at': self.completed_at.isoformat() if self.completed_at else None
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
         }
+
 
 class AIGenerationQueue:
     """
@@ -120,7 +124,7 @@ class AIGenerationQueue:
                 prompt_name=log_entry.prompt_name,
                 priority=log_entry.priority,
                 created_at=datetime.utcnow(),
-                status=QueueItemStatus.PENDING
+                status=QueueItemStatus.PENDING,
             )
 
             with self._lock:
@@ -165,7 +169,7 @@ class AIGenerationQueue:
                 "status_counts": status_counts,
                 "type_counts": type_counts,
                 "current_item": self._current_item.to_dict() if self._current_item else None,
-                "worker_running": self._running
+                "worker_running": self._running,
             }
 
     def _emit_queue_update(self, trigger: str):
@@ -173,7 +177,8 @@ class AIGenerationQueue:
         with self._lock:
             # Filter to only active queue items
             active_items = [
-                item.to_dict() for item in self._items.values()
+                item.to_dict()
+                for item in self._items.values()
                 if item.status in [QueueItemStatus.PENDING, QueueItemStatus.PROCESSING]
             ]
 
@@ -190,13 +195,13 @@ class AIGenerationQueue:
                     emit_llm_generation_update(
                         generation_id=item.generation_id,
                         partial_text=streaming_data,
-                        tokens_so_far=len(streaming_data.split()) if streaming_data else 0
+                        tokens_so_far=len(streaming_data.split()) if streaming_data else 0,
                     )
                 elif item.generation_type == 'image':
                     emit_image_generation_update(
                         item=item.to_dict(),
                         generation_id=item.generation_id,
-                        elapsed_seconds=streaming_data
+                        elapsed_seconds=streaming_data,
                     )
                     pass
 
@@ -221,15 +226,11 @@ class AIGenerationQueue:
                 # Emit completion event using registry functions
                 if item.generation_type == 'llm':
                     emit_llm_generation_completed(
-                        item=item.to_dict(),
-                        generation_id=item.generation_id,
-                        result=result
+                        item=item.to_dict(), generation_id=item.generation_id, result=result
                     )
                 elif item.generation_type == 'image':
                     emit_image_generation_completed(
-                        item=item.to_dict(),
-                        generation_id=item.generation_id,
-                        result=result
+                        item=item.to_dict(), generation_id=item.generation_id, result=result
                     )
 
                 # Emit unified queue update
@@ -241,15 +242,11 @@ class AIGenerationQueue:
                 # Emit failure event using registry functions
                 if item.generation_type == 'llm':
                     emit_llm_generation_failed(
-                        item=item.to_dict(),
-                        generation_id=item.generation_id,
-                        error=item.error
+                        item=item.to_dict(), generation_id=item.generation_id, error=item.error
                     )
                 elif item.generation_type == 'image':
                     emit_image_generation_failed(
-                        item=item.to_dict(),
-                        generation_id=item.generation_id,
-                        error=item.error
+                        item=item.to_dict(), generation_id=item.generation_id, error=item.error
                     )
 
                 # Emit unified queue update
@@ -263,15 +260,11 @@ class AIGenerationQueue:
             # Emit failure event using registry functions
             if item.generation_type == 'llm':
                 emit_llm_generation_failed(
-                    item=item.to_dict(),
-                    generation_id=item.generation_id,
-                    error=item.error
+                    item=item.to_dict(), generation_id=item.generation_id, error=item.error
                 )
             elif item.generation_type == 'image':
                 emit_image_generation_failed(
-                    item=item.to_dict(),
-                    generation_id=item.generation_id,
-                    error=item.error
+                    item=item.to_dict(), generation_id=item.generation_id, error=item.error
                 )
 
             # Emit unified queue update
@@ -310,15 +303,9 @@ class AIGenerationQueue:
 
                 # Emit started event using registry functions
                 if item.generation_type == 'llm':
-                    emit_llm_generation_started(
-                        item=item.to_dict(),
-                        generation_id=generation_id
-                    )
+                    emit_llm_generation_started(item=item.to_dict(), generation_id=generation_id)
                 elif item.generation_type == 'image':
-                    emit_image_generation_started(
-                        item=item.to_dict(),
-                        generation_id=generation_id
-                    )
+                    emit_image_generation_started(item=item.to_dict(), generation_id=generation_id)
 
                 # Emit unified queue update
                 self._emit_queue_update('started')
@@ -333,6 +320,7 @@ class AIGenerationQueue:
                     self._current_item.error = str(e)
                     self._emit_queue_update('failed')
                     self._current_item = None
+
 
 def get_ai_queue() -> AIGenerationQueue:
     """Get global AI generation queue instance"""

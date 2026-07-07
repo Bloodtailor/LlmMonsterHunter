@@ -33,7 +33,10 @@ def update_env_model_path(model_path):
         # Get model info for success message
         model_info = get_model_info(normalized_path)
         if model_info:
-            return True, f"Model path updated: {model_info['name']} ({model_info['size_gb']:.1f} GB)"
+            return (
+                True,
+                f"Model path updated: {model_info['name']} ({model_info['size_gb']:.1f} GB)",
+            )
         else:
             return True, f"Model path updated: {Path(normalized_path).name}"
     else:

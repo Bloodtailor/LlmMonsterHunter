@@ -29,13 +29,15 @@ class Item(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'name': self.name,
-            'description': self.description,
-            'emoji': self.emoji or '🎁',
-            'uses_remaining': self.uses_remaining,
-            'source_note': self.source_note
-        })
+        result.update(
+            {
+                'name': self.name,
+                'description': self.description,
+                'emoji': self.emoji or '🎁',
+                'uses_remaining': self.uses_remaining,
+                'source_note': self.source_note,
+            }
+        )
         return result
 
     @classmethod

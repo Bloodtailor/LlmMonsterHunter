@@ -1,4 +1,3 @@
-
 import importlib.util
 import io
 import sys
@@ -10,13 +9,14 @@ from flask import jsonify
 
 class TeeStdout:
     """A stream that writes to both sys.stdout and a string buffer"""
+
     def __init__(self, original_stdout):
         self.original_stdout = original_stdout
         self.buffer = io.StringIO()
 
     def write(self, data):
         self.original_stdout.write(data)  # write to terminal
-        self.buffer.write(data)           # write to memory
+        self.buffer.write(data)  # write to memory
 
     def flush(self):
         self.original_stdout.flush()
@@ -32,11 +32,7 @@ def run_test_file(test_name):
     # Only names that exist in backend/tests may run - the name arrives
     # from the URL, so never let it form a path on its own
     if test_name not in list_test_names():
-        return jsonify({
-            'success': False,
-            'error': f'Unknown test: {test_name}',
-            'output': ''
-        }), 404
+        return jsonify({'success': False, 'error': f'Unknown test: {test_name}', 'output': ''}), 404
 
     test_file_path = f"backend/tests/{test_name}.py"
 
@@ -53,20 +49,24 @@ def run_test_file(test_name):
         finally:
             sys.stdout = old_stdout
 
-        return jsonify({
-            'success': True,
-            'test_name': test_name,
-            'output': tee.getvalue(),
-            'message': f'Test {test_name} completed successfully'
-        })
+        return jsonify(
+            {
+                'success': True,
+                'test_name': test_name,
+                'output': tee.getvalue(),
+                'message': f'Test {test_name} completed successfully',
+            }
+        )
 
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e),
-            'traceback': traceback.format_exc(),
-            'output': tee.getvalue() if 'tee' in locals() else ''
-        }), 500
+        return jsonify(
+            {
+                'success': False,
+                'error': str(e),
+                'traceback': traceback.format_exc(),
+                'output': tee.getvalue() if 'tee' in locals() else '',
+            }
+        ), 500
 
 
 def list_test_names():
@@ -74,8 +74,7 @@ def list_test_names():
     tests_dir = Path("backend/tests")
     if not tests_dir.exists():
         return []
-    return sorted(file.stem for file in tests_dir.glob("*.py")
-                  if not file.name.startswith("__"))
+    return sorted(file.stem for file in tests_dir.glob("*.py") if not file.name.startswith("__"))
 
 
 def get_test_files():

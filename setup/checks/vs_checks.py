@@ -33,9 +33,13 @@ def check_visual_studio_installations():
         if len(found_installations) == 1:
             return True, f"{first_name} found at {first_path}"
         else:
-            return True, f"{len(found_installations)} VS installations found (primary: {first_name})"
+            return (
+                True,
+                f"{len(found_installations)} VS installations found (primary: {first_name})",
+            )
     else:
         return False, "No Visual Studio installations found in common directories"
+
 
 def check_windows_sdk():
     """
@@ -51,6 +55,7 @@ def check_windows_sdk():
             return True, f"Windows SDK found at {path}"
 
     return False, "Windows SDK not found in common directories"
+
 
 def check_cpp_build_tools():
     """
@@ -77,7 +82,9 @@ def check_cpp_build_tools():
         vc_path = os.path.join(base_path, "VC", "Tools", "MSVC")
         if os.path.exists(vc_path):
             try:
-                versions = [d for d in os.listdir(vc_path) if os.path.isdir(os.path.join(vc_path, d))]
+                versions = [
+                    d for d in os.listdir(vc_path) if os.path.isdir(os.path.join(vc_path, d))
+                ]
                 if versions:
                     latest_version = sorted(versions)[-1]
                     return True, f"C++ build tools found (MSVC {latest_version})"
@@ -85,6 +92,7 @@ def check_cpp_build_tools():
                 continue
 
     return False, "C++ build tools not found in Visual Studio installations"
+
 
 def check_visual_studio_requirements():
     """
@@ -101,6 +109,7 @@ def check_visual_studio_requirements():
     cpp_tools_ok, _ = check_cpp_build_tools()
 
     return installations_ok and sdk_ok and cpp_tools_ok
+
 
 def get_vs_diagnostic(include_overall=False):
     """
@@ -125,6 +134,11 @@ def get_vs_diagnostic(include_overall=False):
 
     if include_overall:
         overall_ok = check_visual_studio_requirements()
-        result['overall'] = (overall_ok, "All Visual Studio requirements met" if overall_ok else "Some Visual Studio requirements missing")
+        result['overall'] = (
+            overall_ok,
+            "All Visual Studio requirements met"
+            if overall_ok
+            else "Some Visual Studio requirements missing",
+        )
 
     return result

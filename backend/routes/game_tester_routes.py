@@ -1,9 +1,9 @@
-
 from flask import Blueprint
 
 from backend.services.game_tester_service import get_test_files, run_test_file
 
 game_tester_bp = Blueprint('game_tester', __name__, url_prefix='/api/game_tester')
+
 
 @game_tester_bp.route('/run/<test_name>', methods=['GET'])
 def run_test(test_name):
@@ -11,6 +11,7 @@ def run_test(test_name):
 
     result = run_test_file(test_name)
     return result
+
 
 @game_tester_bp.route('/tests')
 def get_tests():

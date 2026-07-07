@@ -31,9 +31,12 @@ def check_requirements():
         print("Please setup the final components.")
         return 1  # Partial success
     else:
-        print(f"❌ Many requirements missing ({total_components - ready_components}/{total_components} failed)")
+        print(
+            f"❌ Many requirements missing ({total_components - ready_components}/{total_components} failed)"
+        )
         print("Game likely won't work without setup.")
         return 1  # Many failures
+
 
 if __name__ == "__main__":
     sys.exit(check_requirements())

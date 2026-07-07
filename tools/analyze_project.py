@@ -23,7 +23,7 @@ class ProjectAnalyzer:
             'largest_files': [],
             'code_files': 0,
             'config_files': 0,
-            'documentation_files': 0
+            'documentation_files': 0,
         }
 
         # File extensions to analyze
@@ -39,28 +39,32 @@ class ProjectAnalyzer:
             '.json': 'JSON',
             '.sql': 'SQL',
             '.yml': 'YAML',
-            '.yaml': 'YAML'
+            '.yaml': 'YAML',
         }
 
-        self.config_extensions = {
-            '.json', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.env'
-        }
+        self.config_extensions = {'.json', '.yml', '.yaml', '.toml', '.ini', '.cfg', '.env'}
 
-        self.doc_extensions = {
-            '.md', '.txt', '.rst', '.doc', '.docx', '.pdf'
-        }
+        self.doc_extensions = {'.md', '.txt', '.rst', '.doc', '.docx', '.pdf'}
 
         # Directories to skip
         self.skip_dirs = {
-            '__pycache__', '.git', 'node_modules', '.vscode', '.idea',
-            'venv', 'env', '.env', 'build', 'dist', '.next', '.pytest_cache',
-            'outputs'  # Skip AI generated outputs
+            '__pycache__',
+            '.git',
+            'node_modules',
+            '.vscode',
+            '.idea',
+            'venv',
+            'env',
+            '.env',
+            'build',
+            'dist',
+            '.next',
+            '.pytest_cache',
+            'outputs',  # Skip AI generated outputs
         }
 
         # Files to skip
-        self.skip_files = {
-            '.DS_Store', 'Thumbs.db', '.gitignore', '.gitkeep'
-        }
+        self.skip_files = {'.DS_Store', 'Thumbs.db', '.gitignore', '.gitkeep'}
 
     def is_text_file(self, file_path):
         """Check if file is likely a text file"""
@@ -118,11 +122,9 @@ class ProjectAnalyzer:
             self.stats['documentation_files'] += 1
 
         # Track largest files
-        self.stats['largest_files'].append({
-            'path': str(rel_path),
-            'lines': lines,
-            'size_kb': round(file_size / 1024, 1)
-        })
+        self.stats['largest_files'].append(
+            {'path': str(rel_path), 'lines': lines, 'size_kb': round(file_size / 1024, 1)}
+        )
 
     def analyze_directory(self, dir_path):
         """Recursively analyze a directory"""
@@ -169,14 +171,15 @@ class ProjectAnalyzer:
         if stats['file_sizes']:
             avg_size = sum(stats['file_sizes']) / len(stats['file_sizes'])
             total_size_mb = sum(stats['file_sizes']) / (1024 * 1024)
-            print(f"  Average File Size: {avg_size/1024:.1f} KB")
+            print(f"  Average File Size: {avg_size / 1024:.1f} KB")
             print(f"  Total Project Size: {total_size_mb:.1f} MB")
         print()
 
         # By file type
         print("📝 BY FILE TYPE:")
-        ext_sorted = sorted(stats['by_extension'].items(),
-                           key=lambda x: x[1]['lines'], reverse=True)
+        ext_sorted = sorted(
+            stats['by_extension'].items(), key=lambda x: x[1]['lines'], reverse=True
+        )
         for ext_name, data in ext_sorted:
             if data['files'] > 0:
                 print(f"  {ext_name:12} {data['files']:3} files  {data['lines']:6,} lines")
@@ -184,8 +187,9 @@ class ProjectAnalyzer:
 
         # By directory
         print("📁 BY DIRECTORY:")
-        dir_sorted = sorted(stats['by_directory'].items(),
-                           key=lambda x: x[1]['lines'], reverse=True)
+        dir_sorted = sorted(
+            stats['by_directory'].items(), key=lambda x: x[1]['lines'], reverse=True
+        )
         for dir_name, data in dir_sorted:
             if data['files'] > 0:
                 print(f"  {dir_name:12} {data['files']:3} files  {data['lines']:6,} lines")
@@ -195,7 +199,9 @@ class ProjectAnalyzer:
         print("📋 LARGEST FILES (by lines):")
         for i, file_info in enumerate(stats['largest_files'], 1):
             if file_info['lines'] > 0:
-                print(f"  {i:2}. {file_info['path']:40} {file_info['lines']:4,} lines ({file_info['size_kb']} KB)")
+                print(
+                    f"  {i:2}. {file_info['path']:40} {file_info['lines']:4,} lines ({file_info['size_kb']} KB)"
+                )
         print()
 
         # Project complexity assessment
@@ -285,17 +291,18 @@ class ProjectAnalyzer:
                 'total_files': self.stats['total_files'],
                 'total_lines': self.stats['total_lines'],
                 'code_files': self.stats['code_files'],
-                'config_files': self.stats['config_files']
+                'config_files': self.stats['config_files'],
             },
             'by_extension': dict(self.stats['by_extension']),
             'by_directory': dict(self.stats['by_directory']),
-            'largest_files': self.stats['largest_files']
+            'largest_files': self.stats['largest_files'],
         }
 
         with open(filename, 'w') as f:
             json.dump(report, f, indent=2)
 
         print(f"📄 Detailed report saved to: {filename}")
+
 
 def main():
     """Main function"""
@@ -310,6 +317,7 @@ def main():
             analyzer.save_detailed_report()
     except KeyboardInterrupt:
         print("\n\n👋 Analysis complete!")
+
 
 if __name__ == "__main__":
     main()

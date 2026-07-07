@@ -64,7 +64,6 @@ __all__ = [
     'get_event_service',
     'emit_event',
     'subscribe_to_event',
-
     # Event Registry
     'EventSchema',
     'register_events',
@@ -73,7 +72,6 @@ __all__ = [
     'get_all_events',
     'get_event_schema',
     'get_events_by_category',
-
     # AI Event Emission Functions
     'emit_llm_generation_started',
     'emit_llm_generation_update',
@@ -84,27 +82,23 @@ __all__ = [
     'emit_image_generation_completed',
     'emit_image_generation_failed',
     'emit_ai_queue_update',
-
     # Workflow Event Emission Functions
     'emit_workflow_started',
     'emit_workflow_update',
     'emit_workflow_completed',
     'emit_workflow_failed',
     'emit_workflow_queue_update',
-
     # Monster Domain Event Emission Functions
     'emit_monster_created',
     'emit_monster_updated',
     'emit_monster_ability_added',
     'emit_monster_art_ready',
     'emit_monster_memory_added',
-
     # Dungeon Domain Event Emission Functions
     'emit_dungeon_monster_revealed',
-
     # Inventory Domain Event Emission Functions
     'emit_inventory_item_added',
     'emit_inventory_item_updated',
     'emit_inventory_item_consumed',
-    'emit_inventory_cocatok_added'
+    'emit_inventory_cocatok_added',
 ]

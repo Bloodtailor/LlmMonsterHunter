@@ -20,14 +20,17 @@ def check_python_version():
         return False, f"Python 3.8+ required. Current: {sys.version}"
     return True, f"Python {sys.version.split()[0]} is adequate"
 
+
 def check_pip():
     """Check if pip is available."""
     try:
-        result = subprocess.run([sys.executable, "-m", "pip", "--version"],
-                              capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "--version"], capture_output=True, text=True, check=True
+        )
         return True, f"pip available: {result.stdout.strip()}"
     except subprocess.CalledProcessError:
         return False, "pip not available"
+
 
 def check_network_access():
     """Check if we can access PyPI (optional - only needed for installing packages)."""
@@ -36,6 +39,7 @@ def check_network_access():
         return True, "Network access to PyPI confirmed (for package installation)"
     except Exception:
         return True, "No network access to PyPI (only needed for installing packages)"
+
 
 def check_virtual_environment():
     """Check if virtual environment exists and is functional."""
@@ -53,6 +57,7 @@ def check_virtual_environment():
 
     return True, "Virtual environment exists and appears functional"
 
+
 def check_basic_dependencies():
     """Check if basic Flask dependencies are installed."""
     pip_path = Path("venv/Scripts/pip.exe")
@@ -62,8 +67,9 @@ def check_basic_dependencies():
 
     # Check for Flask
     try:
-        result = subprocess.run([str(pip_path), "show", "Flask"],
-                              capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            [str(pip_path), "show", "Flask"], capture_output=True, text=True, check=True
+        )
         if "Version:" in result.stdout:
             return True, "Flask is installed"
     except subprocess.CalledProcessError:
@@ -71,12 +77,14 @@ def check_basic_dependencies():
 
     return False, "Basic dependencies not installed"
 
+
 def check_env_file():
     """Check if .env file exists."""
     if env_file_exists():
         return True, ".env file exists"
     else:
         return False, ".env file not found"
+
 
 def check_basic_backend_requirements():
     """Check all basic backend requirements (for orchestration)."""
@@ -89,6 +97,7 @@ def check_basic_backend_requirements():
 
     # Network is optional - only needed for installing
     return all([python_ok, pip_ok, venv_ok, deps_ok, env_ok])
+
 
 def check_basic_backend_requirements_silent():
     """Silently check basic backend requirements."""
@@ -103,6 +112,7 @@ def check_basic_backend_requirements_silent():
         return all([python_ok, pip_ok, venv_ok, deps_ok, env_ok])
     except Exception:
         return False
+
 
 def get_basic_backend_diagnostic(include_overall=False):
     """
@@ -133,6 +143,11 @@ def get_basic_backend_diagnostic(include_overall=False):
 
     if include_overall:
         overall_ok = check_basic_backend_requirements()
-        result['overall'] = (overall_ok, "All basic backend requirements met" if overall_ok else "Some basic backend requirements missing")
+        result['overall'] = (
+            overall_ok,
+            "All basic backend requirements met"
+            if overall_ok
+            else "Some basic backend requirements missing",
+        )
 
     return result

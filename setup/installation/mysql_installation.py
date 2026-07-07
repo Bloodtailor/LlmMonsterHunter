@@ -22,8 +22,7 @@ def start_mysql_service():
 
     try:
         # Try to start the service
-        subprocess.run(["net", "start", service_name],
-                              capture_output=True, text=True, check=True)
+        subprocess.run(["net", "start", service_name], capture_output=True, text=True, check=True)
         return True, f"MySQL service '{service_name}' started successfully"
 
     except subprocess.CalledProcessError as e:

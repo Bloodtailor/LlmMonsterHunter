@@ -16,12 +16,14 @@ def print_header(text):
     print(text.center(60))
     print("=" * 60)
 
+
 def print_warning(message):
     """
     Display standardized warning message
     """
 
     print(f"⚠️  {message}")
+
 
 def print_error(message):
     """
@@ -30,20 +32,24 @@ def print_error(message):
 
     print(f"❌  {message}")
 
+
 def print_success(message):
     """Display standardized error message"""
 
     print(f"✅  {message}")
+
 
 def print_continue(message):
     """Display standardized continue message for continuning onto next component"""
 
     print(f"⏭️   {message}")
 
+
 def print_info(message):
     """Display standardized info message for instructions for the user or important information"""
 
     print(f"💡  {message}")
+
 
 def print_dry_run(message):
     """
@@ -55,12 +61,14 @@ def print_dry_run(message):
 
     print(f"{CYAN}{message}{RESET}")
 
+
 def print_dry_run_header():
     """
     Display standardized header to identify a component is being run in dry run mode
     """
 
     print_dry_run("🧪 DRY RUN: Running as a dry run")
+
 
 def show_status_table(components):
     """
@@ -101,11 +109,14 @@ def show_status_table(components):
 
     # Summary footer
     print("├─────────────────────────────────────────────────────────────┤")
-    print(f"│  STATUS: {ready_components}/{total_components} components ready{' ' * (33 - len(str(ready_components)) - len(str(total_components)))}│")
+    print(
+        f"│  STATUS: {ready_components}/{total_components} components ready{' ' * (33 - len(str(ready_components)) - len(str(total_components)))}│"
+    )
     print("└─────────────────────────────────────────────────────────────┘")
     print()
 
     return ready_components, total_components
+
 
 def show_component_status_table(component_name, checks):
     """
@@ -150,11 +161,14 @@ def show_component_status_table(component_name, checks):
 
     # Summary footer
     print("├─────────────────────────────────────────────────────────────┤")
-    print(f"│  STATUS: {ready_checks}/{total_checks} checks passed{' ' * (36 - len(str(ready_checks)) - len(str(total_checks)))}│")
+    print(
+        f"│  STATUS: {ready_checks}/{total_checks} checks passed{' ' * (36 - len(str(ready_checks)) - len(str(total_checks)))}│"
+    )
     print("└─────────────────────────────────────────────────────────────┘")
     print()
 
     return ready_checks, total_checks
+
 
 def show_message(message_key):
     """
@@ -164,6 +178,7 @@ def show_message(message_key):
     message = get_message(message_key)
     for line in message:
         print(line)
+
 
 def show_message_and_wait(message_key, pause_message="Press Enter to continue..."):
     """
@@ -214,6 +229,7 @@ def show_component_header(component_name, current=None, total=None, description=
     print()
     print()
 
+
 def display_check_results(component_name, check_results):
     """
     Display check results beautifully
@@ -241,6 +257,7 @@ def display_check_results(component_name, check_results):
 
     overall_ok = all(result[0] for result in check_results.values())
     return overall_ok
+
 
 def handle_user_choice(custom_options, component_name="this component"):
     """
@@ -297,12 +314,14 @@ def handle_user_choice(custom_options, component_name="this component"):
                 print("Exiting setup...")
                 print()
                 import sys
+
                 sys.exit(0)
             else:
                 return choice
         else:
             print(f"Please enter one of: {choice_str}")
             print()
+
 
 def prompt_continue_or_skip(component_name="this component"):
     """
@@ -346,10 +365,12 @@ def prompt_continue_or_skip(component_name="this component"):
                 print("Exiting setup...")
                 print()
                 import sys
+
                 sys.exit(0)
         else:
             print("Please enter S C or E")
             print()
+
 
 def prompt_user_confirmation(message):
     """
@@ -363,14 +384,15 @@ def prompt_user_confirmation(message):
     while True:
         choice = input(message).strip().upper()
 
-        if choice in ['Y', 'YES','N','NO']:
+        if choice in ['Y', 'YES', 'N', 'NO']:
             if choice in ['Y', 'YES']:
                 return True
-            elif ['N','NO']:
+            elif ['N', 'NO']:
                 return False
         else:
             print("Please enter Y or N")
             print()
+
 
 __all__ = [
     "show_status_table",
@@ -389,5 +411,5 @@ __all__ = [
     "print_dry_run_header",
     "handle_user_choice",
     "prompt_continue_or_skip",
-    "prompt_user_confirmation"
+    "prompt_user_confirmation",
 ]

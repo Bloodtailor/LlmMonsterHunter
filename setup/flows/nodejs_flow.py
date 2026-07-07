@@ -26,9 +26,9 @@ def run_nodejs_interactive_setup(current=None, total=None, dry_run=False):
     # Show clean component header
     show_component_header(
         component_name="Node.js & npm",
-        current = current,
-        total = total,
-        description="Required for React frontend development server"
+        current=current,
+        total=total,
+        description="Required for React frontend development server",
     )
 
     print("Checking current status...")
@@ -43,6 +43,7 @@ def run_nodejs_interactive_setup(current=None, total=None, dry_run=False):
         print_dry_run_header()
 
         from setup.utils.dry_run_utils import set_dry_run
+
         nodejs_ok, nodejs_message = set_dry_run('check_nodejs')
         npm_ok, npm_message = set_dry_run('check_npm')
         frontend_ok, frontend_message = set_dry_run('check_frontend_dependencies')
@@ -51,7 +52,7 @@ def run_nodejs_interactive_setup(current=None, total=None, dry_run=False):
     check_results = {
         "Node.js Runtime": (nodejs_ok, nodejs_message),
         "npm Package Manager": (npm_ok, npm_message),
-        "Frontend Dependencies": (frontend_ok, frontend_message)
+        "Frontend Dependencies": (frontend_ok, frontend_message),
     }
 
     # Display results beautifully
@@ -92,13 +93,14 @@ def run_nodejs_interactive_setup(current=None, total=None, dry_run=False):
     final_check_results = {
         "Node.js Runtime": (nodejs_ok, nodejs_message),
         "npm Package Manager": (npm_ok, npm_message),
-        "Frontend Dependencies": (frontend_ok, frontend_message)
+        "Frontend Dependencies": (frontend_ok, frontend_message),
     }
 
     # Display results beautifully
     overall_ok = display_check_results("NODEJS", final_check_results)
 
     return bool(overall_ok)
+
 
 def handle_nodejs_issue():
     """Handle case where nodejs or npm is not installed"""
@@ -117,7 +119,6 @@ def handle_nodejs_issue():
             return False
 
         elif choice == "T":
-
             print()
             print("Attempting to install frontend dependencies anyway...")
             success, message = install_frontend_dependencies()
@@ -138,9 +139,11 @@ def handle_nodejs_issue():
             print("Exiting setup...")
             print()
             import sys
+
             sys.exit(0)
         else:
             print("Please enter S, T, or E")
+
 
 def handle_frontend_issue():
     """
@@ -167,4 +170,5 @@ def handle_frontend_issue():
 
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
+
     run_as_standalone_component(COMPONENT_NAME, run_nodejs_interactive_setup)

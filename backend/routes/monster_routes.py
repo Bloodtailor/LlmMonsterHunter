@@ -8,6 +8,7 @@ from backend.services import monster_service
 
 monster_bp = Blueprint('monsters', __name__, url_prefix='/api/monsters')
 
+
 @monster_bp.route('/generate', methods=['GET'])
 def generate_monster():
     """Generate monster using workflow system - thin HTTP wrapper"""
@@ -15,6 +16,7 @@ def generate_monster():
     result = monster_service.generate_monster()
 
     return jsonify(result), 200 if result['success'] else 500
+
 
 @monster_bp.route('', methods=['GET'])
 def get_monsters():
@@ -24,10 +26,11 @@ def get_monsters():
         limit=request.args.get('limit', type=int),
         offset=request.args.get('offset', 0, type=int),
         filter_type=request.args.get('filter', 'all'),
-        sort_by=request.args.get('sort', 'newest')
+        sort_by=request.args.get('sort', 'newest'),
     )
 
     return jsonify(result), 200 if result['success'] else 400
+
 
 @monster_bp.route('/<int:monster_id>')
 def get_monster(monster_id):
@@ -35,19 +38,20 @@ def get_monster(monster_id):
     result = monster_service.get_monster_by_id(monster_id)
     return jsonify(result), 200 if result['success'] else 404
 
+
 @monster_bp.route('/<int:monster_id>/memories')
 def get_monster_memories(monster_id):
     """Get one monster's permanent memories - thin HTTP wrapper"""
     result = monster_service.get_monster_memories(monster_id)
     return jsonify(result), 200 if result['success'] else 404
 
+
 @monster_bp.route('/stats')
 def get_stats():
     """Get monster statistics - thin HTTP wrapper"""
-    result = monster_service.get_monster_stats(
-        filter_type=request.args.get('filter', 'all')
-    )
+    result = monster_service.get_monster_stats(filter_type=request.args.get('filter', 'all'))
     return jsonify(result), 200 if result['success'] else 400
+
 
 # Evolution endpoints - thin HTTP wrappers
 @monster_bp.route('/<int:monster_id>/evolve', methods=['POST'])
@@ -57,11 +61,13 @@ def evolve_monster(monster_id):
     result = monster_service.evolve_monster(monster_id, guidance=payload.get('guidance'))
     return jsonify(result), 200 if result['success'] else 400
 
+
 @monster_bp.route('/<int:monster_id>/evolutions')
 def get_monster_evolutions(monster_id):
     """Get one monster's evolution lineage - thin HTTP wrapper"""
     result = monster_service.get_monster_evolutions(monster_id)
     return jsonify(result), 200 if result['success'] else 404
+
 
 # Ability endpoints - thin HTTP wrappers
 @monster_bp.route('/<int:monster_id>/abilities', methods=['POST'])
@@ -69,6 +75,7 @@ def generate_ability_for_monster(monster_id):
     """Generate ability - thin HTTP wrapper"""
     result = monster_service.generate_ability(monster_id=monster_id)
     return jsonify(result), 200 if result['success'] else 500
+
 
 @monster_bp.route('/card-art/<path:image_path>')
 def serve_card_art(image_path):

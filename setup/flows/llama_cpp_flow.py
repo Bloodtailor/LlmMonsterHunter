@@ -3,6 +3,7 @@
 LLama-cpp-python Interactive Setup Flow
 Orchestrates the complete llama-cpp-python setup experience with clean UX
 """
+
 COMPONENT_NAME = "LLM Integration"
 
 from setup.checks.llama_cpp_checks import (
@@ -34,7 +35,7 @@ def run_llama_cpp_interactive_setup(current=None, total=None, dry_run=False):
         component_name=COMPONENT_NAME,
         current=current,
         total=total,
-        description="GPU-accelerated AI language model inference library"
+        description="GPU-accelerated AI language model inference library",
     )
 
     print("Checking current status...")
@@ -49,6 +50,7 @@ def run_llama_cpp_interactive_setup(current=None, total=None, dry_run=False):
         print_dry_run_header()
 
         from setup.utils.dry_run_utils import set_dry_run
+
         installed_ok, installed_message = set_dry_run('check_llama_cpp_installed')
         import_ok, import_message = set_dry_run('test_llama_cpp_import')
         performance_ok, performance_message = set_dry_run('test_llama_cpp_performance')
@@ -57,7 +59,7 @@ def run_llama_cpp_interactive_setup(current=None, total=None, dry_run=False):
     check_results = {
         "Installation": (installed_ok, installed_message),
         "Import Test": (import_ok, import_message),
-        "Performance Test": (performance_ok, performance_message)
+        "Performance Test": (performance_ok, performance_message),
     }
 
     # Display results beautifully
@@ -99,6 +101,7 @@ def run_llama_cpp_interactive_setup(current=None, total=None, dry_run=False):
     print()
     return handle_fresh_installation()
 
+
 def handle_fresh_installation():
     """Handle case where llama-cpp-python is not installed"""
 
@@ -106,7 +109,7 @@ def handle_fresh_installation():
 
     options = [
         ("A", "Install with CUDA acceleration (recommended)"),
-        ("I", "Install CPU-only version (very slow, not recommended)")
+        ("I", "Install CPU-only version (very slow, not recommended)"),
     ]
 
     choice = handle_user_choice(options, COMPONENT_NAME)
@@ -116,6 +119,7 @@ def handle_fresh_installation():
     elif choice == "I":
         return handle_cpu_installation_warning()
     return choice == "CONTINUE"
+
 
 def handle_cuda_installation():
     """Handle CUDA installation with multiple methods"""
@@ -138,7 +142,7 @@ def handle_cuda_installation():
 
         options = [
             ("A", "Retry CUDA installation"),
-            ("I", "Install CPU-only version instead (very slow)")
+            ("I", "Install CPU-only version instead (very slow)"),
         ]
 
         choice = handle_user_choice(options, COMPONENT_NAME)
@@ -149,12 +153,15 @@ def handle_cuda_installation():
             return handle_cpu_installation_warning()
         return choice == "CONTINUE"
 
+
 def handle_cpu_installation_warning():
     """Handle CPU-only installation with strong warnings"""
 
     show_message_and_wait('llama_cpp_cpu_warning')
 
-    if not prompt_user_confirmation("Are you sure you want to proceed with CPU-only installation of Llama CPP? [Y/N]: "):
+    if not prompt_user_confirmation(
+        "Are you sure you want to proceed with CPU-only installation of Llama CPP? [Y/N]: "
+    ):
         return handle_fresh_installation()
 
     print("Installing CPU-only llama-cpp-python...")
@@ -171,6 +178,7 @@ def handle_cpu_installation_warning():
         print()
         return prompt_continue_or_skip(COMPONENT_NAME)
 
+
 def handle_broken_installation():
     """Handle case where installation exists but is broken"""
 
@@ -181,7 +189,7 @@ def handle_broken_installation():
 
     options = [
         ("A", "Reinstall with CUDA acceleration"),
-        ("I", "Reinstall CPU-only version (not recommended)")
+        ("I", "Reinstall CPU-only version (not recommended)"),
     ]
 
     choice = handle_user_choice(options, COMPONENT_NAME)
@@ -191,6 +199,7 @@ def handle_broken_installation():
     elif choice == "I":
         return handle_cpu_installation_warning()
     return choice == "CONTINUE"
+
 
 def handle_poor_performance(performance_message):
     """Handle case where installation works but performance is poor"""
@@ -207,7 +216,7 @@ def handle_poor_performance(performance_message):
 
         options = [
             ("U", "Upgrade to CUDA acceleration (recommended)"),
-            ("K", "Keep CPU-only version (game will be very slow)")
+            ("K", "Keep CPU-only version (game will be very slow)"),
         ]
 
         choice = handle_user_choice(options, COMPONENT_NAME)
@@ -227,7 +236,7 @@ def handle_poor_performance(performance_message):
 
         options = [
             ("T", "Try CUDA reinstall (may improve performance)"),
-            ("K", "Keep current installation")
+            ("K", "Keep current installation"),
         ]
 
         choice = handle_user_choice(options, COMPONENT_NAME)
@@ -240,6 +249,7 @@ def handle_poor_performance(performance_message):
             print()
             return True
         return choice == "CONTINUE"
+
 
 def verify_installation():
     """Final verification that llama-cpp-python is working properly"""
@@ -256,7 +266,7 @@ def verify_installation():
     check_results = {
         "Installation": (installed_ok, installed_message),
         "Import Test": (import_ok, import_message),
-        "Performance Test": (performance_ok, performance_message)
+        "Performance Test": (performance_ok, performance_message),
     }
 
     # Show final results
@@ -278,6 +288,8 @@ def verify_installation():
     else:
         return False
 
+
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
+
     run_as_standalone_component(COMPONENT_NAME, run_llama_cpp_interactive_setup)

@@ -29,14 +29,16 @@ class CoCaTok(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'title': self.title,
-            'emoji': self.emoji or '🏆',
-            'color': self.color or 'purple-mystic',
-            'commemoration': self.commemoration,
-            'event_type': self.event_type,
-            'location_name': self.location_name
-        })
+        result.update(
+            {
+                'title': self.title,
+                'emoji': self.emoji or '🏆',
+                'color': self.color or 'purple-mystic',
+                'commemoration': self.commemoration,
+                'event_type': self.event_type,
+                'location_name': self.location_name,
+            }
+        )
         return result
 
     def __repr__(self):

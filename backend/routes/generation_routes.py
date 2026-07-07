@@ -7,11 +7,11 @@ from flask import Blueprint, jsonify, request
 # Create blueprint for generation routes
 generation_bp = Blueprint('generation', __name__, url_prefix='/api/generation')
 
+
 @generation_bp.route('/logs')
 def get_logs():
     """Get generation logs - supports filtering by type, status, limit, offset, and sorting"""
     try:
-
         from backend.models.generation_log import GenerationLog
 
         # Parse query parameters
@@ -76,28 +76,31 @@ def get_logs():
         # Full prompt_text ships intentionally - the developer table's
         # expanded rows display the exact prompt each generation received
 
-        return jsonify({
-            'success': True,
-            'data': {
-                'logs': [log.to_dict() for log in logs],
-                'count': total_count,  # Total count for pagination
-                'returned_count': len(logs),  # Actual returned count
-                'filters': {
-                    'type': generation_type,
-                    'status': status_filter,
-                    'limit': limit,
-                    'offset': offset,
-                    'prompt_type': prompt_type,
-                    'prompt_name': prompt_name,
-                    'priority': priority,
-                    'sort_by': sort_by,
-                    'sort_order': sort_order
-                }
+        return jsonify(
+            {
+                'success': True,
+                'data': {
+                    'logs': [log.to_dict() for log in logs],
+                    'count': total_count,  # Total count for pagination
+                    'returned_count': len(logs),  # Actual returned count
+                    'filters': {
+                        'type': generation_type,
+                        'status': status_filter,
+                        'limit': limit,
+                        'offset': offset,
+                        'prompt_type': prompt_type,
+                        'prompt_name': prompt_name,
+                        'priority': priority,
+                        'sort_by': sort_by,
+                        'sort_order': sort_order,
+                    },
+                },
             }
-        })
+        )
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @generation_bp.route('/log-options', methods=['GET'])
 def get_log_options():
@@ -114,6 +117,7 @@ def get_log_options():
         from sqlalchemy import distinct
 
         from backend.models.generation_log import GenerationLog
+
         prompt_types = GenerationLog.query.with_entities(distinct(GenerationLog.prompt_type)).all()
         prompt_names = GenerationLog.query.with_entities(distinct(GenerationLog.prompt_name)).all()
 
@@ -124,29 +128,31 @@ def get_log_options():
         # Available sort options - UPDATED to include 'id' and better field names
         sort_options = {
             'fields': [
-                'id',                # ADDED: Sort by ID
+                'id',  # ADDED: Sort by ID
                 'generation_type',
                 'prompt_type',
                 'prompt_name',
-                'status',           # ADDED: Sort by status
+                'status',  # ADDED: Sort by status
                 'priority',
                 'duration_seconds',
                 'start_time',
             ],
-            'orders': ['asc', 'desc']  # Changed from 'order' to 'orders' for clarity
+            'orders': ['asc', 'desc'],  # Changed from 'order' to 'orders' for clarity
         }
 
-        return jsonify({
-            'success': True,
-            'data': {
-                'filter_options': {
-                    **filter_options,
-                    'prompt_type': prompt_types,
-                    'prompt_name': prompt_names,
+        return jsonify(
+            {
+                'success': True,
+                'data': {
+                    'filter_options': {
+                        **filter_options,
+                        'prompt_type': prompt_types,
+                        'prompt_name': prompt_names,
+                    },
+                    'sort_options': sort_options,
                 },
-                'sort_options': sort_options
             }
-        })
+        )
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

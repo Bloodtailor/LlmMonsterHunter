@@ -23,46 +23,56 @@ class GenerationLog(BaseModel):
 
     # === Core Generation Information ===
     generation_type = Column(String(50), nullable=False)  # 'llm', 'image', 'audio', etc.
-    prompt_type = Column(String(100), nullable=False)     # 'monster_generation', 'ability_generation', etc.
-    prompt_name = Column(String(100), nullable=False)     # Specific prompt/template used
-    prompt_text = Column(Text, nullable=False)            # Full prompt text
+    prompt_type = Column(
+        String(100), nullable=False
+    )  # 'monster_generation', 'ability_generation', etc.
+    prompt_name = Column(String(100), nullable=False)  # Specific prompt/template used
+    prompt_text = Column(Text, nullable=False)  # Full prompt text
 
     # === Generation Tracking ===
-    status = Column(String(50), default='pending', nullable=False)  # 'pending', 'generating', 'completed', 'failed'
-    priority = Column(Integer, default=5, nullable=False)           # Queue priority (1=highest, 10=lowest)
+    status = Column(
+        String(50), default='pending', nullable=False
+    )  # 'pending', 'generating', 'completed', 'failed'
+    priority = Column(Integer, default=5, nullable=False)  # Queue priority (1=highest, 10=lowest)
 
     generation_attempt = Column(Integer, default=1, nullable=False)  # Current attempt number
-    max_attempts = Column(Integer, default=3, nullable=False)        # Maximum attempts allowed
+    max_attempts = Column(Integer, default=3, nullable=False)  # Maximum attempts allowed
 
     # === Timing Metrics ===
-    start_time = Column(DateTime, nullable=True)          # When generation started
-    end_time = Column(DateTime, nullable=True)            # When generation completed
-    duration_seconds = Column(Float, nullable=True)       # Total generation time
+    start_time = Column(DateTime, nullable=True)  # When generation started
+    end_time = Column(DateTime, nullable=True)  # When generation completed
+    duration_seconds = Column(Float, nullable=True)  # Total generation time
 
     # === Status and Error Handling ===
-    error_message = Column(Text, nullable=True)           # Any error that occurred
+    error_message = Column(Text, nullable=True)  # Any error that occurred
 
     # === Relationships to Child Tables ===
-    llm_log = relationship("LLMLog", back_populates="generation_log", uselist=False, cascade="all, delete-orphan")
-    image_log = relationship("ImageLog", back_populates="generation_log", uselist=False, cascade="all, delete-orphan")
+    llm_log = relationship(
+        "LLMLog", back_populates="generation_log", uselist=False, cascade="all, delete-orphan"
+    )
+    image_log = relationship(
+        "ImageLog", back_populates="generation_log", uselist=False, cascade="all, delete-orphan"
+    )
 
     def to_dict(self):
         """Convert to dictionary with child data included"""
         result = super().to_dict()
 
         # Add computed fields
-        result.update({
-            'generation_type': self.generation_type,
-            'prompt_type': self.prompt_type,
-            'prompt_name': self.prompt_name,
-            'status': self.status,
-            'priority': self.priority,
-            'duration_seconds': self.duration_seconds,
-            'attempts_used': self.generation_attempt,
-            'max_attempts': self.max_attempts,
-            'is_completed': self.status == 'completed',
-            'is_failed': self.status == 'failed'
-        })
+        result.update(
+            {
+                'generation_type': self.generation_type,
+                'prompt_type': self.prompt_type,
+                'prompt_name': self.prompt_name,
+                'status': self.status,
+                'priority': self.priority,
+                'duration_seconds': self.duration_seconds,
+                'attempts_used': self.generation_attempt,
+                'max_attempts': self.max_attempts,
+                'is_completed': self.status == 'completed',
+                'is_failed': self.status == 'failed',
+            }
+        )
 
         # Include child table data
         if self.llm_log:
@@ -114,9 +124,15 @@ class GenerationLog(BaseModel):
         return None
 
     @classmethod
-    def create_llm_log(cls, prompt_type: str, prompt_name: str, prompt_text: str,
-                       inference_params: dict[str, Any], parser_config: Optional[dict[str, Any]] = None,
-                       **kwargs):
+    def create_llm_log(
+        cls,
+        prompt_type: str,
+        prompt_name: str,
+        prompt_text: str,
+        inference_params: dict[str, Any],
+        parser_config: Optional[dict[str, Any]] = None,
+        **kwargs,
+    ):
         """
         Create a new LLM generation log with child LLM data
 
@@ -140,19 +156,26 @@ class GenerationLog(BaseModel):
             status='pending',
             generation_attempt=1,
             priority=inference_params.get('priority', 5),
-            max_attempts=kwargs.get('max_attempts', 3)
+            max_attempts=kwargs.get('max_attempts', 3),
         )
 
         # Create child LLM log (will be saved when parent is saved due to cascade)
         from backend.models.llm_log import LLMLog
+
         llm_data = LLMLog.create_from_params(inference_params, parser_config)
         generation_log.llm_log = llm_data
 
         return generation_log
 
     @classmethod
-    def create_image_log(cls, prompt_type: str, prompt_name: str, prompt_text: str,
-                        image_params: dict[str, Any], **kwargs):
+    def create_image_log(
+        cls,
+        prompt_type: str,
+        prompt_name: str,
+        prompt_text: str,
+        image_params: dict[str, Any],
+        **kwargs,
+    ):
         """
         Create a new image generation log with child image data
 
@@ -175,11 +198,12 @@ class GenerationLog(BaseModel):
             status='pending',
             generation_attempt=1,
             priority=kwargs.get('priority', 7),  # Lower priority than LLM
-            max_attempts=kwargs.get('max_attempts', 2)  # Fewer retries for images
+            max_attempts=kwargs.get('max_attempts', 2),  # Fewer retries for images
         )
 
         # Create child image log
         from backend.models.image_log import ImageLog
+
         image_data = ImageLog.create_from_params(image_params)
         generation_log.image_log = image_data
 

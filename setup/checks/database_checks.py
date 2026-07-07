@@ -46,6 +46,7 @@ def check_env_database_config():
 
     return True, f"Database config: {user}@{host}:{port}/{db_name}"
 
+
 def get_database_config():
     """
     Helper function to get database configuration from .env file.
@@ -65,10 +66,11 @@ def get_database_config():
             'port': int(env_vars.get('DB_PORT', '3306')),
             'name': env_vars.get('DB_NAME', 'monster_hunter_game'),
             'user': env_vars.get('DB_USER', 'root'),
-            'password': env_vars.get('DB_PASSWORD', '')
+            'password': env_vars.get('DB_PASSWORD', ''),
         }
     except ValueError:
         return None
+
 
 def check_mysql_server_connection():
     """
@@ -87,7 +89,8 @@ def check_mysql_server_connection():
             f"-P{config['port']}",
             f"-u{config['user']}",
             f"-p{config['password']}" if config['password'] else "--skip-password",
-            "-e", "SELECT 1;"
+            "-e",
+            "SELECT 1;",
         ]
 
         subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=10)
@@ -109,6 +112,7 @@ def check_mysql_server_connection():
     except Exception as e:
         return False, f"MySQL connection error: {e}"
 
+
 def check_database_exists():
     """
     Check if the configured database exists and is accessible.
@@ -125,7 +129,8 @@ def check_database_exists():
             f"-P{config['port']}",
             f"-u{config['user']}",
             f"-p{config['password']}",
-            "-e", f"USE {config['name']}; SELECT 1;"
+            "-e",
+            f"USE {config['name']}; SELECT 1;",
         ]
 
         subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=10)
@@ -147,6 +152,7 @@ def check_database_exists():
     except Exception as e:
         return False, f"Database check error: {e}"
 
+
 def check_database_requirements():
     """Check all database related requirements (for orchestration)."""
 
@@ -155,6 +161,7 @@ def check_database_requirements():
     database_ok, _ = check_database_exists()
 
     return config_ok and server_ok and database_ok
+
 
 def get_database_diagnostic(include_overall=False):
     """
@@ -179,6 +186,9 @@ def get_database_diagnostic(include_overall=False):
 
     if include_overall:
         overall_ok = check_database_requirements()
-        result["overall"] = (overall_ok, "All database requirements met" if overall_ok else "Some database requirements missing")
+        result["overall"] = (
+            overall_ok,
+            "All database requirements met" if overall_ok else "Some database requirements missing",
+        )
 
     return result

@@ -37,7 +37,6 @@ __all__ = [
     'validate_env_keys',
     'update_env_config',
     'create_env_file_from_template',
-
     # UX utilities
     'show_status_table',
     'show_component_status_table',
@@ -55,8 +54,7 @@ __all__ = [
     'handle_user_choice',
     'prompt_continue_or_skip',
     'prompt_user_confirmation',
-
     # Dry run utilities
     'set_dry_run',
-    'run_as_standalone_component'
+    'run_as_standalone_component',
 ]

@@ -3,6 +3,7 @@
 Database Interactive Setup Flow
 Orchestrates the complete database configuration experience with clean UX
 """
+
 COMPONENT_NAME = "Database"
 
 from setup.checks.database_checks import (
@@ -27,7 +28,7 @@ def run_database_interactive_setup(current=None, total=None, dry_run=False):
         component_name="Database Connection",
         current=current,
         total=total,
-        description="Configure and create the Monster Hunter game database"
+        description="Configure and create the Monster Hunter game database",
     )
 
     print("Checking current status...")
@@ -42,6 +43,7 @@ def run_database_interactive_setup(current=None, total=None, dry_run=False):
         print_dry_run_header()
 
         from setup.utils.dry_run_utils import set_dry_run
+
         config_ok, config_message = set_dry_run('check_env_database_config')
         connection_ok, connection_message = set_dry_run('check_mysql_server_connection')
         database_ok, database_message = set_dry_run('check_database_exists')
@@ -50,7 +52,7 @@ def run_database_interactive_setup(current=None, total=None, dry_run=False):
     check_results = {
         "Database Configuration": (config_ok, config_message),
         "MySQL Connection": (connection_ok, connection_message),
-        "Game Database": (database_ok, database_message)
+        "Game Database": (database_ok, database_message),
     }
 
     # Display results beautifully
@@ -90,11 +92,13 @@ def run_database_interactive_setup(current=None, total=None, dry_run=False):
     # Final verification
     return verify_database_setup()
 
+
 def handle_config_issues():
     """Handle missing or invalid database configuration"""
 
     # Check what specifically is missing
     from setup.utils.env_utils import load_env_config
+
     env_vars = load_env_config()
 
     if not env_vars:
@@ -119,6 +123,7 @@ def handle_config_issues():
         print()
         input("Press enter to continue to the next compnonent...")
         return False
+
 
 def handle_missing_password():
     """Handle missing or placeholder database password"""
@@ -172,7 +177,6 @@ def handle_connection_issues(connection_message):
 
         return handle_missing_password()  # Reuse password entry flow
 
-
     elif "Cannot connect" in connection_message:
         print_error(connection_message)
         print("This usually means MySQL server is not running.")
@@ -181,6 +185,7 @@ def handle_connection_issues(connection_message):
 
         # Check for MySQL service
         from setup.checks.mysql_checks import get_mysql_service_name
+
         mysql_service_name = get_mysql_service_name()
 
         if not mysql_service_name:
@@ -191,6 +196,7 @@ def handle_connection_issues(connection_message):
             print()
 
             from setup.installation.mysql_installation import start_mysql_service
+
             success, message = start_mysql_service()
 
             if success:
@@ -203,7 +209,9 @@ def handle_connection_issues(connection_message):
         print_info("You may need to start MySQL manually.")
         print()
 
-        show_message_and_wait('database_connection_troubleshooting', "Press Enter after starting MySQL...")
+        show_message_and_wait(
+            'database_connection_troubleshooting', "Press Enter after starting MySQL..."
+        )
         return verify_connection_working()
 
     else:
@@ -214,9 +222,9 @@ def handle_connection_issues(connection_message):
 
         return verify_connection_working()
 
+
 def handle_database_missing():
     """Handle missing game database"""
-
 
     print("Creating database...")
 
@@ -246,7 +254,9 @@ def handle_database_missing():
             print("Exiting setup...")
             print()
             import sys
+
             sys.exit(0)
+
 
 def verify_connection_working():
     """Helper to verify connection is working after troubleshooting"""
@@ -265,6 +275,7 @@ def verify_connection_working():
         print()
         return False
 
+
 def verify_database_setup():
     """Final verification that database setup is working"""
 
@@ -279,7 +290,7 @@ def verify_database_setup():
     check_results = {
         "Database Configuration": (config_ok, config_message),
         "MySQL Connection": (connection_ok, connection_message),
-        "Game Database": (database_ok, database_message)
+        "Game Database": (database_ok, database_message),
     }
 
     # Show final results
@@ -295,6 +306,8 @@ def verify_database_setup():
         print()
         return False
 
+
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
+
     run_as_standalone_component(COMPONENT_NAME, run_database_interactive_setup)

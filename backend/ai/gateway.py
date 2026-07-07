@@ -12,12 +12,14 @@ from backend.models.generation_log import GenerationLog
 from .queue import get_ai_queue
 
 
-def text_generation_request(prompt: str,
-                           prompt_type: str = None,
-                           prompt_name: str = None,
-                           parser_config: Optional[dict[str, Any]] = None,
-                           return_early: bool = False,
-                           **inference_overrides) -> dict[str, Any]:
+def text_generation_request(
+    prompt: str,
+    prompt_type: str = None,
+    prompt_name: str = None,
+    parser_config: Optional[dict[str, Any]] = None,
+    return_early: bool = False,
+    **inference_overrides,
+) -> dict[str, Any]:
     """
     THE ONLY WAY to request LLM text generation
     Creates complete generation_log entry and delegates to unified queue
@@ -52,6 +54,7 @@ def text_generation_request(prompt: str,
     # Applied HERE, before logging, so generation_log.prompt_text is
     # byte-exact with what the model receives (the dev table shows truth).
     from backend.core.config.llm_config import NOTHINK_PREFILL, get_disable_thinking
+
     if get_disable_thinking():
         prompt = prompt + NOTHINK_PREFILL
 
@@ -65,7 +68,7 @@ def text_generation_request(prompt: str,
         prompt_name=prompt_name,
         prompt_text=prompt,
         inference_params=inference_params,
-        parser_config=parser_config
+        parser_config=parser_config,
     )
 
     if not generation_log or not generation_log.save():
@@ -82,11 +85,14 @@ def text_generation_request(prompt: str,
     # Wait for completion
     return _wait_for_completion(queue, generation_log.id, 'llm')
 
-def image_generation_request(prompt_text: str,
-                           prompt_type: str = "image_generation",
-                           prompt_name: str = "monster_generation",
-                           return_early: bool = False,
-                           **image_overrides) -> dict[str, Any]:
+
+def image_generation_request(
+    prompt_text: str,
+    prompt_type: str = "image_generation",
+    prompt_name: str = "monster_generation",
+    return_early: bool = False,
+    **image_overrides,
+) -> dict[str, Any]:
     """
     THE ONLY WAY to request image generation - COMPLETELY GENERIC
     Creates complete generation_log entry and delegates to unified queue
@@ -110,17 +116,14 @@ def image_generation_request(prompt_text: str,
     print_success(f"Image generation request: {prompt_name} - \"{truncated_prompt}\"")
 
     # Prepare image parameters
-    image_params = {
-        'workflow_name': prompt_name,
-        **image_overrides
-    }
+    image_params = {'workflow_name': prompt_name, **image_overrides}
 
     # Create generation log entry
     generation_log = GenerationLog.create_image_log(
         prompt_type=prompt_type,
         prompt_name=prompt_name,
         prompt_text=prompt_text,
-        image_params=image_params
+        image_params=image_params,
     )
 
     if not generation_log or not generation_log.save():
@@ -140,7 +143,9 @@ def image_generation_request(prompt_text: str,
     return _wait_for_completion(queue, generation_log.id, 'image')
 
 
-def _wait_for_completion(queue, generation_id: int, generation_type: str, timeout: int = 600) -> dict[str, Any]:
+def _wait_for_completion(
+    queue, generation_id: int, generation_type: str, timeout: int = 600
+) -> dict[str, Any]:
     """
     Wait for generation completion with unified handling
 
@@ -172,14 +177,14 @@ def _wait_for_completion(queue, generation_id: int, generation_type: str, timeou
                     'text': result.get('text', ''),
                     'parsing_success': result.get('parsing_success', None),
                     'parsing_error': result.get('parsing_error', None),
-                    'parsed_data': result.get('parsed_data', None)
+                    'parsed_data': result.get('parsed_data', None),
                 }
             elif generation_type == 'image':
                 return {
                     'generation_id': generation_id,
                     'success': result.get('success', None),
                     'error': result.get('error', None),
-                    'image_path': result.get('image_path', '')
+                    'image_path': result.get('image_path', ''),
                 }
 
         if status['status'] == 'failed':
@@ -194,8 +199,6 @@ def _wait_for_completion(queue, generation_id: int, generation_type: str, timeou
         f'{generation_type.upper()} generation {generation_id} timed out after {timeout} seconds'
     )
 
+
 # Export main functions
-__all__ = [
-    'text_generation_request',
-    'image_generation_request'
-]
+__all__ = ['text_generation_request', 'image_generation_request']

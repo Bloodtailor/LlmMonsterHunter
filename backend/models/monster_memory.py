@@ -34,17 +34,21 @@ class MonsterMemory(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'monster_id': self.monster_id,
-            'run_id': self.run_id,
-            'kind': self.kind,
-            'content': self.content,
-            'details': self.details or {}
-        })
+        result.update(
+            {
+                'monster_id': self.monster_id,
+                'run_id': self.run_id,
+                'kind': self.kind,
+                'content': self.content,
+                'details': self.details or {},
+            }
+        )
         return result
 
     @classmethod
-    def add(cls, monster_id: int, kind: str, content: str, details: dict = None, run_id: int = None):
+    def add(
+        cls, monster_id: int, kind: str, content: str, details: dict = None, run_id: int = None
+    ):
         """Record one memory. Returns the saved memory or None on error."""
         try:
             memory = cls(
@@ -52,7 +56,7 @@ class MonsterMemory(BaseModel):
                 kind=kind,
                 content=str(content).strip(),
                 details=details or None,
-                run_id=run_id
+                run_id=run_id,
             )
             return memory if memory.save() else None
         except Exception as e:
@@ -104,8 +108,7 @@ class MonsterMemory(BaseModel):
         try:
             total = 0.0
             for memory in cls.query.filter(
-                cls.monster_id == monster_id,
-                cls.kind.in_(('growth', 'returned'))
+                cls.monster_id == monster_id, cls.kind.in_(('growth', 'returned'))
             ).all():
                 details = memory.details or {}
                 if details.get('stat') == stat:

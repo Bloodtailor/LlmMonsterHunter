@@ -14,5 +14,5 @@ __all__ = [
     'build_and_stream',
     'clamp_context',
     'get_block_char_limit',
-    'resolve_detail_tier'
+    'resolve_detail_tier',
 ]

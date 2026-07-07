@@ -15,12 +15,8 @@ def main():
     print_header("🚀 System ready - Backend is running!")
 
     # Start the Flask development server
-    app.run(
-        host='localhost',
-        port=5000,
-        debug=True,
-        use_reloader=False
-    )
+    app.run(host='localhost', port=5000, debug=True, use_reloader=False)
+
 
 if __name__ == '__main__':
     main()

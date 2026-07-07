@@ -7,10 +7,12 @@ from typing import Any
 
 class ParseResult:
     """Container for parsing results"""
+
     def __init__(self, success: bool, data: Any = None, error: str = None):
         self.success = success
         self.data = data
         self.error = error
+
 
 def extract_json(text: str) -> str:
     """
@@ -32,7 +34,8 @@ def extract_json(text: str) -> str:
     if start == -1 or end == -1 or start >= end:
         return ""
 
-    return text[start:end+1]
+    return text[start : end + 1]
+
 
 def basic_parser(response_text: str, parser_config: dict[str, Any]) -> ParseResult:
     """
@@ -74,6 +77,7 @@ def basic_parser(response_text: str, parser_config: dict[str, Any]) -> ParseResu
         return ParseResult(success=False, error=f"Invalid JSON: {str(e)}")
     except Exception as e:
         return ParseResult(success=False, error=f"Parse error: {str(e)}")
+
 
 def nested_parser(response_text: str, parser_config: dict[str, Any]) -> ParseResult:
     """
@@ -126,6 +130,7 @@ def nested_parser(response_text: str, parser_config: dict[str, Any]) -> ParseRes
     except Exception as e:
         return ParseResult(success=False, error=f"Parse error: {str(e)}")
 
+
 def _check_nested_field(data: dict[str, Any], field_path: str) -> bool:
     """
     Check if a nested field path exists and has a value
@@ -151,6 +156,7 @@ def _check_nested_field(data: dict[str, Any], field_path: str) -> bool:
 
     except Exception:
         return False
+
 
 def parse_response(response_text: str, parser_config: dict[str, Any]) -> ParseResult:
     """

@@ -23,19 +23,22 @@ from backend.models.game_workflow import GameWorkflow
 _global_game_queue = None
 _game_queue_lock = threading.Lock()
 
+
 class WorkflowStatus(Enum):
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
 
+
 @dataclass
 class WorkflowItem:
     """Represents a game workflow in the queue"""
-    workflow_id: int        # Database game_workflows.id
-    workflow_type: str      # "monster_generation", "dungeon_entry", etc.
-    context: dict[str, Any] # Workflow-specific context data
-    priority: int           # Queue priority (lower = higher priority)
+
+    workflow_id: int  # Database game_workflows.id
+    workflow_type: str  # "monster_generation", "dungeon_entry", etc.
+    context: dict[str, Any]  # Workflow-specific context data
+    priority: int  # Queue priority (lower = higher priority)
     created_at: datetime
     status: WorkflowStatus
     result: Optional[dict[str, Any]] = None
@@ -54,8 +57,9 @@ class WorkflowItem:
             'result': self.result,
             'error': self.error,
             'started_at': self.started_at.isoformat() if self.started_at else None,
-            'completed_at': self.completed_at.isoformat() if self.completed_at else None
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
         }
+
 
 class WorkflowQueue:
     """
@@ -120,7 +124,7 @@ class WorkflowQueue:
                 context=context,
                 priority=priority,
                 created_at=datetime.utcnow(),
-                status=WorkflowStatus.PENDING
+                status=WorkflowStatus.PENDING,
             )
 
             with self._lock:
@@ -168,7 +172,7 @@ class WorkflowQueue:
                 "type_counts": type_counts,
                 "current_workflow": self._current_item.to_dict() if self._current_item else None,
                 "worker_running": self._running,
-                "supported_workflow_types": list_workflows()
+                "supported_workflow_types": list_workflows(),
             }
 
     def _worker_loop(self):
@@ -225,7 +229,7 @@ class WorkflowQueue:
                     workflow_id=item.workflow_id,
                     workflow_type=item.workflow_type,
                     step=step,
-                    data=data
+                    data=data,
                 )
 
             # Execute workflow with context and update callback
@@ -249,13 +253,17 @@ class WorkflowQueue:
                 print_success(f"Completed workflow: {item.workflow_type} (ID: {item.workflow_id})")
             else:
                 item.status = WorkflowStatus.FAILED
-                item.error = result.get('error', 'Unknown error') if result else 'Handler returned None'
+                item.error = (
+                    result.get('error', 'Unknown error') if result else 'Handler returned None'
+                )
 
                 # Emit workflow failed event
                 emit_workflow_failed(item.to_dict(), item.workflow_id, item.error)
                 self._emit_queue_update("failed")
 
-                print_error(f"Failed workflow: {item.workflow_type} (ID: {item.workflow_id}) - {item.error}")
+                print_error(
+                    f"Failed workflow: {item.workflow_type} (ID: {item.workflow_id}) - {item.error}"
+                )
 
             # Update database
             self._update_workflow_database(item)
@@ -297,14 +305,16 @@ class WorkflowQueue:
         try:
             with self._lock:
                 all_items = [
-                    item.to_dict() for item in self._items.values()
+                    item.to_dict()
+                    for item in self._items.values()
                     if item.status in [WorkflowStatus.PENDING, WorkflowStatus.PROCESSING]
-            ]
+                ]
 
             emit_workflow_queue_update(all_items, trigger)
 
         except Exception as e:
             print_error(f"Failed to emit queue update: {e}")
+
 
 def get_queue() -> WorkflowQueue:
     """Get global game orchestration queue instance"""

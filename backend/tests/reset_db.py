@@ -25,11 +25,14 @@ def build_minimal_app():
     db_port = os.getenv('DB_PORT', '3306')
     db_name = os.getenv('DB_NAME', 'monster_hunter_game')
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     init_db(app)
     return app
+
 
 def import_all_models():
     """Every model module, so SQLAlchemy metadata knows every table"""
@@ -51,6 +54,7 @@ def import_all_models():
     from backend.models.monster import Monster
     from backend.models.monster_evolution import MonsterEvolution
     from backend.models.monster_memory import MonsterMemory
+
 
 def main():
     db_name = os.getenv('DB_NAME', 'monster_hunter_game')
@@ -77,10 +81,12 @@ def main():
         db.create_all()
 
         from sqlalchemy import inspect
+
         table_names = inspect(db.engine).get_table_names()
         print(f'🎉 Reset complete. {len(table_names)} empty tables:')
         for table_name in sorted(table_names):
             print(f'    {table_name}')
+
 
 if __name__ == '__main__':
     main()

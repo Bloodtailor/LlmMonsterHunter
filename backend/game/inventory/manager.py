@@ -24,27 +24,32 @@ def get_inventory(kind: str, limit: int, offset: int) -> dict[str, Any]:
 
     entries = query.all()
 
-    return success_response({
-        'kind': kind,
-        'entries': [entry.to_dict() for entry in entries],
-        'total': total_count,
-        'count': len(entries),
-        'pagination': {
-            'limit': limit,
-            'offset': offset,
-            'has_more': offset + len(entries) < total_count,
-            'next_offset': offset + limit if limit is not None and offset + len(entries) < total_count else None,
-            'prev_offset': max(0, offset - limit) if limit is not None and offset > 0 else None
+    return success_response(
+        {
+            'kind': kind,
+            'entries': [entry.to_dict() for entry in entries],
+            'total': total_count,
+            'count': len(entries),
+            'pagination': {
+                'limit': limit,
+                'offset': offset,
+                'has_more': offset + len(entries) < total_count,
+                'next_offset': offset + limit
+                if limit is not None and offset + len(entries) < total_count
+                else None,
+                'prev_offset': max(0, offset - limit) if limit is not None and offset > 0 else None,
+            },
         }
-    })
+    )
+
 
 def get_inventory_counts() -> dict[str, Any]:
     """How many of each the party holds (for tab badges)"""
 
-    return success_response({
-        'item_count': Item.query.count(),
-        'cocatok_count': CoCaTok.query.count()
-    })
+    return success_response(
+        {'item_count': Item.query.count(), 'cocatok_count': CoCaTok.query.count()}
+    )
+
 
 def spend_item_use(item: Item) -> dict[str, Any]:
     """

@@ -36,11 +36,7 @@ class EventService:
             return True  # No subscribers, that's fine
 
         # Add metadata to event
-        event = {
-            'type': event_type,
-            'data': data,
-            'timestamp': self._get_timestamp()
-        }
+        event = {'type': event_type, 'data': data, 'timestamp': self._get_timestamp()}
 
         success_count = 0
 
@@ -110,11 +106,14 @@ class EventService:
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format"""
         from datetime import datetime
+
         return datetime.utcnow().isoformat()
+
 
 # Global event service instance
 _event_service = None
 _service_lock = threading.Lock()
+
 
 def get_event_service() -> EventService:
     """Get global event service instance"""
@@ -126,10 +125,12 @@ def get_event_service() -> EventService:
 
     return _event_service
 
+
 # Convenience functions for common usage
 def emit_event(event_type: str, data: dict[str, Any]) -> bool:
     """Emit an event (convenience function)"""
     return get_event_service().emit(event_type, data)
+
 
 def subscribe_to_event(event_type: str, callback: Callable[[dict[str, Any]], None]) -> bool:
     """Subscribe to an event (convenience function)"""

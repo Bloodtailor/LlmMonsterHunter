@@ -8,7 +8,9 @@ from typing import Any, Callable, Optional
 from backend.core.utils import error_response, print_success, success_response
 
 
-def process_image_request(generation_id: int, callback: Optional[Callable[[str], None]] = None) -> dict[str, Any]:
+def process_image_request(
+    generation_id: int, callback: Optional[Callable[[str], None]] = None
+) -> dict[str, Any]:
     """
     Complete image generation pipeline
     Trusts that queue already validated this is a valid image generation
@@ -51,7 +53,7 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
             return error_response(
                 error_msg,
                 generation_id=generation_id,
-                help='Start ComfyUI with: python main.py --listen'
+                help='Start ComfyUI with: python main.py --listen',
             )
 
         # Load workflow
@@ -88,15 +90,13 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
             width=config['width'],
             height=config['height'],
             batch_size=config['batch_size'],
-            seed=random.randint(1, 1000000)
+            seed=random.randint(1, 1000000),
         )
 
         prompt_id = client.queue_prompt(modified_workflow)
 
         result = client.wait_for_completion(
-            prompt_id=prompt_id,
-            timeout=config['timeout'],
-            callback=callback
+            prompt_id=prompt_id, timeout=config['timeout'], callback=callback
         )
 
         if not result.get("images"):
@@ -108,9 +108,7 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
         # Download and organize image
         image_info = result["images"][0]
         relative_path = _download_and_organize_image(
-            client=client,
-            image_info=image_info,
-            folder_name=prompt_type
+            client=client, image_info=image_info, folder_name=prompt_type
         )
 
         # Update logs with success
@@ -124,19 +122,22 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
         client.unload_models()
         client.free_memory()
 
-        return success_response({
-            'image_path': relative_path,
-            'execution_time': generation_log.duration_seconds or 0,
-            'generation_id': generation_id,
-            'workflow_used': workflow_name,
-            'prompt_id': prompt_id,
-            'image_dimensions': f"{config['width']}x{config['height']}"
-        })
+        return success_response(
+            {
+                'image_path': relative_path,
+                'execution_time': generation_log.duration_seconds or 0,
+                'generation_id': generation_id,
+                'workflow_used': workflow_name,
+                'prompt_id': prompt_id,
+                'image_dimensions': f"{config['width']}x{config['height']}",
+            }
+        )
 
     except Exception as e:
         # Mark as failed and return error
         try:
             from backend.models.generation_log import GenerationLog
+
             log = GenerationLog.query.get(generation_id)
             if log:
                 log.mark_failed(str(e))
@@ -145,6 +146,7 @@ def process_image_request(generation_id: int, callback: Optional[Callable[[str],
             pass
 
         return error_response(str(e), generation_id=generation_id)
+
 
 def _download_and_organize_image(client, image_info: dict[str, str], folder_name: str) -> str:
     """Download and organize image with sequential numbering"""
@@ -173,7 +175,7 @@ def _download_and_organize_image(client, image_info: dict[str, str], folder_name
     image_data = client.download_image(
         filename=image_info["filename"],
         subfolder=image_info.get("subfolder", ""),
-        img_type=image_info.get("type", "output")
+        img_type=image_info.get("type", "output"),
     )
 
     with open(save_path, 'wb') as f:

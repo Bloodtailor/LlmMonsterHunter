@@ -47,16 +47,9 @@ class ComfyUIClient:
             requests.RequestException: On connection errors
             ValueError: On invalid response
         """
-        payload = {
-            "prompt": workflow,
-            "client_id": self.client_id
-        }
+        payload = {"prompt": workflow, "client_id": self.client_id}
 
-        response = requests.post(
-            f"{self.base_url}/prompt",
-            json=payload,
-            timeout=self.timeout
-        )
+        response = requests.post(f"{self.base_url}/prompt", json=payload, timeout=self.timeout)
 
         if response.status_code == 200:
             result = response.json()
@@ -96,17 +89,13 @@ class ComfyUIClient:
         Raises:
             requests.RequestException: On connection errors
         """
-        response = requests.get(
-            f"{self.base_url}/history/{prompt_id}",
-            timeout=self.timeout
-        )
+        response = requests.get(f"{self.base_url}/history/{prompt_id}", timeout=self.timeout)
         response.raise_for_status()
 
         history_data = response.json()
         return history_data.get(prompt_id)
 
-    def download_image(self, filename: str, subfolder: str = "",
-                      img_type: str = "output") -> bytes:
+    def download_image(self, filename: str, subfolder: str = "", img_type: str = "output") -> bytes:
         """
         Download an image from ComfyUI
 
@@ -121,18 +110,11 @@ class ComfyUIClient:
         Raises:
             requests.RequestException: On download errors
         """
-        params = {
-            "filename": filename,
-            "type": img_type
-        }
+        params = {"filename": filename, "type": img_type}
         if subfolder:
             params["subfolder"] = subfolder
 
-        response = requests.get(
-            f"{self.base_url}/view",
-            params=params,
-            timeout=self.timeout
-        )
+        response = requests.get(f"{self.base_url}/view", params=params, timeout=self.timeout)
         response.raise_for_status()
 
         return response.content
@@ -146,11 +128,7 @@ class ComfyUIClient:
         """
         try:
             payload = {"unload_models": True}
-            response = requests.post(
-                f"{self.base_url}/free",
-                json=payload,
-                timeout=self.timeout
-            )
+            response = requests.post(f"{self.base_url}/free", json=payload, timeout=self.timeout)
             return response.status_code == 200
         except requests.RequestException:
             return False
@@ -164,11 +142,7 @@ class ComfyUIClient:
         """
         try:
             payload = {"free_memory": True}
-            response = requests.post(
-                f"{self.base_url}/free",
-                json=payload,
-                timeout=self.timeout
-            )
+            response = requests.post(f"{self.base_url}/free", json=payload, timeout=self.timeout)
             return response.status_code == 200
         except requests.RequestException:
             return False
@@ -186,10 +160,13 @@ class ComfyUIClient:
         except requests.RequestException:
             return False
 
-    def wait_for_completion(self, prompt_id: str,
-                      timeout: int = 300,
-                      poll_interval: float = 2.0,
-                      callback: Optional[Callable[[dict[str, Any]], None]] = None) -> dict[str, Any]:
+    def wait_for_completion(
+        self,
+        prompt_id: str,
+        timeout: int = 300,
+        poll_interval: float = 2.0,
+        callback: Optional[Callable[[dict[str, Any]], None]] = None,
+    ) -> dict[str, Any]:
         """
         Wait for a prompt to complete generation
 
@@ -235,17 +212,19 @@ class ComfyUIClient:
                     for _node_id, node_output in outputs.items():
                         if "images" in node_output:
                             for img_info in node_output["images"]:
-                                images.append({
-                                    "filename": img_info["filename"],
-                                    "subfolder": img_info.get("subfolder", ""),
-                                    "type": img_info.get("type", "output")
-                                })
+                                images.append(
+                                    {
+                                        "filename": img_info["filename"],
+                                        "subfolder": img_info.get("subfolder", ""),
+                                        "type": img_info.get("type", "output"),
+                                    }
+                                )
 
                     return {
                         "success": True,
                         "completed": True,
                         "images": images,
-                        "execution_time": time.time() - start_time
+                        "execution_time": time.time() - start_time,
                     }
                 elif history:
                     # Completed but no outputs (likely an error)
@@ -253,7 +232,7 @@ class ComfyUIClient:
                         "success": False,
                         "completed": True,
                         "error": "Generation completed but produced no outputs",
-                        "execution_time": time.time() - start_time
+                        "execution_time": time.time() - start_time,
                     }
                 else:
                     # Not found in history yet, continue waiting

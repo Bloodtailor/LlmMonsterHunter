@@ -23,16 +23,16 @@ class ChatThread(BaseModel):
     monster_id = Column(Integer, ForeignKey('monsters.id'), nullable=False)
     last_extracted_message_id = Column(Integer, nullable=False, default=0)
 
-    __table_args__ = (
-        UniqueConstraint('monster_id', name='unique_chat_thread_monster'),
-    )
+    __table_args__ = (UniqueConstraint('monster_id', name='unique_chat_thread_monster'),)
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'monster_id': self.monster_id,
-            'last_extracted_message_id': self.last_extracted_message_id
-        })
+        result.update(
+            {
+                'monster_id': self.monster_id,
+                'last_extracted_message_id': self.last_extracted_message_id,
+            }
+        )
         return result
 
     @classmethod
@@ -74,5 +74,7 @@ class ChatThread(BaseModel):
             return False
 
     def __repr__(self):
-        return (f"<ChatThread(id={self.id}, monster_id={self.monster_id}, "
-                f"extracted_through={self.last_extracted_message_id})>")
+        return (
+            f"<ChatThread(id={self.id}, monster_id={self.monster_id}, "
+            f"extracted_through={self.last_extracted_message_id})>"
+        )

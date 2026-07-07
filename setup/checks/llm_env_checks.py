@@ -46,6 +46,7 @@ def check_env_model_path():
     else:
         return True, f"Model configured: {model_file.name}"
 
+
 def get_model_info(model_path):
     """
     Get basic information about a model file.
@@ -62,14 +63,12 @@ def get_model_info(model_path):
             return None
 
         size = model_file.stat().st_size
-        size_gb = size / (1024 ** 3)
+        size_gb = size / (1024**3)
 
-        return {
-            'name': model_file.name,
-            'size_gb': size_gb
-        }
+        return {'name': model_file.name, 'size_gb': size_gb}
     except Exception:
         return None
+
 
 def validate_model_file(model_path):
     """
@@ -105,10 +104,12 @@ def validate_model_file(model_path):
 
     return True, "Valid model file"
 
+
 def check_model_directory_requirements():
     """Check that a valid model path is configured in .env."""
     env_ok, _ = check_env_model_path()
     return env_ok
+
 
 def get_llm_env_diagnostic(include_overall=False):
     """
@@ -129,6 +130,11 @@ def get_llm_env_diagnostic(include_overall=False):
 
     if include_overall:
         overall_ok = check_model_directory_requirements()
-        result['overall'] = (overall_ok, "All LLM environment requirements met" if overall_ok else "Some LLM environment requirements missing")
+        result['overall'] = (
+            overall_ok,
+            "All LLM environment requirements met"
+            if overall_ok
+            else "Some LLM environment requirements missing",
+        )
 
     return result

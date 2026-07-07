@@ -53,6 +53,7 @@ class SSEConnection:
         """Mark connection as closed"""
         self.active = False
 
+
 class SSEService:
     """
     Manages all SSE connections and event forwarding
@@ -87,11 +88,13 @@ class SSEService:
         # Removed verbose connection creation message
 
         # Send initial connection event
-        connection.send_event({
-            'type': 'sse.connected',
-            'data': {'message': 'Connected to Monster Hunter Game'},
-            'timestamp': time.time()
-        })
+        connection.send_event(
+            {
+                'type': 'sse.connected',
+                'data': {'message': 'Connected to Monster Hunter Game'},
+                'timestamp': time.time(),
+            }
+        )
 
         return connection
 
@@ -134,8 +137,7 @@ class SSEService:
         """Remove connections that are no longer active"""
         with self._lock:
             dead_connections = [
-                conn_id for conn_id, conn in self._connections.items()
-                if not conn.active
+                conn_id for conn_id, conn in self._connections.items() if not conn.active
             ]
 
             for conn_id in dead_connections:
@@ -171,12 +173,14 @@ class SSEService:
         return {
             'event': event['type'],
             'data': event['data'],
-            'timestamp': event.get('timestamp', time.time())
+            'timestamp': event.get('timestamp', time.time()),
         }
+
 
 # Global SSE service instance
 _sse_service = None
 _service_lock = threading.Lock()
+
 
 def get_sse_service() -> SSEService:
     """Get global SSE service instance"""

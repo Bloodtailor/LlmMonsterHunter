@@ -16,6 +16,7 @@ from backend.game.monster import cmdts_data
 
 FAILURES = []
 
+
 def check(label, condition, detail=''):
     if condition:
         print(f'  OK   {label}')
@@ -23,14 +24,14 @@ def check(label, condition, detail=''):
         FAILURES.append(label)
         print(f'  FAIL {label} {detail}')
 
+
 def template_placeholders(template_text):
     """All {placeholder} names in a format string"""
-    return {
-        field for _, field, _, _ in string.Formatter().parse(template_text)
-        if field
-    }
+    return {field for _, field, _, _ in string.Formatter().parse(template_text) if field}
+
 
 # ===== 1. every template is a valid format string =====
+
 
 def test_all_templates_parse():
     print('\n1. All templates parse as format strings')
@@ -43,79 +44,169 @@ def test_all_templates_parse():
         except ValueError as e:
             check(f'{name} ({template.category})', False, f'- {e}')
 
+
 # ===== 2. staged monster templates match generator variables =====
 
 # The exact variable sets generator.py passes to build_and_generate
 GENERATOR_VARIABLES = {
     'monster_blueprint_identity': {
-        'location_context', 'rarity', 'taxonomy_options', 'role_options',
-        'size_options', 'lifecycle_options', 'creation_options'
+        'location_context',
+        'rarity',
+        'taxonomy_options',
+        'role_options',
+        'size_options',
+        'lifecycle_options',
+        'creation_options',
     },
     'monster_blueprint_ecology': {
-        'location_context', 'identity_facts', 'habitat_options', 'biome_options',
-        'social_options', 'sustenance_options', 'feeding_options', 'sapience_options',
-        'communication_options', 'element_options', 'activity_options',
-        'class_domain_options_line', 'class_domain_options'
+        'location_context',
+        'identity_facts',
+        'habitat_options',
+        'biome_options',
+        'social_options',
+        'sustenance_options',
+        'feeding_options',
+        'sapience_options',
+        'communication_options',
+        'element_options',
+        'activity_options',
+        'class_domain_options_line',
+        'class_domain_options',
     },
     'monster_inner_life': {'monster_facts'},
     'monster_social_self': {'monster_facts', 'inner_life_facts'},
     'monster_creative_text': {'location_context', 'monster_facts', 'persona_facts'},
     'generate_ability': {
-        'monster_name', 'monster_species', 'monster_description', 'monster_backstory',
-        'monster_health', 'monster_attack', 'monster_defense', 'monster_speed',
-        'monster_personality', 'monster_role', 'monster_class', 'monster_elements',
-        'monster_wish', 'existing_abilities_text', 'ability_count', 'growth_context'
+        'monster_name',
+        'monster_species',
+        'monster_description',
+        'monster_backstory',
+        'monster_health',
+        'monster_attack',
+        'monster_defense',
+        'monster_speed',
+        'monster_personality',
+        'monster_role',
+        'monster_class',
+        'monster_elements',
+        'monster_wish',
+        'existing_abilities_text',
+        'ability_count',
+        'growth_context',
     },
     # Inventory generation (backend/game/inventory/generator.py)
     'treasure_item': {'location_name', 'location_description'},
     'reward_item': {'location_name', 'location_description', 'monster_details', 'dialogue_history'},
     'victory_cocatok': {'location_name', 'defeated_names', 'battle_summary', 'color_options'},
-    'treasure_discovery': {'location_name', 'location_description', 'party_summary',
-                           'dungeon_log', 'item_name', 'item_description'},
+    'treasure_discovery': {
+        'location_name',
+        'location_description',
+        'party_summary',
+        'dungeon_log',
+        'item_name',
+        'item_description',
+    },
     # Item referee (dungeon/registered_workflows.py use_dungeon_item)
-    'dungeon_item_use': {'location_name', 'location_description', 'party_details',
-                         'item_name', 'item_description', 'uses_remaining',
-                         'target_description', 'secret_knowledge', 'dungeon_log'},
+    'dungeon_item_use': {
+        'location_name',
+        'location_description',
+        'party_details',
+        'item_name',
+        'item_description',
+        'uses_remaining',
+        'target_description',
+        'secret_knowledge',
+        'dungeon_log',
+    },
     # Battle referees (battle/generator.py) - carry the resource cost fields
-    'action_resolution': {'location_name', 'actor_details', 'action_description',
-                          'target_details', 'battle_situation', 'recent_log'},
-    'freeform_action_resolution': {'location_name', 'actor_details', 'player_action_text',
-                                   'player_target', 'player_info', 'battle_situation',
-                                   'recent_log'},
+    'action_resolution': {
+        'location_name',
+        'actor_details',
+        'action_description',
+        'target_details',
+        'battle_situation',
+        'recent_log',
+    },
+    'freeform_action_resolution': {
+        'location_name',
+        'actor_details',
+        'player_action_text',
+        'player_target',
+        'player_info',
+        'battle_situation',
+        'recent_log',
+    },
     'enemy_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
     # Dungeon ability referee (dungeon/generator.py resolve_dungeon_ability)
-    'dungeon_ability_use': {'location_name', 'location_description', 'actor_details',
-                            'ability_name', 'ability_description', 'target_description',
-                            'secret_knowledge', 'dungeon_log'},
+    'dungeon_ability_use': {
+        'location_name',
+        'location_description',
+        'actor_details',
+        'ability_name',
+        'ability_description',
+        'target_description',
+        'secret_knowledge',
+        'dungeon_log',
+    },
     # Camp rest referee (dungeon/generator.py generate_camp_restore)
     'camp_restore': {'location_name', 'location_description', 'party_details'},
     # Returning monsters (game/memory/returning.py + dungeon/generator.py)
-    'returning_transform': {'monster_details', 'monster_memories', 'return_count',
-                            'party_summary'},
-    'reunion_scene': {'party_summary', 'location_name', 'location_description',
-                      'monster_name', 'monster_species', 'memory_summary', 'disposition'},
+    'returning_transform': {'monster_details', 'monster_memories', 'return_count', 'party_summary'},
+    'reunion_scene': {
+        'party_summary',
+        'location_name',
+        'location_description',
+        'monster_name',
+        'monster_species',
+        'memory_summary',
+        'disposition',
+    },
     # Growth (game/memory/growth.py)
     'camp_spotlight': {'party_names', 'journal_highlights'},
     'growth_reflection': {'monster_details', 'run_journal', 'monster_memories', 'mode_note'},
     'defeat_reflection': {'party_details', 'battle_log', 'journal_highlights'},
     # Evolution (game/monster/evolution.py)
-    'evolution_form': {'monster_details', 'monster_memories', 'locked_lineage',
-                       'stage_note', 'player_guidance'},
-    'evolution_narration': {'monster_details', 'monster_memories', 'transformation_facts',
-                            'player_guidance'},
+    'evolution_form': {
+        'monster_details',
+        'monster_memories',
+        'locked_lineage',
+        'stage_note',
+        'player_guidance',
+    },
+    'evolution_narration': {
+        'monster_details',
+        'monster_memories',
+        'transformation_facts',
+        'player_guidance',
+    },
     'evolution_persona': {'monster_details', 'transformation_facts', 'player_guidance'},
-    'evolution_prose': {'monster_details', 'transformation_facts', 'persona_shift_facts',
-                        'old_visual_description', 'player_guidance'},
-    'evolution_abilities': {'monster_details', 'transformation_facts',
-                            'existing_abilities_text', 'player_guidance'},
+    'evolution_prose': {
+        'monster_details',
+        'transformation_facts',
+        'persona_shift_facts',
+        'old_visual_description',
+        'player_guidance',
+    },
+    'evolution_abilities': {
+        'monster_details',
+        'transformation_facts',
+        'existing_abilities_text',
+        'player_guidance',
+    },
     # Rolling summaries (game/utils/rolling_summary.py)
     'condense_history': {'source_label', 'prior_summary', 'batch_lines'},
     # Home-base chat (game/chat/generator.py)
-    'home_chat_reply': {'monster_details', 'monster_memories', 'last_run_status',
-                        'last_run_log', 'chat_history', 'player_message'},
-    'chat_memory_extraction': {'monster_details', 'existing_memories',
-                               'conversation_segment'}
+    'home_chat_reply': {
+        'monster_details',
+        'monster_memories',
+        'last_run_status',
+        'last_run_log',
+        'chat_history',
+        'player_message',
+    },
+    'chat_memory_extraction': {'monster_details', 'existing_memories', 'conversation_segment'},
 }
+
 
 def test_staged_templates_render():
     print('\n2. Staged templates use only variables the generator provides')
@@ -134,52 +225,97 @@ def test_staged_templates_render():
         rendered = engine.build_prompt(name, variables)
         check(f'{name} renders', bool(rendered))
 
+
 # ===== 3. battle roster fits the prompt budget at every bin =====
+
 
 def sample_monster(i):
     """A fully fleshed-out monster (persona at realistic prose lengths)"""
     return SimpleNamespace(
-        name=f'Monster{i}', species='Cave Petrascarab',
+        name=f'Monster{i}',
+        species='Cave Petrascarab',
         description='A sturdy beetle with a rock-like exoskeleton, known for its defensive prowess in the deep caves.',
         backstory='Born in the deep caves of the mountain realm, it wandered the dark for years after an earthquake '
-                  'took its colony, seeking new allies and a new place to defend as its own.',
+        'took its colony, seeking new allies and a new place to defend as its own.',
         personality_traits=['stalwart', 'patient', 'protective', 'quiet'],
-        max_health=144, attack=22, defense=26, speed=12,
-        rarity='rare', party_role='tank',
-        taxonomy={'domain': 'Materium', 'kingdom': 'Insectoid', 'family': 'Stoneshell Burrowers',
-                  'genus': 'Petrascarab', 'species': 'Cave Petrascarab',
-                  'type_label': 'Insectoid', 'race_label': 'Beetle'},
-        class_taxonomy=[{'domain': 'Martial', 'discipline': 'Bulwark Arts',
-                         'specialization': 'Stoneshell Bastion'}],
-        ecology={'size_class': 'small', 'lifecycle_stage': 'adult', 'creation_mechanism': 'hatched',
-                 'habitat': {'primary': 'subterrain', 'secondary': ['land'], 'biomes': ['cavern', 'mountain']},
-                 'social_structure': {'primary': 'colony', 'notes': 'seeks a new colony to protect'},
-                 'diet': {'feeds': True, 'sustenance': ['matter'], 'feeding_style': 'lithovore',
-                          'notes': 'grazes mineral-rich cave lichen'},
-                 'sapience': 'sapient', 'communication': ['speech'],
-                 'elemental_affinities': ['earth'], 'activity_cycle': 'nocturnal'},
-        persona={'core_wish': 'To find a new colony and never again fail to protect one',
-                 'motivations': 'The ache of a lost home drives everything it does',
-                 'goals': ['Become a legendary defender', 'Find ground worth guarding'],
-                 'beliefs': 'The strong exist to shelter the weak, always',
-                 'moral_character': 'Loyal and honorable to a fault',
-                 'fears': ['Being the last of its line', 'Cave-ins it cannot hold back'],
-                 'secret': 'It froze in fear during the earthquake and blames itself.',
-                 'likes': ['interesting stones', 'quiet places', 'loyalty'],
-                 'dislikes': ['loud noises', 'sudden movements'],
-                 'hobbies': ['collecting stones', 'burrowing'],
-                 'profession': 'Guardian',
-                 'attitude_toward_strangers': 'Cautiously optimistic; watches before trusting',
-                 'responds_well_to': ['patience', 'respect', 'calm'],
-                 'responds_poorly_to': ['loud noises', 'aggression'],
-                 'recruitment_lever': 'Proof the party protects its own like a colony would',
-                 'social_bonds': {'drawn_to': 'patient, steadfast types',
-                                  'clashes_with': 'loud tricksters'},
-                 'speech_style': 'Terse and formal; geological metaphors; refers to itself by name',
-                 'battle_line': 'Intruder detected. Prepare to be crushed under the weight of the mountain!'},
-        abilities=[SimpleNamespace(name='Stone Wall', description='Hardens its shell to absorb blows', ability_type='defense'),
-                   SimpleNamespace(name='Mandible Crush', description='A slow, unstoppable bite', ability_type='attack')]
+        max_health=144,
+        attack=22,
+        defense=26,
+        speed=12,
+        rarity='rare',
+        party_role='tank',
+        taxonomy={
+            'domain': 'Materium',
+            'kingdom': 'Insectoid',
+            'family': 'Stoneshell Burrowers',
+            'genus': 'Petrascarab',
+            'species': 'Cave Petrascarab',
+            'type_label': 'Insectoid',
+            'race_label': 'Beetle',
+        },
+        class_taxonomy=[
+            {
+                'domain': 'Martial',
+                'discipline': 'Bulwark Arts',
+                'specialization': 'Stoneshell Bastion',
+            }
+        ],
+        ecology={
+            'size_class': 'small',
+            'lifecycle_stage': 'adult',
+            'creation_mechanism': 'hatched',
+            'habitat': {
+                'primary': 'subterrain',
+                'secondary': ['land'],
+                'biomes': ['cavern', 'mountain'],
+            },
+            'social_structure': {'primary': 'colony', 'notes': 'seeks a new colony to protect'},
+            'diet': {
+                'feeds': True,
+                'sustenance': ['matter'],
+                'feeding_style': 'lithovore',
+                'notes': 'grazes mineral-rich cave lichen',
+            },
+            'sapience': 'sapient',
+            'communication': ['speech'],
+            'elemental_affinities': ['earth'],
+            'activity_cycle': 'nocturnal',
+        },
+        persona={
+            'core_wish': 'To find a new colony and never again fail to protect one',
+            'motivations': 'The ache of a lost home drives everything it does',
+            'goals': ['Become a legendary defender', 'Find ground worth guarding'],
+            'beliefs': 'The strong exist to shelter the weak, always',
+            'moral_character': 'Loyal and honorable to a fault',
+            'fears': ['Being the last of its line', 'Cave-ins it cannot hold back'],
+            'secret': 'It froze in fear during the earthquake and blames itself.',
+            'likes': ['interesting stones', 'quiet places', 'loyalty'],
+            'dislikes': ['loud noises', 'sudden movements'],
+            'hobbies': ['collecting stones', 'burrowing'],
+            'profession': 'Guardian',
+            'attitude_toward_strangers': 'Cautiously optimistic; watches before trusting',
+            'responds_well_to': ['patience', 'respect', 'calm'],
+            'responds_poorly_to': ['loud noises', 'aggression'],
+            'recruitment_lever': 'Proof the party protects its own like a colony would',
+            'social_bonds': {
+                'drawn_to': 'patient, steadfast types',
+                'clashes_with': 'loud tricksters',
+            },
+            'speech_style': 'Terse and formal; geological metaphors; refers to itself by name',
+            'battle_line': 'Intruder detected. Prepare to be crushed under the weight of the mountain!',
+        },
+        abilities=[
+            SimpleNamespace(
+                name='Stone Wall',
+                description='Hardens its shell to absorb blows',
+                ability_type='defense',
+            ),
+            SimpleNamespace(
+                name='Mandible Crush', description='A slow, unstoppable bite', ability_type='attack'
+            ),
+        ],
     )
+
 
 def test_roster_fits_budget():
     print('\n3. Full battle roster (4 party + 3 enemies) fits the prompt budget per bin')
@@ -199,7 +335,9 @@ def test_roster_fits_budget():
             os.environ['LLM_CONTEXT_SIZE'] = str(context_size)
             tier = resolve_detail_tier()
             blocks = "\n".join(
-                build_monster_block(m, condition='fresh', side_label='HOSTILE ENEMY' if i >= 4 else "PLAYER'S PARTY")
+                build_monster_block(
+                    m, condition='fresh', side_label='HOSTILE ENEMY' if i >= 4 else "PLAYER'S PARTY"
+                )
                 for i, m in enumerate(roster)
             )
             budget = get_prompt_char_budget()
@@ -207,7 +345,7 @@ def test_roster_fits_budget():
             check(
                 f'{context_size} tokens -> {tier}: roster {len(blocks)} chars '
                 f'= {used_share:.0%} of {budget} budget',
-                used_share <= (1 - HEADROOM_SHARE)
+                used_share <= (1 - HEADROOM_SHARE),
             )
             secret_leaked = 'froze in fear' in blocks
             check(f'{context_size} tokens -> secret stays out of battle blocks', not secret_leaked)
@@ -216,6 +354,7 @@ def test_roster_fits_budget():
             os.environ.pop('LLM_CONTEXT_SIZE', None)
         else:
             os.environ['LLM_CONTEXT_SIZE'] = original
+
 
 def main():
     print('MONSTER TEMPLATE + CONTEXT BUDGET VERIFICATION')
@@ -230,6 +369,7 @@ def main():
         return len(FAILURES)
     print('ALL CHECKS PASS')
     return 0
+
 
 if __name__ == '__main__':
     raise SystemExit(main())

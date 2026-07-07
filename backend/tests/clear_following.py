@@ -6,6 +6,7 @@ import requests
 
 BASE_URL = "http://localhost:5000/api"
 
+
 def api_call(method, endpoint, data=None):
     """Simple API call helper"""
     try:
@@ -22,6 +23,7 @@ def api_call(method, endpoint, data=None):
             return {"success": False, "error": f"HTTP {response.status_code}"}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
 
 def test_clear_following_list():
     """Clear all monsters from following list"""
@@ -79,5 +81,6 @@ def main():
 
     print('\n2️⃣ TEST: Clear Following List')
     test_clear_following_list()
+
 
 main()

@@ -13,6 +13,7 @@ from .base import BaseModel
 # The ways a run can end (result stays NULL while the run is active)
 RUN_RESULTS = ('victory_exit', 'defeat', 'abandoned')
 
+
 class DungeonRun(BaseModel):
     """
     Dungeon run model - one record per journey into the dungeon
@@ -32,12 +33,14 @@ class DungeonRun(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'run_number': self.run_number,
-            'ended_at': self.ended_at.isoformat() if self.ended_at else None,
-            'result': self.result,
-            'summary': self.summary
-        })
+        result.update(
+            {
+                'run_number': self.run_number,
+                'ended_at': self.ended_at.isoformat() if self.ended_at else None,
+                'result': self.result,
+                'summary': self.summary,
+            }
+        )
         return result
 
     @classmethod

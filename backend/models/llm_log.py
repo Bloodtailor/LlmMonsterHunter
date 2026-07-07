@@ -36,38 +36,40 @@ class LLMLog(BaseModel):
     mirostat_tau = Column(Float, nullable=False)
     mirostat_eta = Column(Float, nullable=False)
     seed = Column(Integer, nullable=False)
-    stop_sequences = Column(JSON, nullable=False)      # List of stop sequences
+    stop_sequences = Column(JSON, nullable=False)  # List of stop sequences
     echo = Column(Boolean, nullable=False)
 
     # === Model Information ===
-    model_name = Column(String(200), nullable=True)    # Model file name
+    model_name = Column(String(200), nullable=True)  # Model file name
 
     # === LLM Response Data ===
-    response_text = Column(Text, nullable=True)        # Raw model response (latest attempt)
-    response_tokens = Column(Integer, nullable=True)   # Tokens generated (latest attempt)
-    tokens_per_second = Column(Float, nullable=True)   # Generation speed
+    response_text = Column(Text, nullable=True)  # Raw model response (latest attempt)
+    response_tokens = Column(Integer, nullable=True)  # Tokens generated (latest attempt)
+    tokens_per_second = Column(Float, nullable=True)  # Generation speed
 
     # === Parsing Configuration and Results ===
-    parser_config = Column(JSON, nullable=True)        # Parser configuration used
-    parse_success = Column(Boolean, default=False)     # Did parsing succeed?
-    parsed_data = Column(JSON, nullable=True)          # Successfully parsed JSON
-    parse_error = Column(Text, nullable=True)          # Parsing error message
+    parser_config = Column(JSON, nullable=True)  # Parser configuration used
+    parse_success = Column(Boolean, default=False)  # Did parsing succeed?
+    parsed_data = Column(JSON, nullable=True)  # Successfully parsed JSON
+    parse_error = Column(Text, nullable=True)  # Parsing error message
 
     def to_dict(self):
         """Convert to dictionary for API responses"""
         result = super().to_dict()
 
         # Add computed fields
-        result.update({
-            'generation_id': self.generation_id,
-            'model_name': self.model_name,
-            'response_tokens': self.response_tokens,
-            'tokens_per_second': self.tokens_per_second,
-            'parse_success': self.parse_success,
-            'inference_params': self.get_inference_params(),
-            'has_response': bool(self.response_text),
-            'has_parsed_data': bool(self.parsed_data)
-        })
+        result.update(
+            {
+                'generation_id': self.generation_id,
+                'model_name': self.model_name,
+                'response_tokens': self.response_tokens,
+                'tokens_per_second': self.tokens_per_second,
+                'parse_success': self.parse_success,
+                'inference_params': self.get_inference_params(),
+                'has_response': bool(self.response_text),
+                'has_parsed_data': bool(self.parsed_data),
+            }
+        )
 
         return result
 
@@ -91,10 +93,12 @@ class LLMLog(BaseModel):
             'mirostat_eta': self.mirostat_eta,
             'seed': self.seed,
             'stop': self.stop_sequences,
-            'echo': self.echo
+            'echo': self.echo,
         }
 
-    def mark_response_completed(self, response_text: str, response_tokens: int = None, tokens_per_second: float = None):
+    def mark_response_completed(
+        self, response_text: str, response_tokens: int = None, tokens_per_second: float = None
+    ):
         """Mark LLM response as completed"""
         self.response_text = response_text
         self.response_tokens = response_tokens
@@ -119,7 +123,9 @@ class LLMLog(BaseModel):
         self.parsed_data = None
 
     @classmethod
-    def create_from_params(cls, inference_params: dict[str, Any], parser_config: Optional[dict[str, Any]] = None):
+    def create_from_params(
+        cls, inference_params: dict[str, Any], parser_config: Optional[dict[str, Any]] = None
+    ):
         """
         Create LLM log from inference parameters
 
@@ -147,14 +153,12 @@ class LLMLog(BaseModel):
             seed=inference_params['seed'],
             stop_sequences=inference_params['stop'],
             echo=inference_params['echo'],
-
             # Store parser configuration
             parser_config=parser_config,
-
             # Initialize parsing state
             parse_success=False,
             parsed_data=None,
-            parse_error=None
+            parse_error=None,
         )
 
     @classmethod

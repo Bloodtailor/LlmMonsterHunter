@@ -25,6 +25,7 @@ def create_virtual_environment():
     except subprocess.CalledProcessError as e:
         return False, f"Failed to create virtual environment: {e}"
 
+
 def install_basic_dependencies():
     """Install basic Flask dependencies (without llama-cpp-python)."""
     pip_path = Path("venv/Scripts/pip.exe")
@@ -44,7 +45,7 @@ def install_basic_dependencies():
         "cryptography>=41.0.0",
         "PyMySQL==1.1.0",
         "python-dotenv==1.0.0",
-        "requests==2.31.0"
+        "requests==2.31.0",
     ]
 
     for dep in basic_deps:
@@ -52,8 +53,9 @@ def install_basic_dependencies():
             pkg_name = dep.split("==")[0]
             # Check if already installed
             try:
-                subprocess.run([str(pip_path), "show", pkg_name],
-                             capture_output=True, text=True, check=True)
+                subprocess.run(
+                    [str(pip_path), "show", pkg_name], capture_output=True, text=True, check=True
+                )
                 continue  # Already installed
             except subprocess.CalledProcessError:
                 pass
@@ -63,6 +65,7 @@ def install_basic_dependencies():
             return False, f"Failed to install {dep}: {e}"
 
     return True, "Basic dependencies installed"
+
 
 def create_env_file():
     """Create .env file from template."""

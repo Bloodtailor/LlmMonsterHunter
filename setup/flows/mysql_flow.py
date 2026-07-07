@@ -36,7 +36,7 @@ def run_mysql_interactive_setup(current=None, total=None, dry_run=False):
         component_name="MySQL Server",
         current=current,
         total=total,
-        description="Required for database operations and game data storage"
+        description="Required for database operations and game data storage",
     )
 
     print("Checking current status of MySQL setup...")
@@ -50,14 +50,14 @@ def run_mysql_interactive_setup(current=None, total=None, dry_run=False):
         print_dry_run_header()
 
         from setup.utils.dry_run_utils import set_dry_run
+
         server_ok, server_message = set_dry_run('check_mysql_server')
         cli_ok, cli_message = set_dry_run('check_mysql_cli')
-
 
     # Package results for display
     check_results = {
         "MySQL Server": (server_ok, server_message),
-        "MySQL CLI": (cli_ok, cli_message)
+        "MySQL CLI": (cli_ok, cli_message),
     }
 
     # Display results beautifully
@@ -93,13 +93,14 @@ def run_mysql_interactive_setup(current=None, total=None, dry_run=False):
     # Package results for display
     final_check_results = {
         "MySQL Server": (server_ok, server_message),
-        "MySQL CLI": (cli_ok, cli_message)
+        "MySQL CLI": (cli_ok, cli_message),
     }
 
     # Display results beautifully
     overall_ok = display_check_results("MYSQL", final_check_results)
 
     return bool(overall_ok)
+
 
 def handle_server_issue():
     """Handle MySQL server not responding"""
@@ -126,7 +127,7 @@ def handle_server_issue():
     diagnostic_results = {
         "MySQL Installations": (installations_ok, installations_message),
         "MySQL Service": (service_exists_ok, service_exists_message),
-        "Service Status": (service_ok, service_message)
+        "Service Status": (service_ok, service_message),
     }
 
     # Show diagnostic results
@@ -148,6 +149,7 @@ def handle_server_issue():
         print()
         return handle_mysql_repair()
 
+
 def handle_mysql_not_installed():
     """Handle case where MySQL is not installed"""
 
@@ -158,6 +160,7 @@ def handle_mysql_not_installed():
 
     # Check if installation worked
     return verify_mysql_setup()
+
 
 def handle_mysql_repair():
     """Handle case where MySQL is installed but broken"""
@@ -195,6 +198,7 @@ def handle_mysql_repair():
         # Some other kind of problem
         return handle_manual_mysql_repair()
 
+
 def handle_service_start_failed():
     """Handle case where automatic service start failed"""
 
@@ -205,6 +209,7 @@ def handle_service_start_failed():
 
     return verify_mysql_setup()
 
+
 def handle_manual_mysql_repair():
     """Handle case where manual MySQL repair is needed"""
 
@@ -214,6 +219,7 @@ def handle_manual_mysql_repair():
     show_message_and_wait('mysql_troubleshooting', "Press Enter after fixing MySQL...")
 
     return verify_mysql_setup()
+
 
 def handle_cli_path_issue():
     """Handle case where server works but CLI is missing from PATH"""
@@ -241,6 +247,7 @@ def handle_cli_path_issue():
 
         return verify_mysql_setup()
 
+
 def verify_mysql_setup():
     """Final verification that MySQL setup is working"""
 
@@ -253,7 +260,7 @@ def verify_mysql_setup():
     # Package results for display
     check_results = {
         "MySQL Server": (server_ok, server_message),
-        "MySQL CLI": (cli_ok, cli_message)
+        "MySQL CLI": (cli_ok, cli_message),
     }
 
     # Show final results
@@ -269,6 +276,8 @@ def verify_mysql_setup():
         print()
         return False
 
+
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
+
     run_as_standalone_component(COMPONENT_NAME, run_mysql_interactive_setup)

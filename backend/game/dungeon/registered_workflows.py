@@ -11,6 +11,7 @@ from backend.core.workflow_registry import register_workflow
 # against monsters that ALREADY exist (unlike the monster_battle event,
 # which generates its enemies on arrival)
 
+
 def _start_encounter_battle(monsters: list[Any], opening_note: str = None) -> dict[str, Any]:
     """Start a battle against existing monsters; returns the battle snapshot"""
     from backend.game.battle import manager as battle_manager
@@ -31,7 +32,7 @@ def _start_encounter_battle(monsters: list[Any], opening_note: str = None) -> di
             'name': ally.name if ally else f'Monster {monster_id}',
             'condition': condition,
             'stamina': pools.get('stamina', 'brimming'),
-            'mana': pools.get('mana', 'brimming')
+            'mana': pools.get('mana', 'brimming'),
         }
 
     battle_state = battle_manager.start_battle(ally_conditions, enemy_entries)
@@ -43,6 +44,7 @@ def _start_encounter_battle(monsters: list[Any], opening_note: str = None) -> di
         battle_manager.save_battle_state(battle_state)
 
     return battle_manager.get_battle_snapshot(battle_state)
+
 
 @register_workflow()
 def enter_dungeon(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -84,13 +86,14 @@ def enter_dungeon(context: dict, on_update: Callable[[str, dict[str, Any]], None
         # Open this run's row in the run history (closes any dangling
         # active run as 'abandoned' first)
         from backend.models.dungeon_run import DungeonRun
+
         run = DungeonRun.begin()
 
         # Step 1
         step = "queue_entry_text"
         on_update(step, progress_data)
         entry_text_generation_id = generate_entry_text(workflow_name)
-        progress_data.update({ "entry_text_generation_id": entry_text_generation_id })
+        progress_data.update({"entry_text_generation_id": entry_text_generation_id})
 
         # Step 2
         step = "emit_generation_id"
@@ -100,7 +103,7 @@ def enter_dungeon(context: dict, on_update: Callable[[str, dict[str, Any]], None
         step = "generate_starting_location"
         on_update(step, progress_data)
         location = generate_random_location(workflow_name)
-        progress_data.update({ "current_location": location })
+        progress_data.update({"current_location": location})
 
         # Step 4 - generate paths (hidden events assigned inside, never emitted)
         step = "generate_paths"
@@ -112,14 +115,13 @@ def enter_dungeon(context: dict, on_update: Callable[[str, dict[str, Any]], None
         on_update(step, progress_data)
         manager.start_dungeon(location, paths, run_id=run.id if run else None)
 
-        party_conditions = {
-            str(monster_id): 'fresh' for monster_id in get_party_monster_ids()
-        }
+        party_conditions = {str(monster_id): 'fresh' for monster_id in get_party_monster_ids()}
         manager.set_party_conditions(party_conditions)
 
         # Stamina and mana come back full ONLY here - entering the
         # dungeon is the one guaranteed reset of the party's reserves
         from backend.game.battle.constants import full_resources
+
         party_resources = {
             str(monster_id): full_resources() for monster_id in get_party_monster_ids()
         }
@@ -131,19 +133,18 @@ def enter_dungeon(context: dict, on_update: Callable[[str, dict[str, Any]], None
             f"{location.get('name', 'an unknown place')}: {location.get('description', '')}"
         )
 
-        return success_response({
-            "current_location": location,
-            "paths": manager.get_public_paths(),
-            "party_conditions": party_conditions,
-            "party_resources": party_resources
-        })
+        return success_response(
+            {
+                "current_location": location,
+                "paths": manager.get_public_paths(),
+                "party_conditions": party_conditions,
+                "party_resources": party_resources,
+            }
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -215,19 +216,20 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                     monster = Monster.get_monster_by_id(monster_id)
                     if not monster:
                         continue
-                    progress_data.update({ "growing": monster.name })
+                    progress_data.update({"growing": monster.name})
                     on_update(step, progress_data)
                     reflection = growth.run_growth_reflection(monster, 'exit', workflow_name)
                     if reflection:
                         growth_results.append(growth.apply_growth(monster, reflection))
                     write_memory(
-                        monster.id, 'run_complete',
+                        monster.id,
+                        'run_complete',
                         "Walked out of the dungeon alive with the party, carrying "
-                        "everything the run had made of it."
+                        "everything the run had made of it.",
                     )
             except Exception as ceremony_error:
                 print(f"❌ Exit ceremony failed (the exit itself stands): {ceremony_error}")
-            progress_data.update({ "growth": growth_results })
+            progress_data.update({"growth": growth_results})
 
             # Close this run's row in the history while the run state
             # still exists (exit_dungeon wipes it), and preserve the run's
@@ -235,6 +237,7 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
             step = "close_run"
             on_update(step, progress_data)
             from backend.models.dungeon_run import DungeonRun
+
             log_entries = manager.get_dungeon_log_entries()
             manager.snapshot_last_run_log('victory_exit')
             DungeonRun.close('victory_exit', summary=log_entries[-1] if log_entries else None)
@@ -243,18 +246,18 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
             on_update(step, progress_data)
             manager.exit_dungeon()
 
-            return success_response({
-                "exited": True,
-                "exit_text": exit_text,
-                "growth": growth_results
-            })
+            return success_response(
+                {"exited": True, "exit_text": exit_text, "growth": growth_results}
+            )
 
         # === PATH BRANCH ===
         # Step 1 - the destination was pre-generated with the path, so
         # arrival is instant (fall back to generating for old saved paths)
         step = "resolve_arrival_location"
         on_update(step, progress_data)
-        location = path.get('destination') or generate_arrival_location(previous_location, path, workflow_name)
+        location = path.get('destination') or generate_arrival_location(
+            previous_location, path, workflow_name
+        )
         manager.set_current_location(location)
         manager.append_dungeon_log(
             f"The party took the path '{path.get('name', 'unknown')}' and arrived at "
@@ -263,7 +266,7 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
 
         # Step 2 - announce the arrival location to the frontend
         step = "location_generated"
-        progress_data.update({ "current_location": location })
+        progress_data.update({"current_location": location})
         on_update(step, progress_data)
 
         event = path.get('event')
@@ -292,16 +295,17 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                 step = "reveal_returning_monster"
                 on_update(step, progress_data)
                 returning.stage_reveal(remembered)
-                progress_data.update({ "monster_id": remembered.id, "returning": True })
+                progress_data.update({"monster_id": remembered.id, "returning": True})
 
                 # The recognition scene streams while the encounter stages
                 step = "queue_reunion_text"
                 on_update(step, progress_data)
                 from backend.game.dungeon.generator import generate_reunion_scene
+
                 reunion_text_generation_id = generate_reunion_scene(
                     location, remembered, disposition, workflow_name
                 )
-                progress_data.update({ "reunion_text_generation_id": reunion_text_generation_id })
+                progress_data.update({"reunion_text_generation_id": reunion_text_generation_id})
 
                 step = "emit_generation_id"
                 on_update(step, progress_data)
@@ -318,65 +322,78 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                     on_update(step, progress_data)
                     battle_snapshot = _start_encounter_battle(
                         [remembered],
-                        opening_note=(f"{remembered.name} has returned to face the party, "
-                                      f"hardened by its memories: \"{greeting}\"")
+                        opening_note=(
+                            f"{remembered.name} has returned to face the party, "
+                            f"hardened by its memories: \"{greeting}\""
+                        ),
                     )
-                    return success_response({
-                        "event": "monster_battle",
-                        "returning": True,
-                        "current_location": location,
-                        "enemy_ids": [remembered.id],
-                        "battle_intro": greeting,
-                        "battle_snapshot": battle_snapshot,
-                        "party_conditions": manager.get_party_conditions()
-                    })
+                    return success_response(
+                        {
+                            "event": "monster_battle",
+                            "returning": True,
+                            "current_location": location,
+                            "enemy_ids": [remembered.id],
+                            "battle_intro": greeting,
+                            "battle_snapshot": battle_snapshot,
+                            "party_conditions": manager.get_party_conditions(),
+                        }
+                    )
 
                 if disposition == 'friendly':
                     # A warm reunion - it opens the conversation itself
-                    manager.set_active_encounter({
-                        'event': 'monster_dialogue',
-                        'monster_ids': [remembered.id],
-                        'dialogue': []
-                    })
+                    manager.set_active_encounter(
+                        {
+                            'event': 'monster_dialogue',
+                            'monster_ids': [remembered.id],
+                            'dialogue': [],
+                        }
+                    )
                     manager.append_encounter_dialogue(remembered.name, greeting)
-                    return success_response({
-                        "event": "monster_dialogue",
-                        "returning": True,
-                        "current_location": location,
-                        "monster_id": remembered.id,
-                        "greeting": greeting,
-                        "question": "",
-                        "party_conditions": manager.get_party_conditions()
-                    })
+                    return success_response(
+                        {
+                            "event": "monster_dialogue",
+                            "returning": True,
+                            "current_location": location,
+                            "monster_id": remembered.id,
+                            "greeting": greeting,
+                            "question": "",
+                            "party_conditions": manager.get_party_conditions(),
+                        }
+                    )
 
                 # wary - a watchful standoff; talk, sneak, or ambush all work
-                manager.set_active_encounter({
-                    'event': 'location_explore',
-                    'monster_ids': [remembered.id],
-                    'monsters_present': True,
-                    'camped': False
-                })
-                return success_response({
-                    "event": "location_explore",
-                    "returning": True,
-                    "current_location": location,
-                    "monsters_present": True,
-                    "monster_ids": [remembered.id],
-                    "greeting": greeting,
-                    "party_conditions": manager.get_party_conditions()
-                })
+                manager.set_active_encounter(
+                    {
+                        'event': 'location_explore',
+                        'monster_ids': [remembered.id],
+                        'monsters_present': True,
+                        'camped': False,
+                    }
+                )
+                return success_response(
+                    {
+                        "event": "location_explore",
+                        "returning": True,
+                        "current_location": location,
+                        "monsters_present": True,
+                        "monster_ids": [remembered.id],
+                        "greeting": greeting,
+                        "party_conditions": manager.get_party_conditions(),
+                    }
+                )
 
         # === EVENT: LOCATION EXPLORE (the most common arrival) ===
         if event == 'location_explore':
-
             # Python decides whether creatures dwell here
             monsters_present = roll_monsters_present()
 
             # Step 3 - queue streamed look-around text
             step = "queue_look_text"
             on_update(step, progress_data)
-            look_text_generation_id = generate_look_around_text(location, monsters_present, workflow_name)
-            progress_data.update({ "look_text_generation_id": look_text_generation_id })
+            look_text_generation_id = generate_look_around_text(
+                location, monsters_present, workflow_name
+            )
+            progress_data.update({"look_text_generation_id": look_text_generation_id})
 
             # Step 4 - frontend picks the generation id up from this step
             step = "emit_generation_id"
@@ -409,15 +426,18 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                     monsters.append(monster)
 
             # The explore encounter holds what the party found here
-            manager.set_active_encounter({
-                'event': 'location_explore',
-                'monster_ids': [monster.id for monster in monsters],
-                'monsters_present': monsters_present,
-                'camped': False
-            })
+            manager.set_active_encounter(
+                {
+                    'event': 'location_explore',
+                    'monster_ids': [monster.id for monster in monsters],
+                    'monsters_present': monsters_present,
+                    'camped': False,
+                }
+            )
 
             from backend.game.memory.journal import append_party_journal
             from backend.game.memory.manager import mark_seen
+
             mark_seen([monster.id for monster in monsters])
 
             if monsters_present:
@@ -425,18 +445,26 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                 manager.append_dungeon_log(
                     f"Looking around, the party spotted creatures that have not noticed them yet: {monster_names}."
                 )
-                append_party_journal(f"Explored {location.get('name', 'a new area')} and spotted {monster_names}.")
+                append_party_journal(
+                    f"Explored {location.get('name', 'a new area')} and spotted {monster_names}."
+                )
             else:
-                manager.append_dungeon_log("The party looked around and found the area free of other creatures.")
-                append_party_journal(f"Explored {location.get('name', 'a new area')} - quiet and empty.")
+                manager.append_dungeon_log(
+                    "The party looked around and found the area free of other creatures."
+                )
+                append_party_journal(
+                    f"Explored {location.get('name', 'a new area')} - quiet and empty."
+                )
 
-            return success_response({
-                "event": "location_explore",
-                "current_location": location,
-                "monsters_present": monsters_present,
-                "monster_ids": [monster.id for monster in monsters],
-                "party_conditions": manager.get_party_conditions()
-            })
+            return success_response(
+                {
+                    "event": "location_explore",
+                    "current_location": location,
+                    "monsters_present": monsters_present,
+                    "monster_ids": [monster.id for monster in monsters],
+                    "party_conditions": manager.get_party_conditions(),
+                }
+            )
 
         # === EVENT: TREASURE (a hidden item waits to be discovered) ===
         if event == 'treasure':
@@ -449,13 +477,15 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
             step = "generate_treasure_item"
             on_update(step, progress_data)
             item = generate_treasure_item(location)
-            progress_data.update({ "item": item.to_dict() })
+            progress_data.update({"item": item.to_dict()})
 
             # Step 4 - queue streamed discovery narration referencing the item
             step = "queue_treasure_text"
             on_update(step, progress_data)
-            treasure_text_generation_id = generate_treasure_discovery_text(location, item, workflow_name)
-            progress_data.update({ "treasure_text_generation_id": treasure_text_generation_id })
+            treasure_text_generation_id = generate_treasure_discovery_text(
+                location, item, workflow_name
+            )
+            progress_data.update({"treasure_text_generation_id": treasure_text_generation_id})
 
             # Step 5 - frontend picks the generation id up from this step
             step = "emit_generation_id"
@@ -463,37 +493,43 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
 
             # After the discovery the moment plays like a creature-free
             # explore - the party looks up and decides where to go next
-            manager.set_active_encounter({
-                'event': 'location_explore',
-                'monster_ids': [],
-                'monsters_present': False,
-                'camped': False
-            })
+            manager.set_active_encounter(
+                {
+                    'event': 'location_explore',
+                    'monster_ids': [],
+                    'monsters_present': False,
+                    'camped': False,
+                }
+            )
 
             manager.append_dungeon_log(
                 f"At {location.get('name', 'the new location')}, the party discovered "
                 f"a hidden treasure: {item.name} ({item.description})"
             )
             from backend.game.memory.journal import append_party_journal
-            append_party_journal(f"Found treasure at {location.get('name', 'a new area')}: {item.name}.")
 
-            return success_response({
-                "event": "treasure",
-                "current_location": location,
-                "item": item.to_dict(),
-                "monsters_present": False,
-                "monster_ids": [],
-                "party_conditions": manager.get_party_conditions()
-            })
+            append_party_journal(
+                f"Found treasure at {location.get('name', 'a new area')}: {item.name}."
+            )
+
+            return success_response(
+                {
+                    "event": "treasure",
+                    "current_location": location,
+                    "item": item.to_dict(),
+                    "monsters_present": False,
+                    "monster_ids": [],
+                    "party_conditions": manager.get_party_conditions(),
+                }
+            )
 
         # === EVENT: MONSTER DIALOGUE (a monster stops the party with a question) ===
         if event == 'monster_dialogue':
-
             # Step 3 - queue streamed vanity text
             step = "queue_encounter_text"
             on_update(step, progress_data)
             encounter_text_generation_id = generate_encounter_vanity_text(location, workflow_name)
-            progress_data.update({ "encounter_text_generation_id": encounter_text_generation_id })
+            progress_data.update({"encounter_text_generation_id": encounter_text_generation_id})
 
             # Step 4 - frontend picks the generation id up from this step
             step = "emit_generation_id"
@@ -502,17 +538,18 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
             # Step 5 - the monster that dwells here. Sometimes it is one
             # the party has met before (blend-in: no generation needed).
             from backend.game.memory import returning
+
             monster = returning.maybe_blend_in()
             if monster:
                 step = "reveal_returning_monster"
                 on_update(step, progress_data)
                 returning.stage_reveal(monster)
-                progress_data.update({ "monster_id": monster.id })
+                progress_data.update({"monster_id": monster.id})
             else:
                 step = "generate_encounter_monster"
                 on_update(step, progress_data)
                 monster = generate_contextual_monster(location)
-                progress_data.update({ "monster_id": monster.id })
+                progress_data.update({"monster_id": monster.id})
 
                 # Steps 6-7 - abilities (emit monster.ability_added)
                 step = "generate_first_ability"
@@ -536,13 +573,12 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
             question_data = generate_monster_question(location, monster, workflow_name)
 
             from backend.game.memory.manager import mark_seen
+
             mark_seen([monster.id])
 
-            manager.set_active_encounter({
-                'event': 'monster_dialogue',
-                'monster_ids': [monster.id],
-                'dialogue': []
-            })
+            manager.set_active_encounter(
+                {'event': 'monster_dialogue', 'monster_ids': [monster.id], 'dialogue': []}
+            )
             if question_data['greeting']:
                 manager.append_encounter_dialogue(monster.name, question_data['greeting'])
             manager.append_encounter_dialogue(monster.name, question_data['question'])
@@ -552,14 +588,16 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                 f"{monster.name} ({monster.species}), who asked them: \"{question_data['question']}\""
             )
 
-            return success_response({
-                "event": "monster_dialogue",
-                "current_location": location,
-                "monster_id": monster.id,
-                "greeting": question_data['greeting'],
-                "question": question_data['question'],
-                "party_conditions": manager.get_party_conditions()
-            })
+            return success_response(
+                {
+                    "event": "monster_dialogue",
+                    "current_location": location,
+                    "monster_id": monster.id,
+                    "greeting": question_data['greeting'],
+                    "question": question_data['question'],
+                    "party_conditions": manager.get_party_conditions(),
+                }
+            )
 
         # === EVENT: MONSTER BATTLE ===
         if event == 'monster_battle':
@@ -577,7 +615,7 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
             step = "queue_encounter_text"
             on_update(step, progress_data)
             encounter_text_generation_id = generate_battle_arrival_text(location, workflow_name)
-            progress_data.update({ "encounter_text_generation_id": encounter_text_generation_id })
+            progress_data.update({"encounter_text_generation_id": encounter_text_generation_id})
 
             # Step 4 - frontend picks the generation id up from this step
             step = "emit_generation_id"
@@ -587,6 +625,7 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
             # events). An avoided or bested monster from another day may
             # be running with this pack (blend-in).
             from backend.game.memory import returning
+
             enemy_count = _random.randint(*ENEMY_COUNT_RANGE)
             enemies = []
 
@@ -608,6 +647,7 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                 enemies.append(enemy)
 
             from backend.game.memory.manager import mark_seen
+
             mark_seen([enemy.id for enemy in enemies])
 
             # Battle intro - the enemies' in-character challenge
@@ -617,8 +657,12 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                 str(enemy.id): {'name': enemy.name, 'condition': 'fresh', 'defending': False}
                 for enemy in enemies
             }
-            enemy_details = build_side_details({str(e.id): e for e in enemies}, enemy_entries, 'enemies')
-            battle_intro = generate_battle_intro(location, enemy_details, get_party_details(), workflow_name)
+            enemy_details = build_side_details(
+                {str(e.id): e for e in enemies}, enemy_entries, 'enemies'
+            )
+            battle_intro = generate_battle_intro(
+                location, enemy_details, get_party_details(), workflow_name
+            )
 
             # Start the battle - allies carry their run conditions in
             step = "start_battle"
@@ -630,24 +674,23 @@ def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None])
                 f"Hostile monsters attacked the party on arrival: {enemy_names}. A battle began."
             )
 
-            return success_response({
-                "event": "monster_battle",
-                "current_location": location,
-                "enemy_ids": [enemy.id for enemy in enemies],
-                "battle_intro": battle_intro,
-                "battle_snapshot": battle_snapshot,
-                "party_conditions": manager.get_party_conditions()
-            })
+            return success_response(
+                {
+                    "event": "monster_battle",
+                    "current_location": location,
+                    "enemy_ids": [enemy.id for enemy in enemies],
+                    "battle_intro": battle_intro,
+                    "battle_snapshot": battle_snapshot,
+                    "party_conditions": manager.get_party_conditions(),
+                }
+            )
 
         # Unknown event - shouldn't happen, but don't strand the player
         raise Exception(f"Unknown path event: {event}")
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def respond_to_monster(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -696,16 +739,21 @@ def respond_to_monster(context: dict, on_update: Callable[[str, dict[str, Any]],
             encounter = {
                 'event': 'monster_dialogue',
                 'monster_ids': encounter.get('monster_ids', []),
-                'dialogue': []
+                'dialogue': [],
             }
             manager.set_active_encounter(encounter)
-            manager.append_dungeon_log("The party approached the creatures and tried to talk with them.")
+            manager.append_dungeon_log(
+                "The party approached the creatures and tried to talk with them."
+            )
 
         if encounter.get('event') != 'monster_dialogue':
             raise Exception("The monsters here are not in a talking mood")
 
         monsters = [
-            m for m in (Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', []))
+            m
+            for m in (
+                Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', [])
+            )
             if m
         ]
         speaker_name = monsters[0].name if len(monsters) == 1 else 'The monsters'
@@ -723,16 +771,16 @@ def respond_to_monster(context: dict, on_update: Callable[[str, dict[str, Any]],
             location,
             build_speaking_monsters_details(monsters),
             manager.get_encounter_dialogue_text(),
-            workflow_name
+            workflow_name,
         )
         response, outcome = turn['response'], turn['outcome']
 
         manager.append_encounter_dialogue(speaker_name, response)
         manager.append_dungeon_log(
-            f'The party said to {speaker_name}: "{message}" '
-            f'{speaker_name} responded: "{response}"'
+            f'The party said to {speaker_name}: "{message}" {speaker_name} responded: "{response}"'
         )
         from backend.game.memory import journal
+
         journal.append_party_journal(
             f'Talked with {speaker_name}: said "{message[:70]}" - heard "{response[:60]}"'
         )
@@ -743,10 +791,7 @@ def respond_to_monster(context: dict, on_update: Callable[[str, dict[str, Any]],
 
         if outcome == 'continue_dialogue':
             # The conversation goes on - the encounter stays active
-            return success_response({
-                "outcome": outcome,
-                "response": response
-            })
+            return success_response({"outcome": outcome, "response": response})
 
         if outcome == 'begin_battle':
             # Words are over - the monster's last words open the battle
@@ -754,18 +799,21 @@ def respond_to_monster(context: dict, on_update: Callable[[str, dict[str, Any]],
             on_update(step, progress_data)
             manager.clear_active_encounter()
             battle_snapshot = _start_encounter_battle(
-                monsters,
-                opening_note=f'{speaker_name} ended the talking: "{response}"'
+                monsters, opening_note=f'{speaker_name} ended the talking: "{response}"'
             )
-            manager.append_dungeon_log(f"The conversation turned hostile - {speaker_name} attacked the party!")
+            manager.append_dungeon_log(
+                f"The conversation turned hostile - {speaker_name} attacked the party!"
+            )
 
-            return success_response({
-                "outcome": outcome,
-                "response": response,
-                "battle_intro": response,
-                "enemy_ids": [m.id for m in monsters],
-                "battle_snapshot": battle_snapshot
-            })
+            return success_response(
+                {
+                    "outcome": outcome,
+                    "response": response,
+                    "battle_intro": response,
+                    "enemy_ids": [m.id for m in monsters],
+                    "battle_snapshot": battle_snapshot,
+                }
+            )
 
         # Every other outcome resolves the encounter peacefully
         applied = apply_dialogue_outcome(outcome, [m.id for m in monsters], location)
@@ -773,19 +821,18 @@ def respond_to_monster(context: dict, on_update: Callable[[str, dict[str, Any]],
         if applied['log_note']:
             manager.append_dungeon_log(applied['log_note'])
 
-        return success_response({
-            "outcome": outcome,
-            "response": response,
-            "joined_names": applied['joined_names'],
-            "item": applied.get('item')
-        })
+        return success_response(
+            {
+                "outcome": outcome,
+                "response": response,
+                "joined_names": applied['joined_names'],
+                "item": applied.get('item'),
+            }
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def sneak_past(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -813,12 +860,19 @@ def sneak_past(context: dict, on_update: Callable[[str, dict[str, Any]], None]) 
         require_keys(context, required_keys)
 
         encounter = manager.get_active_encounter()
-        if not encounter or encounter.get('event') != 'location_explore' or not encounter.get('monster_ids'):
+        if (
+            not encounter
+            or encounter.get('event') != 'location_explore'
+            or not encounter.get('monster_ids')
+        ):
             raise Exception("There are no monsters to sneak past")
 
         location = manager.get_current_location() or {'name': 'the dungeon', 'description': ''}
         monsters = [
-            m for m in (Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', []))
+            m
+            for m in (
+                Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', [])
+            )
             if m
         ]
         monster_names = ', '.join(m.name for m in monsters)
@@ -841,46 +895,44 @@ def sneak_past(context: dict, on_update: Callable[[str, dict[str, Any]], None]) 
             # for them to resurface in another group someday
             from backend.game.memory.journal import append_party_journal
             from backend.game.memory.manager import write_memory
+
             location_name = location.get('name', 'the dungeon')
             for avoided in monsters:
                 write_memory(
-                    avoided.id, 'avoided',
+                    avoided.id,
+                    'avoided',
                     f"Sensed someone slip through its territory at {location_name}, "
                     f"but never saw them clearly.",
-                    {'location': location_name}
+                    {'location': location_name},
                 )
             append_party_journal(f"Slipped past {monster_names} unseen at {location_name}.")
 
-            return success_response({
-                "success": True,
-                "narration": attempt['narration']
-            })
+            return success_response({"success": True, "narration": attempt['narration']})
 
         # Noticed! The monsters are on them - battle
         step = "start_battle"
         on_update(step, progress_data)
         battle_snapshot = _start_encounter_battle(
             monsters,
-            opening_note=f"The party was caught trying to sneak past: {attempt['narration']}"
+            opening_note=f"The party was caught trying to sneak past: {attempt['narration']}",
         )
         manager.append_dungeon_log(
             f"The party tried to sneak past {monster_names} but was noticed - a battle began!"
         )
 
-        return success_response({
-            "success": False,
-            "narration": attempt['narration'],
-            "battle_intro": attempt['narration'],
-            "enemy_ids": [m.id for m in monsters],
-            "battle_snapshot": battle_snapshot
-        })
+        return success_response(
+            {
+                "success": False,
+                "narration": attempt['narration'],
+                "battle_intro": attempt['narration'],
+                "enemy_ids": [m.id for m in monsters],
+                "battle_snapshot": battle_snapshot,
+            }
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def surprise_attack(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -905,12 +957,19 @@ def surprise_attack(context: dict, on_update: Callable[[str, dict[str, Any]], No
         require_keys(context, required_keys)
 
         encounter = manager.get_active_encounter()
-        if not encounter or encounter.get('event') != 'location_explore' or not encounter.get('monster_ids'):
+        if (
+            not encounter
+            or encounter.get('event') != 'location_explore'
+            or not encounter.get('monster_ids')
+        ):
             raise Exception("There are no monsters to ambush")
 
         location = manager.get_current_location() or {'name': 'the dungeon', 'description': ''}
         monsters = [
-            m for m in (Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', []))
+            m
+            for m in (
+                Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', [])
+            )
             if m
         ]
         monster_names = ', '.join(m.name for m in monsters)
@@ -918,7 +977,9 @@ def surprise_attack(context: dict, on_update: Callable[[str, dict[str, Any]], No
         # Step 1 - narrate the ambush being sprung
         step = "generate_ambush_intro"
         on_update(step, progress_data)
-        ambush_intro = generate_ambush_intro(location, build_monsters_details(monsters), workflow_name)
+        ambush_intro = generate_ambush_intro(
+            location, build_monsters_details(monsters), workflow_name
+        )
 
         # Step 2 - battle, opened on the party's terms
         step = "start_battle"
@@ -926,24 +987,23 @@ def surprise_attack(context: dict, on_update: Callable[[str, dict[str, Any]], No
         manager.clear_active_encounter()
         battle_snapshot = _start_encounter_battle(
             monsters,
-            opening_note=f"The party sprang a surprise attack - they have the opening moment: {ambush_intro}"
+            opening_note=f"The party sprang a surprise attack - they have the opening moment: {ambush_intro}",
         )
         manager.append_dungeon_log(
             f"The party sprang a surprise attack on {monster_names} - a battle began on their terms!"
         )
 
-        return success_response({
-            "battle_intro": ambush_intro,
-            "enemy_ids": [m.id for m in monsters],
-            "battle_snapshot": battle_snapshot
-        })
+        return success_response(
+            {
+                "battle_intro": ambush_intro,
+                "enemy_ids": [m.id for m in monsters],
+                "battle_snapshot": battle_snapshot,
+            }
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def setup_camp(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -987,7 +1047,7 @@ def setup_camp(context: dict, on_update: Callable[[str, dict[str, Any]], None]) 
         step = "queue_camp_text"
         on_update(step, progress_data)
         camp_text_generation_id = generate_camp_scene(location, workflow_name)
-        progress_data.update({ "camp_text_generation_id": camp_text_generation_id })
+        progress_data.update({"camp_text_generation_id": camp_text_generation_id})
 
         # Step 2 - frontend picks the generation id up from this step
         step = "emit_generation_id"
@@ -1029,7 +1089,7 @@ def setup_camp(context: dict, on_update: Callable[[str, dict[str, Any]], None]) 
                 current[resource] = RESOURCE_LADDER[new_index]
             party_resources[str(monster_id)] = current
         manager.set_party_resources(party_resources)
-        progress_data.update({ "party_resources": party_resources })
+        progress_data.update({"party_resources": party_resources})
 
         # Step 5 - growth: the fire spotlights the 1-2 members whose story
         # mattered most this run; the rest keep the memory of the evening.
@@ -1044,13 +1104,12 @@ def setup_camp(context: dict, on_update: Callable[[str, dict[str, Any]], None]) 
             from backend.models.monster import Monster
 
             party_monsters = [
-                m for m in (Monster.get_monster_by_id(mid) for mid in get_party_monster_ids())
-                if m
+                m for m in (Monster.get_monster_by_id(mid) for mid in get_party_monster_ids()) if m
             ]
             spotlight = growth.pick_spotlight(party_monsters, workflow_name)
             for monster in spotlight:
                 step = "growth_reflection"
-                progress_data.update({ "growing": monster.name })
+                progress_data.update({"growing": monster.name})
                 on_update(step, progress_data)
                 reflection = growth.run_growth_reflection(monster, 'camp', workflow_name)
                 if reflection:
@@ -1061,27 +1120,23 @@ def setup_camp(context: dict, on_update: Callable[[str, dict[str, Any]], None]) 
             for monster in party_monsters:
                 if monster.id not in spotlight_ids:
                     write_memory(
-                        monster.id, 'camp',
+                        monster.id,
+                        'camp',
                         f"Rested at a campfire at {location_name} with the party.",
-                        {'location': location_name}
+                        {'location': location_name},
                     )
         except Exception as growth_error:
             print(f"❌ Camp growth failed (the camp itself stands): {growth_error}")
 
-        progress_data.update({ "growth": growth_results })
+        progress_data.update({"growth": growth_results})
 
-        return success_response({
-            "camped": True,
-            "party_resources": party_resources,
-            "growth": growth_results
-        })
+        return success_response(
+            {"camped": True, "party_resources": party_resources, "growth": growth_results}
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 def _resolve_dungeon_target(context: dict, manager, location: dict):
     """
@@ -1122,7 +1177,9 @@ def _resolve_dungeon_target(context: dict, manager, location: dict):
         condition = manager.get_party_conditions().get(str(target_monster.id))
         condition_note = f" Its current condition: {condition}." if condition else ""
         target_label = target_monster.name
-        target_description = f"A monster.{condition_note}\n{build_monsters_details([target_monster])}"
+        target_description = (
+            f"A monster.{condition_note}\n{build_monsters_details([target_monster])}"
+        )
 
     elif target_type == 'custom' and target_text:
         target_label = target_text
@@ -1136,6 +1193,7 @@ def _resolve_dungeon_target(context: dict, manager, location: dict):
         )
 
     return target_type, target_id, target_label, target_description, secret_knowledge
+
 
 def _apply_party_heal_effect(effect: str, target_type: str, target_id, manager) -> str:
     """Healing effects stick only to party members; returns the (possibly
@@ -1154,8 +1212,10 @@ def _apply_party_heal_effect(effect: str, target_type: str, target_id, manager) 
             effect = 'none'  # healing only sticks to the party
     return effect
 
-def _apply_dungeon_resource_deltas(manager, actor, ability, stamina_delta, mana_delta,
-                                   target_type, target_id):
+
+def _apply_dungeon_resource_deltas(
+    manager, actor, ability, stamina_delta, mana_delta, target_type, target_id
+):
     """
     Out-of-battle resource accounting. The referee's words rule; when it
     stays silent on both pools, the ability's type picks the pool and the
@@ -1201,6 +1261,7 @@ def _apply_dungeon_resource_deltas(manager, actor, ability, stamina_delta, mana_
 
     manager.set_party_resources(resources)
 
+
 @register_workflow()
 def use_dungeon_ability(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
@@ -1240,8 +1301,9 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, dict[str, Any]]
         # Step 1 - describe the target and gather any secret knowledge
         step = "resolve_target"
         on_update(step, progress_data)
-        target_type, target_id, target_label, target_description, secret_knowledge = \
+        target_type, target_id, target_label, target_description, secret_knowledge = (
             _resolve_dungeon_target(context, manager, location)
+        )
 
         # Step 2 - the dungeon referee judges what actually happens
         step = "resolve_ability"
@@ -1253,7 +1315,7 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, dict[str, Any]]
             ability.description,
             target_description,
             secret_knowledge,
-            workflow_name
+            workflow_name,
         )
 
         # Step 3 - apply any mechanical effect (only party members heal)
@@ -1266,33 +1328,37 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, dict[str, Any]]
         step = "apply_resource_costs"
         on_update(step, progress_data)
         _apply_dungeon_resource_deltas(
-            manager, actor, ability,
-            result.get('stamina_delta'), result.get('mana_delta'),
-            target_type, target_id
+            manager,
+            actor,
+            ability,
+            result.get('stamina_delta'),
+            result.get('mana_delta'),
+            target_type,
+            target_id,
         )
 
         manager.append_dungeon_log(
             f"{actor.name} used {ability.name} on {target_label}: {result['narration']}"
         )
         from backend.game.memory.journal import append_journal
+
         append_journal(
             actor.id,
-            f"Used {ability.name} on {target_label} outside battle: {result['narration'][:100]}"
+            f"Used {ability.name} on {target_label} outside battle: {result['narration'][:100]}",
         )
 
-        return success_response({
-            "narration": result['narration'],
-            "effect": effect,
-            "party_conditions": manager.get_party_conditions(),
-            "party_resources": manager.get_party_resources()
-        })
+        return success_response(
+            {
+                "narration": result['narration'],
+                "effect": effect,
+                "party_conditions": manager.get_party_conditions(),
+                "party_resources": manager.get_party_resources(),
+            }
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def use_dungeon_item(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -1331,18 +1397,15 @@ def use_dungeon_item(context: dict, on_update: Callable[[str, dict[str, Any]], N
         # Step 1 - describe the target and gather any secret knowledge
         step = "resolve_target"
         on_update(step, progress_data)
-        target_type, target_id, target_label, target_description, secret_knowledge = \
+        target_type, target_id, target_label, target_description, secret_knowledge = (
             _resolve_dungeon_target(context, manager, location)
+        )
 
         # Step 2 - the dungeon referee judges what actually happens
         step = "resolve_item"
         on_update(step, progress_data)
         result = resolve_dungeon_item(
-            location,
-            item,
-            target_description,
-            secret_knowledge,
-            workflow_name
+            location, item, target_description, secret_knowledge, workflow_name
         )
 
         # Step 3 - apply any mechanical effect (only party members heal)
@@ -1356,25 +1419,24 @@ def use_dungeon_item(context: dict, on_update: Callable[[str, dict[str, Any]], N
         on_update(step, progress_data)
         item_name = item.name
         spend_result = spend_item_use(item)
-        progress_data.update({ "item_spend": spend_result })
+        progress_data.update({"item_spend": spend_result})
 
         manager.append_dungeon_log(
             f"The party used {item_name} on {target_label}: {result['narration']}"
         )
 
-        return success_response({
-            "narration": result['narration'],
-            "effect": effect,
-            "item_spend": spend_result,
-            "party_conditions": manager.get_party_conditions()
-        })
+        return success_response(
+            {
+                "narration": result['narration'],
+                "effect": effect,
+                "item_spend": spend_result,
+                "party_conditions": manager.get_party_conditions(),
+            }
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def continue_exploring(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -1422,18 +1484,17 @@ def continue_exploring(context: dict, on_update: Callable[[str, dict[str, Any]],
             f"Paths ahead: {path_names}."
         )
 
-        return success_response({
-            "current_location": location,
-            "paths": manager.get_public_paths(),
-            "party_conditions": manager.get_party_conditions()
-        })
+        return success_response(
+            {
+                "current_location": location,
+                "paths": manager.get_public_paths(),
+                "party_conditions": manager.get_party_conditions(),
+            }
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def condense_dungeon_log(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -1477,14 +1538,7 @@ def condense_dungeon_log(context: dict, on_update: Callable[[str, dict[str, Any]
         on_update(step, progress_data)
         manager.record_dungeon_log_summary(end, summary_text)
 
-        return success_response({
-            "condensed": True,
-            "covers_entries": end
-        })
+        return success_response({"condensed": True, "covers_entries": end})
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})

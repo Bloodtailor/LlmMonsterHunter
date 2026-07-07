@@ -11,13 +11,16 @@ from .event_bus import emit_event
 @dataclass
 class EventSchema:
     """Schema definition for an event type"""
+
     data_fields: dict[str, str]  # field_name: field_description
     send_to_frontend: bool = True  # Whether this should go to SSE
+
 
 # ===== CORE EVENT REGISTRY =====
 # Central registry where all event modules register their events
 
 EVENT_REGISTRY: dict[str, EventSchema] = {}
+
 
 def register_events(events: dict[str, dict[str, Any]]) -> None:
     """
@@ -32,9 +35,10 @@ def register_events(events: dict[str, dict[str, Any]]) -> None:
     for event_type, event_def in events.items():
         schema = EventSchema(
             data_fields=event_def['data_fields'],
-            send_to_frontend=event_def.get('send_to_frontend', True)
+            send_to_frontend=event_def.get('send_to_frontend', True),
         )
         EVENT_REGISTRY[event_type] = schema
+
 
 def _emit_from_schema(event_type: str, **kwargs) -> bool:
     """
@@ -63,25 +67,31 @@ def _emit_from_schema(event_type: str, **kwargs) -> bool:
 
     return emit_event(event_type, data)
 
+
 # ===== REGISTRY QUERY FUNCTIONS =====
+
 
 def get_sse_events() -> list[str]:
     """Get only events that should be sent to frontend via SSE"""
-    return [event_type for event_type, schema in EVENT_REGISTRY.items()
-            if schema.send_to_frontend]
+    return [event_type for event_type, schema in EVENT_REGISTRY.items() if schema.send_to_frontend]
+
 
 def get_internal_events() -> list[str]:
     """Get events that are internal only (not sent to frontend)"""
-    return [event_type for event_type, schema in EVENT_REGISTRY.items()
-            if not schema.send_to_frontend]
+    return [
+        event_type for event_type, schema in EVENT_REGISTRY.items() if not schema.send_to_frontend
+    ]
+
 
 def get_all_events() -> list[str]:
     """Get all events regardless of frontend flag"""
     return list(EVENT_REGISTRY.keys())
 
+
 def get_event_schema(event_type: str) -> EventSchema:
     """Get schema for a specific event type"""
     return EVENT_REGISTRY.get(event_type)
+
 
 def get_events_by_category(category_prefix: str) -> list[str]:
     """
@@ -93,5 +103,4 @@ def get_events_by_category(category_prefix: str) -> list[str]:
     Returns:
         list: Event types matching the category
     """
-    return [event_type for event_type in EVENT_REGISTRY
-            if event_type.startswith(category_prefix)]
+    return [event_type for event_type in EVENT_REGISTRY if event_type.startswith(category_prefix)]

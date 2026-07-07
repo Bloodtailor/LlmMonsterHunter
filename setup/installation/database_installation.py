@@ -27,7 +27,8 @@ def create_database():
             f"-P{config['port']}",
             f"-u{config['user']}",
             f"-p{config['password']}",
-            "-e", f"CREATE DATABASE IF NOT EXISTS {config['name']};"
+            "-e",
+            f"CREATE DATABASE IF NOT EXISTS {config['name']};",
         ]
 
         subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30)
@@ -47,6 +48,7 @@ def create_database():
         return False, "Database creation failed: MySQL command line client not available"
     except Exception as e:
         return False, f"Database creation error: {e}"
+
 
 def update_database_password(new_password):
     """

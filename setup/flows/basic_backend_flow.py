@@ -3,6 +3,7 @@
 Basic Backend Interactive Setup Flow
 Diagnostic flow for fundamental environment problems
 """
+
 COMPONENT_NAME = "Basic Backend"
 
 from setup.checks.basic_backend_checks import (
@@ -51,8 +52,9 @@ def auto_setup_basic_backend():
     pip_path = Path("venv/Scripts/pip.exe")
     if pip_path.exists():
         try:
-            result = subprocess.run([str(pip_path), "show", "Flask"],
-                                  capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                [str(pip_path), "show", "Flask"], capture_output=True, text=True, check=True
+            )
             if "Version:" not in result.stdout:
                 raise subprocess.CalledProcessError(1, "Flask not found")
         except subprocess.CalledProcessError:
@@ -66,6 +68,7 @@ def auto_setup_basic_backend():
 
     # Create .env file if needed
     from setup.utils.env_utils import env_file_exists
+
     if not env_file_exists():
         success, message = create_env_file()
         if not success:
@@ -74,6 +77,7 @@ def auto_setup_basic_backend():
 
     print("✅ Basic backend setup completed")
     return True
+
 
 def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False):
     """
@@ -92,7 +96,7 @@ def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False)
         component_name=COMPONENT_NAME,
         current=current,
         total=total,
-        description="Python virtual environment and basic dependencies"
+        description="Python virtual environment and basic dependencies",
     )
 
     print("Checking current status...")
@@ -123,7 +127,7 @@ def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False)
         "Network Access": (network_ok, network_message),
         "Virtual Environment": (venv_ok, venv_message),
         "Basic Dependencies": (deps_ok, deps_message),
-        "Environment File": (env_ok, env_message)
+        "Environment File": (env_ok, env_message),
     }
 
     # Display results beautifully
@@ -150,6 +154,7 @@ def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False)
         print("Please resolve the above problems and run setup again.")
         print()
         import sys
+
         sys.exit(0)
 
     # User chose to continue despite problems
@@ -160,6 +165,8 @@ def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False)
 
     return True
 
+
 if __name__ == "__main__":
     from setup.utils.dry_run_utils import run_as_standalone_component
+
     run_as_standalone_component(COMPONENT_NAME, run_basic_backend_interactive_setup)

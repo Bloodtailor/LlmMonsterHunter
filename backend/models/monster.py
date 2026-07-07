@@ -29,21 +29,27 @@ class Monster(BaseModel):
     name = Column(String(100), nullable=False)
     species = Column(String(100), nullable=False)  # Mirrors taxonomy['species']
     description = Column(Text, nullable=False)  # Short description
-    backstory = Column(Text, nullable=True)     # Longer backstory from AI
+    backstory = Column(Text, nullable=True)  # Longer backstory from AI
 
     # Game mechanics identity
-    rarity = Column(String(20), nullable=True)       # common|uncommon|rare|epic|legendary
-    party_role = Column(String(50), nullable=True)   # tank|striker|skirmisher|support|controller|trickster
+    rarity = Column(String(20), nullable=True)  # common|uncommon|rare|epic|legendary
+    party_role = Column(
+        String(50), nullable=True
+    )  # tank|striker|skirmisher|support|controller|trickster
 
     # Staged generation progress: blueprint -> persona -> complete
     generation_stage = Column(String(20), nullable=True, default='complete')
 
     # CMDTS + persona (per-monster JSON - shapes in docs/plans/monster-depth-cmdts.md §2)
-    taxonomy = Column(JSON, nullable=True)        # curated domain/kingdom + invented lineage + display labels
+    taxonomy = Column(
+        JSON, nullable=True
+    )  # curated domain/kingdom + invented lineage + display labels
     class_taxonomy = Column(JSON, nullable=True)  # list of trained disciplines (0:m)
-    ecology = Column(JSON, nullable=True)         # habitat, diet, social, sapience, elements, size, lifecycle
-    persona = Column(JSON, nullable=True)         # wish, fears, secret, voice, social hooks, etc.
-    appearance = Column(JSON, nullable=True)      # structured visuals feeding card art prompts
+    ecology = Column(
+        JSON, nullable=True
+    )  # habitat, diet, social, sapience, elements, size, lifecycle
+    persona = Column(JSON, nullable=True)  # wish, fears, secret, voice, social hooks, etc.
+    appearance = Column(JSON, nullable=True)  # structured visuals feeding card art prompts
 
     # Basic Stats (for future battle system)
     max_health = Column(Integer, default=100)
@@ -70,31 +76,33 @@ class Monster(BaseModel):
         result = super().to_dict()
 
         # Add monster-specific formatting
-        result.update({
-            'name': self.name,
-            'species': self.species,
-            'description': self.description,
-            'backstory': self.backstory,
-            'stats': {
-                'max_health': self.max_health,
-                'current_health': self.current_health,
-                'attack': self.attack,
-                'defense': self.defense,
-                'speed': self.speed
-            },
-            'personality_traits': self.personality_traits or [],
-            'rarity': self.rarity,
-            'party_role': self.party_role,
-            'generation_stage': self.generation_stage or 'complete',
-            'taxonomy': self.taxonomy or {},
-            'class_taxonomy': self.class_taxonomy or [],
-            'ecology': self.ecology or {},
-            'persona': self.persona or {},
-            'appearance': self.appearance or {},
-            'abilities': [ability.to_dict() for ability in self.abilities],
-            'ability_count': len(self.abilities),
-            'card_art': self.get_card_art_info()  # NEW: Card art information
-        })
+        result.update(
+            {
+                'name': self.name,
+                'species': self.species,
+                'description': self.description,
+                'backstory': self.backstory,
+                'stats': {
+                    'max_health': self.max_health,
+                    'current_health': self.current_health,
+                    'attack': self.attack,
+                    'defense': self.defense,
+                    'speed': self.speed,
+                },
+                'personality_traits': self.personality_traits or [],
+                'rarity': self.rarity,
+                'party_role': self.party_role,
+                'generation_stage': self.generation_stage or 'complete',
+                'taxonomy': self.taxonomy or {},
+                'class_taxonomy': self.class_taxonomy or [],
+                'ecology': self.ecology or {},
+                'persona': self.persona or {},
+                'appearance': self.appearance or {},
+                'abilities': [ability.to_dict() for ability in self.abilities],
+                'ability_count': len(self.abilities),
+                'card_art': self.get_card_art_info(),  # NEW: Card art information
+            }
+        )
 
         return result
 
@@ -110,14 +118,17 @@ class Monster(BaseModel):
                 'has_card_art': False,
                 'relative_path': None,
                 'full_path': None,
-                'exists': False
+                'exists': False,
             }
 
         # Build full path for existence check
         try:
             from pathlib import Path
+
             # Assume images are in backend/ai/comfyui/outputs/
-            full_path = Path(__file__).parent.parent / 'ai' / 'comfyui' / 'outputs' / self.card_art_path
+            full_path = (
+                Path(__file__).parent.parent / 'ai' / 'comfyui' / 'outputs' / self.card_art_path
+            )
             exists = full_path.exists()
         except Exception:
             exists = False
@@ -127,7 +138,9 @@ class Monster(BaseModel):
             'relative_path': self.card_art_path,
             'full_path': str(full_path) if exists else None,
             'exists': exists,
-            'url': f'/api/images/{self.card_art_path}' if exists else None  # For future API endpoint
+            'url': f'/api/images/{self.card_art_path}'
+            if exists
+            else None,  # For future API endpoint
         }
 
     def set_card_art(self, relative_path: str) -> bool:

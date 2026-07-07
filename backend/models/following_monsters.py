@@ -31,17 +31,13 @@ class FollowingMonster(BaseModel):
     monster = relationship('Monster', foreign_keys=[monster_id])
 
     # === Constraints ===
-    __table_args__ = (
-        UniqueConstraint('monster_id', name='unique_following_monster'),
-    )
+    __table_args__ = (UniqueConstraint('monster_id', name='unique_following_monster'),)
 
     def to_dict(self):
         """Convert to dictionary for API responses"""
         result = super().to_dict()
 
-        result.update({
-            'monster_id': self.monster_id
-        })
+        result.update({'monster_id': self.monster_id})
 
         # Include monster details if loaded
         if self.monster:

@@ -21,7 +21,6 @@ __all__ = [
     'error_response',
     'check_and_return',
     'validate_and_continue',
-
     # Console utilities
     'print_header',
     'print_section',
@@ -31,5 +30,5 @@ __all__ = [
     'print_info',
     'print_separator',
     'print_config_item',
-    'print_status_item'
+    'print_status_item',
 ]

@@ -8,6 +8,7 @@ from backend.game import inventory
 
 VALID_KINDS = ('items', 'cocatoks')
 
+
 def get_inventory(kind: str = 'items', limit: int = None, offset: int = 0) -> dict[str, Any]:
     """Paged inventory listing - validate parameters"""
 
@@ -21,6 +22,7 @@ def get_inventory(kind: str = 'items', limit: int = None, offset: int = 0) -> di
         return error_response('offset must be 0 or greater')
 
     return inventory.manager.get_inventory(kind, limit, offset)
+
 
 def get_inventory_counts() -> dict[str, Any]:
     """Item and CoCaTok counts for tab badges"""

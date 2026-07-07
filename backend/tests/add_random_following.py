@@ -8,6 +8,7 @@ import sys
 # Add backend to path so we can import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 def test_add_random_following():
     """Add 5 random monsters from database to following list"""
 
@@ -83,6 +84,7 @@ def test_add_random_following():
     except Exception as e:
         print(f'❌ Test failed with exception: {str(e)}')
         import traceback
+
         traceback.print_exc()
 
 

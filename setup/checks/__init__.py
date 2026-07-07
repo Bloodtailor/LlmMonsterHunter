@@ -24,15 +24,16 @@ COMPONENT_CHECKS = {
     'LLM Integration': check_llama_cpp_requirements,
 }
 COMPONENT_DIAGNOSTICS = {
-        'Basic Backend': get_basic_backend_diagnostic,
-        'Node.js & npm': get_nodejs_diagnostic,
-        'MySQL Server': get_mysql_diagnostic,
-        'Database Connection': get_database_diagnostic,
-        'NVIDIA GPU & CUDA': get_gpu_cuda_diagnostic,
-        'Visual Studio Build Tools': get_vs_diagnostic,
-        'Model Directory': get_llm_env_diagnostic,
-        'LLM Integration': get_llama_cpp_diagnostic,
+    'Basic Backend': get_basic_backend_diagnostic,
+    'Node.js & npm': get_nodejs_diagnostic,
+    'MySQL Server': get_mysql_diagnostic,
+    'Database Connection': get_database_diagnostic,
+    'NVIDIA GPU & CUDA': get_gpu_cuda_diagnostic,
+    'Visual Studio Build Tools': get_vs_diagnostic,
+    'Model Directory': get_llm_env_diagnostic,
+    'LLM Integration': get_llama_cpp_diagnostic,
 }
+
 
 def run_all_checks():
     """Run all component checks and return results"""
@@ -50,6 +51,7 @@ def run_all_checks():
 def check_component(component_name):
     """Run check for specific component"""
     return COMPONENT_CHECKS.get(component_name, lambda: False)()
+
 
 def run_component_diagnostic(component_name):
     """Run diagnostic for a component and display results"""
@@ -71,6 +73,7 @@ def run_all_full_diagnostics():
     Shows detailed breakdown of each component's sub-checks.
     """
     from setup.utils.ux_utils import display_check_results
+
     print("Running comprehensive system diagnostic...")
     print("This will check all components and their sub-requirements.")
     print()

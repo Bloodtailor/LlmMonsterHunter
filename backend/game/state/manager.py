@@ -15,11 +15,13 @@ def get_following_monsters():
 
     return FollowingMonster.get_all_following()
 
+
 def add_following_monster(monster_id: int):
 
     FollowingMonster.add_follower(monster_id)
 
     return
+
 
 def remove_from_party(monster_id: int):
 
@@ -27,6 +29,7 @@ def remove_from_party(monster_id: int):
         ActiveParty.remove_from_party(monster_id)
 
     return
+
 
 def remove_following_monster(monster_id: int):
 
@@ -36,15 +39,18 @@ def remove_following_monster(monster_id: int):
 
     return
 
+
 def get_active_party():
 
     return ActiveParty.get_all_party_members()
+
 
 def set_active_party(monster_ids: list[int]):
 
     ActiveParty.set_party(monster_ids)
 
     return get_following_monsters()
+
 
 def is_party_ready_for_dungeon() -> bool:
     """Check if party is ready for dungeon (has at least 1 monster)"""

@@ -16,6 +16,7 @@ def env_file_exists():
     """
     return Path(".env").exists()
 
+
 def load_env_config():
     """
     Load and parse the .env file into a dictionary.
@@ -48,7 +49,12 @@ def load_env_config():
                 value = value.strip()
 
                 # Remove quotes if present
-                if value.startswith('"') and value.endswith('"') or value.startswith("'") and value.endswith("'"):
+                if (
+                    value.startswith('"')
+                    and value.endswith('"')
+                    or value.startswith("'")
+                    and value.endswith("'")
+                ):
                     value = value[1:-1]
 
                 env_vars[key] = value
@@ -57,7 +63,6 @@ def load_env_config():
 
     except Exception:
         return {}
-
 
 
 def validate_env_keys(required_keys):
@@ -81,6 +86,7 @@ def validate_env_keys(required_keys):
         return False, f"Missing required keys: {missing_str}", missing_keys
 
     return True, "All required keys present", []
+
 
 def update_env_config(**kwargs):
     """
@@ -139,7 +145,6 @@ def update_env_config(**kwargs):
 
     except Exception as e:
         return False, f"Failed to update .env file: {e}"
-
 
 
 def create_env_file_from_template(template_path=".env.example"):

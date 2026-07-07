@@ -9,7 +9,10 @@ from typing import Any, Callable, Optional
 _generation_lock = threading.Lock()
 _current_generation = None
 
-def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = None, **params) -> dict[str, Any]:
+
+def generate_streaming(
+    prompt: str, callback: Optional[Callable[[str], None]] = None, **params
+) -> dict[str, Any]:
     """
     Generate text with real-time streaming using llama-cpp-python
 
@@ -36,7 +39,7 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
             'error': 'Another generation is currently in progress',
             'text': None,
             'tokens': 0,
-            'duration': 0
+            'duration': 0,
         }
 
     try:
@@ -48,14 +51,14 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
                 'error': 'Model instance not available',
                 'text': None,
                 'tokens': 0,
-                'duration': 0
+                'duration': 0,
             }
 
         # Set current generation status
         _current_generation = {
             'start_time': time.time(),
             'prompt': prompt[:100] + "..." if len(prompt) > 100 else prompt,
-            'max_tokens': params.get('max_tokens', 256)
+            'max_tokens': params.get('max_tokens', 256),
         }
 
         start_time = time.time()
@@ -74,7 +77,7 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
         stream = model(
             prompt,
             stream=True,  # Enable streaming!
-            **params      # Pass all parameters
+            **params,  # Pass all parameters
         )
 
         # Process the stream
@@ -123,7 +126,7 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
             'tokens': token_count,
             'duration': duration,
             'tokens_per_second': round(tokens_per_sec, 2),
-            'parameters_used': params  # For debugging
+            'parameters_used': params,  # For debugging
         }
 
     except Exception as e:
@@ -132,7 +135,7 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
             'error': f"Streaming generation failed: {str(e)}",
             'text': accumulated_text if 'accumulated_text' in locals() else None,
             'tokens': token_count if 'token_count' in locals() else 0,
-            'duration': time.time() - start_time if 'start_time' in locals() else 0
+            'duration': time.time() - start_time if 'start_time' in locals() else 0,
         }
 
     finally:
@@ -142,9 +145,11 @@ def generate_streaming(prompt: str, callback: Optional[Callable[[str], None]] = 
         # Release generation lock
         _generation_lock.release()
 
+
 def is_generating() -> bool:
     """Check if generation is currently in progress"""
     return _current_generation is not None
+
 
 def get_current_generation_info() -> Optional[dict[str, Any]]:
     """Get information about current generation, if any"""

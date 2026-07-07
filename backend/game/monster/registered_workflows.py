@@ -9,7 +9,9 @@ from backend.core.workflow_registry import register_workflow
 
 
 @register_workflow()
-def generate_detailed_monster(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
+def generate_detailed_monster(
+    context: dict, on_update: Callable[[str, dict[str, Any]], None]
+) -> dict:
     """Generate detailed monster using AI with progress updates"""
 
     step = "initializing"
@@ -28,47 +30,42 @@ def generate_detailed_monster(context: dict, on_update: Callable[[str, dict[str,
         step = "creating_blueprint"
         on_update(step, progress_data)
         monster = generate_monster_blueprint()
-        progress_data.update({ "monster": monster.to_dict()})
+        progress_data.update({"monster": monster.to_dict()})
 
         # Step 2 - inner life and social self
         step = "shaping_persona"
         on_update(step, progress_data)
         monster = generate_monster_persona(monster)
-        progress_data.update({ "monster": monster.to_dict()})
+        progress_data.update({"monster": monster.to_dict()})
 
         # Step 3 - description, backstory, appearance
         step = "writing_story"
         on_update(step, progress_data)
         monster = generate_monster_story(monster)
-        progress_data.update({ "monster": monster.to_dict()})
+        progress_data.update({"monster": monster.to_dict()})
 
         # Step 4
         step = "adding_first_ability"
         on_update(step, progress_data)
         ability_1 = generate_ability(monster)
-        progress_data.update({ "ability_1": ability_1.to_dict()})
+        progress_data.update({"ability_1": ability_1.to_dict()})
 
         # Step 5
         step = "adding_second_ability"
         on_update(step, progress_data)
         ability_2 = generate_ability(monster)
-        progress_data.update({ "ability_2": ability_2.to_dict()})
+        progress_data.update({"ability_2": ability_2.to_dict()})
 
         # Step 6
         step = "creating_card_art"
         on_update(step, progress_data)
         image_path = generate_card_art(monster)
-        progress_data.update({ "card_art_path": image_path})
+        progress_data.update({"card_art_path": image_path})
 
         return success_response(progress_data)
 
     except Exception as e:
-
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
 
 
 @register_workflow()
@@ -121,10 +118,7 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
         step = "applying_form"
         on_update(step, progress_data)
         evolution_row = evolution.apply_evolution_form(monster, form, guidance, stage)
-        progress_data.update({
-            "monster": monster.to_dict(),
-            "evolution": evolution_row.to_dict()
-        })
+        progress_data.update({"monster": monster.to_dict(), "evolution": evolution_row.to_dict()})
         step = "form_applied"
         on_update(step, progress_data)
 
@@ -134,10 +128,9 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
         narration_id = evolution.queue_evolution_narration(
             monster, evolution_row, guidance, workflow_name
         )
-        progress_data.update({
-            "evolution_text_generation_id": narration_id,
-            "monster_id": monster_id
-        })
+        progress_data.update(
+            {"evolution_text_generation_id": narration_id, "monster_id": monster_id}
+        )
         step = "emit_generation_id"
         on_update(step, progress_data)
 
@@ -159,9 +152,11 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
         step = "rewriting_story"
         on_update(step, progress_data)
         prose = evolution.run_prose_rewrite(
-            monster, evolution_row,
+            monster,
+            evolution_row,
             evolution.build_persona_shift_facts(persona_applied),
-            guidance, workflow_name
+            guidance,
+            workflow_name,
         )
         art_worthy = evolution.apply_prose(monster, prose)
 
@@ -172,16 +167,22 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
         ability_applied = evolution.apply_ability_evolution(monster, decisions)
 
         new_ability = None
-        if (ability_applied['wants_new'] and ability_applied['theme']
-                and len(monster.abilities or []) < evolution.MAX_ABILITIES):
+        if (
+            ability_applied['wants_new']
+            and ability_applied['theme']
+            and len(monster.abilities or []) < evolution.MAX_ABILITIES
+        ):
             step = "adding_signature_ability"
             on_update(step, progress_data)
             try:
                 from backend.game.monster.generator import generate_ability as make_ability
+
                 new_ability = make_ability(
                     monster,
-                    growth_context=(f"Just evolved into {monster.species}: "
-                                    f"{ability_applied['theme']}. Only this new form can hold it.")
+                    growth_context=(
+                        f"Just evolved into {monster.species}: "
+                        f"{ability_applied['theme']}. Only this new form can hold it."
+                    ),
                 )
             except Exception as e:
                 print(f"❌ Signature ability failed for {monster.name}: {e}")
@@ -190,11 +191,14 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
         step = "recording_memory"
         on_update(step, progress_data)
         evolution.finalize_evolution(
-            monster, evolution_row, narrative, persona_applied.get('memory_note'),
+            monster,
+            evolution_row,
+            narrative,
+            persona_applied.get('memory_note'),
             {
                 'new_ability': new_ability.name if new_ability else None,
-                'reworded': ability_applied['reworded']
-            }
+                'reworded': ability_applied['reworded'],
+            },
         )
 
         # Step 8 - a new face for the new form (old art stays on disk,
@@ -206,28 +210,27 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
             on_update(step, progress_data)
             try:
                 from backend.game.monster.generator import generate_card_art
+
                 generate_card_art(monster)
                 art_regenerated = True
             except Exception as e:
                 print(f"❌ Card art regen failed for {monster.name} - the old face stands: {e}")
 
-        return success_response({
-            "monster_id": monster_id,
-            "monster_name": monster.name,
-            "monster": monster.to_dict(),
-            "evolution": evolution_row.to_dict(),
-            "narrative": narrative,
-            "new_ability": new_ability.to_dict() if new_ability else None,
-            "reworded_abilities": ability_applied['reworded'],
-            "art_regenerated": art_regenerated
-        })
+        return success_response(
+            {
+                "monster_id": monster_id,
+                "monster_name": monster.name,
+                "monster": monster.to_dict(),
+                "evolution": evolution_row.to_dict(),
+                "narrative": narrative,
+                "new_ability": new_ability.to_dict() if new_ability else None,
+                "reworded_abilities": ability_applied['reworded'],
+                "art_regenerated": art_regenerated,
+            }
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
 
 
 @register_workflow()
@@ -253,14 +256,9 @@ def generate_ability(context: dict, on_update: Callable[[str, dict[str, Any]], N
         step = "generating_ability"
         on_update(step, progress_data)
         ability = generate_ability_by_id(context["monster_id"])
-        progress_data.update({ "ability": ability.to_dict()})
+        progress_data.update({"ability": ability.to_dict()})
 
         return success_response(progress_data)
 
     except Exception as e:
-
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})

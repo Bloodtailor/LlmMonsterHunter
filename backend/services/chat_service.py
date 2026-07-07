@@ -34,13 +34,13 @@ def send_message(monster_id, message) -> dict[str, Any]:
         )
 
     success, workflow_id = request_workflow(
-        workflow_type="chat_with_monster",
-        context={"monster_id": monster_id, "message": text}
+        workflow_type="chat_with_monster", context={"monster_id": monster_id, "message": text}
     )
 
     if success:
         return success_response({'workflow_id': workflow_id})
     return error_response("Failed to queue chat workflow")
+
 
 def get_history(monster_id, limit=None, before_id=None) -> dict[str, Any]:
     """
@@ -66,13 +66,10 @@ def get_history(monster_id, limit=None, before_id=None) -> dict[str, Any]:
         return error_response("before_id must be a number")
 
     from backend.models.monster import Monster
+
     monster = Monster.get_monster_by_id(monster_id)
     if not monster:
         return error_response(f"Monster {monster_id} not found")
 
     page = manager.get_history_page(monster_id, limit=page_limit, before_id=before)
-    return success_response({
-        'monster_id': monster_id,
-        'monster_name': monster.name,
-        **page
-    })
+    return success_response({'monster_id': monster_id, 'monster_name': monster.name, **page})

@@ -8,23 +8,27 @@ from typing import Any
 
 # Every outcome a dialogue turn can produce. The LLM must pick one.
 DIALOGUE_OUTCOMES = (
-    'continue_dialogue',   # the conversation goes on - the monster expects a reply
-    'begin_battle',        # words are over - the monster attacks
-    'allow_passage',       # the monster is satisfied - the party may continue
-    'reward',              # the monster grants the party something
-    'punish',              # the monster exacts a price, short of battle
-    'join_party'           # the monster asks to come along - it joins the followers
+    'continue_dialogue',  # the conversation goes on - the monster expects a reply
+    'begin_battle',  # words are over - the monster attacks
+    'allow_passage',  # the monster is satisfied - the party may continue
+    'reward',  # the monster grants the party something
+    'punish',  # the monster exacts a price, short of battle
+    'join_party',  # the monster asks to come along - it joins the followers
 )
 
 # Outcomes that end the encounter (everything except an ongoing conversation)
 RESOLVING_OUTCOMES = tuple(o for o in DIALOGUE_OUTCOMES if o != 'continue_dialogue')
+
 
 def validate_outcome(outcome: str) -> str:
     """Coerce a raw LLM outcome to a valid one - unknown words keep talking"""
     cleaned = str(outcome or '').strip().lower()
     return cleaned if cleaned in DIALOGUE_OUTCOMES else 'continue_dialogue'
 
-def apply_dialogue_outcome(outcome: str, monster_ids: list[int], location: dict[str, Any] = None) -> dict[str, Any]:
+
+def apply_dialogue_outcome(
+    outcome: str, monster_ids: list[int], location: dict[str, Any] = None
+) -> dict[str, Any]:
     """
     Apply the mechanical consequences of a resolved dialogue outcome.
     Returns {'joined_names': [...], 'log_note': str, 'item': dict|None} for
@@ -39,6 +43,7 @@ def apply_dialogue_outcome(outcome: str, monster_ids: list[int], location: dict[
 
     if outcome == 'join_party':
         from backend.models.following_monsters import FollowingMonster
+
         for monster_id in monster_ids:
             monster = Monster.get_monster_by_id(int(monster_id))
             if monster:
@@ -56,18 +61,16 @@ def apply_dialogue_outcome(outcome: str, monster_ids: list[int], location: dict[
         from backend.game.inventory.generator import generate_reward_item
 
         giver = next(
-            (m for m in (Monster.get_monster_by_id(int(mid)) for mid in monster_ids) if m),
-            None
+            (m for m in (Monster.get_monster_by_id(int(mid)) for mid in monster_ids) if m), None
         )
         if giver:
             item = generate_reward_item(
                 location or {'name': 'the dungeon', 'description': ''},
                 giver,
-                get_encounter_dialogue_text()
+                get_encounter_dialogue_text(),
             )
             item_data = item.to_dict()
-            log_note = (f"{giver.name} rewarded the party with {item.name} "
-                        f"({item.description})")
+            log_note = f"{giver.name} rewarded the party with {item.name} ({item.description})"
         else:
             log_note = "The monster rewarded the party."
 
@@ -79,21 +82,33 @@ def apply_dialogue_outcome(outcome: str, monster_ids: list[int], location: dict[
 
     return {'joined_names': joined_names, 'log_note': log_note, 'item': item_data}
 
+
 # What each resolving outcome writes into the monster's permanent memory.
 # The KIND carries the tone (gave_reward is warm, punished_party is sour) -
 # no LLM call needed here.
 _OUTCOME_MEMORY = {
-    'join_party': ('joined_party',
-                   "Chose to join the party at {location} after a conversation that moved it."),
-    'allow_passage': ('let_party_pass',
-                      "Spoke with the party at {location} and let them pass in peace."),
-    'reward': ('gave_reward',
-               "Was so taken with the party at {location} that it gifted them {gift}."),
-    'punish': ('punished_party',
-               "Was crossed by the party at {location} and made them pay a price, short of blood.")
+    'join_party': (
+        'joined_party',
+        "Chose to join the party at {location} after a conversation that moved it.",
+    ),
+    'allow_passage': (
+        'let_party_pass',
+        "Spoke with the party at {location} and let them pass in peace.",
+    ),
+    'reward': (
+        'gave_reward',
+        "Was so taken with the party at {location} that it gifted them {gift}.",
+    ),
+    'punish': (
+        'punished_party',
+        "Was crossed by the party at {location} and made them pay a price, short of blood.",
+    ),
 }
 
-def _write_outcome_memories(outcome: str, monster_ids: list[int], location: dict[str, Any], item_data):
+
+def _write_outcome_memories(
+    outcome: str, monster_ids: list[int], location: dict[str, Any], item_data
+):
     """
     Permanent memories for a resolved dialogue: what the monster decided,
     plus the conversation excerpt that led there. Never raises.
@@ -109,8 +124,7 @@ def _write_outcome_memories(outcome: str, monster_ids: list[int], location: dict
         location_name = (location or {}).get('name', 'the dungeon')
         kind, template = _OUTCOME_MEMORY[outcome]
         content = template.format(
-            location=location_name,
-            gift=(item_data or {}).get('name', 'a gift')
+            location=location_name, gift=(item_data or {}).get('name', 'a gift')
         )
 
         # The words that earned this outcome, clipped for the record
@@ -124,9 +138,10 @@ def _write_outcome_memories(outcome: str, monster_ids: list[int], location: dict
             write_memory(int(monster_id), kind, content, dict(details))
             if exchange_clip:
                 write_memory(
-                    int(monster_id), 'talked_with_party',
+                    int(monster_id),
+                    'talked_with_party',
                     f"Traded words with the party at {location_name}: ...{exchange_clip}",
-                    {'location': location_name}
+                    {'location': location_name},
                 )
 
         append_party_journal(f"Dialogue at {location_name} ended: {content}")

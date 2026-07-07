@@ -50,6 +50,7 @@ def check_nvidia_gpu():
     except subprocess.CalledProcessError:
         return False, "nvidia-smi failed (GPU or driver issues)"
 
+
 def check_nvidia_driver_version():
     """Check NVIDIA driver version for CUDA compatibility."""
     try:
@@ -73,9 +74,15 @@ def check_nvidia_driver_version():
                 if version_num >= 530.0:  # Minimum for CUDA 12.x
                     return True, f"NVIDIA driver {driver_version} (CUDA 12.x compatible)"
                 elif version_num >= 470.0:  # Minimum for CUDA 11.x
-                    return True, f"NVIDIA driver {driver_version} (CUDA 11.x compatible, consider updating)"
+                    return (
+                        True,
+                        f"NVIDIA driver {driver_version} (CUDA 11.x compatible, consider updating)",
+                    )
                 else:
-                    return False, f"NVIDIA driver {driver_version} is too old (need 530+ for CUDA 12.x)"
+                    return (
+                        False,
+                        f"NVIDIA driver {driver_version} is too old (need 530+ for CUDA 12.x)",
+                    )
             except ValueError:
                 return True, f"NVIDIA driver {driver_version} (version check uncertain)"
         else:
@@ -86,11 +93,12 @@ def check_nvidia_driver_version():
     except subprocess.CalledProcessError:
         return False, "nvidia-smi failed (cannot check driver version)"
 
+
 def check_cuda_directories():
     """Check for CUDA installation in common directories."""
     common_paths = [
         "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA",
-        "C:\\Program Files (x86)\\NVIDIA GPU Computing Toolkit\\CUDA"
+        "C:\\Program Files (x86)\\NVIDIA GPU Computing Toolkit\\CUDA",
     ]
 
     found_cuda = False
@@ -101,7 +109,9 @@ def check_cuda_directories():
         if os.path.exists(base_path):
             # Look for version directories
             try:
-                versions = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+                versions = [
+                    d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))
+                ]
                 if versions:
                     latest_version = sorted(versions)[-1]  # Get latest version
                     cuda_dir = os.path.join(base_path, latest_version)
@@ -114,6 +124,7 @@ def check_cuda_directories():
         return True, f"CUDA Toolkit found: {cuda_dir}"
     else:
         return False, "CUDA Toolkit directories not found"
+
 
 def check_nvcc_compiler():
     """Check for CUDA compiler (nvcc)."""
@@ -140,6 +151,7 @@ def check_nvcc_compiler():
     except subprocess.CalledProcessError:
         return False, "CUDA compiler (nvcc) failed to run"
 
+
 def check_cuda_path_env():
     """Check CUDA_PATH environment variable (informational)."""
     cuda_path = os.environ.get("CUDA_PATH")
@@ -148,11 +160,16 @@ def check_cuda_path_env():
     else:
         return False, "CUDA_PATH environment variable not set or invalid"
 
+
 def check_gpu_compute_capability():
     """Check GPU compute capability for modern AI workloads."""
     try:
-        result = subprocess.run(["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader,nounits"],
-                              capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader,nounits"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
         compute_caps = result.stdout.strip().split('\n')
         if compute_caps and compute_caps[0]:
@@ -177,6 +194,7 @@ def check_gpu_compute_capability():
         return False, "nvidia-smi not found (cannot check compute capability)"
     except subprocess.CalledProcessError:
         return False, "Failed to query GPU compute capability"
+
 
 def get_detailed_gpu_info():
     """
@@ -205,6 +223,7 @@ def get_detailed_gpu_info():
 
     return info
 
+
 def check_gpu_cuda_requirements():
     """Check all GPU and CUDA requirements (for orchestration)."""
 
@@ -229,6 +248,7 @@ def check_gpu_cuda_requirements():
     has_development_access = nvcc_ok or cuda_path_ok
 
     return has_gpu_and_driver and has_cuda_toolkit and has_development_access
+
 
 def get_gpu_cuda_diagnostic(include_overall=False):
     """
@@ -259,6 +279,9 @@ def get_gpu_cuda_diagnostic(include_overall=False):
 
     if include_overall:
         overall_ok = check_gpu_cuda_requirements()
-        result['overall'] = (overall_ok, "All GPU CUDA requirements met" if overall_ok else "Some GPU CUDA requirements missing")
+        result['overall'] = (
+            overall_ok,
+            "All GPU CUDA requirements met" if overall_ok else "Some GPU CUDA requirements missing",
+        )
 
     return result

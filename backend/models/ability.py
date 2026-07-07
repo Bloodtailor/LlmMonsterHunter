@@ -24,9 +24,9 @@ class Ability(BaseModel):
     monster_id = Column(Integer, ForeignKey('monsters.id'), nullable=False)
 
     # Ability Information
-    name = Column(String(100), nullable=False)           # e.g., "Lightning Strike"
-    description = Column(Text, nullable=False)           # Detailed description of what it does
-    ability_type = Column(String(50), nullable=True)     # e.g., "attack", "defense", "support"
+    name = Column(String(100), nullable=False)  # e.g., "Lightning Strike"
+    description = Column(Text, nullable=False)  # Detailed description of what it does
+    ability_type = Column(String(50), nullable=True)  # e.g., "attack", "defense", "support"
 
     def to_dict(self):
         """
@@ -37,12 +37,14 @@ class Ability(BaseModel):
         result = super().to_dict()
 
         # Add ability-specific fields
-        result.update({
-            'monster_id': self.monster_id,
-            'name': self.name,
-            'description': self.description,
-            'ability_type': self.ability_type
-        })
+        result.update(
+            {
+                'monster_id': self.monster_id,
+                'name': self.name,
+                'description': self.description,
+                'ability_type': self.ability_type,
+            }
+        )
 
         return result
 
@@ -64,7 +66,7 @@ class Ability(BaseModel):
             monster_id=monster_id,
             name=llm_response_data.get('name', 'Unnamed Ability'),
             description=llm_response_data.get('description', 'A mysterious power.'),
-            ability_type=llm_response_data.get('type', 'unknown')
+            ability_type=llm_response_data.get('type', 'unknown'),
         )
 
         return ability

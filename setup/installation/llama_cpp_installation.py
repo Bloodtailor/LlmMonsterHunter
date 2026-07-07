@@ -23,14 +23,19 @@ def uninstall_existing_llama_cpp():
 
     try:
         # Try to uninstall both possible package names
-        subprocess.run([str(pip_path), "uninstall", "-y", "llama-cpp-python"],
-                      capture_output=True, check=False)
-        subprocess.run([str(pip_path), "uninstall", "-y", "llama-cpp-python-cuda"],
-                      capture_output=True, check=False)
+        subprocess.run(
+            [str(pip_path), "uninstall", "-y", "llama-cpp-python"], capture_output=True, check=False
+        )
+        subprocess.run(
+            [str(pip_path), "uninstall", "-y", "llama-cpp-python-cuda"],
+            capture_output=True,
+            check=False,
+        )
         return True, "Existing llama-cpp-python installations removed"
 
     except Exception as e:
         return False, f"Failed to uninstall existing packages: {e}"
+
 
 def install_llama_cpp_prebuilt():
     """
@@ -49,8 +54,12 @@ def install_llama_cpp_prebuilt():
         uninstall_existing_llama_cpp()
 
         # Install pre-built CUDA package
-        subprocess.run([str(pip_path), "install", "llama-cpp-python-cuda"],
-                      capture_output=True, text=True, check=True)
+        subprocess.run(
+            [str(pip_path), "install", "llama-cpp-python-cuda"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
         return True, "Successfully installed pre-built llama-cpp-python-cuda package"
 
@@ -59,6 +68,7 @@ def install_llama_cpp_prebuilt():
         return False, f"Pre-built package installation failed: {error_msg}"
     except Exception as e:
         return False, f"Pre-built package installation error: {e}"
+
 
 def install_llama_cpp_source():
     """
@@ -81,10 +91,13 @@ def install_llama_cpp_source():
         env_vars["FORCE_CMAKE"] = "1"
 
         # Build from source with CUDA
-        subprocess.run([
-            str(pip_path), "install", "llama-cpp-python",
-            "--force-reinstall", "--no-cache-dir"
-        ], env=env_vars, capture_output=True, text=True, check=True)
+        subprocess.run(
+            [str(pip_path), "install", "llama-cpp-python", "--force-reinstall", "--no-cache-dir"],
+            env=env_vars,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
         return True, "Successfully built llama-cpp-python with CUDA from source"
 
@@ -93,6 +106,7 @@ def install_llama_cpp_source():
         return False, f"Source build failed: {error_msg}"
     except Exception as e:
         return False, f"Source build error: {e}"
+
 
 def install_llama_cpp_wheel():
     """
@@ -116,12 +130,22 @@ def install_llama_cpp_wheel():
         # Install the newest prebuilt CUDA wheel. --only-binary makes pip refuse
         # to fall back to a source build (which would try to compile and can hit
         # Windows' 260-char path limit on the vendored llama.cpp tree).
-        subprocess.run([
-            str(pip_path), "install", "llama-cpp-python",
-            "--extra-index-url", "https://abetlen.github.io/llama-cpp-python/whl/cu124",
-            "--only-binary", "llama-cpp-python",
-            "--force-reinstall", "--no-cache-dir"
-        ], capture_output=True, text=True, check=True)
+        subprocess.run(
+            [
+                str(pip_path),
+                "install",
+                "llama-cpp-python",
+                "--extra-index-url",
+                "https://abetlen.github.io/llama-cpp-python/whl/cu124",
+                "--only-binary",
+                "llama-cpp-python",
+                "--force-reinstall",
+                "--no-cache-dir",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
         return True, "Successfully installed newest prebuilt CUDA wheel (cu124 index)"
 
@@ -130,6 +154,7 @@ def install_llama_cpp_wheel():
         return False, f"CUDA wheel installation failed: {error_msg}"
     except Exception as e:
         return False, f"CUDA wheel installation error: {e}"
+
 
 def install_llama_cpp_cpu_only():
     """
@@ -149,8 +174,12 @@ def install_llama_cpp_cpu_only():
         uninstall_existing_llama_cpp()
 
         # Install regular llama-cpp-python (CPU-only)
-        subprocess.run([str(pip_path), "install", "llama-cpp-python"],
-                      capture_output=True, text=True, check=True)
+        subprocess.run(
+            [str(pip_path), "install", "llama-cpp-python"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
         return True, "Successfully installed CPU-only llama-cpp-python (WARNING: Will be very slow)"
 
@@ -159,6 +188,7 @@ def install_llama_cpp_cpu_only():
         return False, f"CPU-only installation failed: {error_msg}"
     except Exception as e:
         return False, f"CPU-only installation error: {e}"
+
 
 def install_llama_cpp_with_cuda():
     """
@@ -175,7 +205,7 @@ def install_llama_cpp_with_cuda():
     methods = [
         ("CUDA wheel repository", install_llama_cpp_wheel),
         ("Pre-built CUDA package", install_llama_cpp_prebuilt),
-        ("Source build with CUDA", install_llama_cpp_source)
+        ("Source build with CUDA", install_llama_cpp_source),
     ]
 
     failed_methods = []
@@ -191,6 +221,7 @@ def install_llama_cpp_with_cuda():
     # All methods failed
     failure_summary = "; ".join(failed_methods)
     return False, f"All CUDA installation methods failed. {failure_summary}"
+
 
 def install_llama_cpp_any_method():
     """
@@ -215,6 +246,7 @@ def install_llama_cpp_any_method():
     else:
         return False, f"All installation methods failed. CUDA: {cuda_message}. CPU: {cpu_message}"
 
+
 def upgrade_pip():
     """
     Upgrade pip in the virtual environment.
@@ -229,8 +261,12 @@ def upgrade_pip():
         return False, "Virtual environment pip not found"
 
     try:
-        subprocess.run([str(pip_path), "install", "--upgrade", "pip"],
-                      capture_output=True, text=True, check=True)
+        subprocess.run(
+            [str(pip_path), "install", "--upgrade", "pip"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         return True, "pip upgraded successfully"
 
     except subprocess.CalledProcessError as e:
@@ -238,6 +274,7 @@ def upgrade_pip():
         return False, f"pip upgrade failed: {error_msg}"
     except Exception as e:
         return False, f"pip upgrade error: {e}"
+
 
 def install_llama_cpp_with_retry():
     """

@@ -60,10 +60,13 @@ class WorkflowManager:
             print_error(f"Error loading workflow {workflow_name}: {e}")
             return None
 
-    def modify_workflow_prompt(self, workflow: dict[str, Any],
-                             positive_prompt: str,
-                             negative_prompt: Optional[str] = None,
-                             **kwargs) -> dict[str, Any]:
+    def modify_workflow_prompt(
+        self,
+        workflow: dict[str, Any],
+        positive_prompt: str,
+        negative_prompt: Optional[str] = None,
+        **kwargs,
+    ) -> dict[str, Any]:
         """
         Modify workflow with new prompts and parameters
 
@@ -142,7 +145,7 @@ class WorkflowManager:
             "4": "SaveImage",
             "5": "CLIPTextEncode",  # Positive prompt
             "6": "CLIPTextEncode",  # Negative prompt
-            "7": "EmptyLatentImage"
+            "7": "EmptyLatentImage",
         }
 
         for node_id, expected_type in essential_nodes.items():
@@ -153,7 +156,9 @@ class WorkflowManager:
                 if "class_type" not in node:
                     issues.append(f"Node {node_id} missing class_type")
                 elif node["class_type"] != expected_type:
-                    issues.append(f"Node {node_id} wrong type: {node['class_type']} (expected {expected_type})")
+                    issues.append(
+                        f"Node {node_id} wrong type: {node['class_type']} (expected {expected_type})"
+                    )
                 else:
                     required_nodes[node_id] = node
 
@@ -170,7 +175,7 @@ class WorkflowManager:
             "success": len(issues) == 0,
             "issues": issues,
             "nodes_found": len(required_nodes),
-            "total_nodes": len(workflow)
+            "total_nodes": len(workflow),
         }
 
     def list_available_workflows(self) -> list[str]:
@@ -190,6 +195,7 @@ class WorkflowManager:
 
 # Global instance
 _workflow_manager = None
+
 
 def get_workflow_manager() -> WorkflowManager:
     """Get global workflow manager instance"""

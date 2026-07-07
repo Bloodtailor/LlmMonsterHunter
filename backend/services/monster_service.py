@@ -16,7 +16,7 @@ def generate_monster() -> dict[str, Any]:
 
     try:
         # Request workflow execution
-        success, workflow_id = request_workflow( workflow_type="generate_detailed_monster")
+        success, workflow_id = request_workflow(workflow_type="generate_detailed_monster")
 
         if success:
             return success_response({'workflow_id': workflow_id})
@@ -26,8 +26,10 @@ def generate_monster() -> dict[str, Any]:
     except Exception as e:
         return error_response(f'Workflow request failed: {str(e)}')
 
-def get_all_monsters(limit: int = None, offset: int = 0,
-                    filter_type: str = 'all', sort_by: str = 'newest') -> dict[str, Any]:
+
+def get_all_monsters(
+    limit: int = None, offset: int = 0, filter_type: str = 'all', sort_by: str = 'newest'
+) -> dict[str, Any]:
     """Get monsters - validate complex parameters"""
 
     params_validation = validate_monster_list_params(limit, offset, filter_type, sort_by)
@@ -36,6 +38,7 @@ def get_all_monsters(limit: int = None, offset: int = 0,
         return error_check
 
     return monster.manager.get_all_monsters(limit, offset, filter_type, sort_by)
+
 
 def get_monster_stats(filter_type: str = 'all') -> dict[str, Any]:
     """Get stats - validate filter parameter"""
@@ -46,9 +49,11 @@ def get_monster_stats(filter_type: str = 'all') -> dict[str, Any]:
 
     return monster.manager.get_monster_stats(filter_type)
 
+
 def get_monster_by_id(monster_id: int) -> dict[str, Any]:
     """Get monster - delegate directly (routes handle integer validation)"""
     return monster.manager.get_monster_by_id(monster_id)
+
 
 def get_monster_memories(monster_id: int) -> dict[str, Any]:
     """A monster's permanent memories, oldest first (its life in order)"""
@@ -59,10 +64,10 @@ def get_monster_memories(monster_id: int) -> dict[str, Any]:
         return error_response('Monster not found')
 
     memories = MonsterMemory.for_monster(monster_id)
-    return success_response({
-        'monster_id': monster_id,
-        'memories': [memory.to_dict() for memory in memories]
-    })
+    return success_response(
+        {'monster_id': monster_id, 'memories': [memory.to_dict() for memory in memories]}
+    )
+
 
 def evolve_monster(monster_id, guidance=None) -> dict[str, Any]:
     """
@@ -90,13 +95,14 @@ def evolve_monster(monster_id, guidance=None) -> dict[str, Any]:
     try:
         success, workflow_id = request_workflow(
             workflow_type="evolve_monster",
-            context={"monster_id": monster_id, "guidance": clean_guidance(guidance)}
+            context={"monster_id": monster_id, "guidance": clean_guidance(guidance)},
         )
         if success:
             return success_response({'workflow_id': workflow_id})
         return error_response('Failed to queue evolution workflow')
     except Exception as e:
         return error_response(f'Workflow request failed: {str(e)}')
+
 
 def get_monster_evolutions(monster_id: int) -> dict[str, Any]:
     """A monster's evolution lineage, oldest first (its forms in order)"""
@@ -107,10 +113,10 @@ def get_monster_evolutions(monster_id: int) -> dict[str, Any]:
         return error_response('Monster not found')
 
     evolutions = MonsterEvolution.for_monster(monster_id)
-    return success_response({
-        'monster_id': monster_id,
-        'evolutions': [evolution.to_dict() for evolution in evolutions]
-    })
+    return success_response(
+        {'monster_id': monster_id, 'evolutions': [evolution.to_dict() for evolution in evolutions]}
+    )
+
 
 def generate_ability(monster_id: int) -> dict[str, Any]:
     """Generate ability - only validate monster exists"""
@@ -118,9 +124,8 @@ def generate_ability(monster_id: int) -> dict[str, Any]:
     try:
         # Request workflow execution
         success, workflow_id = request_workflow(
-            workflow_type="generate_ability",
-            context={"monster_id": monster_id}
-            )
+            workflow_type="generate_ability", context={"monster_id": monster_id}
+        )
 
         if success:
             return success_response({'workflow_id': workflow_id})

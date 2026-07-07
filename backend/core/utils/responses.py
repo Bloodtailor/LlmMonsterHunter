@@ -26,6 +26,7 @@ def success_response(data: dict[str, Any] = None, **kwargs) -> dict[str, Any]:
 
     return response
 
+
 def error_response(error: str, **kwargs) -> dict[str, Any]:
     """
     Create standardized error response with logging
@@ -40,20 +41,20 @@ def error_response(error: str, **kwargs) -> dict[str, Any]:
     # Log the error using console utilities
     print_error(error)
 
-    response = {
-        'success': False,
-        'error': error
-    }
+    response = {'success': False, 'error': error}
 
     if kwargs:
         response.update(kwargs)
 
     return response
 
-def check_and_return(condition: bool,
-                    error_msg: str,
-                    success_data: dict[str, Any] = None,
-                    error_defaults: dict[str, Any] = None) -> Optional[dict[str, Any]]:
+
+def check_and_return(
+    condition: bool,
+    error_msg: str,
+    success_data: dict[str, Any] = None,
+    error_defaults: dict[str, Any] = None,
+) -> Optional[dict[str, Any]]:
     """
     Check condition and return error response if failed, None if success
     Perfect for early returns in validation chains
@@ -76,8 +77,10 @@ def check_and_return(condition: bool,
 
     return None
 
-def validate_and_continue(validation_result: dict[str, Any],
-                         error_defaults: dict[str, Any] = None) -> Optional[dict[str, Any]]:
+
+def validate_and_continue(
+    validation_result: dict[str, Any], error_defaults: dict[str, Any] = None
+) -> Optional[dict[str, Any]]:
     """
     Check validation result and return error if invalid, None if valid
 

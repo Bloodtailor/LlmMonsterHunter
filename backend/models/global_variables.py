@@ -30,22 +30,22 @@ class GlobalVariable(BaseModel):
     __tablename__ = 'global_variables'
 
     # === Core Fields ===
-    key = Column(String(100), nullable=False)      # Variable name (e.g., "in_dungeon")
-    value = Column(JSON, nullable=True)            # Variable value (native JSON)
+    key = Column(String(100), nullable=False)  # Variable name (e.g., "in_dungeon")
+    value = Column(JSON, nullable=True)  # Variable value (native JSON)
 
     # === Constraints ===
-    __table_args__ = (
-        UniqueConstraint('key', name='unique_variable_key'),
-    )
+    __table_args__ = (UniqueConstraint('key', name='unique_variable_key'),)
 
     def to_dict(self):
         """Convert to dictionary for API responses"""
         result = super().to_dict()
 
-        result.update({
-            'key': self.key,
-            'value': self.value  # Already the correct Python type
-        })
+        result.update(
+            {
+                'key': self.key,
+                'value': self.value,  # Already the correct Python type
+            }
+        )
 
         return result
 

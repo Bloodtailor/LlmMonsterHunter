@@ -12,6 +12,7 @@ from .workflow_queue import get_queue
 
 ### for reference: _WORKFLOW_REGISTRY: Dict[str, Callable[[dict], dict]]
 
+
 def request_workflow(workflow_type: str, context: dict[str, Any] = None, priority: int = 5):
     """
     THE ONLY WAY to request workflow exicution
@@ -49,5 +50,3 @@ def request_workflow(workflow_type: str, context: dict[str, Any] = None, priorit
         success = True
 
     return success, workflow_id
-
-

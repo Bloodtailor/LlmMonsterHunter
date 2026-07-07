@@ -20,8 +20,9 @@ _model_info = {
     'load_time': None,
     'error': None,
     'gpu_layers': None,
-    'load_duration': None
+    'load_duration': None,
 }
+
 
 def get_model_status() -> dict[str, Any]:
     """
@@ -34,6 +35,7 @@ def get_model_status() -> dict[str, Any]:
 
     with _model_lock:
         return _model_info.copy()
+
 
 def load_model() -> bool:
     """
@@ -83,20 +85,22 @@ def load_model() -> bool:
                 use_mmap=True,
                 verbose=False,
                 low_vram=False,
-                numa=False
+                numa=False,
             )
 
             load_duration = time.time() - start_time
 
             # Update model info
-            _model_info.update({
-                'loaded': True,
-                'model_path': str(model_path),
-                'load_time': datetime.utcnow().isoformat(),
-                'load_duration': round(load_duration, 2),
-                'gpu_layers': gpu_layers,
-                'error': None
-            })
+            _model_info.update(
+                {
+                    'loaded': True,
+                    'model_path': str(model_path),
+                    'load_time': datetime.utcnow().isoformat(),
+                    'load_duration': round(load_duration, 2),
+                    'gpu_layers': gpu_layers,
+                    'error': None,
+                }
+            )
 
             print(f"Model loaded successfully in {load_duration:.1f} seconds")
             return True
@@ -105,16 +109,19 @@ def load_model() -> bool:
             error_msg = f"Failed to load model: {str(e)}"
             print_error(error_msg)
 
-            _model_info.update({
-                'loaded': False,
-                'model_path': None,
-                'load_time': None,
-                'load_duration': None,
-                'gpu_layers': None,
-                'error': error_msg
-            })
+            _model_info.update(
+                {
+                    'loaded': False,
+                    'model_path': None,
+                    'load_time': None,
+                    'load_duration': None,
+                    'gpu_layers': None,
+                    'error': error_msg,
+                }
+            )
 
             return False
+
 
 def unload_model():
     """Unload the current model to free memory"""
@@ -123,18 +130,22 @@ def unload_model():
     with _model_lock:
         if _model is not None:
             _model = None
-            _model_info.update({
-                'loaded': False,
-                'model_path': None,
-                'load_time': None,
-                'load_duration': None,
-                'gpu_layers': None,
-                'error': None
-            })
+            _model_info.update(
+                {
+                    'loaded': False,
+                    'model_path': None,
+                    'load_time': None,
+                    'load_duration': None,
+                    'gpu_layers': None,
+                    'error': None,
+                }
+            )
+
 
 def is_model_loaded() -> bool:
     """Check if model is currently loaded"""
     return _model_info['loaded'] and _model is not None
+
 
 def get_model_instance():
     """
@@ -148,6 +159,7 @@ def get_model_instance():
     with _model_lock:
         return _model
 
+
 def ensure_model_loaded() -> bool:
     """
     Ensure model is loaded, load if necessary
@@ -159,6 +171,7 @@ def ensure_model_loaded() -> bool:
         return True
 
     return load_model()
+
 
 def warm_up_model() -> bool:
     """
@@ -181,13 +194,15 @@ def warm_up_model() -> bool:
             prompt="Hello",
             max_tokens=5,
             temperature=0.1,
-            callback=lambda text: None  # No-op callback
+            callback=lambda text: None,  # No-op callback
         )
 
         if result['success']:
             tokens_per_sec = result.get('tokens_per_second', 0)
             if tokens_per_sec > 15:
-                print_success(f"Model warmed up successfully ({tokens_per_sec:.1f} tok/s - GPU performance)")
+                print_success(
+                    f"Model warmed up successfully ({tokens_per_sec:.1f} tok/s - GPU performance)"
+                )
             else:
                 print_warning(f"Model warmed up ({tokens_per_sec:.1f} tok/s - check GPU usage)")
             return True

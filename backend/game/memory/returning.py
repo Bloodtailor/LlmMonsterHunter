@@ -9,16 +9,12 @@ import random
 from typing import Any
 
 # How often things return
-RETURNING_EVENT_WEIGHT = 0.12   # path event weight, only when the pool is nonempty
-BLEND_IN_CHANCE = 0.25          # per normal encounter: swap one fresh slot
+RETURNING_EVENT_WEIGHT = 0.12  # path event weight, only when the pool is nonempty
+BLEND_IN_CHANCE = 0.25  # per normal encounter: swap one fresh slot
 
 # How much stronger a return makes a monster (percent of each stat).
 # The LLM picks the WORD; these numbers are code-owned.
-RETURN_STAT_TIERS = {
-    'slight': 0.03,
-    'notable': 0.06,
-    'fierce': 0.10
-}
+RETURN_STAT_TIERS = {'slight': 0.03, 'notable': 0.06, 'fierce': 0.10}
 # Repeated returns compound the boost... up to a point
 RETURN_COUNT_MULTIPLIER_STEP = 0.25
 RETURN_COUNT_MULTIPLIER_CAP = 1.5
@@ -30,6 +26,7 @@ MAX_ABILITIES = 6
 GRUDGES_AND_BONDS_CAP = 4
 BATTLE_LINE_MAX_RATIO = 1.3
 
+
 def pick_returning_monster():
     """A random eligible remembered monster, or None"""
     from backend.game.memory.manager import eligible_returning_ids
@@ -39,6 +36,7 @@ def pick_returning_monster():
     if not pool:
         return None
     return Monster.get_monster_by_id(random.choice(pool))
+
 
 def maybe_blend_in():
     """
@@ -50,6 +48,7 @@ def maybe_blend_in():
         return None
     return pick_returning_monster()
 
+
 def stage_reveal(monster) -> None:
     """Announce an EXISTING monster to the frontend and mark it seen
     (new monsters announce themselves via monster.created instead)"""
@@ -58,6 +57,7 @@ def stage_reveal(monster) -> None:
 
     emit_dungeon_monster_revealed(monster.to_dict())
     mark_seen([monster.id])
+
 
 def _fallback_disposition(monster_id: int) -> str:
     """When the LLM's disposition is unusable, the dominant memory decides"""
@@ -69,6 +69,7 @@ def _fallback_disposition(monster_id: int) -> str:
     if any(MonsterMemory.count_kind(monster_id, kind) > 0 for kind in warm_kinds):
         return 'friendly'
     return 'wary'
+
 
 def transform_returning_monster(monster, workflow_name: str) -> dict[str, Any]:
     """
@@ -88,12 +89,16 @@ def transform_returning_monster(monster, workflow_name: str) -> dict[str, Any]:
 
     raw = {}
     try:
-        raw = build_and_generate('returning_transform', workflow_name, {
-            'monster_details': build_speaker_block(monster),
-            'monster_memories': build_memory_block(monster.id),
-            'return_count': return_count,
-            'party_summary': get_party_summary(),
-        })
+        raw = build_and_generate(
+            'returning_transform',
+            workflow_name,
+            {
+                'monster_details': build_speaker_block(monster),
+                'monster_memories': build_memory_block(monster.id),
+                'return_count': return_count,
+                'party_summary': get_party_summary(),
+            },
+        )
     except Exception as e:
         print(f"❌ returning_transform failed for {monster.name} - deterministic return: {e}")
 
@@ -106,7 +111,7 @@ def transform_returning_monster(monster, workflow_name: str) -> dict[str, Any]:
         greeting = {
             'hostile': f"{monster.name} remembers you - and this time it is ready.",
             'friendly': f"{monster.name} brightens with recognition as you approach.",
-            'wary': f"{monster.name} goes very still. It has not forgotten."
+            'wary': f"{monster.name} goes very still. It has not forgotten.",
         }[disposition]
 
     # ----- stat growth: LLM word -> code-owned numbers, twice clamped -----
@@ -128,7 +133,9 @@ def transform_returning_monster(monster, workflow_name: str) -> dict[str, Any]:
     persona = dict(monster.persona or {})
     new_line = str(raw.get('battle_line') or '').strip()
     old_line = str(persona.get('battle_line') or '')
-    if new_line and (not old_line or len(new_line) <= int(max(len(old_line), 60) * BATTLE_LINE_MAX_RATIO)):
+    if new_line and (
+        not old_line or len(new_line) <= int(max(len(old_line), 60) * BATTLE_LINE_MAX_RATIO)
+    ):
         persona['battle_line'] = new_line
 
     # ----- the grudge (or bond) becomes part of who it is -----
@@ -147,33 +154,41 @@ def transform_returning_monster(monster, workflow_name: str) -> dict[str, Any]:
     if wants_ability and theme and len(monster.abilities or []) < MAX_ABILITIES:
         try:
             from backend.game.monster.generator import generate_ability
+
             defeat = next(
-                (m for m in reversed(MonsterMemory.for_monster(monster.id))
-                 if m.kind == 'was_defeated'), None
+                (
+                    m
+                    for m in reversed(MonsterMemory.for_monster(monster.id))
+                    if m.kind == 'was_defeated'
+                ),
+                None,
             )
             defeat_note = ''
             if defeat and (defeat.details or {}).get('by'):
                 details = defeat.details or {}
-                defeat_note = (f" It was once brought down by {details.get('by')} "
-                               f"using {details.get('with', 'sheer force')} - "
-                               f"it will not fall the same way twice.")
+                defeat_note = (
+                    f" It was once brought down by {details.get('by')} "
+                    f"using {details.get('with', 'sheer force')} - "
+                    f"it will not fall the same way twice."
+                )
             new_ability = generate_ability(
                 monster,
-                growth_context=f"Returning to face the party changed: {theme}.{defeat_note}"
+                growth_context=f"Returning to face the party changed: {theme}.{defeat_note}",
             )
         except Exception as e:
             print(f"❌ Answering ability failed for {monster.name}: {e}")
 
     # ----- the return itself becomes a memory -----
     write_memory(
-        monster.id, 'returned',
+        monster.id,
+        'returned',
         f"Returned to face the party, {disposition} and changed by what it remembered.",
         {
             'disposition': disposition,
             'stat': 'all_stats',
             'amount_pct': applied_pct,
-            'new_ability': new_ability.name if new_ability else None
-        }
+            'new_ability': new_ability.name if new_ability else None,
+        },
     )
 
     emit_monster_updated(monster.to_dict())

@@ -22,8 +22,8 @@ COMPONENT_FLOWS = {
     'Visual Studio Build Tools': run_visual_studio_interactive_setup,
     'Model Directory': run_llm_env_interactive_setup,
     'LLM Integration': run_llama_cpp_interactive_setup,
-
 }
+
 
 def run_component_flow(component_name):
     """Run interactive setup flow for specific component"""

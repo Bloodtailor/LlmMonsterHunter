@@ -46,6 +46,7 @@ def initialize_database(app):
 
     return True
 
+
 def initialize_ai_systems(app):
     """
     Initialize AI systems in the correct order
@@ -73,6 +74,7 @@ def initialize_ai_systems(app):
     # Check image generation capability
     print_section('Initializing Image Generation Systems...')
     _check_image_generation()
+
 
 def initialize_workflows(app):
     """
@@ -121,6 +123,7 @@ def _load_llm_model():
         print_error(f"LLM initialization error: {e}")
         return False
 
+
 def _initialize_ai_queue(app):
     """Initialize unified AI queue with Flask context"""
     try:
@@ -146,6 +149,7 @@ def _check_image_generation():
 
     try:
         from backend.ai.comfyui.client import ComfyUIClient
+
         client = ComfyUIClient()
 
         if client.is_server_running():

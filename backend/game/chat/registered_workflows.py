@@ -52,10 +52,9 @@ def chat_with_monster(context: dict, on_update: Callable[[str, dict[str, Any]], 
         step = "queue_reply"
         on_update(step, progress_data)
         chat_text_generation_id = queue_chat_reply(monster, message, workflow_name)
-        progress_data.update({
-            "chat_text_generation_id": chat_text_generation_id,
-            "monster_id": monster_id
-        })
+        progress_data.update(
+            {"chat_text_generation_id": chat_text_generation_id, "monster_id": monster_id}
+        )
 
         step = "emit_generation_id"
         on_update(step, progress_data)
@@ -76,18 +75,13 @@ def chat_with_monster(context: dict, on_update: Callable[[str, dict[str, Any]], 
         on_update(step, progress_data)
         manager.queue_housekeeping_if_due(monster_id)
 
-        return success_response({
-            "monster_id": monster_id,
-            "monster_name": monster.name,
-            "reply": reply
-        })
+        return success_response(
+            {"monster_id": monster_id, "monster_name": monster.name, "reply": reply}
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
+
 
 @register_workflow()
 def chat_housekeeping(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
@@ -137,8 +131,7 @@ def chat_housekeeping(context: dict, on_update: Callable[[str, dict[str, Any]], 
 
             watermark = ChatThread.extraction_watermark(monster_id)
             segment = ChatMessage.after_id(
-                monster_id, watermark,
-                limit=CHAT_SETTINGS['extract_segment_max']
+                monster_id, watermark, limit=CHAT_SETTINGS['extract_segment_max']
             )
             extracted = extract_chat_memories(monster, segment, workflow_name)
 
@@ -160,9 +153,7 @@ def chat_housekeeping(context: dict, on_update: Callable[[str, dict[str, Any]], 
 
         # ===== 2. ROLLING SUMMARY (one batch at most) =====
         condensed = False
-        covered = ChatMessage.count_through_id(
-            monster_id, ChatSummary.last_through_id(monster_id)
-        )
+        covered = ChatMessage.count_through_id(monster_id, ChatSummary.last_through_id(monster_id))
         total = ChatMessage.count_for_monster(monster_id)
         batch = plan_batch('chat_history', total, covered)
         if batch:
@@ -184,15 +175,9 @@ def chat_housekeeping(context: dict, on_update: Callable[[str, dict[str, Any]], 
                     ChatSummary.add(monster_id, batch_messages[-1].id, summary_text)
                     condensed = True
 
-        return success_response({
-            "monster_id": monster_id,
-            "memories": memories_saved,
-            "condensed": condensed
-        })
+        return success_response(
+            {"monster_id": monster_id, "memories": memories_saved, "condensed": condensed}
+        )
 
     except Exception as e:
-        return error_response({
-            'failed_at': step,
-            'completed_work': progress_data,
-            'error': str(e)
-        })
+        return error_response({'failed_at': step, 'completed_work': progress_data, 'error': str(e)})
