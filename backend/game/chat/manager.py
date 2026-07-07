@@ -40,6 +40,13 @@ def chat_eligibility_error(monster_id: int) -> Optional[str]:
         if monster.generation_stage != 'complete':
             return f"{monster.name} is still taking shape - try again shortly"
 
+        # The player character speaks AS themself in every chat - they
+        # are never on the other side of the campfire
+        from backend.game.player.manager import is_player_monster
+
+        if is_player_monster(int(monster_id)):
+            return f"{monster.name} is you - the player speaks as them, not to them"
+
         familiar_ids = set(FollowingMonster.get_following_monster_ids())
         familiar_ids.update(ActiveParty.get_party_monster_ids())
         if int(monster_id) not in familiar_ids:

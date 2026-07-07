@@ -53,6 +53,12 @@ def add_following_monster(monster_id: int) -> dict[str, Any]:
     monster = monster_validation['monster']
 
     try:
+        # The player character walks beside no one - it IS the walker
+        from backend.game.player.manager import is_player_monster
+
+        if is_player_monster(monster_id):
+            return error_response(f'{monster.name} is you - you cannot follow yourself')
+
         # Check if already following (business rule)
         from backend.models.following_monsters import FollowingMonster
 
@@ -133,11 +139,23 @@ def get_active_party() -> dict[str, Any]:
 
 
 def set_active_party(monster_ids: list[int]) -> dict[str, Any]:
-    """Set the active party from following monsters"""
+    """Set the active party from following monsters. The player
+    character is filtered out (always in the party already); what
+    remains must fit the companion cap."""
 
     try:
+        from backend.game.player.manager import is_player_monster
+
+        companion_ids = [mid for mid in (monster_ids or []) if not is_player_monster(mid)]
+        cap = state_manager.companion_cap()
+        if len(companion_ids) > cap:
+            return error_response(
+                f'The party holds at most {cap} companions beside you '
+                f'- {len(companion_ids)} were chosen'
+            )
+
         # Business logic - Note: Your manager returns get_following_monsters() but should probably return get_active_party()
-        active_party = state_manager.set_active_party(monster_ids)
+        active_party = state_manager.set_active_party(companion_ids)
 
         party_names = []
 
@@ -178,10 +196,14 @@ def get_game_state() -> dict[str, Any]:
             or state_manager.is_first_run_complete()
         )
 
+        from backend.game.player.manager import get_player_monster_id, player_exists
+
         return success_response(
             {
                 'first_run_complete': state_manager.is_first_run_complete(),
                 'has_world_data': has_world_data,
+                'has_player': player_exists(),
+                'player_monster_id': get_player_monster_id(),
                 'following_count': FollowingMonster.get_following_count(),
                 'party_count': ActiveParty.get_party_count(),
                 'in_dungeon': dungeon_manager.is_in_dungeon(),

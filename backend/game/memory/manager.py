@@ -159,6 +159,15 @@ def eligible_returning_ids() -> list[int]:
         exclude.update(ActiveParty.get_party_monster_ids())
         exclude.update(int(mid) for mid in dungeon.get_seen_monster_ids())
 
+        # The player character has memories like anyone - but they are
+        # not in the ActiveParty rows, and they must never walk out of
+        # the dark as their own returning encounter
+        from backend.game.player.manager import get_player_monster_id
+
+        player_id = get_player_monster_id()
+        if player_id is not None:
+            exclude.add(player_id)
+
         candidate_ids = MonsterMemory.monster_ids_with_memories(exclude_ids=exclude)
         eligible = []
         for monster_id in candidate_ids:

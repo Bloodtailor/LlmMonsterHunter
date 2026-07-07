@@ -36,12 +36,25 @@ def get_affinity(monster) -> str:
 
 
 def is_autonomous(monster) -> bool:
-    """Does this monster ignore commands and act on its own in battle?"""
+    """Does this monster ignore commands and act on its own in battle?
+    The player character never does - it IS the player."""
+    from backend.game.player.manager import is_player_monster
+
+    if monster is not None and is_player_monster(getattr(monster, 'id', None)):
+        return False
     return get_affinity(monster) == 'wary'
 
 
 def affinity_context_line(monster) -> str:
-    """One line for prompt context blocks"""
+    """One line for prompt context blocks. The player character has no
+    ladder toward itself - its line names it as the party's own will."""
+    from backend.game.player.manager import is_player_monster
+
+    if monster is not None and is_player_monster(getattr(monster, 'id', None)):
+        return (
+            "This is the adventurer themself - the party's own will, "
+            "always in command of their own actions"
+        )
     tier = get_affinity(monster)
     return f"Affinity toward the party: {AFFINITY_FLAVOR[tier]}"
 
@@ -60,9 +73,14 @@ def step_affinity(monster_id: int, reason: str) -> Optional[str]:
     Enforces the per-run valve while a run is active, writes the moment
     into the monster's memory, and announces the change over SSE.
     Returns the new tier, or None when nothing moved. Never raises.
+    The player character never steps - it has no ladder toward itself.
     """
     try:
+        from backend.game.player.manager import is_player_monster
         from backend.models.monster import Monster
+
+        if is_player_monster(monster_id):
+            return None
 
         monster = Monster.get_monster_by_id(int(monster_id))
         if not monster:

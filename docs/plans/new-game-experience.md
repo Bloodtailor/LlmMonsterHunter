@@ -1,6 +1,6 @@
 # New Game Experience — Wipe + Player Character — Plan
 
-**Status:** IN PROGRESS (July 2026) — M1 underway.
+**Status:** IN PROGRESS (July 2026) — M1-M2 landed; M3 (creation backend) next.
 **Branch:** `feature/new-game-experience` — one milestone commit per milestone, prefix `Ngx-M#`.
 
 Today "New Game" wipes nothing (game-loop-v1 locked decision #1: the
@@ -39,7 +39,7 @@ now erases the world; Continue remains the way back into the one world.
 
 ## Milestones
 
-### M1 — New Game actually starts a new game — IN PROGRESS
+### M1 — New Game actually starts a new game — IMPLEMENTED
 `game/state/new_game.py` `wipe_world()`: deletes all game-domain rows in
 FK-safe order (party, following, chat messages/summaries/threads,
 memories, evolutions, abilities, monsters, runs, items, cocatoks,
@@ -50,7 +50,7 @@ processing. `POST /api/game-state/new-game`; `get_game_state()` gains
 world holds anything, then erases and proceeds (to `first-run-opening`
 until M4 reroutes through creation). Suite: `test_new_game.py`.
 
-### M2 — The player domain: always in the party — PLANNED
+### M2 — The player domain: always in the party — IMPLEMENTED
 `game/player/manager.py` (pointer helpers). Party reads in
 `state/manager.py` prepend the player; companion cap 4→3;
 `set_active_party` filters the player id and enforces the cap.
@@ -110,4 +110,16 @@ with the player fighting as a commanded ally.
 
 ## Deviations
 
-- (none yet)
+- **M2 (file-size ceiling):** the player exemption pushed grandfathered
+  `evolution.py` over its shrink-only cap, so eligibility moved out to
+  its own concept file: `game/monster/evolution_eligibility.py` (used
+  by both the service and the workflow re-check). `evolution.py` now
+  holds only the ceremony itself.
+- **M2:** the returning-monster pool (`memory/manager.py`) needed an
+  explicit player exclusion the plan hadn't listed - the player is not
+  in the ActiveParty rows, so without it the player could have walked
+  out of the dark as their own returning encounter.
+- **M2:** the first-run recruit auto-join (`dungeon/outcomes.py`) now
+  checks for empty COMPANION rows instead of an empty party - with a
+  player character the party is never empty, and the old check would
+  have blocked the guided opening's first companion.

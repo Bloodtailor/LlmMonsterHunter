@@ -46,6 +46,7 @@ def main():
         from backend.game.dungeon import manager as dungeon
         from backend.game.memory import growth
         from backend.game.monster import evolution
+        from backend.game.monster.evolution_eligibility import evolution_eligibility_error
         from backend.models.ability import Ability
         from backend.models.core import create_tables, db
         from backend.models.following_monsters import FollowingMonster
@@ -59,8 +60,7 @@ def main():
 
         saved_state = dungeon.get_dungeon_state()
         real_build_and_generate = game_utils.build_and_generate
-        test_monster = None
-        half_made = None
+        test_monster = half_made = None
 
         try:
             dungeon.save_dungeon_state(dict(HOME_STATE))
@@ -439,12 +439,12 @@ def main():
             print('\n-- eligibility --')
             check(
                 'not following -> blocked',
-                'not following' in (evolution.evolution_eligibility_error(test_monster.id) or ''),
+                'not following' in (evolution_eligibility_error(test_monster.id) or ''),
             )
             FollowingMonster(monster_id=test_monster.id).save()
             check(
                 'following at home base -> eligible',
-                evolution.evolution_eligibility_error(test_monster.id) is None,
+                evolution_eligibility_error(test_monster.id) is None,
             )
 
             in_dungeon = dict(HOME_STATE)
@@ -454,7 +454,7 @@ def main():
             dungeon.save_dungeon_state(in_dungeon)
             check(
                 'mid-run -> blocked',
-                'in the dungeon' in (evolution.evolution_eligibility_error(test_monster.id) or ''),
+                'in the dungeon' in (evolution_eligibility_error(test_monster.id) or ''),
             )
             dungeon.save_dungeon_state(dict(HOME_STATE))
 
@@ -468,11 +468,11 @@ def main():
             FollowingMonster(monster_id=half_made.id).save()
             check(
                 'half-generated -> blocked',
-                'taking shape' in (evolution.evolution_eligibility_error(half_made.id) or ''),
+                'taking shape' in (evolution_eligibility_error(half_made.id) or ''),
             )
             check(
                 'missing monster -> blocked',
-                'not found' in (evolution.evolution_eligibility_error(99999999) or ''),
+                'not found' in (evolution_eligibility_error(99999999) or ''),
             )
 
             # ===== form failure aborts before anything moves =====

@@ -101,7 +101,9 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
         monster_id = int(context['monster_id'])
         guidance = evolution.clean_guidance(context.get('guidance'))
 
-        eligibility_error = evolution.evolution_eligibility_error(monster_id)
+        from backend.game.monster.evolution_eligibility import evolution_eligibility_error
+
+        eligibility_error = evolution_eligibility_error(monster_id)
         if eligibility_error:
             raise Exception(eligibility_error)
 
