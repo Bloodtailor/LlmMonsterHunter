@@ -159,6 +159,26 @@ def set_active_party(monster_ids: list[int]) -> dict[str, Any]:
 # ===== GLOBAL GAME STATE =====
 
 
+def get_game_state() -> dict[str, Any]:
+    """The high-level save-state summary the title screen reads: has the
+    guided opening ever been finished, and what the world holds so far"""
+    try:
+        from backend.game.dungeon import manager as dungeon_manager
+        from backend.models.active_party import ActiveParty
+        from backend.models.following_monsters import FollowingMonster
+
+        return success_response(
+            {
+                'first_run_complete': state_manager.is_first_run_complete(),
+                'following_count': FollowingMonster.get_following_count(),
+                'party_count': ActiveParty.get_party_count(),
+                'in_dungeon': dungeon_manager.is_in_dungeon(),
+            }
+        )
+    except Exception as e:
+        return error_response(str(e))
+
+
 def reset_game_state() -> dict[str, Any]:
     """Reset all game state to initial values (for testing)"""
     try:

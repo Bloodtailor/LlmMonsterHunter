@@ -16,6 +16,10 @@ export function useDungeonState() {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState(null);
 
+  // The opening scene (New Game - the wish-granting premise, streamed)
+  const [openingText, setOpeningText] = useState('');
+  const [isOpeningReady, setIsOpeningReady] = useState(false);
+
   // The entrance notice board - the expeditions the player picks from
   const [notices, setNotices] = useState(null); // null until the board arrives
   const [isGeneratingNotices, setIsGeneratingNotices] = useState(false);
@@ -126,6 +130,8 @@ export function useDungeonState() {
   const resetState = useCallback(() => {
     setIsError(false);
     setError(null);
+    setOpeningText('');
+    setIsOpeningReady(false);
     setNotices(null);
     setIsGeneratingNotices(false);
     setExpedition(null);
@@ -167,6 +173,8 @@ export function useDungeonState() {
     state: {
       isError,
       error,
+      openingText,
+      isOpeningReady,
       notices,
       isGeneratingNotices,
       expedition,
@@ -206,6 +214,8 @@ export function useDungeonState() {
     // Internal setters (for other hooks)
     setters: {
       setErrorState,
+      setOpeningText,
+      setIsOpeningReady,
       setNotices,
       setIsGeneratingNotices,
       setExpedition,

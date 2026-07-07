@@ -84,7 +84,7 @@ payloads gain `autonomous: true`. Devoted/wary lines enter ally battle
 blocks and the referee prompts; affinity rides chat + evolution context.
 Affinity badge in the frontend; tuning table; `test_affinity.py`.
 
-### M6 — Title screen + guided first run — PLANNED
+### M6 — Title screen + guided first run — IMPLEMENTED
 `first_run_complete` global; TitleScreen (New Game / Continue) as the
 app's opening screen. New Game → `begin_first_run` workflow streams the
 wish-granting-power opening scene, then enters a `calm` fixed-theme

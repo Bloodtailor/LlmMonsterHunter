@@ -6,6 +6,26 @@
 import { get, post } from '../core/client.js';
 
 /**
+ * New Game: stream the opening scene using the begin_first_run workflow
+ * (the wish-granting premise; follow opening_text_generation_id, then
+ * call enterDungeon with firstRun=true)
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function beginFirstRun() {
+  const response = await post('/api/dungeon/first-run');
+
+  return {
+    success: response.success ?? beginFirstRun.defaults.success,
+    workflowId: response.workflow_id ?? beginFirstRun.defaults.workflowId,
+    _raw: response,
+  };
+}
+beginFirstRun.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
  * Generate the entrance notice board using the generate_expedition_notices
  * workflow (the LLM writes 2-3 themed notices; Python rolls each danger)
  * @returns {Promise<object>} Clean transformed response with workflowId
@@ -28,13 +48,16 @@ generateExpeditionNotices.defaults = {
  * Enter the dungeon using the enter_dungeon workflow
  * @param {string} [noticeId] - The chosen expedition notice (its theme and
  *   danger shape the whole run); omit for an ordinary, unthemed run
+ * @param {boolean} [firstRun] - Start the guided first run (fixed theme,
+ *   scripted events, the one entry allowed with an empty party)
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
-export async function enterDungeon(noticeId) {
-  const url = noticeId
-    ? `/api/dungeon/enter?notice_id=${encodeURIComponent(noticeId)}`
-    : '/api/dungeon/enter';
-  const response = await get(url);
+export async function enterDungeon(noticeId, firstRun = false) {
+  const params = new URLSearchParams();
+  if (noticeId) params.set('notice_id', noticeId);
+  if (firstRun) params.set('first_run', 'true');
+  const query = params.toString();
+  const response = await get(query ? `/api/dungeon/enter?${query}` : '/api/dungeon/enter');
 
   return {
     success: response.success ?? enterDungeon.defaults.success,

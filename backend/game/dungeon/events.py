@@ -44,8 +44,15 @@ RETURNING_EVENT_WEIGHT = 0.12
 def assign_random_event(include_returning: bool = False) -> str:
     """Pick a weighted random event for a path from the available events.
     The active run's danger word (run_context) shifts the battle and
-    returning weights; without a run this rolls exactly the table above."""
+    returning weights; without a run this rolls exactly the table above.
+    A guided FIRST RUN doesn't roll at all - every path at the junction
+    carries the script's next beat (dungeon/first_run.py)."""
+    from backend.game.dungeon.first_run import next_scripted_event
     from backend.game.dungeon.run_context import danger_knob
+
+    scripted = next_scripted_event()
+    if scripted:
+        return scripted
 
     weight_map = dict(EVENT_WEIGHTS)
     weight_map['monster_battle'] = danger_knob(
@@ -77,5 +84,10 @@ def roll_path_count() -> int:
 
 
 def roll_include_exit() -> bool:
-    """Roll whether one of the paths is a dungeon exit"""
+    """Roll whether one of the paths is a dungeon exit. On a guided first
+    run the exit appears exactly when the script is spent - never before."""
+    from backend.game.dungeon.first_run import is_first_run, next_scripted_event
+
+    if is_first_run():
+        return next_scripted_event() is None
     return random.random() < EXIT_PATH_CHANCE

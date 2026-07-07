@@ -9,6 +9,7 @@ import { useStreamedGeneration } from '../../../../api/events/useStreamedGenerat
 
 // Every workflow this context owns - used for error surfacing
 const DUNGEON_WORKFLOWS = [
+  'begin_first_run',
   'generate_expedition_notices',
   'enter_dungeon',
   'choose_path',
@@ -29,6 +30,8 @@ export function useDungeonEvents(stateHook) {
   const { state, setters } = stateHook;
 
   const {
+    setOpeningText,
+    setIsOpeningReady,
     setNotices,
     setIsGeneratingNotices,
     setExpedition,
@@ -65,6 +68,11 @@ export function useDungeonEvents(stateHook) {
     setExitText,
     setErrorState,
   } = setters;
+
+  // Stream the opening scene announced by the begin_first_run workflow
+  useStreamedGeneration('opening_text_generation_id', {
+    onText: (partialText) => setOpeningText(partialText),
+  });
 
   // Stream the entry text announced by the enter_dungeon workflow
   useStreamedGeneration('entry_text_generation_id', {
@@ -205,6 +213,11 @@ export function useDungeonEvents(stateHook) {
     }
 
     switch (workflowType) {
+      case 'begin_first_run':
+        // The scene may still be streaming tokens, but the run can start
+        setIsOpeningReady(true);
+        break;
+
       case 'generate_expedition_notices':
         setIsGeneratingNotices(false);
         setNotices(result.notices || []);

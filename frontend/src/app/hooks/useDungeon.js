@@ -8,6 +8,31 @@ import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as dungeonApi from '../../api/services/dungeon.js';
 
 /**
+ * Hook for New Game: the streamed opening scene
+ * (queues begin_first_run workflow)
+ */
+export function useBeginFirstRun() {
+  // ✨ Automatically uses beginFirstRun.defaults
+  const api = useAsyncState(dungeonApi.beginFirstRun);
+
+  const beginFirstRun = useCallback(async () => {
+    return await api.execute();
+  }, [api.execute]);
+
+  return {
+    success: api.data.success,
+    workflowId: api.data.workflowId,
+    rawResponse: api.data._raw,
+
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    beginFirstRun,
+  };
+}
+
+/**
  * Hook for generating the entrance notice board
  * (queues generate_expedition_notices workflow)
  */
@@ -40,8 +65,8 @@ export function useEnterDungeon() {
   const api = useAsyncState(dungeonApi.enterDungeon);
 
   const enterDungeon = useCallback(
-    async (noticeId) => {
-      return await api.execute(noticeId);
+    async (noticeId, firstRun = false) => {
+      return await api.execute(noticeId, firstRun);
     },
     [api.execute],
   );

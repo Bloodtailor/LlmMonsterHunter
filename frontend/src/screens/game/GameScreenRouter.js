@@ -6,6 +6,8 @@ import React from 'react';
 import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
 
 // Import game screens
+import TitleScreen from './TitleScreen.js';
+import FirstRunOpeningScreen from './FirstRunOpeningScreen.js';
 import HomeBaseScreen from './HomeBaseScreen.js';
 import MonsterSanctuaryScreen from './MonsterSanctuaryScreen.js';
 import MonsterChatScreen from './MonsterChatScreen.js';
@@ -27,6 +29,12 @@ function GameScreenRouter() {
 
   // Render the appropriate game screen
   switch (currentGameScreen) {
+    case 'title':
+      return <TitleScreen />;
+
+    case 'first-run-opening':
+      return <FirstRunOpeningScreen />;
+
     case 'homebase':
       return <HomeBaseScreen />;
 

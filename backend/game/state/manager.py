@@ -108,6 +108,21 @@ def get_party_details() -> str:
     return "\n".join(lines) if lines else "A lone, empty-handed adventurer"
 
 
+# ===== FIRST RUN (the guided opening - game/dungeon/first_run.py) =====
+
+FIRST_RUN_COMPLETE_KEY = 'first_run_complete'
+
+
+def is_first_run_complete() -> bool:
+    """Has the guided opening ever been finished? (Gates the title
+    screen's Continue button; New Game is always available)"""
+    return bool(GlobalVariable.get(FIRST_RUN_COMPLETE_KEY, False))
+
+
+def set_first_run_complete() -> None:
+    GlobalVariable.set(FIRST_RUN_COMPLETE_KEY, True)
+
+
 def reset_game_state() -> dict[str, Any]:
     """Reset all game state to initial values (for testing)"""
 

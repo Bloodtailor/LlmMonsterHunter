@@ -11,6 +11,7 @@ from backend.core.utils.responses import error_response
 from backend.core.workflow_registry import register_workflow
 from backend.core.workflow_steps import WorkflowStep
 
+from . import first_run
 from .handlers import camp, items_abilities, notices, paths, run_lifecycle, stealth, talk
 
 
@@ -19,6 +20,20 @@ def _step_error(step: WorkflowStep, error: Exception) -> dict:
     return error_response(
         {'failed_at': step.name, 'completed_work': step.data, 'error': str(error)}
     )
+
+
+@register_workflow()
+def begin_first_run(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
+    """
+    New Game: stream the opening scene (the wish-granting premise). The
+    frontend follows opening_text_generation_id, then enters the dungeon
+    with first_run=true for the guided, scripted first expedition.
+    """
+    step = WorkflowStep(on_update)
+    try:
+        return first_run.run_begin_first_run(context, step)
+    except Exception as e:
+        return _step_error(step, e)
 
 
 @register_workflow()

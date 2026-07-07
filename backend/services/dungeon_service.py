@@ -47,22 +47,45 @@ def generate_expedition_notices() -> dict[str, Any]:
         return error_response("Failed to queue expedition notices workflow")
 
 
-def enter_dungeon(notice_id: str = None) -> dict[str, Any]:
+def begin_first_run() -> dict[str, Any]:
+    """
+    New Game: queue the opening scene (the wish-granting premise). Always
+    available - replaying the opening wipes nothing. The frontend follows
+    the streamed text, then calls enter_dungeon with first_run=true.
+    """
+
+    if manager.is_in_dungeon():
+        return error_response("A run is already underway - abandon it first")
+
+    success, workflow_id = request_workflow(workflow_type="begin_first_run")
+
+    if success:
+        return success_response({'workflow_id': workflow_id})
+    else:
+        return error_response("Failed to queue the opening scene workflow")
+
+
+def enter_dungeon(notice_id: str = None, first_run: bool = False) -> dict[str, Any]:
     """
     Enter dungeon with validation
     Trust boundary: validates party readiness and (when given) that the
     chosen expedition notice is one the board actually posted, then
     queues the workflow with the full validated notice.
+    A guided FIRST RUN is the one entry allowed with an EMPTY party -
+    the first companion is recruited inside, not brought along.
     """
 
-    # Validate party is ready
-    party_validation = validate_party_ready_for_dungeon()
-    error_check = validate_and_continue(party_validation)
-    if error_check:
-        return error_check
+    if not first_run:
+        # Validate party is ready (first runs may start empty-handed)
+        party_validation = validate_party_ready_for_dungeon()
+        error_check = validate_and_continue(party_validation)
+        if error_check:
+            return error_check
 
     context = {}
-    if notice_id:
+    if first_run:
+        context['first_run'] = True
+    elif notice_id:
         from backend.game.dungeon.run_context import get_pending_notice
 
         notice = get_pending_notice(str(notice_id))

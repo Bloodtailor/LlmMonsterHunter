@@ -62,6 +62,41 @@ def generate_run_goal(workflow_name: str) -> Optional[dict[str, Any]]:
     return context['goal']
 
 
+def set_fixed_goal(text: str) -> None:
+    """A code-chosen goal (the guided first run) - no LLM call"""
+    context = get_run_context()
+    context['goal'] = {
+        'text': str(text)[:400],
+        'status': 'pending',
+        'progress_notes': [],
+        'events_resolved': 0,
+    }
+    save_run_context(context)
+
+
+def complete_goal_directly(note: str) -> None:
+    """Code-visible completion (the first run's goal completes the moment
+    the first companion joins - no referee needed). Never raises."""
+    try:
+        context = get_run_context()
+        goal = context.get('goal')
+        if not goal or goal.get('status') == 'complete':
+            return
+        goal['status'] = 'complete'
+        if note:
+            goal.setdefault('progress_notes', []).append(str(note)[:200])
+        context['goal'] = goal
+        save_run_context(context)
+
+        from backend.core.events.dungeon_events import emit_dungeon_goal_updated
+        from backend.game.dungeon import manager
+
+        manager.append_dungeon_log(f"THE RUN'S GOAL WAS FULFILLED: {goal['text']}")
+        emit_dungeon_goal_updated(goal_snapshot())
+    except Exception as goal_error:
+        print(f"❌ Direct goal completion failed (the run continues): {goal_error}")
+
+
 def goal_snapshot() -> Optional[dict[str, Any]]:
     """The goal as workflow payloads and the frontend see it"""
     goal = get_run_context().get('goal')

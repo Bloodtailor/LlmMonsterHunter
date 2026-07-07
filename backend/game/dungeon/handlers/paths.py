@@ -58,6 +58,13 @@ def run_choose_path(context: dict, step: WorkflowStep) -> dict[str, Any]:
 
     event = path.get('event')
 
+    # A guided first run consumes its script one taken path at a time -
+    # the NEXT junction's paths carry the story's next beat
+    from backend.game.dungeon import first_run
+
+    if first_run.is_first_run() and event == first_run.next_scripted_event():
+        first_run.advance_scripted_event()
+
     # === EVENT: RETURNING MONSTER (someone here remembers the party) ===
     if event == 'returning_monster':
         response = reunion.run_returning_monster(step, location, workflow_name)

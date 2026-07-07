@@ -100,6 +100,12 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
             print(f"❌ Goal reward ceremony failed (the exit stands): {reward_error}")
     step.data.update({"goal_reward": goal_reward})
 
+    # Walking out alive is what completes the guided first run - the
+    # title screen's Continue button unlocks from here on
+    from backend.game.dungeon.first_run import complete_first_run_if_active
+
+    complete_first_run_if_active()
+
     # Close this run's row in the history while the run state
     # still exists (exit_dungeon wipes it), and preserve the run's
     # log for conversations back home

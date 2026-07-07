@@ -32,8 +32,15 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     # The chosen expedition notice (validated by the service) shapes this
     # whole run. Its theme and danger enter the run context BEFORE any
     # generation, so even the starting location is already themed.
+    # A guided FIRST RUN skips the board: fixed gentle theme, calm danger,
+    # the fixed goal, and the scripted event sequence.
     notice = context.get('notice') or {}
-    run_context.begin_run_context(theme=notice.get('theme'), danger=notice.get('danger'))
+    if context.get('first_run'):
+        from backend.game.dungeon.first_run import begin_first_run_context
+
+        begin_first_run_context()
+    else:
+        run_context.begin_run_context(theme=notice.get('theme'), danger=notice.get('danger'))
     run_context.clear_pending_notices()
 
     # A leftover run (the player walked away mid-run) still deserves
@@ -61,11 +68,13 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     step.emit("emit_generation_id")
 
     # Step 2.5 - the run's goal, BEFORE the first location generates, so
-    # even the starting location can lean toward it (rides in the brief)
+    # even the starting location can lean toward it (rides in the brief).
+    # The first run's goal is fixed and was set with its context above.
     from backend.game.dungeon import goal as run_goal
 
-    step.emit("generate_run_goal")
-    run_goal.generate_run_goal(workflow_name)
+    if not context.get('first_run'):
+        step.emit("generate_run_goal")
+        run_goal.generate_run_goal(workflow_name)
 
     # Step 3
     step.emit("generate_starting_location")

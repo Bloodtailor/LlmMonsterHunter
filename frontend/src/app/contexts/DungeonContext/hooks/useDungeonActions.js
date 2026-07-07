@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect } from 'react';
 import {
+  useBeginFirstRun,
   useExpeditionNotices,
   useEnterDungeon,
   useChoosePath,
@@ -49,6 +50,7 @@ export function useDungeonActions(stateHook) {
   } = setters;
 
   // App hooks for the API calls
+  const firstRunApi = useBeginFirstRun();
   const noticesApi = useExpeditionNotices();
   const enterApi = useEnterDungeon();
   const choosePathApi = useChoosePath();
@@ -111,6 +113,17 @@ export function useDungeonActions(stateHook) {
     setIsUsingAbility,
   ]);
 
+  // New Game: reset everything and stream the opening scene - the
+  // guided first run enters the dungeon from the opening screen
+  const beginFirstRun = useCallback(async () => {
+    if (firstRunApi.isLoading) {
+      return;
+    }
+
+    resetState();
+    await firstRunApi.beginFirstRun();
+  }, [firstRunApi.isLoading, firstRunApi.beginFirstRun, resetState]);
+
   // Ask the entrance board for fresh expedition notices to pick from
   const requestNotices = useCallback(async () => {
     if (noticesApi.isLoading) {
@@ -133,7 +146,7 @@ export function useDungeonActions(stateHook) {
   // state from a previous run is dropped before the workflow queues.
   // Answering a notice (noticeId) makes it a themed expedition.
   const enterDungeon = useCallback(
-    async (noticeId) => {
+    async (noticeId, firstRun = false) => {
       if (enterApi.isLoading) {
         return;
       }
@@ -147,7 +160,7 @@ export function useDungeonActions(stateHook) {
       setCurrentLocation(null);
       setPaths(null);
       setArePathsReady(false);
-      await enterApi.enterDungeon(noticeId);
+      await enterApi.enterDungeon(noticeId, firstRun);
     },
     [
       enterApi.isLoading,
@@ -163,6 +176,11 @@ export function useDungeonActions(stateHook) {
       setArePathsReady,
     ],
   );
+
+  // The guided first run enters with an empty party allowed
+  const enterFirstRun = useCallback(async () => {
+    await enterDungeon(null, true);
+  }, [enterDungeon]);
 
   // Take a path - clear everything from the previous junction first
   const choosePath = useCallback(
@@ -313,6 +331,8 @@ export function useDungeonActions(stateHook) {
 
   return {
     actions: {
+      beginFirstRun,
+      enterFirstRun,
       requestNotices,
       enterDungeon,
       choosePath,

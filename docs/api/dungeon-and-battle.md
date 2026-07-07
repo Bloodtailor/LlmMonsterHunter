@@ -65,6 +65,25 @@ During battles, abilities are used on the monster's turn and cost that turn.
 
 ## Dungeon (`/api/dungeon`)
 
+### POST /dungeon/first-run
+New Game: streams the opening scene (the wish-granting premise) via
+`workflow.update` step `emit_generation_id`
+(`data.opening_text_generation_id`). Always available — replaying the
+opening wipes nothing. The frontend then calls
+`GET /dungeon/enter?first_run=true`. Rejected while a run is active.
+**Success:** `{ "success": true, "workflow_id": number }`
+**`workflow.completed` result:** `{ success, opening_started: true }`
+
+**The guided first run** (`first_run=true` on enter): the ONE entry
+allowed with an empty party. It skips the notice board (fixed gentle
+theme, `calm` danger, fixed goal "leave with a new companion") and
+scripts the path events — every path at the first junction carries a
+`monster_dialogue` tuned winnable by words (the first monster is
+RECRUITED, not generated; it auto-joins the empty active party and the
+goal completes), the next junction carries a `monster_battle` beside the
+new (wary — it fights on its own terms) companion, then the exit
+appears. Walking out alive sets `first_run_complete`.
+
 ### POST /dungeon/expedition-notices
 Generates the entrance notice board: 2-3 expedition notices, each with an
 LLM-written `title`, `pitch`, and `theme`, plus a **Python-rolled** danger

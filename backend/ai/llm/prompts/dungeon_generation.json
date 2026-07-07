@@ -97,6 +97,17 @@
     "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party was at ---\n{previous_location_name}: {previous_location_description}\n\n--- The path they chose to take onward ---\n{path_name}: {path_description}\n\n--- The expedition brief ---\n{expedition_brief}\n\n========== YOUR TASK ==========\nGenerate the location this path leads to, fitting the expedition brief. It should make sense as somewhere this path could go, but it may surprise - a path only sometimes hints at its destination. Avoid generic names. The description is 1-2 sentences describing the location ITSELF - its structures, light, sounds, air, and the marks of its history. Describe only the place: do NOT mention the party, visitors, or anyone arriving.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of the location itself - its structures, light, sounds, and atmosphere.\"}}\n\nJSON:"
   },
 
+  "opening_scene": {
+    "description": "The game's streamed opening: the wish-granting-power premise, told as the adventurer first approaches the dungeon",
+    "max_tokens": 500,
+    "temperature": 0.85,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You are the narrator of a fantasy adventure, speaking the story's very first words to a brand-new player.\n\n========== THE PREMISE (weave it in, do not recite it) ==========\nSomewhere in the deep places of this world sleeps a mysterious power that can grant ANY wish. Every monster alive seeks it, each for its own deeply personal reason - to bring someone back, to be free of a curse, to matter. The adventurer now standing at the dungeon's mouth has a wish of their own, and no companions yet - the bonds will have to be made down there, with creatures whose wishes are as real as theirs.\n\n========== YOUR TASK ==========\nWrite the opening scene in 4-6 sentences of second-person narration ('you'): the road that brought them here, the first sight of the dungeon entrance, the weight of the wish they carry, and the truth that everything down there wants something too. End with them standing at the threshold, about to take the first step in. Evocative but plain-spoken - no purple prose, no numbers, no game terms.\n\nResponse:"
+  },
+
   "run_goal": {
     "description": "Write the run's ONE goal - concrete, checkable, achievable through exploration and encounters",
     "max_tokens": 300,

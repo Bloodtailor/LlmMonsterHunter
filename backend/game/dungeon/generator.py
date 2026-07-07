@@ -550,6 +550,8 @@ def generate_monster_question(
     Returns {'greeting': str, 'question': str} - always
     """
 
+    from backend.game.dungeon.first_run import dialogue_hint
+
     try:
         result = build_and_generate(
             'monster_question',
@@ -562,6 +564,7 @@ def generate_monster_question(
                 'monster_details': build_speaking_monsters_details([monster]),
                 'party_details': build_party_dungeon_details(),
                 'dungeon_log': _dungeon_log_text(),
+                'first_run_hint': dialogue_hint(),
             },
         )
         greeting = str(result.get('greeting') or '').strip()
@@ -584,6 +587,7 @@ def generate_dialogue_turn(
     Returns {'response': str, 'outcome': validated outcome} - always
     """
 
+    from backend.game.dungeon.first_run import dialogue_hint
     from backend.game.dungeon.outcomes import validate_outcome
 
     try:
@@ -599,6 +603,7 @@ def generate_dialogue_turn(
                 'party_details': build_party_dungeon_details(),
                 'dialogue_history': dialogue_history,
                 'dungeon_log': _dungeon_log_text(),
+                'first_run_hint': dialogue_hint(),
             },
         )
         return {

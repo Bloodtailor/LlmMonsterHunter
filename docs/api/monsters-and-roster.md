@@ -132,8 +132,10 @@ Serves a card-art image file directly (not JSON). `:path` is the monster's
 ## Roster: Following & Party (`/api/game-state`)
 
 ### GET /game-state
-Complete current game state.
-**Success:** `{ "success": true, ...GameStateObject }`
+The high-level save summary the title screen reads.
+**Success:** `{ "success": true, "first_run_complete": boolean, "following_count": number, "party_count": number, "in_dungeon": boolean }`
+`first_run_complete` gates the title screen's Continue button; New Game
+(the guided first run) is always available and wipes nothing.
 
 ### POST /game-state/reset
 Clears the party, the following list, and all `global_variables` (dungeon

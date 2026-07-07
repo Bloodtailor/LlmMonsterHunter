@@ -63,6 +63,8 @@ def apply_dialogue_outcome(
                 joined_names.append(monster.name)
         log_note = f"{', '.join(joined_names) or 'The monster'} joined the party as a follower."
 
+        _apply_first_run_recruitment(monster_ids)
+
     elif outcome == 'allow_passage':
         log_note = "The monster allowed the party to continue on their way."
 
@@ -96,6 +98,30 @@ def apply_dialogue_outcome(
     _write_outcome_memories(outcome, monster_ids, location, item_data)
 
     return {'joined_names': joined_names, 'log_note': log_note, 'item': item_data}
+
+
+def _apply_first_run_recruitment(monster_ids: list[int]) -> None:
+    """
+    The guided first run's turning point: the FIRST companion joins. It
+    steps straight into the (empty) active party so the scripted battle
+    has an ally, and the fixed goal completes right here - recruited, not
+    generated. Never raises; a no-op outside the first run.
+    """
+    try:
+        from backend.game.dungeon.first_run import is_first_run
+
+        if not is_first_run() or not monster_ids:
+            return
+
+        from backend.game.dungeon.goal import complete_goal_directly
+        from backend.game.state.manager import get_party_monster_ids, set_active_party
+
+        if not get_party_monster_ids():
+            set_active_party([int(monster_ids[0])])
+
+        complete_goal_directly('The first companion chose to come along.')
+    except Exception as first_run_error:
+        print(f"❌ First-run recruitment step failed (the join stands): {first_run_error}")
 
 
 # What each resolving outcome writes into the monster's permanent memory.
