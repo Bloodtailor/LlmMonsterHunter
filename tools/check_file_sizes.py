@@ -44,7 +44,7 @@ GRANDFATHERED = {
     'frontend/src/components/UiExamples/ButtonExample.js': 663,
     'frontend/src/components/UiExamples/CardExamples.js': 603,
     'frontend/src/components/UiExamples/ExpandableTableExample.js': 592,
-    'frontend/src/components/UiExamples/PaginiationExample.js': 563,
+    'frontend/src/components/UiExamples/PaginationExample.js': 563,
     'frontend/src/components/UiExamples/FeedbackExamples.js': 536,
 }
 

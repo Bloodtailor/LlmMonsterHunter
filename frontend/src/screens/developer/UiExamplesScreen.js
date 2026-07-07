@@ -18,7 +18,7 @@ import ExplosionExamples from '../../components/UiExamples/ExplosionExamples.js'
 import FilterControlsExamples from '../../components/UiExamples/FilterControlsExample.js';
 import FormExamples from '../../components/UiExamples/FormExample.js';
 import LoadingStatesExamples from '../../components/UiExamples/LoadingStatesExample.js';
-import PaginationExamples from '../../components/UiExamples/PaginiationExample.js';
+import PaginationExamples from '../../components/UiExamples/PaginationExample.js';
 
 function UiExamplesScreen() {
   const [activeComponent, setActiveComponent] = useState('badges');

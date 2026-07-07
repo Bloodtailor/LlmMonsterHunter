@@ -1,8 +1,36 @@
 # Architecture Exemplar — Implementation Plan
 
-**Status:** IN PROGRESS (July 2026, branch `feature/architecture-exemplar`,
-Arch-M1…Arch-M7).
+**Status:** IMPLEMENTED (July 2026, branch `feature/architecture-exemplar`,
+Arch-M1…Arch-M7). All 7 offline suites green via pytest AND the in-app
+runner; ruff/prettier/file-size checks green; `npm run build` compiles;
+step-name parity proven for both workflow splits. Pending the user's live
+soak (dungeon run + battle + campfire chat + evolution ceremony).
 **Commit prefix:** `Arch-M#`
+
+**Deviations from the original plan (all deliberate):**
+- Suite `main()` normalization (return the failed-check count) was pulled
+  forward from Arch-M3 into Arch-M1 — the same lines were being edited for
+  the test-DB migration anyway.
+- The ruff unsafe autofix deleted `create_tables()`' deliberately "unused"
+  model-registration imports (string-based relationships like
+  `GenerationLog -> "LLMLog"` broke). Restored with `# noqa: F401` and a
+  comment saying WHY they're load-bearing.
+- The pytest bridge exposed a real state leak: `test_resources` stubbed
+  `battle.save_battle_state` and never restored it — fine standalone,
+  poison in a shared process. Fixed with try/finally.
+- Prettier's one-time reformat grew the dev/example screens, so the
+  file-size grandfather list was re-measured post-format and gained two
+  entrants (`FeedbackExamples`, `StyleTestScreen` — both example screens).
+- `WorkflowStep` grew `mark()` and `emit_event()` during Arch-M5: the
+  battle monolith had never-emitted step markers and the custom
+  `action_resolved` payload, both of which had to survive byte-identically.
+- The two stale `.claude` worktrees: git metadata and branches pruned, but
+  the emptied directories are held by other processes and stay until those
+  exit (harmless husks).
+- The log-condense workflows moved into handler modules too, so both
+  `registered_workflows.py` files are UNIFORMLY thin (no mixed altitude).
+- `.env.example`'s `MAX_PARTY_SIZE` was dead (nothing reads it) — removed;
+  the real party-size knobs are documented in docs/tuning.md.
 
 Not a feature initiative — a whole-repo quality pass. The July 2026
 architecture review found the engine well-layered (routes → services →
