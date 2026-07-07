@@ -23,6 +23,13 @@ def reset_game_state():
     return jsonify(result), 200 if result['success'] else 500
 
 
+@game_state_bp.route('/new-game', methods=['POST'])
+def start_new_game():
+    """Erase the world for a fresh start (the New Game promise) - thin HTTP wrapper"""
+    result = game_state_service.start_new_game()
+    return jsonify(result), 200 if result['success'] else 400
+
+
 # === Following Monsters Management ===
 
 

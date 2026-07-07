@@ -114,9 +114,12 @@ def _apply_first_run_recruitment(monster_ids: list[int]) -> None:
             return
 
         from backend.game.dungeon.goal import complete_goal_directly
-        from backend.game.state.manager import get_party_monster_ids, set_active_party
+        from backend.game.state.manager import set_active_party
+        from backend.models.active_party import ActiveParty
 
-        if not get_party_monster_ids():
+        # "Empty" means no COMPANION rows - the player character is
+        # always in the party and must not block the first recruit
+        if not ActiveParty.get_party_monster_ids():
             set_active_party([int(monster_ids[0])])
 
         complete_goal_directly('The first companion chose to come along.')

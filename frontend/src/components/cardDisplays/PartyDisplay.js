@@ -26,16 +26,21 @@ function PartyDisplay({
   className = '',
   style = {},
 }) {
-  // Get party data from context
-  const { partySize, partyMonsters, isLoading } = useParty();
+  // Get party data from context (playerMonster is null on pre-character
+  // worlds - the panel then reads exactly as it always has)
+  const { partySize, partyMonsters, playerMonster, companionCap, isLoading } = useParty();
 
   // Get card viewer functionality
   const { MonsterCard, viewer } = useMonsterCardViewer();
 
-  // Create empty slot placeholders
-  const emptySlots = showEmptySlots ? Array(GAME_RULES.MAX_PARTY_SIZE - partySize).fill(null) : [];
+  // Create empty COMPANION slot placeholders (the player fills no slot)
+  const emptySlots = showEmptySlots ? Array(Math.max(companionCap - partySize, 0)).fill(null) : [];
 
-  const title = showTitle && `🛡️ Active Party (${partySize}/${GAME_RULES.MAX_PARTY_SIZE})`;
+  const title =
+    showTitle &&
+    (playerMonster
+      ? `🛡️ Active Party (you + ${partySize}/${companionCap} companions)`
+      : `🛡️ Active Party (${partySize}/${GAME_RULES.MAX_PARTY_SIZE})`);
 
   return (
     <Card>
@@ -54,6 +59,17 @@ function PartyDisplay({
               justifyContent: 'space-evenly',
             }}
           >
+            {/* The player character leads the party, always */}
+            {playerMonster && (
+              <MonsterCard
+                key={playerMonster.id}
+                monster={playerMonster}
+                size={cardSize}
+                showPartyToggle={false}
+                hideFlipHint={true}
+              />
+            )}
+
             {/* Render party monster cards */}
             {(partyMonsters || []).map((monster) => (
               <MonsterCard

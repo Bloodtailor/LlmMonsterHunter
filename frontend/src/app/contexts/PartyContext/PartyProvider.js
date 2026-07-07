@@ -11,6 +11,7 @@ import {
   useSetActiveParty,
 } from '../../hooks/useGameState.js';
 import { useEventSubscription } from '../../../api/events/useEventSubscription.js';
+import * as playerApi from '../../../api/services/player.js';
 
 function PartyProvider({ children }) {
   // Domain hooks for game state
@@ -18,10 +19,21 @@ function PartyProvider({ children }) {
   const partyHook = useActiveParty();
   const setPartyHook = useSetActiveParty();
 
+  // The player character rides beside the companion lists: always in
+  // the party (the backend prepends it to every party read), never a
+  // companion row. null on pre-character worlds - everything below
+  // must keep working without one.
+  const [playerMonster, setPlayerMonster] = useState(null);
+  const loadPlayer = async () => {
+    const { player } = await playerApi.getPlayer();
+    setPlayerMonster(player);
+  };
+
   // Load initial data
   useEffect(() => {
     followingHook.getFollowingMonsters();
     partyHook.getActiveParty();
+    loadPlayer();
   }, [followingHook.getFollowingMonsters, partyHook.getActiveParty]);
 
   // Live copies of BOTH roster lists - growth moments, evolution
@@ -43,7 +55,14 @@ function PartyProvider({ children }) {
   const patchRosterLists = (patchMonster) => {
     setLivePartyMonsters((prev) => (prev || []).map(patchMonster));
     setLiveFollowingMonsters((prev) => (prev || []).map(patchMonster));
+    setPlayerMonster((prev) => (prev ? patchMonster(prev) : prev));
   };
+
+  // Character creation happens mid-session: the wizard's monster.created
+  // is how this provider learns a player now exists
+  useEventSubscription('monsterCreated', () => {
+    if (!playerMonster) loadPlayer();
+  });
 
   useEventSubscription('monsterUpdated', ({ monster }) => {
     if (!monster?.id) return;
@@ -77,8 +96,17 @@ function PartyProvider({ children }) {
     return partyHook.ids.includes(monsterId);
   };
 
+  const isPlayerMonster = (monsterId) => {
+    return !!playerMonster && playerMonster.id === monsterId;
+  };
+
+  // Combatants stay capped at MAX_PARTY_SIZE: the player character
+  // takes one slot, leaving one fewer for companions (mirrors
+  // backend/game/state/manager.companion_cap)
+  const companionCap = playerMonster ? GAME_RULES.MAX_PARTY_SIZE - 1 : GAME_RULES.MAX_PARTY_SIZE;
+
   const isPartyFull = () => {
-    return partyHook.count >= GAME_RULES.MAX_PARTY_SIZE;
+    return partyHook.count >= companionCap;
   };
 
   const canAddToParty = (monsterId) => {
@@ -171,6 +199,10 @@ function PartyProvider({ children }) {
     followingSize: followingHook.count,
     loadingFollowers,
 
+    // The player character (null on pre-character worlds)
+    playerMonster,
+    companionCap,
+
     // Computed values - use hook data
     partySize: partyHook.count,
     isPartyFull: isPartyFull(),
@@ -179,6 +211,7 @@ function PartyProvider({ children }) {
     // Helper functions
     isInParty,
     isFollowing,
+    isPlayerMonster,
     canAddToParty,
 
     // Actions

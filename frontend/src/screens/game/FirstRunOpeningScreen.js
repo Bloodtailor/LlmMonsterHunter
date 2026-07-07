@@ -7,6 +7,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, Card, CardSection } from '../../shared/ui/index.js';
 import { useDungeon } from '../../app/contexts/DungeonContext/index.js';
+import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
+import * as playerApi from '../../api/services/player.js';
 import DungeonEntryText from '../../components/dungeon/components/DungeonEntryText.js';
 import ContinueToDoorsButton from '../../components/dungeon/components/ContinueToDoorsButton.js';
 import DungeonErrorAlert from '../../components/dungeon/components/DungeonErrorAlert.js';
@@ -23,18 +25,26 @@ const openingTextStyles = {
 
 function FirstRunOpeningScreen() {
   const { openingText, isOpeningReady, beginFirstRun, enterFirstRun } = useDungeon();
+  const { navigateToGameScreen } = useNavigation();
 
   // Whether the player has stepped inside (the run is underway)
   const [hasStepped, setHasStepped] = useState(false);
 
-  // The opening plays once per visit to this screen
+  // The opening plays once per visit to this screen - and only for a
+  // finished character (New Game routes through creation first; landing
+  // here without one is a stale navigation, sent back to the wizard)
   const hasBegunRef = useRef(false);
   useEffect(() => {
-    if (!hasBegunRef.current) {
-      hasBegunRef.current = true;
-      beginFirstRun();
-    }
-  }, [beginFirstRun]);
+    if (hasBegunRef.current) return;
+    hasBegunRef.current = true;
+    playerApi.getPlayer().then(({ player }) => {
+      if (player && player.generationStage === 'complete') {
+        beginFirstRun();
+      } else {
+        navigateToGameScreen('character-creation');
+      }
+    });
+  }, [beginFirstRun, navigateToGameScreen]);
 
   const stepInside = () => {
     setHasStepped(true);

@@ -1,0 +1,53 @@
+{
+  "player_options": {
+    "description": "Character creation: 3-4 distinct options for ONE field of the player's character, conditioned on everything already chosen",
+    "max_tokens": 320,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["options"],
+      "required_fields": ["options"]
+    },
+    "prompt_template": "You are helping a player create THEIR OWN character for a fantasy monster-catching adventure. Somewhere in the deep places sleeps a power that grants any wish - this character is going down after it. The player picks one of your options OR writes their own; your job is to spark ideas, not decide.\n\n========== CONTEXT ==========\n\n--- The character so far ---\n{choices_so_far}\n\n--- What is being decided now ---\n{field_guidance}\n\n========== YOUR TASK ==========\nOffer exactly {option_count} options. Each option must:\n- be {option_shape}\n- fit everything already chosen about the character\n- pull in a DIFFERENT direction from the other options (different moods, not variations of one idea)\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"options\": [\"...\", \"...\", \"...\"]}}\n\nJSON:"
+  },
+
+  "player_blueprint": {
+    "description": "Character creation stage 1: snap the player's chosen kind onto the curated taxonomy and settle the factual skeleton",
+    "max_tokens": 300,
+    "temperature": 0.7,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["domain", "kingdom", "family", "genus", "species", "race_label", "size_class", "lifecycle_stage", "creation_mechanism"],
+      "required_fields": ["domain", "kingdom", "species"]
+    },
+    "prompt_template": "You are a creature designer for a fantasy monster-catching game. A player has created their OWN character; your job is to place what they chose into the world's taxonomy - faithfully. Their words are law: translate them, never override them.\n\n========== CONTEXT ==========\n\n--- The player's character ---\n{choices_so_far}\n\n--- Curated taxonomy: pick ONE domain and ONE kingdom from this tree ---\n{taxonomy_options}\n\n========== YOUR TASK ==========\nPlace the character. Choose domain and kingdom FROM THE TREE ABOVE that best match what the player says they are (an ordinary human belongs in Materium > Kinfolk). Then INVENT the lower lineage in the same spirit: family (a lineage name), genus (a breed name), species (their full species name - for a human this can simply be Human). Also give:\n- race_label: a plain-language word for what they look like (e.g. Human, Drake, Sprite)\n- size_class: one of {size_options} - matching their described kind and appearance\n- lifecycle_stage: one of {lifecycle_options}\n- creation_mechanism: how they came to exist - one of {creation_options}\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"domain\": \"...\", \"kingdom\": \"...\", \"family\": \"...\", \"genus\": \"...\", \"species\": \"...\", \"race_label\": \"...\", \"size_class\": \"...\", \"lifecycle_stage\": \"...\", \"creation_mechanism\": \"...\"}}\n\nJSON:"
+  },
+
+  "player_persona": {
+    "description": "Character creation stage 2: expand the player's chosen personality, wish, and background into the full persona - their words are law",
+    "max_tokens": 500,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["personality_traits", "motivations", "goals", "beliefs", "moral_character", "fears", "likes", "dislikes", "hobbies", "profession", "attitude_toward_strangers", "responds_well_to", "responds_poorly_to", "drawn_to", "clashes_with", "speech_style", "battle_line"],
+      "required_fields": ["speech_style", "battle_line"]
+    },
+    "prompt_template": "You are fleshing out the persona of a PLAYER-CREATED character in a fantasy monster-catching game. The player already decided who this character is; you EXPAND their answers into game-usable detail. Their words are law - never contradict them, never soften their wish.\n\n========== CONTEXT ==========\n\n--- The character, as the player created them ---\n{choices_so_far}\n\n--- Their factual skeleton ---\n{blueprint_facts}\n\n========== YOUR TASK ==========\nExpand into the persona below. Keep entries short (2-4 words per list item, one sentence per prose field). Stay inside what the player established; invent only what follows naturally from it.\n- personality_traits: 3-5 adjectives distilled from the player's personality answer\n- motivations: why they chase their wish, in one sentence\n- goals: 1-2 concrete ambitions on the way to the wish\n- beliefs: their worldview or code\n- moral_character: how they treat others, plainly stated\n- fears: 1-2 things that truly frighten them\n- likes / dislikes: 2-3 each\n- hobbies: 1-3 things they do for their own enjoyment\n- profession: what they consider their calling (from their background)\n- attitude_toward_strangers: their default stance with strangers\n- responds_well_to / responds_poorly_to: 2-3 each\n- drawn_to / clashes_with: the personalities they bond with / grate against\n- speech_style: HOW they talk - rhythm, vocabulary, verbal tics. Distinctive enough to write dialogue from.\n- battle_line: their signature line when danger starts, true to that speech style\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"personality_traits\": [\"...\"], \"motivations\": \"...\", \"goals\": [\"...\"], \"beliefs\": \"...\", \"moral_character\": \"...\", \"fears\": [\"...\"], \"likes\": [\"...\"], \"dislikes\": [\"...\"], \"hobbies\": [\"...\"], \"profession\": \"...\", \"attitude_toward_strangers\": \"...\", \"responds_well_to\": [\"...\"], \"responds_poorly_to\": [\"...\"], \"drawn_to\": \"...\", \"clashes_with\": \"...\", \"speech_style\": \"...\", \"battle_line\": \"...\"}}\n\nJSON:"
+  },
+
+  "player_story": {
+    "description": "Character creation stage 3: the finished prose - description, backstory, and the color/feature lists pulled from the player's own appearance text",
+    "max_tokens": 450,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["description", "backstory", "primary_colors", "distinguishing_features"],
+      "required_fields": ["description"]
+    },
+    "prompt_template": "You are writing the finished prose for a PLAYER-CREATED character in a fantasy monster-catching game. Everything is already decided - your job is to write it well, staying absolutely true to the player's own words.\n\n========== CONTEXT ==========\n\n--- The character, as the player created them ---\n{choices_so_far}\n\n--- Their factual skeleton ---\n{blueprint_facts}\n\n--- Their appearance, in the player's own words (LAW - do not change it) ---\n{appearance_text}\n\n========== YOUR TASK ==========\nWrite:\n- description: 2-3 sentences that capture this character at a glance - who they are and what they carry with them (in the third person, by name)\n- backstory: one short paragraph (3-5 sentences) grown from their background and wish - where they come from, what they left, why the dungeon\n- primary_colors: 2-3 colors pulled from their appearance text (invent sensible ones only if the text names none)\n- distinguishing_features: 2-4 short visual features pulled from their appearance text\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"description\": \"...\", \"backstory\": \"...\", \"primary_colors\": [\"...\"], \"distinguishing_features\": [\"...\"]}}\n\nJSON:"
+  }
+}

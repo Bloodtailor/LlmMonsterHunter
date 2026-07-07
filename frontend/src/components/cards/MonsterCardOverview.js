@@ -23,10 +23,20 @@ function MonsterCardOverview({
   getCardArtUrl,
 }) {
   // NEW: Get party data from context instead of props
-  const { isInParty, isFollowing, isPartyFull, toggleParty, isLoading: partyDisabled } = useParty();
+  const {
+    isInParty,
+    isFollowing,
+    isPlayerMonster,
+    isPartyFull,
+    companionCap,
+    toggleParty,
+    isLoading: partyDisabled,
+  } = useParty();
 
   const monsterIsInParty = isInParty(monster.id);
   const monsterIsFollowing = isFollowing(monster.id);
+  // The player character: badged, never toggled (it is always in the party)
+  const monsterIsPlayer = isPlayerMonster(monster.id);
 
   // Handle party toggle - just call parent callback
   const handlePartyToggle = (e) => {
@@ -96,8 +106,17 @@ function MonsterCardOverview({
 
   return (
     <div className="monster-card-overview">
+      {/* The player character wears a badge where others get a toggle */}
+      {monsterIsPlayer && (
+        <div className="monster-card-party-toggle">
+          <Badge variant="warning" size={getBadgeSize()}>
+            🧭 You
+          </Badge>
+        </div>
+      )}
+
       {/* Party Toggle Button - Clean and simple with ToggleButton */}
-      {showPartyToggle && monsterIsFollowing && (
+      {showPartyToggle && monsterIsFollowing && !monsterIsPlayer && (
         <div className="monster-card-party-toggle">
           <ToggleButton
             isInCollection={monsterIsInParty}
@@ -107,7 +126,7 @@ function MonsterCardOverview({
             itemName={monster.name}
             collectionName="party"
             size={getButtonSize()}
-            maxItems={4}
+            maxItems={companionCap}
           />
         </div>
       )}

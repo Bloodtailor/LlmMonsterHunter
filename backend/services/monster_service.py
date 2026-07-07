@@ -74,11 +74,8 @@ def evolve_monster(monster_id, guidance=None) -> dict[str, Any]:
     Evolve a following monster at home base - queues the ceremony
     workflow; the transform and narration arrive over SSE.
     """
-    from backend.game.monster.evolution import (
-        GUIDANCE_MAX_CHARS,
-        clean_guidance,
-        evolution_eligibility_error,
-    )
+    from backend.game.monster.evolution import GUIDANCE_MAX_CHARS, clean_guidance
+    from backend.game.monster.evolution_eligibility import evolution_eligibility_error
 
     try:
         monster_id = int(monster_id)

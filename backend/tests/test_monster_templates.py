@@ -232,18 +232,36 @@ GENERATOR_VARIABLES = {
         'companions_line',
         'dungeon_log',
     },
-    # The first-run opening scene (game/dungeon/first_run.py - no variables)
-    'opening_scene': set(),
+    # The first-run opening scene (game/dungeon/first_run.py)
+    'opening_scene': {'player_details'},
     # Home-base chat (game/chat/generator.py)
     'home_chat_reply': {
         'monster_details',
+        'player_name',
+        'player_details',
         'monster_memories',
         'last_run_status',
         'last_run_log',
         'chat_history',
         'player_message',
     },
-    'chat_memory_extraction': {'monster_details', 'existing_memories', 'conversation_segment'},
+    'chat_memory_extraction': {
+        'monster_details',
+        'player_name',
+        'existing_memories',
+        'conversation_segment',
+    },
+    # Character creation (game/player/options.py + creation.py)
+    'player_options': {'choices_so_far', 'field_guidance', 'option_count', 'option_shape'},
+    'player_blueprint': {
+        'choices_so_far',
+        'taxonomy_options',
+        'size_options',
+        'lifecycle_options',
+        'creation_options',
+    },
+    'player_persona': {'choices_so_far', 'blueprint_facts'},
+    'player_story': {'choices_so_far', 'blueprint_facts', 'appearance_text'},
 }
 
 

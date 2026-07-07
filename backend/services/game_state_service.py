@@ -53,6 +53,12 @@ def add_following_monster(monster_id: int) -> dict[str, Any]:
     monster = monster_validation['monster']
 
     try:
+        # The player character walks beside no one - it IS the walker
+        from backend.game.player.manager import is_player_monster
+
+        if is_player_monster(monster_id):
+            return error_response(f'{monster.name} is you - you cannot follow yourself')
+
         # Check if already following (business rule)
         from backend.models.following_monsters import FollowingMonster
 
@@ -133,11 +139,23 @@ def get_active_party() -> dict[str, Any]:
 
 
 def set_active_party(monster_ids: list[int]) -> dict[str, Any]:
-    """Set the active party from following monsters"""
+    """Set the active party from following monsters. The player
+    character is filtered out (always in the party already); what
+    remains must fit the companion cap."""
 
     try:
+        from backend.game.player.manager import is_player_monster
+
+        companion_ids = [mid for mid in (monster_ids or []) if not is_player_monster(mid)]
+        cap = state_manager.companion_cap()
+        if len(companion_ids) > cap:
+            return error_response(
+                f'The party holds at most {cap} companions beside you '
+                f'- {len(companion_ids)} were chosen'
+            )
+
         # Business logic - Note: Your manager returns get_following_monsters() but should probably return get_active_party()
-        active_party = state_manager.set_active_party(monster_ids)
+        active_party = state_manager.set_active_party(companion_ids)
 
         party_names = []
 
@@ -165,14 +183,63 @@ def get_game_state() -> dict[str, Any]:
     try:
         from backend.game.dungeon import manager as dungeon_manager
         from backend.models.active_party import ActiveParty
+        from backend.models.dungeon_run import DungeonRun
         from backend.models.following_monsters import FollowingMonster
+        from backend.models.monster import Monster
+
+        # Anything a player could grieve losing: monsters, finished (or
+        # abandoned) runs, or a completed opening. Drives the title
+        # screen's erase-the-world confirmation on New Game.
+        has_world_data = (
+            Monster.query.first() is not None
+            or DungeonRun.query.first() is not None
+            or state_manager.is_first_run_complete()
+        )
+
+        from backend.game.player.manager import get_player_monster_id, player_exists
 
         return success_response(
             {
                 'first_run_complete': state_manager.is_first_run_complete(),
+                'has_world_data': has_world_data,
+                'has_player': player_exists(),
+                'player_monster_id': get_player_monster_id(),
                 'following_count': FollowingMonster.get_following_count(),
                 'party_count': ActiveParty.get_party_count(),
                 'in_dungeon': dungeon_manager.is_in_dungeon(),
+            }
+        )
+    except Exception as e:
+        return error_response(str(e))
+
+
+def start_new_game() -> dict[str, Any]:
+    """
+    The New Game promise: erase the world so a new story can begin.
+    Refuses while any workflow is queued or running - wiping state out
+    from under the sequential worker would strand it mid-story. The
+    frontend confirms with the player BEFORE calling this; by the time
+    the request arrives, the decision is made.
+    """
+    try:
+        from backend.game.state.new_game import wipe_world
+        from backend.models.game_workflow import GameWorkflow
+
+        busy_count = GameWorkflow.query.filter(
+            GameWorkflow.status.in_(('pending', 'processing'))
+        ).count()
+        if busy_count:
+            return error_response(
+                f'{busy_count} workflow(s) still queued or running - '
+                'let the story finish its sentence before starting over'
+            )
+
+        deleted = wipe_world()
+
+        return success_response(
+            {
+                'message': 'The world has been erased - a new story can begin',
+                'deleted_rows': deleted,
             }
         )
     except Exception as e:

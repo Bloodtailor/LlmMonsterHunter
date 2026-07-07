@@ -14,6 +14,7 @@ import {
   Alert,
   EmptyState,
 } from '../../shared/ui/index.js';
+import { useParty } from '../../app/contexts/PartyContext/index.js';
 import { useMonsterChat } from './hooks/useMonsterChat.js';
 
 // Everything the monster says shares one voice
@@ -59,6 +60,10 @@ function MonsterChatPanel({ monster }) {
     send,
     loadOlder,
   } = useMonsterChat(monster?.id || null);
+
+  // The player speaks AS their character - their lines wear its name
+  const { playerMonster } = useParty();
+  const playerName = playerMonster?.name || 'You';
 
   const [draft, setDraft] = useState('');
   const threadEndRef = useRef(null);
@@ -135,7 +140,9 @@ function MonsterChatPanel({ monster }) {
             const isPlayer = line.role === 'player';
             return (
               <div key={line.id} style={{ textAlign: isPlayer ? 'right' : 'left' }}>
-                <div style={speakerLabelStyles}>{isPlayer ? '🧑 You' : `👹 ${monster.name}`}</div>
+                <div style={speakerLabelStyles}>
+                  {isPlayer ? `🧭 ${playerName}` : `👹 ${monster.name}`}
+                </div>
                 <p style={isPlayer ? playerSpeechStyles : monsterSpeechStyles}>"{line.text}"</p>
               </div>
             );

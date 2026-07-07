@@ -5,7 +5,7 @@ domain — this file covers the conventions that apply everywhere, then
 links to the per-domain files.
 
 ## Reference files
-- [Monsters & Roster](monsters-and-roster.md) — monster generation, listing, abilities, card art, following list, and active party
+- [Monsters & Roster](monsters-and-roster.md) — monster generation, listing, abilities, card art, following list, active party, New Game, and the player character (creation wizard + portrait)
 - [Chat](chat.md) — home-base conversations with following monsters: persistent threads, streamed replies, memory extraction, and the rolling summaries that keep indefinite chats affordable
 - [Inventory](inventory.md) — the party's items (LLM-adjudicated consumables) and CoCaTok victory keepsakes, where they come from, and how items are used
 - [Dungeon & Battle](dungeon-and-battle.md) — the gameplay loop: entering dungeons, choosing paths, exploring locations, monster dialogues, free-form ability use, and turn-based battles

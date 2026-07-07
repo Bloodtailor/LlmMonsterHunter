@@ -101,16 +101,30 @@ def complete_first_run_if_active() -> None:
 
 def run_begin_first_run(context: dict, step: WorkflowStep) -> dict[str, Any]:
     """Stream the opening scene: the wish-granting premise, on screen at
-    last. The frontend follows opening_text_generation_id, then enters
-    the dungeon with first_run=true."""
+    last - told about THE character the player just created. The
+    frontend follows opening_text_generation_id, then enters the dungeon
+    with first_run=true."""
     workflow_name = 'begin_first_run'
 
+    from backend.game.monster.context_builder import build_monster_block
+    from backend.game.player.manager import get_player_monster
     from backend.game.utils import build_and_stream
 
     step.emit("validate_context")
 
+    # The opening narrates the created character by name and wish; a
+    # pre-character world keeps the old nameless framing
+    player = get_player_monster()
+    player_details = (
+        build_monster_block(player, tier='compact')
+        if player is not None
+        else 'A nameless adventurer carrying an unspoken wish.'
+    )
+
     step.emit("queue_opening_scene")
-    opening_text_generation_id = build_and_stream('opening_scene', workflow_name, {})
+    opening_text_generation_id = build_and_stream(
+        'opening_scene', workflow_name, {'player_details': player_details}
+    )
     step.data.update({"opening_text_generation_id": opening_text_generation_id})
 
     step.emit("emit_generation_id")

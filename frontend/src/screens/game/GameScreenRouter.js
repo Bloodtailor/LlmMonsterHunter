@@ -7,6 +7,7 @@ import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
 
 // Import game screens
 import TitleScreen from './TitleScreen.js';
+import CharacterCreationScreen from './CharacterCreationScreen.js';
 import FirstRunOpeningScreen from './FirstRunOpeningScreen.js';
 import HomeBaseScreen from './HomeBaseScreen.js';
 import MonsterSanctuaryScreen from './MonsterSanctuaryScreen.js';
@@ -31,6 +32,9 @@ function GameScreenRouter() {
   switch (currentGameScreen) {
     case 'title':
       return <TitleScreen />;
+
+    case 'character-creation':
+      return <CharacterCreationScreen />;
 
     case 'first-run-opening':
       return <FirstRunOpeningScreen />;

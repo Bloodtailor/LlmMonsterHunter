@@ -186,8 +186,24 @@ chat_history `16/12/30`, dungeon_log `12/10/25`, battle_log `14/12/25`.
 
 ## Party size (two places — keep in sync)
 
+Combatants stay capped at 4: the player character always fills one
+slot, leaving **3 companion slots** once a character exists (a
+pre-character world keeps all 4).
+
 - Frontend: `GAME_RULES.MAX_PARTY_SIZE = 4` in `frontend/src/shared/constants/constants.js`
-- Backend: the max-4 check in `backend/models/active_party.py`
+  (`PartyProvider` derives the companion cap as `MAX_PARTY_SIZE - 1` with a player)
+- Backend: `MAX_COMPANIONS_WITH_PLAYER`/`MAX_COMPANIONS_WITHOUT_PLAYER` +
+  `companion_cap()` in `backend/game/state/manager.py` (the max-4 check in
+  `backend/models/active_party.py` is a last-resort floor)
+
+## Player character — `backend/game/player/`
+
+| Knob | Where | Default | Effect |
+|---|---|---|---|
+| `PLAYER_RARITY` | `creation.py` | `common` | The character's fixed rarity (stats scale from it; growth is how they get stronger) |
+| `PLAYER_OPTION_COUNT` | `options.py` | `3` | Options offered per creation field (kind offers one extra) |
+| `FIELD_MAX_CHARS` | `options.py` | 60–500 | Per-field caps on typed answers AND offered options |
+| `UPLOAD_MAX_BYTES` | `portrait.py` | 8MB | Portrait upload size ceiling (png/jpg/webp, magic-byte checked) |
 
 ## Prompt templates — `backend/ai/llm/prompts/*.json`
 
