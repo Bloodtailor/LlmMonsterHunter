@@ -31,6 +31,10 @@ soak (dungeon run + battle + campfire chat + evolution ceremony).
   `registered_workflows.py` files are UNIFORMLY thin (no mixed altitude).
 - `.env.example`'s `MAX_PARTY_SIZE` was dead (nothing reads it) — removed;
   the real party-size knobs are documented in docs/tuning.md.
+- CI's first run caught that `frontend/package-lock.json` was gitignored —
+  the frontend job's `npm ci` and dependency cache both need it. The
+  lockfile is now committed (post-M7 fix), which is standard practice:
+  everyone (and CI) installs the exact same dependency versions.
 
 Not a feature initiative — a whole-repo quality pass. The July 2026
 architecture review found the engine well-layered (routes → services →

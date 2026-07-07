@@ -1,6 +1,3 @@
-# 
-frontend/package-lock.json
-
 # comfyui image generation output
 backend/ai/comfyui/outputs/**
 !backend/ai/comfyui/outputs/.gitkeep
