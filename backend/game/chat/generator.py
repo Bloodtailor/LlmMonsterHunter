@@ -101,9 +101,12 @@ def extract_chat_memories(monster, segment_messages: List[Any], workflow_name: s
         print(f"❌ Chat memory extraction failed for monster {monster.id}: {e}")
         return None
 
-    # The LLM proposes; code validates and caps
+    # The LLM proposes; code validates, then caps (garbage entries must
+    # not consume one of the few slots)
     memories = []
-    for entry in (result.get('memories') or [])[:CHAT_SETTINGS['max_memories_per_pass']]:
+    for entry in (result.get('memories') or []):
+        if len(memories) >= CHAT_SETTINGS['max_memories_per_pass']:
+            break
         if not isinstance(entry, dict):
             continue
         kind = str(entry.get('kind') or '').strip().lower()

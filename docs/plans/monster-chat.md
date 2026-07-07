@@ -1,6 +1,12 @@
 # Monster Chat & Rolling Summaries — Implementation Plan
 
-**Status:** IN PROGRESS (July 2026, branch `feature/monster-chat`).
+**Status:** IMPLEMENTED (July 2026, branch `feature/monster-chat`,
+Chat-M1…Chat-M4). Offline suites green (46 new checks + all five existing
+suites); pending the user's live soak with the LLM loaded — watch the AI
+log for parse-retry rates on the three new templates (`home_chat_reply`,
+`chat_memory_extraction`, `condense_history`) and for over-eager memory
+extraction (the 7B may save memories for small talk; tighten the template
+wording or raise `CHAT_SETTINGS['extract_after_messages']` if so).
 **Commit prefix:** `Chat-M#`
 
 The player can sit down with any monster that follows them — at home base,
@@ -163,4 +169,18 @@ dungeon-and-battle (rolling summaries note) updated.
 
 ## 7. Deviations log
 
-(recorded as they happen)
+- **Housekeeping runs as self-queued workflows, not inline.** The workflow
+  queue is a single sequential worker, so `chat_housekeeping` /
+  `condense_dungeon_log` / `condense_battle_log` queue BEHIND the workflow
+  the player awaits — same cost, zero perceived latency, no state races.
+- **Extraction validates filter-then-cap** so a garbage LLM entry cannot
+  consume one of the 3 memory slots.
+- **Battle log storage kept its name** (`recent_log`) for save
+  compatibility; `RECENT_LOG_SIZE` (now 400) and `DUNGEON_LOG_MAX_ENTRIES`
+  (now 1000) became overflow safety valves that shift summary coverage
+  when they trip, instead of routine truncation.
+- **Chat prompts use "The adventurer"** (not "The party") — home-base talk
+  is personal, one-on-one.
+- Ally battle blocks and party detail blocks now carry tier-gated memory
+  lines (1/2/3 on compact/standard/full) — the planned "memories change
+  how they fight" hook, kept lean for 4096-token windows.

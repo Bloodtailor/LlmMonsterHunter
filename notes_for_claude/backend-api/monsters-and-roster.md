@@ -56,11 +56,13 @@ List monsters with paging, filtering, and sorting.
 ### GET /monsters/:id/memories
 The monster's permanent memories of the party, oldest first (its life in
 order). Written by battles, dialogues, sneaks, camps, growth reflections,
-and returns — see the *Memory & evolution* section in
-[Dungeon & Battle](dungeon-and-battle.md). Live additions arrive via the
-`monster.memory_added` SSE event. Synchronous.
+returns — and home-base chats (kinds `confided`, `grew_closer`,
+`shared_lore`, `learned_fact`, `voiced_wish`, extracted from conversation
+with `details.source: "home_chat"`; see [Chat](chat.md)) — see the
+*Memory & evolution* section in [Dungeon & Battle](dungeon-and-battle.md).
+Live additions arrive via the `monster.memory_added` SSE event. Synchronous.
 **Success:** `{ "success": true, "monster_id": number, "memories": [MemoryObject] }`
-`MemoryObject`: `{ id, monster_id, run_id, kind, content, details: { run_number?, by?, with?, location?, ... }, created_at }`
+`MemoryObject`: `{ id, monster_id, run_id, kind, content, details: { run_number?, source?, by?, with?, location?, ... }, created_at }`
 **Error (404):** `{ "success": false, "error": "Monster not found" }`
 
 ### GET /monsters/stats
