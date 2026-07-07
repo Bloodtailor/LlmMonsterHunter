@@ -12,11 +12,21 @@ function partnerArtUrl(monster) {
 }
 
 /**
- * MonsterChatPicker component
+ * MonsterChatPicker component - also reused by other home-base screens
+ * (the Evolution Altar) that need "pick one of your companions"
  * @param {number|null} selectedId - Currently selected partner
  * @param {function} onSelect - Called with a monster object when picked
+ * @param {string} [title] - Picker heading
+ * @param {string} [emptyTitle] - Heading when no one follows yet
+ * @param {string} [emptyDescription] - Body when no one follows yet
  */
-function MonsterChatPicker({ selectedId, onSelect }) {
+function MonsterChatPicker({
+  selectedId,
+  onSelect,
+  title = '🐾 Your companions',
+  emptyTitle = 'No one to talk to yet',
+  emptyDescription = 'Monsters that join you in the dungeon will gather here, ready to talk.'
+}) {
   const { followingMonsters, loadingFollowers } = useParty();
 
   const rowStyles = (isSelected) => ({
@@ -47,7 +57,7 @@ function MonsterChatPicker({ selectedId, onSelect }) {
 
   return (
     <Card size="lg" background="light">
-      <CardSection type="header" size="md" title="🐾 Your companions" alignment="center" />
+      <CardSection type="header" size="md" title={title} alignment="center" />
       <CardSection type="content">
         {loadingFollowers && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '16px' }}>
@@ -58,8 +68,8 @@ function MonsterChatPicker({ selectedId, onSelect }) {
         {!loadingFollowers && (!followingMonsters || followingMonsters.length === 0) && (
           <EmptyState
             size="md"
-            title="No one to talk to yet"
-            description="Monsters that join you in the dungeon will gather here, ready to talk."
+            title={emptyTitle}
+            description={emptyDescription}
           />
         )}
 

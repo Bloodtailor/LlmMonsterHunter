@@ -47,6 +47,14 @@ MONSTER_EVENTS = {
             'memory': 'Complete memory data (from memory.to_dict())'
         },
         'send_to_frontend': True
+    },
+
+    'monster.evolved': {
+        'data_fields': {
+            'monster': 'Complete monster data (from monster.to_dict()) after the evolution transform',
+            'evolution': 'The lineage record (from evolution.to_dict()) - old/new identity, stage, old art path'
+        },
+        'send_to_frontend': True
     }
 }
 
@@ -86,4 +94,11 @@ def emit_monster_memory_added(monster_id: int, memory: Dict[str, Any]) -> bool:
     return _emit_from_schema('monster.memory_added',
         monster_id=monster_id,
         memory=memory
+    )
+
+def emit_monster_evolved(monster: Dict[str, Any], evolution: Dict[str, Any]) -> bool:
+    """Emit the moment an evolution ceremony transforms a monster in place"""
+    return _emit_from_schema('monster.evolved',
+        monster=monster,
+        evolution=evolution
     )

@@ -3,7 +3,7 @@
 // These are facts about the game world (monster exists, has art, has ability),
 // not machinery progress - subscribe to react the moment they become true
 
-import { transformMonster, transformAbility, transformMemory } from "../transformers/monsters.js";
+import { transformMonster, transformAbility, transformMemory, transformEvolution } from "../transformers/monsters.js";
 import { broadcastEvent } from "../core/eventBroadcast.js";
 
 /**
@@ -49,5 +49,15 @@ export const monsterEventHandlers = {
       memory: transformMemory(eventData.memory)
     };
     broadcastEvent('monsterMemoryAdded', transformedData);
+  },
+
+  // The evolution ceremony's transform moment - identity, stats, and
+  // rarity just flipped in place; the record carries the old form
+  'monster.evolved': (eventData) => {
+    const transformedData = {
+      monster: transformMonster(eventData.monster),
+      evolution: transformEvolution(eventData.evolution)
+    };
+    broadcastEvent('monsterEvolved', transformedData);
   }
 };

@@ -45,6 +45,7 @@ def import_all_models():
     from backend.models.game_workflow import GameWorkflow
     from backend.models.dungeon_run import DungeonRun
     from backend.models.monster_memory import MonsterMemory
+    from backend.models.monster_evolution import MonsterEvolution
     from backend.models.chat_message import ChatMessage
     from backend.models.chat_summary import ChatSummary
     from backend.models.chat_thread import ChatThread

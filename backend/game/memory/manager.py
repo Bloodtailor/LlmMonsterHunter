@@ -23,6 +23,9 @@ MEMORY_KINDS = (
     'growth',            # a growth reflection changed it
     'lesson',            # what defeat taught it (party monsters)
     'returned',          # it came back changed to face the party again
+    'evolved',           # an evolution ceremony remade it (deliberately
+                         # invisible to growth_total_pct - evolution sits
+                         # outside the growth/return lifetime caps)
     'run_complete',      # it walked out of the dungeon with the party
     # Home-base chat kinds (extracted from conversation, source recorded)
     'confided',          # it opened up about itself or its past

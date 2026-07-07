@@ -48,6 +48,20 @@ def get_stats():
     )
     return jsonify(result), 200 if result['success'] else 400
 
+# Evolution endpoints - thin HTTP wrappers
+@monster_bp.route('/<int:monster_id>/evolve', methods=['POST'])
+def evolve_monster(monster_id):
+    """Evolve a following monster at home base - thin HTTP wrapper"""
+    payload = request.get_json(silent=True) or {}
+    result = monster_service.evolve_monster(monster_id, guidance=payload.get('guidance'))
+    return jsonify(result), 200 if result['success'] else 400
+
+@monster_bp.route('/<int:monster_id>/evolutions')
+def get_monster_evolutions(monster_id):
+    """Get one monster's evolution lineage - thin HTTP wrapper"""
+    result = monster_service.get_monster_evolutions(monster_id)
+    return jsonify(result), 200 if result['success'] else 404
+
 # Ability endpoints - thin HTTP wrappers
 @monster_bp.route('/<int:monster_id>/abilities', methods=['POST'])
 def generate_ability_for_monster(monster_id):

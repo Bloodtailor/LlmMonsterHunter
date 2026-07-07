@@ -65,6 +65,34 @@ Live additions arrive via the `monster.memory_added` SSE event. Synchronous.
 `MemoryObject`: `{ id, monster_id, run_id, kind, content, details: { run_number?, source?, by?, with?, location?, ... }, created_at }`
 **Error (404):** `{ "success": false, "error": "Monster not found" }`
 
+### POST /monsters/:id/evolve
+Queues an `evolve_monster` workflow — the home-base evolution ceremony. The
+monster must be FOLLOWING (or in the party), fully generated, and the party
+must not be mid-run. Same monster id throughout: memories, chat thread,
+abilities, and party status all survive; the prior form is snapshotted as an
+`EvolutionObject` (see [Data Models](data-models.md)).
+**Request:** `{ "guidance"?: string }` — optional whisper (≤200 chars)
+steering the evolved form; blank = pure history.
+**Success:** `{ "success": true, "workflow_id": number }`
+**Error (400):** `{ "success": false, "error": string }` (mid-run, not
+following, still generating, guidance too long)
+Results arrive via SSE: `monster.updated` + `monster.evolved` (identity,
+stats +25/15/10% by stage, rarity one tier up, healed) →
+`workflow.update step: emit_generation_id` (`evolution_text_generation_id`
+streams the ceremony narration) → `monster.updated` per later stage
+(persona shift, prose/appearance, ability rewords) →
+`monster.ability_added` (optional signature ability) →
+`monster.memory_added` (kind `evolved`) → `monster.art_ready` (regenerated
+card art; skipped if image gen is disabled or the prose stage failed), then
+`workflow.completed` with `{ monster, evolution, narrative, new_ability,
+reworded_abilities, art_regenerated }`.
+
+### GET /monsters/:id/evolutions
+The monster's evolution lineage, oldest first (its forms in order).
+Synchronous.
+**Success:** `{ "success": true, "monster_id": number, "evolutions": [EvolutionObject] }`
+**Error (404):** `{ "success": false, "error": "Monster not found" }`
+
 ### GET /monsters/stats
 Aggregate stats over the collection.
 **Query params:** `filter?: string` — `all | with_art | without_art` (default `all`)

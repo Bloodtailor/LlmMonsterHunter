@@ -58,9 +58,16 @@ and Sanctuary auto-refresh):
   ALSO fires after growth reflections and returning-monster transforms — stat
   bumps, reworded abilities, and persona grudges arrive this way)
 - `monster.ability_added` — `{ monster_id, ability }` (`AbilityObject`)
-- `monster.art_ready` — `{ monster_id, image_path }`
+- `monster.art_ready` — `{ monster_id, image_path }` (initial generation AND
+  evolution art regen — the frontend repoints the card image either way)
 - `monster.memory_added` — `{ monster_id, memory }` (`MemoryObject` — the monster
   recorded a permanent memory of the party; see monsters-and-roster.md)
+- `monster.evolved` — `{ monster, evolution }` (full `MonsterObject` +
+  `EvolutionObject`): the evolution ceremony's transform moment — identity,
+  stats, and rarity just flipped in place. The evolution record carries the
+  old name/species/stats and `old_card_art_path` so the ceremony UI can show
+  the before-form without a fetch. Later ceremony stages keep arriving as
+  ordinary `monster.updated` patches.
 
 ### Dungeon domain events
 - `dungeon.monster_revealed` — `{ monster }` (full `MonsterObject`): a
@@ -77,10 +84,10 @@ and the item-consumption flows:
 - `inventory.cocatok_added` — `{ cocatok }` (`CoCaTokObject` — a victory was minted)
 
 `workflow_type` values seen in workflow events: `generate_detailed_monster`,
-`generate_ability`, `enter_dungeon`, `choose_path`, `respond_to_monster`,
-`sneak_past`, `surprise_attack`, `setup_camp`, `use_dungeon_ability`,
-`use_dungeon_item`, `continue_exploring`, `battle_turn`,
-`chat_with_monster`, and the self-queued housekeeping workflows
+`generate_ability`, `evolve_monster`, `enter_dungeon`, `choose_path`,
+`respond_to_monster`, `sneak_past`, `surprise_attack`, `setup_camp`,
+`use_dungeon_ability`, `use_dungeon_item`, `continue_exploring`,
+`battle_turn`, `chat_with_monster`, and the self-queued housekeeping workflows
 `chat_housekeeping`, `condense_dungeon_log`, `condense_battle_log`
 (rolling summaries / memory extraction — queued backend-side behind the
 workflow the player is waiting on; the frontend can ignore their
@@ -95,8 +102,11 @@ Notable `workflow.update` steps:
   `treasure_text_generation_id` for treasure discoveries,
   `turn_vanity_generation_id` for the acting party monster's inner
   monologue when a battle turn is handed to the player,
-  `chat_text_generation_id` for the home-base chat reply). Match subsequent
-  `llm.generation.update` events by `generation_id` to stream that text.
+  `chat_text_generation_id` for the home-base chat reply,
+  `evolution_text_generation_id` for the evolution ceremony narration). Match
+  subsequent `llm.generation.update` events by `generation_id` to stream that text.
+- `form_applied` — `data.monster` + `data.evolution` (the evolution
+  ceremony's transform just landed; mirrors the `monster.evolved` event)
 - `location_generated` — `data.current_location` (a path's arrival location)
 - `action_resolved` — `data.action_result` (one resolved battle turn; see [Dungeon & Battle](dungeon-and-battle.md))
 - `generate_treasure_item` — `data.item` (the treasure path's found item)

@@ -98,6 +98,16 @@ GENERATOR_VARIABLES = {
     'camp_spotlight': {'party_names', 'journal_highlights'},
     'growth_reflection': {'monster_details', 'run_journal', 'monster_memories', 'mode_note'},
     'defeat_reflection': {'party_details', 'battle_log', 'journal_highlights'},
+    # Evolution (game/monster/evolution.py)
+    'evolution_form': {'monster_details', 'monster_memories', 'locked_lineage',
+                       'stage_note', 'player_guidance'},
+    'evolution_narration': {'monster_details', 'monster_memories', 'transformation_facts',
+                            'player_guidance'},
+    'evolution_persona': {'monster_details', 'transformation_facts', 'player_guidance'},
+    'evolution_prose': {'monster_details', 'transformation_facts', 'persona_shift_facts',
+                        'old_visual_description', 'player_guidance'},
+    'evolution_abilities': {'monster_details', 'transformation_facts',
+                            'existing_abilities_text', 'player_guidance'},
     # Rolling summaries (game/utils/rolling_summary.py)
     'condense_history': {'source_label', 'prior_summary', 'batch_lines'},
     # Home-base chat (game/chat/generator.py)
