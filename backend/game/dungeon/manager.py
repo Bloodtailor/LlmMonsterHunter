@@ -76,7 +76,12 @@ def start_dungeon(location: dict[str, Any], paths: dict[str, Any], run_id: int =
 
 
 def exit_dungeon() -> None:
-    """End the dungeon run and clear all state"""
+    """End the dungeon run and clear all state - including the run's
+    modifiers (every run ending passes through here: victory, defeat,
+    abandonment)"""
+    from backend.game.dungeon.run_context import clear_run_context
+
+    clear_run_context()
     save_dungeon_state(dict(_EMPTY_STATE))
 
 

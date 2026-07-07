@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect } from 'react';
 import {
+  useExpeditionNotices,
   useEnterDungeon,
   useChoosePath,
   useRespondToMonster,
@@ -26,6 +27,9 @@ export function useDungeonActions(stateHook) {
 
   const {
     setErrorState,
+    setNotices,
+    setIsGeneratingNotices,
+    setExpedition,
     setCurrentLocation,
     setPaths,
     setArePathsReady,
@@ -43,6 +47,7 @@ export function useDungeonActions(stateHook) {
   } = setters;
 
   // App hooks for the API calls
+  const noticesApi = useExpeditionNotices();
   const enterApi = useEnterDungeon();
   const choosePathApi = useChoosePath();
   const respondApi = useRespondToMonster();
@@ -56,6 +61,7 @@ export function useDungeonActions(stateHook) {
   // Sync API hook errors with context state
   useEffect(() => {
     const apiError =
+      (noticesApi.isError && noticesApi.error) ||
       (enterApi.isError && enterApi.error) ||
       (choosePathApi.isError && choosePathApi.error) ||
       (respondApi.isError && respondApi.error) ||
@@ -68,6 +74,7 @@ export function useDungeonActions(stateHook) {
     if (apiError) {
       setErrorState(apiError?.message || 'Dungeon request failed');
       // Don't leave any action stuck on "waiting"
+      setIsGeneratingNotices(false);
       setIsMonsterResponding(false);
       setIsSneaking(false);
       setIsAmbushing(false);
@@ -75,6 +82,8 @@ export function useDungeonActions(stateHook) {
       setIsUsingAbility(false);
     }
   }, [
+    noticesApi.isError,
+    noticesApi.error,
     enterApi.isError,
     enterApi.error,
     choosePathApi.isError,
@@ -92,6 +101,7 @@ export function useDungeonActions(stateHook) {
     continueApi.isError,
     continueApi.error,
     setErrorState,
+    setIsGeneratingNotices,
     setIsMonsterResponding,
     setIsSneaking,
     setIsAmbushing,
@@ -99,30 +109,54 @@ export function useDungeonActions(stateHook) {
     setIsUsingAbility,
   ]);
 
-  // Enter dungeon action - a fresh run starts clean, so any leftover
-  // state from a previous run is dropped before the workflow queues
-  const enterDungeon = useCallback(async () => {
-    if (enterApi.isLoading) {
+  // Ask the entrance board for fresh expedition notices to pick from
+  const requestNotices = useCallback(async () => {
+    if (noticesApi.isLoading) {
       return;
     }
 
     setErrorState(null);
-    clearEncounter();
-    setExitText(null);
-    setCurrentLocation(null);
-    setPaths(null);
-    setArePathsReady(false);
-    await enterApi.enterDungeon();
+    setNotices(null);
+    setIsGeneratingNotices(true);
+    await noticesApi.generateNotices();
   }, [
-    enterApi.isLoading,
-    enterApi.enterDungeon,
+    noticesApi.isLoading,
+    noticesApi.generateNotices,
     setErrorState,
-    clearEncounter,
-    setExitText,
-    setCurrentLocation,
-    setPaths,
-    setArePathsReady,
+    setNotices,
+    setIsGeneratingNotices,
   ]);
+
+  // Enter dungeon action - a fresh run starts clean, so any leftover
+  // state from a previous run is dropped before the workflow queues.
+  // Answering a notice (noticeId) makes it a themed expedition.
+  const enterDungeon = useCallback(
+    async (noticeId) => {
+      if (enterApi.isLoading) {
+        return;
+      }
+
+      setErrorState(null);
+      clearEncounter();
+      setExpedition(null);
+      setExitText(null);
+      setCurrentLocation(null);
+      setPaths(null);
+      setArePathsReady(false);
+      await enterApi.enterDungeon(noticeId);
+    },
+    [
+      enterApi.isLoading,
+      enterApi.enterDungeon,
+      setErrorState,
+      clearEncounter,
+      setExpedition,
+      setExitText,
+      setCurrentLocation,
+      setPaths,
+      setArePathsReady,
+    ],
+  );
 
   // Take a path - clear everything from the previous junction first
   const choosePath = useCallback(
@@ -273,6 +307,7 @@ export function useDungeonActions(stateHook) {
 
   return {
     actions: {
+      requestNotices,
       enterDungeon,
       choosePath,
       respondToMonster,

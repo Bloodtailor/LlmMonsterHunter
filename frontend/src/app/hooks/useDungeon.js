@@ -8,15 +8,43 @@ import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as dungeonApi from '../../api/services/dungeon.js';
 
 /**
+ * Hook for generating the entrance notice board
+ * (queues generate_expedition_notices workflow)
+ */
+export function useExpeditionNotices() {
+  // ✨ Automatically uses generateExpeditionNotices.defaults
+  const api = useAsyncState(dungeonApi.generateExpeditionNotices);
+
+  const generateNotices = useCallback(async () => {
+    return await api.execute();
+  }, [api.execute]);
+
+  return {
+    success: api.data.success,
+    workflowId: api.data.workflowId,
+    rawResponse: api.data._raw,
+
+    isLoading: api.isLoading,
+    isError: api.isError,
+    error: api.error,
+
+    generateNotices,
+  };
+}
+
+/**
  * Hook for entering the dungeon (queues enter_dungeon workflow)
  */
 export function useEnterDungeon() {
   // ✨ Automatically uses enterDungeon.defaults
   const api = useAsyncState(dungeonApi.enterDungeon);
 
-  const enterDungeon = useCallback(async () => {
-    return await api.execute();
-  }, [api.execute]);
+  const enterDungeon = useCallback(
+    async (noticeId) => {
+      return await api.execute(noticeId);
+    },
+    [api.execute],
+  );
 
   return {
     // Clean result (guaranteed shapes!)

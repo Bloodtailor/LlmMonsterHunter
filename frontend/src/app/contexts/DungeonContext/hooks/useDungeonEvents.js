@@ -9,6 +9,7 @@ import { useStreamedGeneration } from '../../../../api/events/useStreamedGenerat
 
 // Every workflow this context owns - used for error surfacing
 const DUNGEON_WORKFLOWS = [
+  'generate_expedition_notices',
   'enter_dungeon',
   'choose_path',
   'respond_to_monster',
@@ -28,6 +29,9 @@ export function useDungeonEvents(stateHook) {
   const { state, setters } = stateHook;
 
   const {
+    setNotices,
+    setIsGeneratingNotices,
+    setExpedition,
     setEntryText,
     setCurrentLocation,
     setPaths,
@@ -152,6 +156,7 @@ export function useDungeonEvents(stateHook) {
   const handleWorkflowFailure = (workflowType, error) => {
     if (!DUNGEON_WORKFLOWS.includes(workflowType)) return;
 
+    setIsGeneratingNotices(false);
     setIsMonsterResponding(false);
     setIsSneaking(false);
     setIsAmbushing(false);
@@ -193,7 +198,13 @@ export function useDungeonEvents(stateHook) {
     }
 
     switch (workflowType) {
+      case 'generate_expedition_notices':
+        setIsGeneratingNotices(false);
+        setNotices(result.notices || []);
+        break;
+
       case 'enter_dungeon':
+        setExpedition(result.expedition || null);
         setCurrentLocation(result.current_location || null);
         setPaths(result.paths || null);
         setArePathsReady(true);

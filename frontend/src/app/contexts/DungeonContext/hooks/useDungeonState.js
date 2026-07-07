@@ -16,6 +16,13 @@ export function useDungeonState() {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState(null);
 
+  // The entrance notice board - the expeditions the player picks from
+  const [notices, setNotices] = useState(null); // null until the board arrives
+  const [isGeneratingNotices, setIsGeneratingNotices] = useState(false);
+
+  // The expedition the party answered ({ title, theme, danger } or null)
+  const [expedition, setExpedition] = useState(null);
+
   // Entry text streaming (dungeon entrance)
   const [entryText, setEntryText] = useState('');
 
@@ -114,6 +121,9 @@ export function useDungeonState() {
   const resetState = useCallback(() => {
     setIsError(false);
     setError(null);
+    setNotices(null);
+    setIsGeneratingNotices(false);
+    setExpedition(null);
     setEntryText('');
     setCurrentLocation(null);
     setPaths(null);
@@ -150,6 +160,9 @@ export function useDungeonState() {
     state: {
       isError,
       error,
+      notices,
+      isGeneratingNotices,
+      expedition,
       entryText,
       currentLocation,
       paths,
@@ -184,6 +197,9 @@ export function useDungeonState() {
     // Internal setters (for other hooks)
     setters: {
       setErrorState,
+      setNotices,
+      setIsGeneratingNotices,
+      setExpedition,
       setEntryText,
       setCurrentLocation,
       setPaths,

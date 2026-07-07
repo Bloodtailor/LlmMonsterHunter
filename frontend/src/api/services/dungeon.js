@@ -6,11 +6,35 @@
 import { get, post } from '../core/client.js';
 
 /**
- * Enter the dungeon using the enter_dungeon workflow
+ * Generate the entrance notice board using the generate_expedition_notices
+ * workflow (the LLM writes 2-3 themed notices; Python rolls each danger)
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
-export async function enterDungeon() {
-  const response = await get('/api/dungeon/enter');
+export async function generateExpeditionNotices() {
+  const response = await post('/api/dungeon/expedition-notices');
+
+  return {
+    success: response.success ?? generateExpeditionNotices.defaults.success,
+    workflowId: response.workflow_id ?? generateExpeditionNotices.defaults.workflowId,
+    _raw: response,
+  };
+}
+generateExpeditionNotices.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
+ * Enter the dungeon using the enter_dungeon workflow
+ * @param {string} [noticeId] - The chosen expedition notice (its theme and
+ *   danger shape the whole run); omit for an ordinary, unthemed run
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function enterDungeon(noticeId) {
+  const url = noticeId
+    ? `/api/dungeon/enter?notice_id=${encodeURIComponent(noticeId)}`
+    : '/api/dungeon/enter';
+  const response = await get(url);
 
   return {
     success: response.success ?? enterDungeon.defaults.success,

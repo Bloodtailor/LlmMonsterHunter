@@ -248,6 +248,8 @@ def resolve_freeform_action(
     Returns {'possible', 'narration', 'impact', 'impact_target'} - always
     """
 
+    from backend.game.dungeon.run_context import referee_hint
+
     try:
         result = build_and_generate(
             'freeform_action_resolution',
@@ -260,6 +262,7 @@ def resolve_freeform_action(
                 'player_info': player_info or 'none',
                 'battle_situation': build_battle_situation(state),
                 'recent_log': build_recent_log(state),
+                'referee_hint': referee_hint(),
             },
         )
 
@@ -351,6 +354,8 @@ def resolve_action(
     Returns {'narration': str, 'impact': valid impact key} - always
     """
 
+    from backend.game.dungeon.run_context import referee_hint
+
     try:
         result = build_and_generate(
             'action_resolution',
@@ -362,6 +367,7 @@ def resolve_action(
                 'target_details': target_details,
                 'battle_situation': build_battle_situation(state),
                 'recent_log': build_recent_log(state),
+                'referee_hint': referee_hint(),
             },
         )
 

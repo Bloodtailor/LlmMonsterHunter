@@ -118,7 +118,8 @@ GENERATOR_VARIABLES = {
         'secret_knowledge',
         'dungeon_log',
     },
-    # Battle referees (battle/generator.py) - carry the resource cost fields
+    # Battle referees (battle/generator.py) - carry the resource cost
+    # fields and the expedition's danger-biased referee hint
     'action_resolution': {
         'location_name',
         'actor_details',
@@ -126,6 +127,7 @@ GENERATOR_VARIABLES = {
         'target_details',
         'battle_situation',
         'recent_log',
+        'referee_hint',
     },
     'freeform_action_resolution': {
         'location_name',
@@ -135,7 +137,27 @@ GENERATOR_VARIABLES = {
         'player_info',
         'battle_situation',
         'recent_log',
+        'referee_hint',
     },
+    # Expedition flow (dungeon/generator.py + handlers/notices.py) - the
+    # run's theme/danger/goal ride in as one expedition_brief block
+    'expedition_notices': {'notice_count'},
+    'entry_atmosphere': {'party_summary', 'expedition_brief'},
+    'random_location': {'expedition_brief'},
+    'arrival_location': {
+        'previous_location_name',
+        'previous_location_description',
+        'path_name',
+        'path_description',
+        'expedition_brief',
+    },
+    'path_choices': {
+        'location_name',
+        'location_description',
+        'total_count',
+        'expedition_brief',
+    },
+    'exit_path': {'location_name', 'location_description', 'expedition_brief'},
     'enemy_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
     # Dungeon ability referee (dungeon/generator.py resolve_dungeon_ability)
     'dungeon_ability_use': {

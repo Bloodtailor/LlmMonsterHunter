@@ -13,7 +13,7 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     workflow_name = 'enter_dungeon'
 
     from backend.game.battle import manager as battle_manager
-    from backend.game.dungeon import manager
+    from backend.game.dungeon import manager, run_context
     from backend.game.dungeon.generator import (
         generate_entry_text,
         generate_paths,
@@ -28,6 +28,13 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     # A fresh run starts clean: any stale battle from a previous run
     # is cleared (start_dungeon below resets the dungeon state and log)
     battle_manager.end_battle()
+
+    # The chosen expedition notice (validated by the service) shapes this
+    # whole run. Its theme and danger enter the run context BEFORE any
+    # generation, so even the starting location is already themed.
+    notice = context.get('notice') or {}
+    run_context.begin_run_context(theme=notice.get('theme'), danger=notice.get('danger'))
+    run_context.clear_pending_notices()
 
     # A leftover run (the player walked away mid-run) still deserves
     # its place in the chat context - snapshot its log before begin()
@@ -73,6 +80,11 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     manager.set_party_resources(party_resources)
 
     # The run's story begins
+    if notice:
+        manager.append_dungeon_log(
+            f"The party answered an expedition notice: '{notice.get('title', 'Unnamed')}' "
+            f"({notice.get('theme', 'no theme')}; danger: {notice.get('danger', 'unknown')})."
+        )
     manager.append_dungeon_log(
         f"The party ({get_party_summary()}) entered the dungeon and arrived at "
         f"{location.get('name', 'an unknown place')}: {location.get('description', '')}"
@@ -84,6 +96,13 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
             "paths": manager.get_public_paths(),
             "party_conditions": party_conditions,
             "party_resources": party_resources,
+            "expedition": {
+                "theme": notice.get('theme'),
+                "danger": notice.get('danger'),
+                "title": notice.get('title'),
+            }
+            if notice
+            else None,
         }
     )
 

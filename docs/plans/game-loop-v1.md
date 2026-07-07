@@ -40,12 +40,12 @@ runs with goals and stakes → a home base worth returning to.**
 
 ## Milestones
 
-### M1 — Prompt fixes — IN PROGRESS
+### M1 — Prompt fixes — IMPLEMENTED
 `random_location` + `arrival_location` prompts and the generator
 fallbacks describe the location itself (no party, no arrival);
 `turn_vanity` becomes one present-moment sentence (`max_tokens` 300→100).
 
-### M2 — Expedition notices: themes + danger — PLANNED
+### M2 — Expedition notices: themes + danger — IMPLEMENTED
 New `game/dungeon/run_context.py`: run_context read/write helpers,
 `expedition_brief()`, and `DANGER_PROFILES` (`calm/risky/perilous` →
 enemy count range, battle event weight, explore-monster chance,
@@ -113,4 +113,14 @@ recruit acting on its own, then earning `familiar` and taking commands.
 
 ## Deviations
 
-- None yet.
+- **M2:** `run_context` lives in its own GlobalVariable key rather than
+  inside `dungeon_state` — the theme must exist before the dungeon state
+  row is created (the starting location is themed), and `start_dungeon`
+  wholly replaces the state dict. Lifecycle stays single-pointed:
+  `begin_run_context()` in enter, `clear_run_context()` inside
+  `manager.exit_dungeon()`.
+- **M2 (file-size ceiling):** threading the brief pushed two files over
+  their limits, so two concepts moved out: dungeon fallbacks →
+  `game/dungeon/fallbacks.py`, and the developer X-ray →
+  `services/dungeon_debug_service.py`. The entrance auto-enter effect
+  (replaced by the notice board) was deleted.

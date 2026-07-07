@@ -65,14 +65,29 @@ During battles, abilities are used on the monster's turn and cost that turn.
 
 ## Dungeon (`/api/dungeon`)
 
+### POST /dungeon/expedition-notices
+Generates the entrance notice board: 2-3 expedition notices, each with an
+LLM-written `title`, `pitch`, and `theme`, plus a **Python-rolled** danger
+word (`calm | risky | perilous`). The chosen notice's id is passed to
+`/dungeon/enter`; its theme threads into every location/path/monster
+generation for the run and its danger maps to code knobs (enemy counts,
+event weights, referee bias — see docs/tuning.md). Rejected while a run
+is active.
+**Success:** `{ "success": true, "workflow_id": number }`
+**`workflow.completed` result:** `{ success, notices: [{ id, title, pitch, theme, danger }] }`
+
 ### GET /dungeon/enter
-Requires a ready active party. Streams entry text, generates a starting
-location and its paths (each path is a *route onward*, not a destination —
-its true destination and its hidden event are generated now but withheld).
+Requires a ready active party. Optional query param `notice_id` answers
+one of the board's posted notices (validated against the stored board) —
+its theme + danger become the run's context. Without `notice_id` the run
+is an ordinary, unthemed expedition.
+Streams entry text, generates a starting location and its paths (each
+path is a *route onward*, not a destination — its true destination and
+its hidden event are generated now but withheld).
 Opens a `dungeon_runs` history row and refills the party's stamina/mana
 pools — **entering is the only guaranteed reset of reserves**.
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions, party_resources: { "[monster_id]": { "stamina": word, "mana": word } } }`
+**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions, party_resources: { "[monster_id]": { "stamina": word, "mana": word } }, expedition: { title, theme, danger } | null }`
 Reserve words ladder: `brimming > steady > strained > drained > spent`.
 Also streams entry text via `workflow.update` step `emit_generation_id`
 (`data.entry_text_generation_id`) + `llm.generation.update`.

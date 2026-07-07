@@ -6,29 +6,30 @@ import React from 'react';
 import { Card, CardSection } from '../../../shared/ui/index.js';
 
 // Import focused components
+import ExpeditionNoticeBoard from '../components/ExpeditionNoticeBoard.js';
 import DungeonEntryText from '../components/DungeonEntryText.js';
 import ContinueToDoorsButton from '../components/ContinueToDoorsButton.js';
-import AutoEnterDungeonEffect from '../components/AutoEnterDungeonEffect.js';
 import DungeonResetButton from '../components/DungeonResetButton.js';
 
 /**
  * DungeonEntranceScreen component
  * Pure layout component with ZERO context subscriptions
- * Will never rerender due to dungeon context changes
+ * The notice board owns the entry flow: pick an expedition, then the
+ * entry text streams and the continue button appears
  */
 function DungeonEntranceScreen() {
   // Pure layout - never changes, never rerenders
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Side effect component - handles auto-enter logic */}
-      <AutoEnterDungeonEffect />
-
       {/* Header */}
       <Card size="xl" background="light">
         <CardSection type="header" size="xl" title="🏰 Dungeon Entrance" alignment="center">
           <p>As you approach the ancient dungeon, mystical energies swirl around you...</p>
         </CardSection>
       </Card>
+
+      {/* Expedition picker - hides itself once the party sets out */}
+      <ExpeditionNoticeBoard />
 
       {/* Entry Text - Focused component that handles streaming */}
       <Card size="xl" background="dark">

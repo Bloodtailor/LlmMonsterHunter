@@ -30,8 +30,11 @@ def generate_base_monster():
 
 
 def generate_contextual_monster(location: dict):
-    """Generate a complete monster that belongs to a specific dungeon location"""
-    return _generate_monster_chain(_location_context(location))
+    """Generate a complete monster that belongs to a specific dungeon
+    location (and to the active expedition's theme, when a run is on)"""
+    from backend.game.dungeon.run_context import themed_location_context
+
+    return _generate_monster_chain(themed_location_context(location))
 
 
 def _generate_monster_chain(location_context: str):
@@ -39,10 +42,6 @@ def _generate_monster_chain(location_context: str):
     monster = generate_monster_persona(monster)
     monster = generate_monster_story(monster, location_context)
     return monster
-
-
-def _location_context(location: dict) -> str:
-    return f"{location.get('name', 'Unknown Location')}: {location.get('description', '')}"
 
 
 # ===== STAGE 1: BLUEPRINT (identity + ecology facts, code-derived stats) =====
