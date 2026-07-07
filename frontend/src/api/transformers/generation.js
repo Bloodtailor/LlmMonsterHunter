@@ -81,9 +81,11 @@ export function transformLlmLog(rawLlmLog) {
 
     // === Model Info ===
     modelName: rawLlmLog.model_name ?? '',
+    provider: rawLlmLog.provider ?? '',
 
     // === LLM Response ===
     responseText: rawLlmLog.response_text ?? '',
+    promptTokens: rawLlmLog.prompt_tokens ?? null, // null = logged before the seam
     responseTokens: rawLlmLog.response_tokens ?? 0,
     tokensPerSecond: rawLlmLog.tokens_per_second ?? 0,
 

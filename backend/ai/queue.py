@@ -53,6 +53,7 @@ class QueueItem:
     error: Optional[str] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    model_name: Optional[str] = None  # From LLMLog.model_name (LLM items only)
 
     def to_dict(self):
         return {
@@ -67,6 +68,7 @@ class QueueItem:
             'error': self.error,
             'started_at': self.started_at.isoformat() if self.started_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'model_name': self.model_name,
         }
 
 
@@ -116,6 +118,11 @@ class AIGenerationQueue:
             if not log_entry:
                 return False
 
+            # The model that will speak, captured NOW in the caller's app
+            # context - the started event fires in the worker loop, where
+            # there is no DB session to ask
+            model_name = log_entry.llm_log.model_name if log_entry.llm_log else None
+
             # Create queue item with enhanced data
             item = QueueItem(
                 generation_id=generation_id,
@@ -125,6 +132,7 @@ class AIGenerationQueue:
                 priority=log_entry.priority,
                 created_at=datetime.utcnow(),
                 status=QueueItemStatus.PENDING,
+                model_name=model_name,
             )
 
             with self._lock:

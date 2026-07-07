@@ -6,8 +6,8 @@ from typing import Any, Callable, Optional
 
 from backend.core.utils import error_response, print_success, success_response
 
-from .inference import generate_streaming
 from .parser import parse_response
+from .providers import get_provider
 
 
 def process_llm_request(
@@ -52,6 +52,11 @@ def process_llm_request(
         inference_params = llm_log.get_inference_params()
         parser_config = llm_log.parser_config
 
+        # Dispatch on the provider STAMPED at request time (gateway), not
+        # on live settings - a mid-queue settings change must not reroute
+        # work already promised to another engine
+        provider = get_provider(llm_log.provider)
+
         # Mark as started
         generation_log.mark_started()
         generation_log.save()
@@ -62,7 +67,7 @@ def process_llm_request(
             print_success(f"LLM Generation attempt {current_attempt}/{generation_log.max_attempts}")
 
             # Generate text
-            generation_result = generate_streaming(
+            generation_result = provider.generate_streaming(
                 prompt=prompt_text, callback=callback, **inference_params
             )
 
@@ -78,6 +83,7 @@ def process_llm_request(
                 response_text=generation_result['text'],
                 response_tokens=generation_result.get('tokens', 0),
                 tokens_per_second=generation_result.get('tokens_per_second', 0),
+                prompt_tokens=generation_result.get('prompt_tokens'),
             )
             llm_log.save()
 

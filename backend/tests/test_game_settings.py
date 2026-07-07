@@ -1,8 +1,10 @@
 # Game Settings Tests - OFFLINE (no LLM, test DB)
-# Exercises Set-M1 (docs/plans/game-settings.md): the game_settings
-# key-value store, the provider resolver's unbreakable local/env floor
-# (missing row/table/app-context must resolve to pre-initiative behavior),
-# the service's write-only API key masking + validation rules, and the
+# Exercises Set-M1 + Set-M2 (docs/plans/game-settings.md): the
+# game_settings key-value store, the provider resolver's unbreakable
+# local/env floor (missing row/table/app-context must resolve to
+# pre-initiative behavior), the service's write-only API key masking +
+# validation rules, the provider seam (dispatch, the local adapter's
+# model_name/prompt_tokens contract, request-time stamping), and the
 # locked decision that settings SURVIVE the New Game wipe.
 #
 # Usage: python -m backend.tests.test_game_settings   (from project root)
@@ -167,6 +169,141 @@ def main():
                 'local without disable-thinking does not prefill',
                 not should_apply_nothink_prefill('local'),
             )
+
+            # ===== the provider seam (Set-M2) =====
+            print('\n-- the provider seam --')
+            from backend.ai.llm.providers import get_provider
+            from backend.ai.llm.providers import local as local_provider
+
+            check(
+                'a local stamp dispatches to the local provider',
+                get_provider('local') is local_provider,
+            )
+            check(
+                'a pre-seam row (provider None) dispatches local',
+                get_provider(None) is local_provider,
+            )
+
+            # The local adapter honors the seam contract - inference
+            # stubbed exactly the way every offline suite stubs the LLM
+            from backend.ai.llm import inference as inference_module
+
+            def fake_generate_streaming(prompt, callback=None, **params):
+                return {
+                    'success': True,
+                    'error': None,
+                    'text': 'stubbed words',
+                    'tokens': 2,
+                    'duration': 0.1,
+                    'tokens_per_second': 20.0,
+                }
+
+            real_generate_streaming = inference_module.generate_streaming
+            inference_module.generate_streaming = fake_generate_streaming
+            original_model_path = set_env('LLM_MODEL_PATH', 'C:/models/test-model.gguf')
+            try:
+                result = local_provider.generate_streaming('a prompt')
+                check(
+                    'the local adapter names the GGUF file',
+                    result['model_name'] == 'test-model.gguf',
+                    str(result.get('model_name')),
+                )
+                check(
+                    'prompt tokens are None when no model is loaded',
+                    result['prompt_tokens'] is None,
+                )
+                check(
+                    'the inference result passes through untouched',
+                    result['text'] == 'stubbed words' and result['tokens'] == 2,
+                )
+            finally:
+                inference_module.generate_streaming = real_generate_streaming
+                set_env('LLM_MODEL_PATH', original_model_path)
+
+            # Exact counts come from the model's own tokenizer
+            from backend.ai.llm import core as llm_core_module
+
+            class FakeModel:
+                def tokenize(self, data, *args, **kwargs):
+                    return list(range(7))
+
+            real_get_model_instance = llm_core_module.get_model_instance
+            llm_core_module.get_model_instance = lambda: FakeModel()
+            try:
+                check(
+                    'prompt tokens come from the tokenizer',
+                    local_provider.count_prompt_tokens('hello world') == 7,
+                )
+            finally:
+                llm_core_module.get_model_instance = real_get_model_instance
+
+            # ===== stamping at request time (Set-M2) =====
+            print('\n-- provider stamping --')
+            from datetime import datetime
+
+            from backend.ai.queue import QueueItem, QueueItemStatus
+            from backend.core.config.llm_config import get_all_inference_defaults
+            from backend.models.generation_log import GenerationLog
+            from backend.models.llm_log import LLMLog
+
+            stamped_log = GenerationLog.create_llm_log(
+                prompt_type='test',
+                prompt_name='test_settings_stamp',
+                prompt_text='stamped',
+                inference_params=get_all_inference_defaults(),
+                provider='deepseek',
+                model_name='deepseek-v4-flash',
+            )
+            stamped_log.save()
+            try:
+                check(
+                    'the llm log carries the request-time stamp',
+                    stamped_log.llm_log.provider == 'deepseek'
+                    and stamped_log.llm_log.model_name == 'deepseek-v4-flash',
+                )
+
+                default_log = GenerationLog.create_llm_log(
+                    prompt_type='test',
+                    prompt_name='test_settings_stamp_default',
+                    prompt_text='unstamped',
+                    inference_params=get_all_inference_defaults(),
+                )
+                check(
+                    'callers that never heard of providers stamp local',
+                    default_log.llm_log.provider == 'local',
+                )
+
+                stamped_log.llm_log.mark_response_completed(
+                    response_text='x',
+                    response_tokens=3,
+                    tokens_per_second=1.0,
+                    prompt_tokens=42,
+                )
+                stamped_log.llm_log.save()
+                fresh = LLMLog.get_by_generation_id(stamped_log.id)
+                check('prompt tokens persist on completion', fresh.prompt_tokens == 42)
+                check(
+                    'the log dict ships provider + token counts',
+                    fresh.to_dict()['provider'] == 'deepseek'
+                    and fresh.to_dict()['prompt_tokens'] == 42,
+                )
+
+                queue_item = QueueItem(
+                    generation_id=stamped_log.id,
+                    generation_type='llm',
+                    prompt_type='test',
+                    prompt_name='test_settings_stamp',
+                    priority=5,
+                    created_at=datetime.utcnow(),
+                    status=QueueItemStatus.PENDING,
+                    model_name=stamped_log.llm_log.model_name,
+                )
+                check(
+                    'the queue item ships the model name to the frontend',
+                    queue_item.to_dict()['model_name'] == 'deepseek-v4-flash',
+                )
+            finally:
+                stamped_log.delete()  # cascade removes the llm_log child
 
             # ===== the service: masked reads =====
             print('\n-- the service: masking --')

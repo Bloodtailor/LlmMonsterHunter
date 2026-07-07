@@ -20,7 +20,11 @@ def test_db_name() -> str:
 # marker is missing from the TEST database, the whole database is dropped
 # and rebuilt - it is disposable by contract (suites create their own
 # rows). Add a (table, column) pair here whenever a model gains a column.
-_SCHEMA_MARKERS = (('monsters', 'affinity'),)
+_SCHEMA_MARKERS = (
+    ('monsters', 'affinity'),
+    ('llm_logs', 'provider'),
+    ('llm_logs', 'prompt_tokens'),
+)
 
 
 def _ensure_database_exists():

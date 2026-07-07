@@ -94,8 +94,12 @@ function StreamingDisplay() {
             )}
           </CardSection>
 
-          {/* LLM Generation Section */}
-          <CardSection title="LLM Generation">
+          {/* LLM Generation Section - titled with the model that speaks */}
+          <CardSection
+            title={
+              llmStatus?.modelName ? `LLM Generation — ${llmStatus.modelName}` : 'LLM Generation'
+            }
+          >
             {/* LLM Table */}
             {llmStatus?.status ? (
               <Table

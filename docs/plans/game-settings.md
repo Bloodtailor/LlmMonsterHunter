@@ -1,6 +1,7 @@
 # Game Settings — In-Game Settings Panel + DeepSeek Provider — Plan
 
-**Status:** APPROVED (July 2026) — no milestones landed yet.
+**Status:** IN PROGRESS (July 2026) — M1–M2 landed (settings storage/API,
+provider seam + observability); M3 DeepSeek provider and M4 panel UI remain.
 **Branch:** `feature/game-settings` — one milestone commit per milestone, prefix `Set-M#`.
 
 Today the game speaks to exactly one text engine: the local
@@ -76,7 +77,7 @@ be stale in weeks — hence live discovery.
 
 ## Milestones
 
-### M1 — Settings storage + API — PLANNED
+### M1 — Settings storage + API — IMPLEMENTED
 No generation behavior change. `models/game_setting.py` (key/JSON
 value, GlobalVariable-style, wipe-exempt by omission);
 `ai/llm/provider_settings.py` (`resolve_llm_settings()` merges the DB
@@ -91,7 +92,7 @@ deepseek requires key stored-or-provided + model). Registered in
 Suite: `test_game_settings.py` (get/set, precedence, masking,
 validation, wipe survival). Docs: `docs/api/settings.md` + README index.
 
-### M2 — Provider seam + observability — PLANNED
+### M2 — Provider seam + observability — IMPLEMENTED
 `ai/llm/providers/` package: `__init__.py::get_provider()`, `local.py`
 (thin adapter over `inference.generate_streaming`; adds `model_name` =
 model filename and exact `prompt_tokens` via `model.tokenize()`).

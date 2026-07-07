@@ -50,12 +50,24 @@ def text_generation_request(
     if prompt_name is None:
         prompt_name = inference_params['prompt_name']
 
+    # Which engine speaks - resolved ONCE here and stamped into the log,
+    # so a queued request keeps its provider even if settings change
+    # before it processes (locked decision, docs/plans/game-settings.md)
+    from backend.ai.llm.provider_settings import (
+        resolve_llm_settings,
+        should_apply_nothink_prefill,
+    )
+
+    llm_settings = resolve_llm_settings()
+
     # Suppress reasoning-model <think> blocks by prefilling an empty one.
     # Applied HERE, before logging, so generation_log.prompt_text is
     # byte-exact with what the model receives (the dev table shows truth).
-    from backend.core.config.llm_config import NOTHINK_PREFILL, get_disable_thinking
+    # Local raw-completion only: DeepSeek is a chat API and gets thinking
+    # disabled as a request parameter instead.
+    from backend.core.config.llm_config import NOTHINK_PREFILL
 
-    if get_disable_thinking():
+    if should_apply_nothink_prefill(llm_settings['provider']):
         prompt = prompt + NOTHINK_PREFILL
 
     # Show simplified request info
@@ -69,6 +81,8 @@ def text_generation_request(
         prompt_text=prompt,
         inference_params=inference_params,
         parser_config=parser_config,
+        provider=llm_settings['provider'],
+        model_name=llm_settings['model_name'],
     )
 
     if not generation_log or not generation_log.save():
