@@ -82,8 +82,8 @@ def advance_until_player_or_end(ctx: TurnContext, outcome, resolution):
             ctx.state['phase'] = 'awaiting_player_turn'
             battle.save_battle_state(ctx.state)
 
-            # Streamed inner monologue for the acting monster - what it
-            # feels, thinks, and wants (the player still decides the
+            # Streamed one-sentence thought for the acting monster - what
+            # it is thinking at this moment (the player still decides the
             # action). Failure can never block the turn.
             try:
                 ctx.step.mark("queue_turn_vanity")

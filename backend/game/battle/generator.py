@@ -391,8 +391,8 @@ def generate_turn_vanity_text(
     actor_details: str, location: dict[str, Any], state: dict[str, Any], workflow_name: str
 ) -> int:
     """
-    Queue streamed inner-monologue vanity text for the party monster whose
-    turn it is - what it feels, thinks, and wants to do (the player still
+    Queue streamed vanity text for the party monster whose turn it is -
+    ONE sentence of what it is thinking at this moment (the player still
     decides its actual action). Returns generation_id.
     """
     return build_and_stream(

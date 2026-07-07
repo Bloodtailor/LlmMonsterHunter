@@ -662,7 +662,7 @@ def _get_fallback_location() -> dict[str, str]:
     fallback_locations = [
         {
             "name": "Echoing Cavern",
-            "description": "Ancient stone walls glisten with moisture as your footsteps echo endlessly into the darkness ahead.",
+            "description": "Ancient stone walls glisten with moisture, and the smallest sound echoes endlessly into the darkness beyond.",
         },
         {
             "name": "Crystal Grove",
@@ -670,7 +670,7 @@ def _get_fallback_location() -> dict[str, str]:
         },
         {
             "name": "Forgotten Sanctum",
-            "description": "Weathered statues stand sentinel in this abandoned temple, their eyes seeming to follow your every movement.",
+            "description": "Weathered statues stand sentinel in this abandoned temple, their carved eyes fixed on the doorway as if still keeping some ancient watch.",
         },
         {
             "name": "Whispering Chamber",

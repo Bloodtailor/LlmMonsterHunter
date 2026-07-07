@@ -20,7 +20,7 @@
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== YOUR TASK ==========\nGenerate one mysterious dungeon location for exploration. Make it interesting and unique - avoid generic names. The description is 1-2 sentences of what a visitor sees, hears, and feels: atmospheric and immersive.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of what you see, hear, and feel in this location.\"}}\n\nJSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== YOUR TASK ==========\nGenerate one mysterious dungeon location for exploration. Make it interesting and unique - avoid generic names. The description is 1-2 sentences describing the location ITSELF - its structures, materials, light, sounds, air, and the marks its history has left on it. Describe only the place: do NOT mention the party, visitors, or anyone arriving or moving through it.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of the location itself - its structures, light, sounds, and atmosphere.\"}}\n\nJSON:"
   },
 
   "door_choices": {
@@ -94,6 +94,6 @@
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party was at ---\n{previous_location_name}: {previous_location_description}\n\n--- The path they chose to take onward ---\n{path_name}: {path_description}\n\n========== YOUR TASK ==========\nGenerate the location the party arrives at after taking this path. It should make sense as somewhere this path could lead, but it may surprise the party - the path only sometimes hints at its destination. Avoid generic names.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of what the party sees, hears, and feels in this new location.\"}}\n\nJSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party was at ---\n{previous_location_name}: {previous_location_description}\n\n--- The path they chose to take onward ---\n{path_name}: {path_description}\n\n========== YOUR TASK ==========\nGenerate the location this path leads to. It should make sense as somewhere this path could go, but it may surprise - a path only sometimes hints at its destination. Avoid generic names. The description is 1-2 sentences describing the location ITSELF - its structures, light, sounds, air, and the marks of its history. Describe only the place: do NOT mention the party, visitors, or anyone arriving.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of the location itself - its structures, light, sounds, and atmosphere.\"}}\n\nJSON:"
   }
 }

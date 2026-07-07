@@ -87,14 +87,14 @@
   },
 
   "turn_vanity": {
-    "description": "Streamed inner monologue for the party monster whose turn it is - feelings, thoughts, intent (the player decides the actual action)",
-    "max_tokens": 300,
+    "description": "Streamed one-sentence present-moment thought for the party monster whose turn it is (the player decides the actual action)",
+    "max_tokens": 100,
     "temperature": 0.9,
     "parser": {
       "type": "text",
       "parser_name": "none"
     },
-    "prompt_template": "You are the narrator of a monster battle, voicing one party monster's inner world as its turn begins.\n\n========== CONTEXT ==========\n\n--- Location ---\n{location_name}\n\n--- The monster whose turn it is (a member of the player's party) ---\n{actor_details}\n\n--- Current battle situation ---\n{battle_situation}\n\n--- Recent battle events ---\n{recent_log}\n\n========== YOUR TASK ==========\nWrite 2-3 sentences describing what this monster is FEELING, THINKING, and WANTS to do right now, true to its personality, backstory, and condition, and to how the battle has been going. Do NOT decide or perform its action - the player commands it. Do not use numbers. End before anything actually happens.\n\nResponse:"
+    "prompt_template": "You are the narrator of a monster battle, voicing one party monster's inner world as its turn begins.\n\n========== CONTEXT ==========\n\n--- Location ---\n{location_name}\n\n--- The monster whose turn it is (a member of the player's party) ---\n{actor_details}\n\n--- Current battle situation ---\n{battle_situation}\n\n--- Recent battle events ---\n{recent_log}\n\n========== YOUR TASK ==========\nWrite EXACTLY ONE sentence: what this monster is thinking at this exact moment, true to its personality, its condition, and how the battle has been going. Do NOT decide or perform its action - the player commands it. Do not use numbers. One sentence only, then stop.\n\nResponse:"
   },
 
   "battle_summary": {
