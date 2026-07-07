@@ -8,3 +8,4 @@ from . import monster
 from . import state
 from . import battle
 from . import inventory
+from . import chat
