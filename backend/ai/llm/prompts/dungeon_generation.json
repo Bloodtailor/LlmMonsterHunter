@@ -97,6 +97,32 @@
     "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party was at ---\n{previous_location_name}: {previous_location_description}\n\n--- The path they chose to take onward ---\n{path_name}: {path_description}\n\n--- The expedition brief ---\n{expedition_brief}\n\n========== YOUR TASK ==========\nGenerate the location this path leads to, fitting the expedition brief. It should make sense as somewhere this path could go, but it may surprise - a path only sometimes hints at its destination. Avoid generic names. The description is 1-2 sentences describing the location ITSELF - its structures, light, sounds, air, and the marks of its history. Describe only the place: do NOT mention the party, visitors, or anyone arriving.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of the location itself - its structures, light, sounds, and atmosphere.\"}}\n\nJSON:"
   },
 
+  "run_goal": {
+    "description": "Write the run's ONE goal - concrete, checkable, achievable through exploration and encounters",
+    "max_tokens": 300,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["goal"],
+      "required_fields": ["goal"]
+    },
+    "prompt_template": "You are the quest-writer for a dungeon expedition. Every expedition sets out with ONE goal.\n\n========== CONTEXT ==========\n\n--- The expedition brief ---\n{expedition_brief}\n\n--- The party setting out ---\n{party_summary}\n\n========== YOUR TASK ==========\nWrite ONE goal for this run, fitting the expedition brief. It must be:\n- CONCRETE and CHECKABLE: someone reading the run's log should be able to say whether it happened (find a specific kind of place, recover a specific kind of thing, learn a truth, befriend a creature of a certain nature...).\n- Achievable through exploring, talking, and battling - the things an expedition actually does.\n- One sentence, evocative but unambiguous.\n\nExamples of good goals: \"Find the moonlit spring said to rise somewhere in these halls\"; \"Befriend a creature of the deep water and leave as its ally\"; \"Recover a keepsake left behind by an earlier expedition\".\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"goal\": \"One-sentence goal.\"}}\n\nJSON:"
+  },
+
+  "goal_check": {
+    "description": "THE GOAL REFEREE: did what just happened touch the run's goal? One word: no / progress / complete",
+    "max_tokens": 250,
+    "temperature": 0.6,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["answer", "note"],
+      "required_fields": ["answer"]
+    },
+    "prompt_template": "You are the referee of a dungeon expedition, judging progress toward the run's goal.\n\n========== CONTEXT ==========\n\n--- The run's goal ---\n{goal_text}\n\n--- Progress recorded so far ---\n{progress_so_far}\n\n--- What just happened (most recent last) ---\n{recent_events}\n\n========== YOUR TASK ==========\nJudge STRICTLY whether what just happened moved the party toward the goal. Answer with exactly ONE word:\n- \"no\": what happened has nothing to do with the goal - THE MOST COMMON ANSWER. Ordinary exploring, unrelated fights, and small talk are all \"no\".\n- \"progress\": a real, concrete step toward the goal happened (a true clue found, the right kind of place or creature encountered, part of the task done).\n- \"complete\": the goal as stated has been FULLY accomplished. Be strict - partial progress is \"progress\", not \"complete\".\nIf progress or complete: set note to ONE short sentence recording what counted. Otherwise set note to null.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"answer\": \"no\", \"note\": null}}\n\nJSON:"
+  },
+
   "expedition_notices": {
     "description": "The expedition board at the dungeon entrance - the LLM writes each notice's title, pitch, and theme; Python rolls its danger",
     "max_tokens": 700,

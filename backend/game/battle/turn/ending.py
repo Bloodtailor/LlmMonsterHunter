@@ -93,6 +93,13 @@ def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[s
 
         dungeon.append_dungeon_log(f"{summary} Party condition afterward: {ally_summary}.")
 
+        # A finished battle is a goal-check moment (won OR survived -
+        # "drive out what haunts the deep halls" can complete here)
+        if outcome == 'victory':
+            from backend.game.dungeon import goal
+
+            goal.check_goal_progress(ctx.workflow_name)
+
     # ===== WHAT THE MONSTERS WILL REMEMBER =====
     # Written BEFORE any defeat cleanup wipes the run state. A failed
     # memory must never break the battle result.

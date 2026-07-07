@@ -16,7 +16,13 @@ DUNGEON_EVENTS = {
             'monster': 'Complete monster data for a PRE-EXISTING monster staged into the current encounter (returning monsters and blend-ins; new monsters arrive via monster.created)'
         },
         'send_to_frontend': True,
-    }
+    },
+    'dungeon.goal_updated': {
+        'data_fields': {
+            'goal': "The run goal snapshot: { text, status ('pending'|'complete'), progress_notes } - emitted whenever the goal referee records progress or completion"
+        },
+        'send_to_frontend': True,
+    },
 }
 
 # Register dungeon events with the core registry
@@ -28,3 +34,8 @@ register_events(DUNGEON_EVENTS)
 def emit_dungeon_monster_revealed(monster: dict[str, Any]) -> bool:
     """Emit when an existing monster is staged into the active encounter"""
     return _emit_from_schema('dungeon.monster_revealed', monster=monster)
+
+
+def emit_dungeon_goal_updated(goal: dict[str, Any]) -> bool:
+    """Emit when the run goal's progress notes or status change"""
+    return _emit_from_schema('dungeon.goal_updated', goal=goal)

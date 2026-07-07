@@ -87,10 +87,13 @@ its hidden event are generated now but withheld).
 Opens a `dungeon_runs` history row and refills the party's stamina/mana
 pools — **entering is the only guaranteed reset of reserves**.
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions, party_resources: { "[monster_id]": { "stamina": word, "mana": word } }, expedition: { title, theme, danger } | null }`
+**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions, party_resources: { "[monster_id]": { "stamina": word, "mana": word } }, expedition: { title, theme, danger } | null, goal: { text, status, progress_notes } | null }`
 Reserve words ladder: `brimming > steady > strained > drained > spent`.
 Also streams entry text via `workflow.update` step `emit_generation_id`
 (`data.entry_text_generation_id`) + `llm.generation.update`.
+Every run gets ONE goal (LLM-written, themed). After resolved events the
+goal referee may emit `dungeon.goal_updated` with the updated snapshot;
+a goal can only complete after `GOAL_MIN_EVENTS` resolved events.
 
 ### POST /dungeon/choose-path
 **Request:** `{ "path_id": string }` (e.g. `"path_1"`)
@@ -127,11 +130,15 @@ The monster asks a question of its own devising; answer via `/dungeon/respond`.
 **`workflow.completed` result — exit path taken:**
 ```json
 { "success": true, "exited": true, "exit_text": string,
-  "growth": [GrowthResult] }
+  "growth": [GrowthResult],
+  "goal": { "text": string, "status": "pending"|"complete", "progress_notes": string[] } | null,
+  "goal_reward": { "item": ItemObject, "growth": [GrowthResult] } | null }
 ```
 The exit is the EXIT CEREMONY: every party member runs a growth reflection
-over its run journal (see *Memory & evolution* below); the run's history row
-closes as `victory_exit`.
+over its run journal (see *Memory & evolution* below); a FULFILLED goal
+adds the reward ceremony (one rare item + a code-owned `notable` growth
+step per member — `goal_reward` is null for unfinished goals); the run's
+history row closes as `victory_exit`.
 **Returning-monster event** (`returning_monster`, weight 0.12 whenever
 remembered monsters are eligible): a previously-met monster comes back
 TRANSFORMED by its memories (code-clamped stat boost, possibly an answering

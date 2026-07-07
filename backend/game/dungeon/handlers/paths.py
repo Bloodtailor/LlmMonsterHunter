@@ -17,7 +17,7 @@ def run_choose_path(context: dict, step: WorkflowStep) -> dict[str, Any]:
     """
     workflow_name = 'choose_path'
 
-    from backend.game.dungeon import manager
+    from backend.game.dungeon import goal, manager
     from backend.game.dungeon.generator import generate_arrival_location
 
     # Step 0 - validate required keys
@@ -69,11 +69,17 @@ def run_choose_path(context: dict, step: WorkflowStep) -> dict[str, Any]:
 
     # === EVENT: LOCATION EXPLORE (the most common arrival) ===
     if event == 'location_explore':
-        return explore.run_location_explore(step, location, workflow_name)
+        response = explore.run_location_explore(step, location, workflow_name)
+        # A resolved arrival is a goal-check moment ("find the spring"
+        # completes by ARRIVING somewhere) - never blocks the response
+        goal.check_goal_progress(workflow_name)
+        return response
 
     # === EVENT: TREASURE (a hidden item waits to be discovered) ===
     if event == 'treasure':
-        return treasure.run_treasure(step, location, workflow_name)
+        response = treasure.run_treasure(step, location, workflow_name)
+        goal.check_goal_progress(workflow_name)
+        return response
 
     # === EVENT: MONSTER DIALOGUE (a monster stops the party with a question) ===
     if event == 'monster_dialogue':

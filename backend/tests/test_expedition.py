@@ -174,6 +174,106 @@ def main():
             run_context.clear_pending_notices()
             check('cleared board answers nothing', run_context.get_pending_notice('notice_1') is None)
 
+            # ===== run goals (Game Loop M3) =====
+            print('\n-- goal generation --')
+            from backend.game.dungeon import goal as goal_module
+            from backend.game.dungeon import manager as dungeon_manager
+
+            run_context.begin_run_context(theme='drowned halls', danger='calm')
+
+            def fake_goal(template, workflow, variables=None):
+                return {'goal': 'Find the moonlit spring said to rise in these halls.'}
+
+            game_utils.build_and_generate = fake_goal
+            goal_module.generate_run_goal('test')
+            snapshot = goal_module.goal_snapshot()
+            check('goal stored as pending', snapshot and snapshot['status'] == 'pending')
+            check('brief carries the goal', 'moonlit spring' in run_context.expedition_brief())
+
+            def broken_goal(template, workflow, variables=None):
+                raise Exception('no goal today')
+
+            game_utils.build_and_generate = broken_goal
+            goal_module.generate_run_goal('test')
+            check('a broken LLM still writes a fallback goal', bool(goal_module.goal_snapshot()))
+
+            print('\n-- goal referee + completion valve --')
+            game_utils.build_and_generate = fake_goal
+            goal_module.generate_run_goal('test')
+
+            # The dungeon log is where the referee reads events from -
+            # give the checks an in-dungeon state to log against
+            saved_state = dungeon_manager.get_dungeon_state()
+            dungeon_manager.save_dungeon_state(
+                {
+                    'in_dungeon': True,
+                    'current_location': {'name': 'Test Hall', 'description': ''},
+                    'available_paths': {},
+                    'active_encounter': None,
+                    'party_conditions': {},
+                    'party_resources': {},
+                    'run_journal': {},
+                    'run_id': None,
+                    'seen_monster_ids': [],
+                    'dungeon_log': ['The party entered.'],
+                    'dungeon_log_summaries': [],
+                }
+            )
+            try:
+
+                def referee_says(answer, note=None):
+                    def fake_check(template, workflow, variables=None):
+                        assert template == 'goal_check'
+                        return {'answer': answer, 'note': note}
+
+                    return fake_check
+
+                # Check 1: 'complete' too early is VALVED down to progress
+                game_utils.build_and_generate = referee_says('complete', 'Found it immediately!')
+                goal_module.check_goal_progress('test')
+                snapshot = goal_module.goal_snapshot()
+                check(
+                    "valve: 'complete' before GOAL_MIN_EVENTS becomes progress",
+                    snapshot['status'] == 'pending' and len(snapshot['progress_notes']) == 1,
+                )
+
+                # Check 2: 'no' changes nothing
+                game_utils.build_and_generate = referee_says('no')
+                goal_module.check_goal_progress('test')
+                snapshot = goal_module.goal_snapshot()
+                check("'no' leaves the goal untouched", len(snapshot['progress_notes']) == 1)
+
+                # Check 3: at GOAL_MIN_EVENTS, 'complete' lands
+                game_utils.build_and_generate = referee_says('complete', 'The spring was found.')
+                goal_module.check_goal_progress('test')
+                snapshot = goal_module.goal_snapshot()
+                check(
+                    'complete lands once enough events resolved',
+                    snapshot['status'] == 'complete',
+                    f"status={snapshot['status']}",
+                )
+
+                # Check 4: a completed goal stops asking the referee
+                def referee_must_not_run(template, workflow, variables=None):
+                    raise AssertionError('goal_check ran after completion')
+
+                game_utils.build_and_generate = referee_must_not_run
+                goal_module.check_goal_progress('test')
+                check('a completed goal is never re-checked', True)
+
+                # Check 5: garbage answers degrade to 'no'
+                game_utils.build_and_generate = fake_goal
+                goal_module.generate_run_goal('test')
+                game_utils.build_and_generate = referee_says('absolutely!', 'so sure')
+                goal_module.check_goal_progress('test')
+                snapshot = goal_module.goal_snapshot()
+                check(
+                    'unknown referee words count as no',
+                    snapshot['status'] == 'pending' and not snapshot['progress_notes'],
+                )
+            finally:
+                dungeon_manager.save_dungeon_state(saved_state)
+
         finally:
             game_utils.build_and_generate = real_build_and_generate
             run_context.clear_run_context()

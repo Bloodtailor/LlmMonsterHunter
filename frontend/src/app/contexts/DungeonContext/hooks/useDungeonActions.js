@@ -30,6 +30,8 @@ export function useDungeonActions(stateHook) {
     setNotices,
     setIsGeneratingNotices,
     setExpedition,
+    setGoal,
+    setGoalReward,
     setCurrentLocation,
     setPaths,
     setArePathsReady,
@@ -139,6 +141,8 @@ export function useDungeonActions(stateHook) {
       setErrorState(null);
       clearEncounter();
       setExpedition(null);
+      setGoal(null);
+      setGoalReward(null);
       setExitText(null);
       setCurrentLocation(null);
       setPaths(null);
@@ -151,6 +155,8 @@ export function useDungeonActions(stateHook) {
       setErrorState,
       clearEncounter,
       setExpedition,
+      setGoal,
+      setGoalReward,
       setExitText,
       setCurrentLocation,
       setPaths,

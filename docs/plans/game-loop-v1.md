@@ -56,7 +56,7 @@ threads into entry/location/path/encounter prompts via
 `{expedition_brief}`. Entrance screen gets the notice picker. Danger
 table added to `docs/tuning.md`.
 
-### M3 — Run goals — PLANNED
+### M3 — Run goals — IMPLEMENTED
 One themed goal generated at entry, riding in `expedition_brief()`.
 After each resolved path event and each in-dungeon battle victory, a
 `goal_check` referee call answers `no / progress / complete`; Python

@@ -23,6 +23,11 @@ export function useDungeonState() {
   // The expedition the party answered ({ title, theme, danger } or null)
   const [expedition, setExpedition] = useState(null);
 
+  // The run's goal ({ text, status, progress_notes }) and the reward the
+  // exit ceremony paid out for completing it ({ item, growth })
+  const [goal, setGoal] = useState(null);
+  const [goalReward, setGoalReward] = useState(null);
+
   // Entry text streaming (dungeon entrance)
   const [entryText, setEntryText] = useState('');
 
@@ -124,6 +129,8 @@ export function useDungeonState() {
     setNotices(null);
     setIsGeneratingNotices(false);
     setExpedition(null);
+    setGoal(null);
+    setGoalReward(null);
     setEntryText('');
     setCurrentLocation(null);
     setPaths(null);
@@ -163,6 +170,8 @@ export function useDungeonState() {
       notices,
       isGeneratingNotices,
       expedition,
+      goal,
+      goalReward,
       entryText,
       currentLocation,
       paths,
@@ -200,6 +209,8 @@ export function useDungeonState() {
       setNotices,
       setIsGeneratingNotices,
       setExpedition,
+      setGoal,
+      setGoalReward,
       setEntryText,
       setCurrentLocation,
       setPaths,

@@ -32,6 +32,8 @@ export function useDungeonEvents(stateHook) {
     setNotices,
     setIsGeneratingNotices,
     setExpedition,
+    setGoal,
+    setGoalReward,
     setEntryText,
     setCurrentLocation,
     setPaths,
@@ -99,6 +101,11 @@ export function useDungeonEvents(stateHook) {
     if (eventData?.step === 'location_generated' && eventData.data?.current_location) {
       setCurrentLocation(eventData.data.current_location);
     }
+  });
+
+  // The goal referee recorded progress or completion on the run's goal
+  useEventSubscription('dungeonGoalUpdated', ({ goal }) => {
+    if (goal) setGoal(goal);
   });
 
   // The encounter monsters reveal themselves as they are generated:
@@ -205,6 +212,7 @@ export function useDungeonEvents(stateHook) {
 
       case 'enter_dungeon':
         setExpedition(result.expedition || null);
+        setGoal(result.goal || null);
         setCurrentLocation(result.current_location || null);
         setPaths(result.paths || null);
         setArePathsReady(true);
@@ -217,6 +225,8 @@ export function useDungeonEvents(stateHook) {
         if (result.exited) {
           setExitText(result.exit_text || 'You emerge back into the daylight.');
           setGrowthResults(result.growth || []);
+          if (result.goal) setGoal(result.goal);
+          setGoalReward(result.goal_reward || null);
         } else if (result.event === 'monster_dialogue') {
           // The monster opens the conversation: greeting, then its question
           setDialogue((prev) => {

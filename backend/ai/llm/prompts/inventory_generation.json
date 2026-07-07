@@ -25,6 +25,19 @@
     "prompt_template": "You are an item designer for a fantasy dungeon game. A monster was so pleased with the party's words that it grants them a gift.\n\n========== CONTEXT ==========\n\n--- Location ---\n{location_name}: {location_description}\n\n--- The monster granting the gift (the gift should FIT this creature) ---\n{monster_details}\n\n--- The conversation that earned it ---\n{dialogue_history}\n\n========== YOUR TASK ==========\nInvent the ONE item this specific monster would give - something from its hoard, its body, its craft, or its home. Later, a referee will read ONLY the description to judge what happens when the party uses it - so the description must say what the item IS and what it plausibly DOES when used (2-3 sentences, useful but never game-breaking).\n- name: a fantasy item name\n- emoji: ONE emoji that looks like the item\n- description: what it is + what it does when used (its origin may echo the giver)\n- uses: how many times it can be used before it is spent (1, 2, or 3)\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"...\", \"emoji\": \"🎁\", \"description\": \"...\", \"uses\": 1}}\n\nJSON:"
   },
 
+  "goal_reward_item": {
+    "description": "Generate the rare item awarded at the exit for fulfilling the run's goal - it commemorates the goal itself",
+    "max_tokens": 250,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["name", "emoji", "description", "uses"],
+      "required_fields": ["name", "description"]
+    },
+    "prompt_template": "You are an item designer for a fantasy dungeon game. The party fulfilled their expedition's goal and walked out alive - the dungeon yields a RARE reward.\n\n========== CONTEXT ==========\n\n--- The goal they fulfilled ---\n{goal_text}\n\n--- How it was fulfilled ---\n{progress_notes}\n\n========== YOUR TASK ==========\nInvent the ONE rare item this accomplishment earned - it should feel like a piece of the goal itself, carried home (a vial of the moonlit spring; a token from the befriended creature; the recovered keepsake made whole). Later, a referee will read ONLY the description to judge what happens when the party uses it - so the description must say what the item IS and what it plausibly DOES when used (2-3 sentences; noticeably stronger than a common trinket, but never game-breaking).\n- name: a fantasy item name\n- emoji: ONE emoji that looks like the item\n- description: what it is + what it does when used (its origin should echo the goal)\n- uses: how many times it can be used before it is spent (2 or 3 - rare rewards last)\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"...\", \"emoji\": \"🏅\", \"description\": \"...\", \"uses\": 3}}\n\nJSON:"
+  },
+
   "victory_cocatok": {
     "description": "Mint a unique CoCaTok (collectable card token) commemorating a battle victory",
     "max_tokens": 300,

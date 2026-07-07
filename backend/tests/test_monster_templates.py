@@ -158,6 +158,10 @@ GENERATOR_VARIABLES = {
         'expedition_brief',
     },
     'exit_path': {'location_name', 'location_description', 'expedition_brief'},
+    # Run goals (dungeon/goal.py + inventory/generator.py)
+    'run_goal': {'expedition_brief', 'party_summary'},
+    'goal_check': {'goal_text', 'recent_events', 'progress_so_far'},
+    'goal_reward_item': {'goal_text', 'progress_notes'},
     'enemy_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
     # Dungeon ability referee (dungeon/generator.py resolve_dungeon_ability)
     'dungeon_ability_use': {

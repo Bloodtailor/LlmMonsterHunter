@@ -74,6 +74,9 @@ and Sanctuary auto-refresh):
   PRE-EXISTING monster was staged into the current encounter (returning
   monsters and blend-ins). New monsters announce via `monster.created`;
   this event exists because existing monsters never re-fire creation events.
+- `dungeon.goal_updated` — `{ goal: { text, status, progress_notes } }`:
+  the goal referee recorded progress on (or completion of) the run's goal.
+  `status` is `pending` or `complete`.
 
 ### Inventory domain events
 Facts about the party's possessions, emitted from the inventory generator

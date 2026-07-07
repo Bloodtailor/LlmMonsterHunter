@@ -97,6 +97,21 @@ keeps every default, and `risky` **is** the defaults:
 | `returning_event_weight` | 0.10 | 0.12 | 0.16 |
 | `referee_hint` | judge kindly | judge fairly | judge harshly |
 
+## Run goals — `backend/game/dungeon/goal.py`
+
+One goal per run, written at the entrance (themed). After each RESOLVED
+event (explore/treasure arrival, dialogue outcome, battle victory) the
+goal referee answers one word: `no / progress / complete`. The fulfilled
+goal pays out at the exit (`handlers/exit_run.py`): one rare item + a
+code-owned `notable` growth step per member. Defeat forfeits the reward.
+
+| Knob | Default | Effect |
+|---|---|---|
+| `GOAL_MIN_EVENTS` | `3` | THE VALVE: `complete` is ignored before this many resolved events — no first-door wins |
+| `GOAL_CHECK_LOG_TAIL` | `4` | How many recent dungeon-log entries the goal referee judges by |
+| `GOAL_ANSWERS` | no / progress / complete | The referee's word ladder (anything else counts as `no`) |
+| reward growth tier | `notable` (exit_run.py) | The bonus growth step each member gets for a fulfilled goal (caps still apply) |
+
 ## Growth — `backend/game/memory/growth.py`
 
 In-run growth: small, journal-earned nudges (evolution is the big leap).

@@ -117,6 +117,12 @@ def run_respond_to_monster(context: dict, step: WorkflowStep) -> dict[str, Any]:
     if applied['log_note']:
         manager.append_dungeon_log(applied['log_note'])
 
+    # A resolved conversation is a goal-check moment ("befriend a
+    # creature of the deep halls" completes right here)
+    from backend.game.dungeon import goal
+
+    goal.check_goal_progress(workflow_name)
+
     return success_response(
         {
             "outcome": outcome,

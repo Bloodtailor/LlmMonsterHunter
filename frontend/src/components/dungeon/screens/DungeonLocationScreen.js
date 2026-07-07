@@ -21,6 +21,7 @@ import BattleIntroBox from '../components/BattleIntroBox.js';
 import DungeonPartyPanel from '../components/DungeonPartyPanel.js';
 import DungeonExitView from '../components/DungeonExitView.js';
 import DungeonErrorAlert from '../components/DungeonErrorAlert.js';
+import GoalBanner from '../components/GoalBanner.js';
 
 /**
  * DungeonLocationScreen component
@@ -33,6 +34,9 @@ function DungeonLocationScreen() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Errors surface here instead of hanging the screen */}
       <DungeonErrorAlert />
+
+      {/* The run's goal rides above the encounter */}
+      <GoalBanner />
 
       {/* Exit branch - owns the screen when the party takes an exit path */}
       <DungeonExitView />

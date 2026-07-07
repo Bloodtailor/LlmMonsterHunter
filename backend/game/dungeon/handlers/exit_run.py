@@ -1,4 +1,5 @@
-# The exit path - walking out alive: growth ceremony, run close, leaving
+# The exit path - walking out alive: growth ceremony, the goal's reward
+# ceremony, run close, leaving
 
 from typing import Any
 
@@ -7,7 +8,8 @@ from backend.core.workflow_steps import WorkflowStep
 
 
 def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
-    """Play out the exit path: exit text, ceremony, close the run, leave"""
+    """Play out the exit path: exit text, ceremonies, close the run, leave"""
+    from backend.game.dungeon import goal as run_goal
     from backend.game.dungeon import manager
     from backend.game.dungeon.generator import generate_exit_text
     from backend.game.state.manager import get_party_summary
@@ -45,6 +47,55 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
         print(f"❌ Exit ceremony failed (the exit itself stands): {ceremony_error}")
     step.data.update({"growth": growth_results})
 
+    # THE GOAL'S REWARD CEREMONY: a fulfilled goal pays out at the exit -
+    # one rare themed item + a bonus 'notable' growth step for the party.
+    # Walking out is what makes it real (defeat forfeits everything).
+    # A failure here never blocks the exit itself.
+    goal_state = run_goal.goal_snapshot()
+    goal_reward = None
+    if goal_state and goal_state.get('status') == 'complete':
+        step.emit("goal_reward_ceremony")
+        try:
+            import random as _random
+
+            from backend.game.inventory.generator import generate_goal_reward_item
+            from backend.game.memory import growth as growth_module
+            from backend.game.state.manager import get_party_monster_ids
+            from backend.models.monster import Monster
+
+            reward_item = generate_goal_reward_item(
+                goal_state['text'], goal_state.get('progress_notes', [])
+            )
+
+            # Bonus growth is CODE-owned: one 'notable' step to a random
+            # stat per member (apply_growth still enforces every cap)
+            bonus_growth = []
+            for monster_id in get_party_monster_ids():
+                monster = Monster.get_monster_by_id(monster_id)
+                if not monster:
+                    continue
+                bonus_growth.append(
+                    growth_module.apply_growth(
+                        monster,
+                        {
+                            'reflection': f"Fulfilled the run's goal: {goal_state['text']}",
+                            'stat': _random.choice(list(growth_module.GROWTH_STAT_WORDS)),
+                            'tier': 'notable',
+                            'memory_note': (
+                                f"Fulfilled a run's goal with the party: {goal_state['text'][:150]}"
+                            ),
+                        },
+                    )
+                )
+
+            goal_reward = {'item': reward_item.to_dict(), 'growth': bonus_growth}
+            manager.append_dungeon_log(
+                f"The fulfilled goal earned its reward: {reward_item.name}."
+            )
+        except Exception as reward_error:
+            print(f"❌ Goal reward ceremony failed (the exit stands): {reward_error}")
+    step.data.update({"goal_reward": goal_reward})
+
     # Close this run's row in the history while the run state
     # still exists (exit_dungeon wipes it), and preserve the run's
     # log for conversations back home
@@ -58,4 +109,12 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
     step.emit("exit_dungeon")
     manager.exit_dungeon()
 
-    return success_response({"exited": True, "exit_text": exit_text, "growth": growth_results})
+    return success_response(
+        {
+            "exited": True,
+            "exit_text": exit_text,
+            "growth": growth_results,
+            "goal": goal_state,
+            "goal_reward": goal_reward,
+        }
+    )

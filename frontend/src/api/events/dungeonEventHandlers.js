@@ -14,4 +14,8 @@ export const dungeonEventHandlers = {
     };
     broadcastEvent('dungeonMonsterRevealed', transformedData);
   },
+  // The run goal's progress notes or status changed (goal referee)
+  'dungeon.goal_updated': (eventData) => {
+    broadcastEvent('dungeonGoalUpdated', { goal: eventData.goal || null });
+  },
 };

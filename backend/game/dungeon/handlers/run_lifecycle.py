@@ -56,6 +56,13 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     # Step 2
     step.emit("emit_generation_id")
 
+    # Step 2.5 - the run's goal, BEFORE the first location generates, so
+    # even the starting location can lean toward it (rides in the brief)
+    from backend.game.dungeon import goal as run_goal
+
+    step.emit("generate_run_goal")
+    run_goal.generate_run_goal(workflow_name)
+
     # Step 3
     step.emit("generate_starting_location")
     location = generate_random_location(workflow_name)
@@ -85,6 +92,9 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
             f"The party answered an expedition notice: '{notice.get('title', 'Unnamed')}' "
             f"({notice.get('theme', 'no theme')}; danger: {notice.get('danger', 'unknown')})."
         )
+    goal_state = run_goal.goal_snapshot()
+    if goal_state:
+        manager.append_dungeon_log(f"The party set out with a goal: {goal_state['text']}")
     manager.append_dungeon_log(
         f"The party ({get_party_summary()}) entered the dungeon and arrived at "
         f"{location.get('name', 'an unknown place')}: {location.get('description', '')}"
@@ -103,6 +113,7 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
             }
             if notice
             else None,
+            "goal": goal_state,
         }
     )
 

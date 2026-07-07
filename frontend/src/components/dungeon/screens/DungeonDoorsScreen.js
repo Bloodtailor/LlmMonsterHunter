@@ -8,6 +8,7 @@ import { useNavigation } from '../../../app/contexts/NavigationContext/index.js'
 import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
 import DungeonErrorAlert from '../components/DungeonErrorAlert.js';
 import DungeonPartyPanel from '../components/DungeonPartyPanel.js';
+import GoalBanner from '../components/GoalBanner.js';
 
 /**
  * DungeonDoorsScreen component
@@ -72,6 +73,9 @@ function DungeonDoorsScreen() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Errors surface here instead of hanging the screen */}
       <DungeonErrorAlert />
+
+      {/* The run's goal rides above every junction */}
+      <GoalBanner />
 
       {/* Header - where the party currently stands */}
       <Card size="xl" background="light">
