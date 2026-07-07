@@ -37,8 +37,24 @@ log (turn-numbered); when a battle ends, the LLM writes a summary of it
 `backend/game/utils/context_limits.py`, which scales budgets from the loaded
 model's `LLM_CONTEXT_SIZE` (.env): required blocks (party/monster details)
 are never truncated; flexible blocks (dungeon log, battle log, dialogue,
-turn history) each get a percentage share of the window and keep their most
-recent content. Bigger models automatically get richer prompts.
+turn history, chat history) each get a percentage share of the window and
+keep their most recent content. Bigger models automatically get richer
+prompts. `LLM_CONTEXT_FILL_PERCENT` (.env, default 1.0) treats only a
+fraction of the window as usable, for models that degrade when nearly full.
+
+**Rolling summaries.** Growing histories are no longer merely truncated:
+when enough old entries pile up beyond a keep-verbatim window, ONE batch of
+the oldest uncovered entries is condensed by the LLM into a rolling summary
+(`backend/game/utils/rolling_summary.py`, per-source knobs in
+`SUMMARY_SOURCES`). Raw entries are KEPT — single-source prompts can still
+read far more verbatim. Prompt composition = summaries (oldest first) +
+verbatim tail, then the normal budget clamp. The condensing runs as
+self-queued workflows (`condense_dungeon_log` queued by the heavier dungeon
+workflows, `condense_battle_log` queued by `battle_turn`,
+`chat_housekeeping` for chats) BEHIND the workflow the player awaits, so it
+never delays a result. When a run closes (victory OR defeat) the dungeon
+log + its summaries are snapshotted to the `last_run_log` GlobalVariable —
+home-base chats read it as context.
 
 **Party abilities anywhere.** While in the dungeon (outside battle), any party
 monster can use any of its abilities on anything — a path, a monster, the
@@ -202,6 +218,15 @@ and monster-details blocks, battle situation / combatant summary (with
 per-monster waiting counts) / turn history / battle log, and paths
 **including their hidden events and destinations**. Powers the left-side
 debug panel in the frontend. Synchronous. Never use for game UI.
+
+### POST /dungeon/abandon
+Call the party home mid-run. The active run closes as `abandoned` — its
+log is snapshotted to `last_run_log` first so home-base chats can still
+look back on it — any battle ends, and the run state wipes. Synchronous,
+no LLM. A quiet no-op when not in a dungeon, so the frontend can use it
+to clear stale run state (a run otherwise only ends by taking an exit
+path, being defeated, or entering the dungeon again).
+**Success:** `{ "success": true, "abandoned": boolean, "in_dungeon": false }`
 
 ### GET /dungeon/state
 Public dungeon state (hidden path events/destinations stripped). Synchronous.

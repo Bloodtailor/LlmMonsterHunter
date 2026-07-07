@@ -238,3 +238,49 @@ continueExploring.defaults = {
   success: null,
   workflowId: null,
 };
+
+/**
+ * Public dungeon state (synchronous read) - whether a run is active
+ * backend-side, current location, conditions. Used by screens that need
+ * to know if the party is really home (e.g. Campfire Chat).
+ * @returns {Promise<object>} Clean transformed response
+ */
+export async function getDungeonState() {
+
+  const response = await get('/api/dungeon/state');
+
+  return {
+    success: response.success ?? getDungeonState.defaults.success,
+    inDungeon: response.in_dungeon ?? getDungeonState.defaults.inDungeon,
+    currentLocation: response.current_location ?? getDungeonState.defaults.currentLocation,
+    _raw: response
+  };
+}
+getDungeonState.defaults = {
+  success: null,
+  inDungeon: false,
+  currentLocation: null,
+};
+
+/**
+ * Call the party home mid-run (synchronous). The active run closes as
+ * 'abandoned' - its log is still snapshotted for home-base chats - any
+ * battle ends, and the run state clears. Quiet no-op when already home.
+ * @returns {Promise<object>} Clean transformed response
+ */
+export async function abandonRun() {
+
+  const response = await post('/api/dungeon/abandon');
+
+  return {
+    success: response.success ?? abandonRun.defaults.success,
+    abandoned: response.abandoned ?? abandonRun.defaults.abandoned,
+    inDungeon: response.in_dungeon ?? abandonRun.defaults.inDungeon,
+    _raw: response
+  };
+}
+abandonRun.defaults = {
+  success: null,
+  abandoned: false,
+  inDungeon: false,
+};

@@ -6,6 +6,7 @@ links to the per-domain files.
 
 ## Reference files
 - [Monsters & Roster](backend-api/monsters-and-roster.md) — monster generation, listing, abilities, card art, following list, and active party
+- [Chat](backend-api/chat.md) — home-base conversations with following monsters: persistent threads, streamed replies, memory extraction, and the rolling summaries that keep indefinite chats affordable
 - [Inventory](backend-api/inventory.md) — the party's items (LLM-adjudicated consumables) and CoCaTok victory keepsakes, where they come from, and how items are used
 - [Dungeon & Battle](backend-api/dungeon-and-battle.md) — the gameplay loop: entering dungeons, choosing paths, exploring locations, monster dialogues, free-form ability use, and turn-based battles
 - [Generation & System](backend-api/generation-and-system.md) — generation logs, health check, and the in-app test runner

@@ -19,6 +19,11 @@ CHARS_PER_TOKEN = 4
 # prompt's fixed instruction text
 RESERVED_RESPONSE_TOKENS = 1200
 
+# Some models degrade when the window is nearly full - this knob treats
+# only a fraction of LLM_CONTEXT_SIZE as usable. 1.0 = use it all.
+# Override per model in .env: LLM_CONTEXT_FILL_PERCENT=0.85
+DEFAULT_CONTEXT_FILL_PERCENT = 1.0
+
 # Blocks that must arrive whole - clamp_context passes them through
 REQUIRED_BLOCKS = ('party_details', 'monster_details')
 
@@ -27,7 +32,9 @@ REQUIRED_BLOCKS = ('party_details', 'monster_details')
 FLEXIBLE_BLOCK_SHARES = {
     'dungeon_log': 0.25,        # the rolling story of the run
     'battle_log': 0.20,         # turn-by-turn battle narrations
+    'chat_history': 0.20,       # the home-base conversation with one monster
     'dialogue_history': 0.15,   # the active encounter conversation
+    'last_run_log': 0.10,       # what happened in the previous dungeon run
     'turn_history': 0.08,       # who acted when, for the turn director
     'monster_memories': 0.06,   # what a monster remembers of the party
     'run_journal': 0.06,        # what a party monster did this run
@@ -40,7 +47,7 @@ MIN_FLEXIBLE_CHARS = 600
 # Blocks that grow over time keep their TAIL (the most recent events
 # matter); description blocks keep their HEAD (the opening lines matter)
 _TAIL_BLOCKS = ('dungeon_log', 'battle_log', 'dialogue_history', 'turn_history',
-                'monster_memories', 'run_journal')
+                'monster_memories', 'run_journal', 'chat_history', 'last_run_log')
 
 TRUNCATION_MARKER = '(...earlier events trimmed...)'
 
@@ -50,6 +57,16 @@ def get_context_size_tokens() -> int:
         return int(os.getenv('LLM_CONTEXT_SIZE', '4096'))
     except (TypeError, ValueError):
         return 4096
+
+def get_context_fill_percent() -> float:
+    """How much of the window prompts may fill (developer knob, .env)"""
+    try:
+        fill = float(os.getenv('LLM_CONTEXT_FILL_PERCENT',
+                               str(DEFAULT_CONTEXT_FILL_PERCENT)))
+    except (TypeError, ValueError):
+        fill = DEFAULT_CONTEXT_FILL_PERCENT
+    # Clamp to sanity - below 0.3 nothing useful fits, above 1.0 lies
+    return min(max(fill, 0.3), 1.0)
 
 # Monster detail tiers: how much of a monster's persona/CMDTS enters prompt
 # blocks that hold SEVERAL monsters (party details, battle sides). Binned by
@@ -69,7 +86,8 @@ def resolve_detail_tier() -> str:
 
 def get_prompt_char_budget() -> int:
     """Characters available for the whole prompt after reserving the response"""
-    usable_tokens = max(get_context_size_tokens() - RESERVED_RESPONSE_TOKENS, 512)
+    filled_window = int(get_context_size_tokens() * get_context_fill_percent())
+    usable_tokens = max(filled_window - RESERVED_RESPONSE_TOKENS, 512)
     return usable_tokens * CHARS_PER_TOKEN
 
 def get_block_char_limit(block_name: str):

@@ -45,6 +45,9 @@ def import_all_models():
     from backend.models.game_workflow import GameWorkflow
     from backend.models.dungeon_run import DungeonRun
     from backend.models.monster_memory import MonsterMemory
+    from backend.models.chat_message import ChatMessage
+    from backend.models.chat_summary import ChatSummary
+    from backend.models.chat_thread import ChatThread
 
 def main():
     db_name = os.getenv('DB_NAME', 'monster_hunter_game')

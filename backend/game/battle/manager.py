@@ -31,7 +31,8 @@ _EMPTY_STATE = {
     'pending_talk': None,   # {'speaker_id', 'dialogue'} - enemy talk awaiting player response
     'allies': {},           # monster_id(str): {'name', 'condition', 'defending', 'stamina', 'mana'}
     'enemies': {},          # monster_id(str): {'name', 'condition', 'defending', 'fled', 'stamina', 'mana'}
-    'recent_log': [],
+    'recent_log': [],       # every turn narration this battle, oldest first
+    'log_summaries': [],    # [{'through': int, 'text': str}] - rolling condensed batches
     'finishing_blows': {},  # monster_id(str): {'by_id','by_name','action','ability_name'} - who dropped whom
     'resolution': None      # 'combat'|'joined'|'yielded'|'fled'|'spared'
 }
@@ -85,6 +86,7 @@ def start_battle(ally_conditions: Dict[str, Dict[str, Any]], enemy_entries: Dict
             for monster_id, info in enemy_entries.items()
         },
         'recent_log': [],
+        'log_summaries': [],
         'finishing_blows': {},
         'resolution': None
     })
@@ -205,13 +207,58 @@ def turns_waiting(state: Dict[str, Any], monster_id: Any) -> int:
 
 def append_log(state: Dict[str, Any], narration: str) -> None:
     """
-    Keep recent narrations as context for the referee (in place), each
-    stamped with its turn number. append_log is always called just before
-    record_turn increments the count, so the entry's turn is count + 1.
+    Keep every narration this battle as context for the referee (in
+    place), each stamped with its turn number. append_log is always
+    called just before record_turn increments the count, so the entry's
+    turn is count + 1. Old entries get CONDENSED into log_summaries as
+    the battle runs long (rolling_summary), never dropped - RECENT_LOG_SIZE
+    is only a runaway safety valve that shifts coverage when it trips.
     """
     log = state.get('recent_log', [])
     log.append(f"Turn {state.get('turn_count', 0) + 1}: {narration}")
-    state['recent_log'] = log[-RECENT_LOG_SIZE:]
+    dropped = max(len(log) - RECENT_LOG_SIZE, 0)
+    if dropped:
+        log = log[dropped:]
+        state['log_summaries'] = [
+            {'through': max(int(s.get('through', 0)) - dropped, 0), 'text': s.get('text', '')}
+            for s in state.get('log_summaries', [])
+        ]
+    state['recent_log'] = log
+
+def record_log_summary(through: int, text: str) -> None:
+    """Store one condensed batch covering recent_log[0:through]"""
+    if not text or not str(text).strip():
+        return
+    state = get_battle_state()
+    if not state.get('in_battle'):
+        return
+    summaries = state.get('log_summaries', [])
+    summaries.append({'through': int(through), 'text': str(text).strip()})
+    state['log_summaries'] = summaries
+    save_battle_state(state)
+
+def queue_log_condense_if_due() -> None:
+    """
+    Queue a condense_battle_log workflow when enough old turns have piled
+    up. Called at the tail of battle_turn - the sequential worker runs it
+    after the player already has their result. Never raises.
+    """
+    try:
+        from backend.game.utils.rolling_summary import plan_batch, covered_count
+        state = get_battle_state()
+        if not state.get('in_battle'):
+            return
+        batch = plan_batch(
+            'battle_log',
+            len(state.get('recent_log', [])),
+            covered_count(state.get('log_summaries', []))
+        )
+        if not batch:
+            return
+        from backend.workflow.workflow_gateway import request_workflow
+        request_workflow('condense_battle_log', context={})
+    except Exception as e:
+        print(f"❌ Failed to queue battle log condense: {e}")
 
 # ===== OUTCOME =====
 

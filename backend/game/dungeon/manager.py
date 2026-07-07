@@ -11,9 +11,15 @@ from backend.game.utils.context_limits import clamp_context
 
 DUNGEON_STATE_KEY = 'dungeon_state'
 
-# Hard cap on stored log entries (the prompt budget in context_limits
-# trims further at prompt-build time - this just bounds storage)
-DUNGEON_LOG_MAX_ENTRIES = 200
+# Where the previous run's log survives after the run state is wiped -
+# home-base monster chats read it as context
+LAST_RUN_LOG_KEY = 'last_run_log'
+
+# Hard safety valve on stored log entries. Old entries are KEPT (rolling
+# summaries condense them; prompts clamp further at build time) - this
+# only guards against a truly runaway run. If it ever trips, summary
+# coverage indexes are shifted down to stay honest.
+DUNGEON_LOG_MAX_ENTRIES = 1000
 
 _EMPTY_STATE = {
     'in_dungeon': False,
@@ -25,7 +31,8 @@ _EMPTY_STATE = {
     'run_journal': {},       # monster_id: [what it did this run] - feeds growth reflections
     'run_id': None,          # the DungeonRun row this run writes memories against
     'seen_monster_ids': [],  # every monster staged this run (excluded from returning pools)
-    'dungeon_log': []        # everything that has happened this run, oldest first
+    'dungeon_log': [],       # everything that has happened this run, oldest first
+    'dungeon_log_summaries': []  # [{'through': int, 'text': str}] - rolling condensed batches
 }
 
 # ===== CORE STATE ACCESS =====
@@ -55,7 +62,8 @@ def start_dungeon(location: Dict[str, Any], paths: Dict[str, Any], run_id: int =
         'run_journal': {},
         'run_id': run_id,
         'seen_monster_ids': [],
-        'dungeon_log': []
+        'dungeon_log': [],
+        'dungeon_log_summaries': []
     })
 
 def exit_dungeon() -> None:
@@ -188,6 +196,9 @@ def get_encounter_dialogue_text() -> str:
 # The rolling record of the run. Every meaningful moment gets one entry,
 # and every dungeon LLM generation receives the (budget-clamped) log as
 # context so the story stays coherent across the whole run.
+# Old entries are progressively CONDENSED into rolling summaries (see
+# game/utils/rolling_summary.py) while recent entries stay verbatim; the
+# raw entries themselves are kept for the whole run.
 
 def append_dungeon_log(entry: str) -> None:
     """Record one thing that happened in the dungeon"""
@@ -198,15 +209,100 @@ def append_dungeon_log(entry: str) -> None:
         return
     log = state.get('dungeon_log', [])
     log.append(str(entry).strip())
-    state['dungeon_log'] = log[-DUNGEON_LOG_MAX_ENTRIES:]
+    dropped = max(len(log) - DUNGEON_LOG_MAX_ENTRIES, 0)
+    if dropped:
+        # Safety valve tripped - shift summary coverage with the head-drop
+        log = log[dropped:]
+        state['dungeon_log_summaries'] = [
+            {'through': max(int(s.get('through', 0)) - dropped, 0), 'text': s.get('text', '')}
+            for s in state.get('dungeon_log_summaries', [])
+        ]
+    state['dungeon_log'] = log
     save_dungeon_state(state)
 
 def get_dungeon_log_entries() -> List[str]:
     return get_dungeon_state().get('dungeon_log', [])
 
+def get_dungeon_log_summaries() -> List[Dict[str, Any]]:
+    return get_dungeon_state().get('dungeon_log_summaries', [])
+
+def record_dungeon_log_summary(through: int, text: str) -> None:
+    """Store one condensed batch covering entries[0:through]"""
+    if not text or not str(text).strip():
+        return
+    state = get_dungeon_state()
+    if not state.get('in_dungeon'):
+        return
+    summaries = state.get('dungeon_log_summaries', [])
+    summaries.append({'through': int(through), 'text': str(text).strip()})
+    state['dungeon_log_summaries'] = summaries
+    save_dungeon_state(state)
+
 def get_dungeon_log_text() -> str:
-    """The dungeon log as clamped LLM context, oldest first"""
+    """The dungeon log as clamped LLM context: condensed old + verbatim recent"""
+    from backend.game.utils.rolling_summary import compose_history, covered_count
+    summaries = get_dungeon_log_summaries()
     entries = get_dungeon_log_entries()
-    if not entries:
-        return "The adventure has just begun - nothing has happened yet."
-    return clamp_context('dungeon_log', "\n".join(f"- {entry}" for entry in entries))
+    return compose_history(
+        'dungeon_log', summaries, entries[covered_count(summaries):],
+        'dungeon_log',
+        empty_text="The adventure has just begun - nothing has happened yet."
+    )
+
+def queue_log_condense_if_due() -> None:
+    """
+    Queue a condense_dungeon_log workflow when enough old entries have
+    piled up. Called at the tail of the heavier dungeon workflows - the
+    sequential worker runs it AFTER the player already has their result.
+    Never raises.
+    """
+    try:
+        from backend.game.utils.rolling_summary import plan_batch, covered_count
+        state = get_dungeon_state()
+        if not state.get('in_dungeon'):
+            return
+        batch = plan_batch(
+            'dungeon_log',
+            len(state.get('dungeon_log', [])),
+            covered_count(state.get('dungeon_log_summaries', []))
+        )
+        if not batch:
+            return
+        from backend.workflow.workflow_gateway import request_workflow
+        request_workflow('condense_dungeon_log', context={})
+    except Exception as e:
+        print(f"❌ Failed to queue dungeon log condense: {e}")
+
+# ===== LAST RUN LOG (survives the run-state wipe - home chats read it) =====
+
+def snapshot_last_run_log(result: str) -> None:
+    """
+    Preserve this run's log (raw entries + rolling summaries) before the
+    dungeon state is wiped, so conversations back home can look back on
+    what happened. Never raises - losing the snapshot never blocks an exit.
+    """
+    try:
+        from datetime import datetime
+        state = get_dungeon_state()
+        entries = state.get('dungeon_log', [])
+        run_number = None
+        run_id = state.get('run_id')
+        if run_id:
+            from backend.models.dungeon_run import DungeonRun
+            run = DungeonRun.get_by_id(run_id)
+            if run:
+                run_number = run.run_number
+        GlobalVariable.set(LAST_RUN_LOG_KEY, {
+            'run_id': run_id,
+            'run_number': run_number,
+            'result': result,
+            'entries': entries,
+            'summaries': state.get('dungeon_log_summaries', []),
+            'saved_at': datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        print(f"❌ Failed to snapshot last run log: {e}")
+
+def get_last_run_log() -> Optional[Dict[str, Any]]:
+    """The previous run's snapshot, or None if no run has finished yet"""
+    return GlobalVariable.get(LAST_RUN_LOG_KEY, None)

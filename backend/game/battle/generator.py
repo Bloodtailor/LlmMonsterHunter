@@ -24,7 +24,9 @@ def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = Non
     condition, defending state, and reserve levels (block itself is never
     truncated). The secret never enters battle prompts - the narrator
     would leak it. ENEMIES that have met the party before carry their
-    memories in (ally history lives in the run journal instead)."""
+    memories in; ALLIES carry a tier-gated line or three of their own
+    (home-base talks and past runs shape how they fight - fuller ally
+    history still lives in the run journal)."""
 
     from backend.game.monster.context_builder import build_monster_block
 
@@ -32,6 +34,9 @@ def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = Non
     if side == 'enemies':
         from backend.game.memory.manager import compact_memory_lines
         memory_lines = compact_memory_lines(monster.id)
+    elif side == 'allies':
+        from backend.game.memory.manager import party_memory_lines
+        memory_lines = party_memory_lines(monster.id)
 
     return build_monster_block(
         monster,
@@ -72,10 +77,14 @@ def build_battle_situation(state: Dict[str, Any]) -> str:
     )
 
 def build_recent_log(state: Dict[str, Any]) -> str:
+    """The battle so far: condensed old turns + recent turns verbatim"""
+    from backend.game.utils.rolling_summary import compose_history, covered_count
+    summaries = state.get('log_summaries', [])
     log = state.get('recent_log', [])
-    if not log:
-        return "The battle has just begun."
-    return clamp_context('battle_log', "\n".join(log))
+    return compose_history(
+        'battle_log', summaries, log[covered_count(summaries):],
+        'battle_log', empty_text="The battle has just begun."
+    )
 
 def _validated_resource_delta(raw) -> Optional[str]:
     """

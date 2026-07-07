@@ -46,6 +46,7 @@ def build_party_dungeon_details() -> str:
     from backend.game.state.manager import get_party_monster_ids
     from backend.game.dungeon.manager import get_party_conditions, get_party_resources
     from backend.game.monster.context_builder import build_monster_block
+    from backend.game.memory.manager import party_memory_lines
     from backend.models.monster import Monster
 
     conditions = get_party_conditions()
@@ -58,7 +59,8 @@ def build_party_dungeon_details() -> str:
         condition = conditions.get(str(monster_id), 'fresh')
         lines.append(build_monster_block(
             monster, condition=condition,
-            resources=resources.get(str(monster_id))
+            resources=resources.get(str(monster_id)),
+            memory_lines=party_memory_lines(monster_id)
         ))
 
     if not lines:

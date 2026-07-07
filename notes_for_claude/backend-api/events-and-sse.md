@@ -79,7 +79,12 @@ and the item-consumption flows:
 `workflow_type` values seen in workflow events: `generate_detailed_monster`,
 `generate_ability`, `enter_dungeon`, `choose_path`, `respond_to_monster`,
 `sneak_past`, `surprise_attack`, `setup_camp`, `use_dungeon_ability`,
-`use_dungeon_item`, `continue_exploring`, `battle_turn`.
+`use_dungeon_item`, `continue_exploring`, `battle_turn`,
+`chat_with_monster`, and the self-queued housekeeping workflows
+`chat_housekeeping`, `condense_dungeon_log`, `condense_battle_log`
+(rolling summaries / memory extraction — queued backend-side behind the
+workflow the player is waiting on; the frontend can ignore their
+completions except for the `monster.memory_added` events extraction fires).
 
 Notable `workflow.update` steps:
 - `emit_generation_id` — a streamed text generation just started; its id is
@@ -89,7 +94,8 @@ Notable `workflow.update` steps:
   `camp_text_generation_id` for camp scenes,
   `treasure_text_generation_id` for treasure discoveries,
   `turn_vanity_generation_id` for the acting party monster's inner
-  monologue when a battle turn is handed to the player). Match subsequent
+  monologue when a battle turn is handed to the player,
+  `chat_text_generation_id` for the home-base chat reply). Match subsequent
   `llm.generation.update` events by `generation_id` to stream that text.
 - `location_generated` — `data.current_location` (a path's arrival location)
 - `action_resolved` — `data.action_result` (one resolved battle turn; see [Dungeon & Battle](dungeon-and-battle.md))

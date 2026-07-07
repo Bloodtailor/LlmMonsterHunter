@@ -79,10 +79,12 @@ def full_resources() -> dict:
 # Design allows up to 7 - kept small while each enemy costs ~4 LLM calls + art
 ENEMY_COUNT_RANGE = (1, 2)
 
-# How many narrations/turns to KEEP IN STORAGE. Generous on purpose -
-# the token-aware budgets in context_limits.py decide how much of this
-# actually fits in each prompt for the loaded model
-RECENT_LOG_SIZE = 40
+# How many narrations/turns to KEEP IN STORAGE. A runaway safety valve
+# only - old narrations are progressively condensed into rolling
+# summaries (rolling_summary.py) while raw entries stay for the whole
+# battle, and the token-aware budgets in context_limits.py decide how
+# much actually fits in each prompt for the loaded model
+RECENT_LOG_SIZE = 400
 TURN_HISTORY_SIZE = 40
 
 # Softlock valve: after this many consecutive enemy turns, the next turn

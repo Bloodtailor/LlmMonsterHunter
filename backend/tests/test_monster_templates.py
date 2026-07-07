@@ -97,7 +97,14 @@ GENERATOR_VARIABLES = {
     # Growth (game/memory/growth.py)
     'camp_spotlight': {'party_names', 'journal_highlights'},
     'growth_reflection': {'monster_details', 'run_journal', 'monster_memories', 'mode_note'},
-    'defeat_reflection': {'party_details', 'battle_log', 'journal_highlights'}
+    'defeat_reflection': {'party_details', 'battle_log', 'journal_highlights'},
+    # Rolling summaries (game/utils/rolling_summary.py)
+    'condense_history': {'source_label', 'prior_summary', 'batch_lines'},
+    # Home-base chat (game/chat/generator.py)
+    'home_chat_reply': {'monster_details', 'monster_memories', 'last_run_status',
+                        'last_run_log', 'chat_history', 'player_message'},
+    'chat_memory_extraction': {'monster_details', 'existing_memories',
+                               'conversation_segment'}
 }
 
 def test_staged_templates_render():

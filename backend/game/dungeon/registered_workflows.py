@@ -70,6 +70,12 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         # is cleared (start_dungeon below resets the dungeon state and log)
         battle_manager.end_battle()
 
+        # A leftover run (the player walked away mid-run) still deserves
+        # its place in the chat context - snapshot its log before begin()
+        # closes it and start_dungeon wipes it
+        if manager.is_in_dungeon():
+            manager.snapshot_last_run_log('abandoned')
+
         # Open this run's row in the run history (closes any dangling
         # active run as 'abandoned' first)
         from backend.models.dungeon_run import DungeonRun
@@ -167,6 +173,10 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         on_update(step, progress_data)
         require_keys(context, required_keys)
 
+        # Condense old dungeon-log entries if enough have piled up (the
+        # queued workflow runs AFTER this one - the player never waits)
+        manager.queue_log_condense_if_due()
+
         # Look up the chosen path WITH its hidden event (backend only)
         path = manager.get_path(context["path_id"])
         if not path:
@@ -211,11 +221,13 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
             progress_data.update({ "growth": growth_results })
 
             # Close this run's row in the history while the run state
-            # still exists (exit_dungeon wipes it)
+            # still exists (exit_dungeon wipes it), and preserve the run's
+            # log for conversations back home
             step = "close_run"
             on_update(step, progress_data)
             from backend.models.dungeon_run import DungeonRun
             log_entries = manager.get_dungeon_log_entries()
+            manager.snapshot_last_run_log('victory_exit')
             DungeonRun.close('victory_exit', summary=log_entries[-1] if log_entries else None)
 
             step = "exit_dungeon"
@@ -656,6 +668,9 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
         on_update(step, progress_data)
         require_keys(context, required_keys)
 
+        # Long conversations grow the log - condense old entries if due
+        manager.queue_log_condense_if_due()
+
         encounter = manager.get_active_encounter()
         if not encounter or not encounter.get('monster_ids'):
             raise Exception("No monsters here to talk to")
@@ -941,6 +956,9 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
         step = "validate_context"
         on_update(step, progress_data)
         require_keys(context, required_keys)
+
+        # A quiet moment - condense old dungeon-log entries if due
+        manager.queue_log_condense_if_due()
 
         encounter = manager.get_active_encounter()
         if not encounter or encounter.get('event') != 'location_explore':
@@ -1361,6 +1379,9 @@ def continue_exploring(context: dict, on_update: Callable[[str, Dict[str, Any]],
         on_update(step, progress_data)
         require_keys(context, required_keys)
 
+        # Moving on - condense old dungeon-log entries if due
+        manager.queue_log_condense_if_due()
+
         # A finished battle is over once the party moves on, and a
         # resolved encounter (explored area, ended conversation) is left behind
         battle_manager.end_battle()
@@ -1386,6 +1407,62 @@ def continue_exploring(context: dict, on_update: Callable[[str, Dict[str, Any]],
             "current_location": location,
             "paths": manager.get_public_paths(),
             "party_conditions": manager.get_party_conditions()
+        })
+
+    except Exception as e:
+        return error_response({
+            'failed_at': step,
+            'completed_work': progress_data,
+            'error': str(e)
+        })
+
+@register_workflow()
+def condense_dungeon_log(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+    """
+    Housekeeping: condense ONE batch of the oldest un-summarized dungeon
+    log entries into a rolling summary. Queued by the heavier dungeon
+    workflows when enough entries pile up; the sequential worker runs it
+    after the player already has their result. A no-op if the run ended
+    or the batch is no longer due.
+    """
+
+    workflow_name = 'condense_dungeon_log'
+
+    step = "initialize_workflow"
+    progress_data = {}
+
+    try:
+        from backend.game.dungeon import manager
+        from backend.game.utils.rolling_summary import (
+            plan_batch, covered_count, summarize_lines
+        )
+
+        step = "plan_batch"
+        on_update(step, progress_data)
+        entries = manager.get_dungeon_log_entries()
+        summaries = manager.get_dungeon_log_summaries()
+        batch = plan_batch('dungeon_log', len(entries), covered_count(summaries))
+        if not batch:
+            return success_response({"condensed": False})
+
+        step = "condense_batch"
+        on_update(step, progress_data)
+        start, end = batch
+        prior = summaries[-1]['text'] if summaries else None
+        summary_text = summarize_lines(
+            'dungeon_log', entries[start:end], workflow_name, prior_summary=prior
+        )
+        if not summary_text:
+            # The batch stays uncovered and retries at the next trigger
+            return success_response({"condensed": False})
+
+        step = "record_summary"
+        on_update(step, progress_data)
+        manager.record_dungeon_log_summary(end, summary_text)
+
+        return success_response({
+            "condensed": True,
+            "covers_entries": end
         })
 
     except Exception as e:

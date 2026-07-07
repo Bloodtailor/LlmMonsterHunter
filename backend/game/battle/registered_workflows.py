@@ -51,6 +51,10 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         step = "validate_context"
         on_update(step, progress_data)
 
+        # Long battles grow the log - condense old turns if enough piled
+        # up (the queued workflow runs AFTER this one)
+        battle.queue_log_condense_if_due()
+
         state = battle.get_battle_state()
         phase = state.get('phase')
         if not state.get('in_battle') or phase not in ('ready', 'awaiting_player_turn', 'awaiting_player_response'):
@@ -739,6 +743,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                     print(f"❌ Defeat lesson failed (the defeat stands): {lesson_error}")
 
                 from backend.models.dungeon_run import DungeonRun
+                dungeon.snapshot_last_run_log('defeat')
                 DungeonRun.close('defeat', summary=summary)
             battle.end_battle()
             dungeon.exit_dungeon()
@@ -769,6 +774,64 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         except Exception:
             pass
 
+        return error_response({
+            'failed_at': step,
+            'completed_work': progress_data,
+            'error': str(e)
+        })
+
+@register_workflow()
+def condense_battle_log(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+    """
+    Housekeeping: condense ONE batch of the oldest un-summarized battle
+    log turns into a rolling summary. Queued by battle_turn when enough
+    turns pile up; the sequential worker runs it between turns. A no-op
+    if the battle ended or the batch is no longer due.
+    """
+
+    workflow_name = 'condense_battle_log'
+
+    step = "initialize_workflow"
+    progress_data = {}
+
+    try:
+        from backend.game.battle import manager as battle
+        from backend.game.utils.rolling_summary import (
+            plan_batch, covered_count, summarize_lines
+        )
+
+        step = "plan_batch"
+        on_update(step, progress_data)
+        state = battle.get_battle_state()
+        if not state.get('in_battle'):
+            return success_response({"condensed": False})
+        log = state.get('recent_log', [])
+        summaries = state.get('log_summaries', [])
+        batch = plan_batch('battle_log', len(log), covered_count(summaries))
+        if not batch:
+            return success_response({"condensed": False})
+
+        step = "condense_batch"
+        on_update(step, progress_data)
+        start, end = batch
+        prior = summaries[-1]['text'] if summaries else None
+        summary_text = summarize_lines(
+            'battle_log', log[start:end], workflow_name, prior_summary=prior
+        )
+        if not summary_text:
+            # The batch stays uncovered and retries at the next trigger
+            return success_response({"condensed": False})
+
+        step = "record_summary"
+        on_update(step, progress_data)
+        battle.record_log_summary(end, summary_text)
+
+        return success_response({
+            "condensed": True,
+            "covers_entries": end
+        })
+
+    except Exception as e:
         return error_response({
             'failed_at': step,
             'completed_work': progress_data,

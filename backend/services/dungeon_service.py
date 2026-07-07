@@ -409,3 +409,25 @@ def get_dungeon_state() -> Dict[str, Any]:
             'dialogue': encounter.get('dialogue', [])
         } if encounter else None
     })
+
+def abandon_run() -> Dict[str, Any]:
+    """
+    Call the party home mid-run: the active run closes as 'abandoned'
+    (its log is snapshotted first so home-base chats can still look back
+    on it), any battle ends, and the run state is wiped. Synchronous -
+    no LLM. Safe to call when not in a dungeon (quiet no-op), so the
+    frontend can use it to clear stale run state.
+    """
+
+    from backend.game.battle import manager as battle_manager
+    from backend.models.dungeon_run import DungeonRun
+
+    if not manager.is_in_dungeon():
+        return success_response({'abandoned': False, 'in_dungeon': False})
+
+    manager.snapshot_last_run_log('abandoned')
+    DungeonRun.close('abandoned')
+    battle_manager.end_battle()
+    manager.exit_dungeon()
+
+    return success_response({'abandoned': True, 'in_dungeon': False})

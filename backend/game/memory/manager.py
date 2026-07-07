@@ -24,6 +24,12 @@ MEMORY_KINDS = (
     'lesson',            # what defeat taught it (party monsters)
     'returned',          # it came back changed to face the party again
     'run_complete',      # it walked out of the dungeon with the party
+    # Home-base chat kinds (extracted from conversation, source recorded)
+    'confided',          # it opened up about itself or its past
+    'grew_closer',       # its bond with the adventurer/party deepened
+    'shared_lore',       # it passed on knowledge of the world
+    'learned_fact',      # valuable information surfaced in the talk
+    'voiced_wish',       # a want or goal it spoke aloud (growth reads these)
 )
 
 def write_memory(monster_id: int, kind: str, content: str, details: Dict[str, Any] = None) -> None:
@@ -66,10 +72,17 @@ def write_memory(monster_id: int, kind: str, content: str, details: Dict[str, An
         print(f"❌ Failed to write '{kind}' memory for monster {monster_id}: {e}")
 
 def _format_memory_line(memory) -> str:
-    """One memory as one prompt line: '[run 3] was_defeated: ...'"""
+    """One memory as one prompt line: '[run 3] was_defeated: ...'
+    The prefix names the memory's SOURCE: a run, a home-base talk, ..."""
     details = memory.details or {}
     run_number = details.get('run_number')
-    prefix = f"[run {run_number}] " if run_number else "[before this journey] "
+    if run_number:
+        prefix = f"[run {run_number}] "
+    elif details.get('source') == 'home_chat':
+        after = details.get('after_run_number')
+        prefix = f"[a talk at home, after run {after}] " if after else "[a talk at home] "
+    else:
+        prefix = "[before this journey] "
     return f"{prefix}{memory.kind}: {memory.content}"
 
 def get_memory_lines(monster_id: int, cap: int = 12) -> List[str]:
@@ -96,6 +109,20 @@ def compact_memory_lines(monster_id: int, max_lines: int = 3) -> List[str]:
     """
     lines = get_memory_lines(monster_id, cap=max_lines)
     return [line[:220] for line in lines]
+
+def party_memory_lines(monster_id: int) -> List[str]:
+    """
+    A PARTY member's freshest memories for multi-monster blocks (party
+    details, ally battle blocks) - how what it lived and what was said
+    at home shapes how it fights and meets other monsters. Tier-gated
+    so small context windows stay lean.
+    """
+    from backend.game.utils.context_limits import resolve_detail_tier
+    count_by_tier = {'compact': 1, 'standard': 2, 'full': 3}
+    return compact_memory_lines(
+        monster_id,
+        max_lines=count_by_tier.get(resolve_detail_tier(), 1)
+    )
 
 # ===== RETURNING-MONSTER ELIGIBILITY =====
 

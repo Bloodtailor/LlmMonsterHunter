@@ -242,12 +242,30 @@ One permanent remembered moment in a monster's life (table `monster_memories`).
   "id": number,
   "monster_id": number,
   "run_id": number|null,             // the dungeon run it happened in
-  "kind": "was_defeated"|"defeated_party"|"joined_party"|"yielded_to_party"|"fled_from_party"|"spared_party"|"let_party_pass"|"gave_reward"|"punished_party"|"talked_with_party"|"avoided"|"camp"|"growth"|"lesson"|"returned"|"run_complete",
+  "kind": "was_defeated"|"defeated_party"|"joined_party"|"yielded_to_party"|"fled_from_party"|"spared_party"|"let_party_pass"|"gave_reward"|"punished_party"|"talked_with_party"|"avoided"|"camp"|"growth"|"lesson"|"returned"|"run_complete"|"confided"|"grew_closer"|"shared_lore"|"learned_fact"|"voiced_wish",
   "content": string,                 // 1-2 past-tense sentences, prompt-ready
-  "details": { "run_number?": number, "by?": string, "with?": string,
-               "location?": string, "stat?": string, "amount_pct?": number,
-               "battle_summary?": string, "exchange?": string },
+  "details": { "run_number?": number, "source?": string, "by?": string,
+               "with?": string, "location?": string, "stat?": string,
+               "amount_pct?": number, "battle_summary?": string,
+               "exchange?": string, "message_span?": [number, number],
+               "after_run_number?": number },
   "created_at": string
+}
+```
+The last five kinds come from home-base chats (`details.source: "home_chat"`,
+`message_span` = the chat_messages ids the extraction reviewed) — see
+[Chat](chat.md).
+
+## ChatMessageObject
+One line of a monster's persistent home-base thread (table `chat_messages`).
+```json
+{
+  "id": number,                      // ordering key (insertion order)
+  "monster_id": number,
+  "role": "player"|"monster",
+  "text": string,
+  "created_at": string,
+  "updated_at": string
 }
 ```
 
