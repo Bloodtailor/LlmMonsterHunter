@@ -77,11 +77,13 @@ def _register_routes(app):
     from backend.routes.generation_routes import generation_bp
     from backend.routes.inventory_routes import inventory_bp
     from backend.routes.monster_routes import monster_bp
+    from backend.routes.player_routes import player_bp
     from backend.routes.sse_routes import sse_bp
 
     app.register_blueprint(generation_bp)
     app.register_blueprint(sse_bp)
     app.register_blueprint(monster_bp)
+    app.register_blueprint(player_bp)
     app.register_blueprint(game_state_bp)
     app.register_blueprint(dungeon_bp)
     app.register_blueprint(battle_bp)

@@ -1,6 +1,6 @@
 # New Game Experience — Wipe + Player Character — Plan
 
-**Status:** IN PROGRESS (July 2026) — M1-M2 landed; M3 (creation backend) next.
+**Status:** IN PROGRESS (July 2026) — M1-M3 landed; M4 (creation screen) next.
 **Branch:** `feature/new-game-experience` — one milestone commit per milestone, prefix `Ngx-M#`.
 
 Today "New Game" wipes nothing (game-loop-v1 locked decision #1: the
@@ -59,7 +59,7 @@ not a chat target, not followable, not evolvable. Battle inherits the
 player through party ids (test-covered, no battle code changes).
 Suite: `test_player_character.py`.
 
-### M3 — Creation backend: options, finalize, portrait — PLANNED
+### M3 — Creation backend: options, finalize, portrait — IMPLEMENTED
 `ai/llm/prompts/player_generation.json`: `player_options` (3–4 option
 texts for one field, conditioned on choices so far; fields kind/name/
 background/personality/wish/appearance — role is a static code list),
@@ -123,3 +123,11 @@ with the player fighting as a commanded ally.
   checks for empty COMPANION rows instead of an empty party - with a
   player character the party is never empty, and the old check would
   have blocked the guided opening's first companion.
+- **M3:** a creation that fails midway leaves a half-built row; the
+  finalize workflow DISCARDS a partial player (stage != complete) and
+  rebuilds fresh, while a complete one still refuses (New Game is the
+  way to start over). The plan hadn't specified retry semantics.
+- **M3:** uploads auto-select as the portrait (the player chose that
+  file on purpose); painted candidates still require an explicit
+  select. Player sapience is pinned to sapient/speech so chat gating
+  can never bite the player's own voice.

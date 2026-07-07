@@ -22,6 +22,7 @@ SUITES = [
     'test_affinity',
     'test_first_run',
     'test_player_character',
+    'test_player_creation',
     'test_new_game',
 ]
 
