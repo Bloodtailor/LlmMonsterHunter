@@ -73,6 +73,7 @@ def main():
         saved_fill = os.environ.get('LLM_CONTEXT_FILL_PERCENT')
         test_monster = None
         was_following = False
+        created_run_ids = []
 
         try:
             # ===== Context fill percent =====
@@ -401,6 +402,40 @@ def main():
                   'Blow number 1.' not in log_text)
             battle.end_battle()
 
+            # ===== Abandon run (call the party home) =====
+            print('\n-- abandon_run --')
+            from backend.services import dungeon_service
+            from backend.models.dungeon_run import DungeonRun
+
+            dungeon.save_dungeon_state(dict(dungeon._EMPTY_STATE))
+            result = dungeon_service.abandon_run()
+            check('abandon when already home is a quiet no-op',
+                  result.get('success') is True and result.get('abandoned') is False)
+
+            # Never touch a real active run - only test the full path when
+            # there is no run in progress on this save
+            if DungeonRun.get_active() is None:
+                abandon_run_row = DungeonRun.begin()
+                created_run_ids.append(abandon_run_row.id)
+                dungeon.save_dungeon_state({
+                    **dict(dungeon._EMPTY_STATE),
+                    'in_dungeon': True,
+                    'run_id': abandon_run_row.id,
+                    'dungeon_log': ['The party set out.', 'They turned back early.']
+                })
+                result = dungeon_service.abandon_run()
+                db.session.refresh(abandon_run_row)
+                snap = dungeon.get_last_run_log() or {}
+                check('abandon closes the run and wipes the state',
+                      result.get('abandoned') is True and
+                      abandon_run_row.result == 'abandoned' and
+                      not dungeon.is_in_dungeon())
+                check('abandon snapshots the log for home chats',
+                      snap.get('result') == 'abandoned' and
+                      len(snap.get('entries', [])) == 2)
+            else:
+                print('  ⏭️ active run present on this save - full abandon path skipped')
+
         finally:
             # ===== Cleanup: leave the dev DB as we found it =====
             print('\n-- Cleanup --')
@@ -414,6 +449,11 @@ def main():
                     MonsterMemory.query.filter_by(monster_id=test_monster.id).delete()
                     db.session.commit()
                     test_monster.delete()
+                from backend.models.dungeon_run import DungeonRun as _RunCleanup
+                for run_id in created_run_ids:
+                    run = _RunCleanup.get_by_id(run_id)
+                    if run:
+                        run.delete()
                 dungeon.save_dungeon_state(saved_dungeon_state)
                 battle.save_battle_state(saved_battle_state)
                 if saved_last_run is None:

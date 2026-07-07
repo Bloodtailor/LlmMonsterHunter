@@ -94,6 +94,12 @@ def get_dungeon_state():
     result = dungeon_service.get_dungeon_state()
     return jsonify(result), 200 if result['success'] else 400
 
+@dungeon_bp.route('/abandon', methods=['POST'])
+def abandon_run():
+    """Call the party home mid-run (closes the run as abandoned) - thin HTTP wrapper"""
+    result = dungeon_service.abandon_run()
+    return jsonify(result), 200 if result['success'] else 400
+
 @dungeon_bp.route('/debug-context', methods=['GET'])
 def get_debug_context():
     """DEVELOPER ONLY: full LLM context X-ray (includes hidden info) - thin HTTP wrapper"""

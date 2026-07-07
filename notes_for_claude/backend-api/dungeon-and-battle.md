@@ -219,6 +219,15 @@ per-monster waiting counts) / turn history / battle log, and paths
 **including their hidden events and destinations**. Powers the left-side
 debug panel in the frontend. Synchronous. Never use for game UI.
 
+### POST /dungeon/abandon
+Call the party home mid-run. The active run closes as `abandoned` — its
+log is snapshotted to `last_run_log` first so home-base chats can still
+look back on it — any battle ends, and the run state wipes. Synchronous,
+no LLM. A quiet no-op when not in a dungeon, so the frontend can use it
+to clear stale run state (a run otherwise only ends by taking an exit
+path, being defeated, or entering the dungeon again).
+**Success:** `{ "success": true, "abandoned": boolean, "in_dungeon": false }`
+
 ### GET /dungeon/state
 Public dungeon state (hidden path events/destinations stripped). Synchronous.
 **Success:**

@@ -70,6 +70,12 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         # is cleared (start_dungeon below resets the dungeon state and log)
         battle_manager.end_battle()
 
+        # A leftover run (the player walked away mid-run) still deserves
+        # its place in the chat context - snapshot its log before begin()
+        # closes it and start_dungeon wipes it
+        if manager.is_in_dungeon():
+            manager.snapshot_last_run_log('abandoned')
+
         # Open this run's row in the run history (closes any dangling
         # active run as 'abandoned' first)
         from backend.models.dungeon_run import DungeonRun

@@ -12,8 +12,11 @@ Read the [index](../backend-api-reference.md) workflow model first.
 ## POST /api/chat/:monster_id/message
 **Request:** `{ "message": string }` (non-empty, ≤500 chars)
 Queues a `chat_with_monster` workflow. Refused (400) while a dungeon run
-is active, for monsters not on the following list / active party, and
-for monsters still generating.
+is active **backend-side** (navigating the UI home does NOT end a run —
+only exiting, defeat, re-entering, or `POST /dungeon/abandon` does; the
+Campfire Chat screen checks `GET /dungeon/state` first and offers the
+abandon action), for monsters not on the following list / active party,
+and for monsters still generating.
 **Success:** `{ "success": true, "workflow_id": number }`
 **During the workflow:** step `emit_generation_id` carries
 `data.chat_text_generation_id` — follow `llm.generation.update` events
