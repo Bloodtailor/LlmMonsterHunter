@@ -3,10 +3,9 @@
 # persona changes, memory writing, and the deterministic fallback path.
 #
 # Usage: python -m backend.tests.test_returning   (from project root)
-# Uses the dev database; creates and removes its own rows.
+# Uses the dedicated test database (harness.py); creates and removes its own rows.
 
-import os
-from flask import Flask
+from backend.tests.harness import build_test_app
 
 PASSED = 0
 FAILED = 0
@@ -20,21 +19,8 @@ def check(name: str, condition: bool, detail: str = ''):
         FAILED += 1
         print(f"  ❌ {name}{f' - {detail}' if detail else ''}")
 
-def build_minimal_app():
-    from backend.models.core import init_db
-
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = (
-        f"mysql+pymysql://{os.getenv('DB_USER', 'root')}:{os.getenv('DB_PASSWORD', '')}"
-        f"@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '3306')}"
-        f"/{os.getenv('DB_NAME', 'monster_hunter_game')}"
-    )
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    init_db(app)
-    return app
-
 def main():
-    app = build_minimal_app()
+    app = build_test_app()
 
     with app.app_context():
         from backend.models.core import db, create_tables
@@ -166,7 +152,7 @@ def main():
 
         print('\n' + '=' * 50)
         print(f'🎉 {PASSED} passed, {FAILED} failed')
-        raise SystemExit(1 if FAILED else 0)
+        return FAILED
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

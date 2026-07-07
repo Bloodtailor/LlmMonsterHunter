@@ -73,8 +73,8 @@ def text_generation_request(prompt: str,
     queue = get_ai_queue()
     
     if not queue.add_request(generation_log.id):
-        raise Exception('Failed to add request to queue', generation_id=generation_log.id)
-    
+        raise Exception(f'Failed to add request to queue (generation_id={generation_log.id})')
+
     if return_early:
         return {'generation_id': generation_log.id}
     # Wait for completion
@@ -101,7 +101,7 @@ def image_generation_request(prompt_text: str,
     
     # Check if image generation is enabled
     if not os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true':
-        raise Exception('Image generation is disabled', reason='DISABLED')
+        raise Exception('Image generation is disabled')
     
     # Show simplified request info
     truncated_prompt = prompt_text[:50] + "..." if len(prompt_text) > 50 else prompt_text
@@ -129,7 +129,7 @@ def image_generation_request(prompt_text: str,
     queue = get_ai_queue()
     
     if not queue.add_request(generation_log.id):
-        raise Exception('Failed to add image request to queue', generation_id=generation_log.id)
+        raise Exception(f'Failed to add image request to queue (generation_id={generation_log.id})')
     
     if return_early:
         return {'generation_id': generation_log.id}
@@ -182,17 +182,14 @@ def _wait_for_completion(queue, generation_id: int, generation_type: str, timeou
         
         if status['status'] == 'failed':
             raise Exception(
-                status.get('error', 'Processing failed'),
-                generation_id=generation_id,
-                generation_type=generation_type
+                f"{generation_type.upper()} generation {generation_id} failed: "
+                f"{status.get('error', 'Processing failed')}"
             )
-        
+
         time.sleep(0.5)
-    
+
     raise TimeoutError(
-        f'{generation_type.upper()} generation timed out after {timeout} seconds',
-        generation_id=generation_id,
-        generation_type=generation_type
+        f'{generation_type.upper()} generation {generation_id} timed out after {timeout} seconds'
     )
 
 # Export main functions

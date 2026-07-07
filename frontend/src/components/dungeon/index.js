@@ -22,11 +22,6 @@ export { default as MonsterDialogueBox } from './components/MonsterDialogueBox.j
 export { default as DungeonPartyPanel } from './components/DungeonPartyPanel.js';
 export { default as DungeonExitView } from './components/DungeonExitView.js';
 
-// ===== HOOKS =====
-// TODO: Export specialized dungeon hooks when created
-// export { useDungeonEvents } from './hooks/useDungeonEvents.js';
-// export { useDungeonWorkflow } from './hooks/useDungeonWorkflow.js';
-
 // ===== SERVICES =====
 // Note: API services are already exported from api/services/dungeon.js
 // No need to re-export here

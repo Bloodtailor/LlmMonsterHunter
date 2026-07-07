@@ -26,14 +26,17 @@ class TeeStdout:
 
 def run_test_file(test_name):
     """Run a test file and capture its output while still printing to console"""
-    test_file_path = f"backend/tests/{test_name}.py"
 
-    if not Path(test_file_path).exists():
+    # Only names that exist in backend/tests may run - the name arrives
+    # from the URL, so never let it form a path on its own
+    if test_name not in list_test_names():
         return jsonify({
             'success': False,
-            'error': f'Test file not found: {test_file_path}',
+            'error': f'Unknown test: {test_name}',
             'output': ''
         }), 404
+
+    test_file_path = f"backend/tests/{test_name}.py"
 
     try:
         # Duplicate stdout
@@ -64,14 +67,15 @@ def run_test_file(test_name):
         }), 500
 
 
+def list_test_names():
+    """Names (without .py) of the runnable files in backend/tests"""
+    tests_dir = Path("backend/tests")
+    if not tests_dir.exists():
+        return []
+    return sorted(file.stem for file in tests_dir.glob("*.py")
+                  if not file.name.startswith("__"))
+
+
 def get_test_files():
     """Return a list of test file names (without .py extension) from backend/tests"""
-    tests_dir = Path("backend/tests")
-    test_files = []
-
-    if tests_dir.exists():
-        for file in tests_dir.glob("*.py"):
-            if not file.name.startswith("__"):
-                test_files.append(file.stem)
-
-    return jsonify(test_files)
+    return jsonify(list_test_names())

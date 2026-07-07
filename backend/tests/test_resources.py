@@ -123,7 +123,7 @@ def main():
 
     print('\n' + '=' * 50)
     print(f'🎉 {PASSED} passed, {FAILED} failed')
-    raise SystemExit(1 if FAILED else 0)
+    return FAILED
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

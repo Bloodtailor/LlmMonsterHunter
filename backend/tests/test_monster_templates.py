@@ -228,8 +228,9 @@ def main():
     print('\n' + '=' * 60)
     if FAILURES:
         print(f'{len(FAILURES)} FAILURE(S): {FAILURES}')
-        raise SystemExit(1)
+        return len(FAILURES)
     print('ALL CHECKS PASS')
+    return 0
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

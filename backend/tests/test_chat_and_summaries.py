@@ -5,11 +5,12 @@
 # last-run-log snapshot, and the dungeon/battle log summary storage.
 #
 # Usage: python -m backend.tests.test_chat_and_summaries   (from project root)
-# Uses the dev database; creates and removes its own rows, and restores
-# the dungeon/battle state and env vars it found.
+# Uses the dedicated test database (harness.py); creates and removes its own
+# rows, and restores the dungeon/battle state and env vars it found.
 
 import os
-from flask import Flask
+
+from backend.tests.harness import build_test_app
 
 PASSED = 0
 FAILED = 0
@@ -23,27 +24,11 @@ def check(name: str, condition: bool, detail: str = ''):
         FAILED += 1
         print(f"  ❌ {name}{f' - {detail}' if detail else ''}")
 
-def build_minimal_app():
-    """A Flask app with ONLY the database configured (reset_db pattern)"""
-    from backend.models.core import init_db
-
-    app = Flask(__name__)
-    db_user = os.getenv('DB_USER', 'root')
-    db_password = os.getenv('DB_PASSWORD', '')
-    db_host = os.getenv('DB_HOST', 'localhost')
-    db_port = os.getenv('DB_PORT', '3306')
-    db_name = os.getenv('DB_NAME', 'monster_hunter_game')
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    init_db(app)
-    return app
-
 def noop_update(step, data):
     pass
 
 def main():
-    app = build_minimal_app()
+    app = build_test_app()
 
     with app.app_context():
         from backend.models.core import db, create_tables
@@ -437,7 +422,7 @@ def main():
                 print('  ⏭️ active run present on this save - full abandon path skipped')
 
         finally:
-            # ===== Cleanup: leave the dev DB as we found it =====
+            # ===== Cleanup: leave the test DB as we found it =====
             print('\n-- Cleanup --')
             try:
                 if test_monster:
@@ -466,11 +451,11 @@ def main():
                     os.environ['LLM_CONTEXT_FILL_PERCENT'] = saved_fill
                 print('  🧹 test rows removed, states and env restored')
             except Exception as e:
-                print(f'  ⚠️ cleanup problem (dev DB may hold test rows): {e}')
+                print(f'  ⚠️ cleanup problem (test DB may hold test rows): {e}')
 
         print('\n' + '=' * 50)
         print(f'🎉 {PASSED} passed, {FAILED} failed')
-        raise SystemExit(1 if FAILED else 0)
+        return FAILED
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
