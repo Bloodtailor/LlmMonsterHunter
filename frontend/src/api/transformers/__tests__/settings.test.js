@@ -15,10 +15,10 @@ const RAW_SETTINGS = {
     has_api_key: true,
     api_key_last4: '1234',
     model: 'deepseek-v4-flash',
-    context_window: 65536,
+    context_window: 2000000,
   },
   known_models: { 'deepseek-v4-flash': 1000000 },
-  min_context_window: 2048,
+  min_context_window: 1000000,
   message: 'Settings saved',
 };
 
@@ -30,9 +30,9 @@ describe('transformLlmSettings', () => {
     expect(settings.local.contextSize).toBe(8192);
     expect(settings.deepseek.hasApiKey).toBe(true);
     expect(settings.deepseek.apiKeyLast4).toBe('1234');
-    expect(settings.deepseek.contextWindow).toBe(65536);
+    expect(settings.deepseek.contextWindow).toBe(2000000);
     expect(settings.knownModels['deepseek-v4-flash']).toBe(1000000);
-    expect(settings.minContextWindow).toBe(2048);
+    expect(settings.minContextWindow).toBe(1000000);
     expect(settings.message).toBe('Settings saved');
   });
 

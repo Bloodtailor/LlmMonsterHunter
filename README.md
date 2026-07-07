@@ -59,7 +59,7 @@ The short version: a strictly-layered Flask backend orchestrates a local LLM and
 
 - Expensive actions queue a **workflow** and return immediately; results stream over SSE
 - Combat uses **word ladders** (`fresh → … → incapacitated`), not HP math
-- Prompt budgets **scale with the model's context window**; old history is condensed by rolling summaries
+- Prompt blocks carry **absolute token caps** under a 70%-of-window ceiling (the supported floor is a 1M-token context window); old history is condensed by rolling summaries
 - Every AI request is logged byte-exact and inspectable in the in-app developer tools
 
 Read the full tour in [docs/architecture.md](docs/architecture.md), tweak anything via [docs/tuning.md](docs/tuning.md), and see the API in [docs/api/](docs/api/README.md).

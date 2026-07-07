@@ -44,9 +44,7 @@ def begin_first_run_context() -> None:
     danger, the fixed goal, and the scripted event sequence"""
     from backend.game.dungeon.goal import set_fixed_goal
 
-    run_context.begin_run_context(
-        theme=FIRST_RUN_THEME, danger=FIRST_RUN_DANGER, first_run=True
-    )
+    run_context.begin_run_context(theme=FIRST_RUN_THEME, danger=FIRST_RUN_DANGER, first_run=True)
     context = run_context.get_run_context()
     context['first_run_events'] = list(FIRST_RUN_EVENT_SEQUENCE)
     run_context.save_run_context(context)
@@ -116,7 +114,7 @@ def run_begin_first_run(context: dict, step: WorkflowStep) -> dict[str, Any]:
     # pre-character world keeps the old nameless framing
     player = get_player_monster()
     player_details = (
-        build_monster_block(player, tier='compact')
+        build_monster_block(player)
         if player is not None
         else 'A nameless adventurer carrying an unspoken wish.'
     )

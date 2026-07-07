@@ -30,10 +30,11 @@ PATH_COUNT_RANGE = (2, 4)
 # Chance that one of the junction's paths is a dungeon exit
 EXIT_PATH_CHANCE = 0.33
 
-# How many paths the LLM generates per batch - more than we need, and we
-# use the LAST ones. Small local LLMs repeat themselves early; asking for
-# extra and taking the later entries plays to their strengths
-PATH_OVERGENERATE_COUNT = 6
+# How many paths the LLM generates per batch (the junction draws up to
+# PATH_COUNT_RANGE of them, taking the LAST ones). The old 6-wide
+# over-generation was a small-model workaround - 1M-class models don't
+# repeat themselves early, so we ask for exactly the most a junction needs
+PATH_OVERGENERATE_COUNT = 4
 
 # Weight of the returning-monster event WHEN remembered monsters are
 # eligible to return (the pool is checked at path-generation time and
@@ -55,9 +56,7 @@ def assign_random_event(include_returning: bool = False) -> str:
         return scripted
 
     weight_map = dict(EVENT_WEIGHTS)
-    weight_map['monster_battle'] = danger_knob(
-        'battle_event_weight', weight_map['monster_battle']
-    )
+    weight_map['monster_battle'] = danger_knob('battle_event_weight', weight_map['monster_battle'])
     events = list(weight_map.keys())
     weights = list(weight_map.values())
     if include_returning:

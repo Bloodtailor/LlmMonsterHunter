@@ -126,17 +126,19 @@ def compact_memory_lines(monster_id: int, max_lines: int = 3) -> list[str]:
     return [line[:220] for line in lines]
 
 
+# How many of a party member's memories ride along in multi-monster
+# blocks (the context-window tiers that once gated this are gone -
+# the 1M floor means the fullest count always fits)
+PARTY_MEMORY_LINES = 3
+
+
 def party_memory_lines(monster_id: int) -> list[str]:
     """
     A PARTY member's freshest memories for multi-monster blocks (party
     details, ally battle blocks) - how what it lived and what was said
-    at home shapes how it fights and meets other monsters. Tier-gated
-    so small context windows stay lean.
+    at home shapes how it fights and meets other monsters.
     """
-    from backend.game.utils.context_limits import resolve_detail_tier
-
-    count_by_tier = {'compact': 1, 'standard': 2, 'full': 3}
-    return compact_memory_lines(monster_id, max_lines=count_by_tier.get(resolve_detail_tier(), 1))
+    return compact_memory_lines(monster_id, max_lines=PARTY_MEMORY_LINES)
 
 
 # ===== RETURNING-MONSTER ELIGIBILITY =====

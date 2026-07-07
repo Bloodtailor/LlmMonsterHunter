@@ -33,7 +33,7 @@ export function transformLlmSettings(rawSettings) {
       contextWindow: deepseek.context_window ?? null,
     },
     knownModels: rawSettings.known_models ?? {},
-    minContextWindow: rawSettings.min_context_window ?? 2048,
+    minContextWindow: rawSettings.min_context_window ?? 1000000,
     message: rawSettings.message ?? null,
   };
 }

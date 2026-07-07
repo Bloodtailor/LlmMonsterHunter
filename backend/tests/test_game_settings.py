@@ -119,14 +119,34 @@ def main():
                     'deepseek': {
                         'api_key': TEST_API_KEY,
                         'model': 'deepseek-v4-flash',
-                        'context_window': 65536,
+                        'context_window': 2_000_000,
                     },
                 },
             )
             settings = resolve_llm_settings()
             check('a complete row resolves deepseek', settings['provider'] == PROVIDER_DEEPSEEK)
             check('the model becomes the model name', settings['model_name'] == 'deepseek-v4-flash')
-            check('the stored window wins', settings['context_size'] == 65536)
+            check('the stored window wins', settings['context_size'] == 2_000_000)
+
+            # The hard floor: a below-floor window on a KNOWN 1M-class model
+            # heals to the map; a legacy row (removed 128K model) resolves
+            # local - never budget prompts a smaller model cannot hold
+            row = {'api_key': TEST_API_KEY, 'model': 'deepseek-v4-flash', 'context_window': 65_536}
+            GameSetting.set(SETTINGS_KEY, {'provider': 'deepseek', 'deepseek': row})
+            settings = resolve_llm_settings()
+            check(
+                'a below-floor window on a known model heals to the map',
+                settings['provider'] == PROVIDER_DEEPSEEK
+                and settings['context_size'] == DEEPSEEK_KNOWN_CONTEXT_WINDOWS['deepseek-v4-flash'],
+            )
+
+            row = {'api_key': TEST_API_KEY, 'model': 'deepseek-chat', 'context_window': 128_000}
+            GameSetting.set(SETTINGS_KEY, {'provider': 'deepseek', 'deepseek': row})
+            settings = resolve_llm_settings()
+            check(
+                'a pre-floor legacy row resolves local',
+                settings['provider'] == PROVIDER_LOCAL,
+            )
 
             GameSetting.set(
                 SETTINGS_KEY,
@@ -314,7 +334,7 @@ def main():
                     'deepseek': {
                         'api_key': TEST_API_KEY,
                         'model': 'deepseek-v4-flash',
-                        'context_window': 65536,
+                        'context_window': 2_000_000,
                     },
                 },
             )
@@ -373,6 +393,10 @@ def main():
                 }
             )
             check('a starving-small window is refused', result['success'] is False)
+
+            row = {'api_key': TEST_API_KEY, 'model': 'deepseek-v4-flash', 'context_window': 65_536}
+            result = settings_service.update_llm_settings({'provider': 'deepseek', 'deepseek': row})
+            check('a sub-1M window is refused (the hard floor)', result['success'] is False)
 
             result = settings_service.update_llm_settings(
                 {

@@ -2,21 +2,18 @@
 # Replaces the near-duplicate builders that lived in the dungeon generator,
 # battle generator, and state manager.
 #
-# Multi-monster blocks (party details, battle sides) are TIERED by the
-# model's context window (resolve_detail_tier): compact / standard / full.
-# Single-speaker dialogue prompts bypass the bin via build_speaker_block -
-# one monster's full persona fits even a 4096 window, and chat is the game.
+# Every block carries the FULL persona: the 1M-token context floor
+# (docs/plans/cloud-generation.md) retired the compact/standard/full
+# window tiers, so multi-monster blocks and single-speaker blocks now
+# differ only in the SECRET.
 #
-# The SECRET never enters tiered blocks (a battle narrator would leak it);
-# it appears only in speaker blocks, where the prompt instructs the monster
-# to guard it until trust is earned.
-
-from backend.game.utils import resolve_detail_tier
+# The SECRET never enters multi-monster blocks (a battle narrator would
+# leak it); it appears only in speaker blocks, where the prompt instructs
+# the monster to guard it until trust is earned.
 
 
 def build_monster_block(
     monster,
-    tier: str = None,
     condition: str = None,
     defending: bool = False,
     side_label: str = None,
@@ -24,10 +21,7 @@ def build_monster_block(
     resources: dict = None,
     memory_lines: list = None,
 ) -> str:
-    """One monster as an LLM context block at the given detail tier
-    (tier=None resolves from the model's context window)"""
-
-    tier = tier or resolve_detail_tier()
+    """One monster as an LLM context block - always the full persona"""
 
     taxonomy = monster.taxonomy or {}
     ecology = monster.ecology or {}
@@ -50,7 +44,7 @@ def build_monster_block(
         "; ".join(f"{a.name} ({a.description})" for a in (monster.abilities or [])) or "none"
     )
 
-    # ----- compact: identity, stats, prose, traits, wish, abilities -----
+    # Identity, stats, prose, traits, wish, abilities
     identity_bits = [
         bit
         for bit in (
@@ -85,52 +79,48 @@ def build_monster_block(
         lines.append("  Remembers the party:")
         lines += [f"    * {line}" for line in memory_lines[:3]]
 
-    # ----- standard: + lineage, way of life, voice, tastes, persuasion rubric -----
-    if tier in ('standard', 'full'):
-        lines += [
-            _lineage_line(taxonomy),
-            _way_of_life_line(ecology),
-            _mind_line(ecology),
-            f"  Voice: {persona.get('speech_style')}" if persona.get('speech_style') else None,
-            f"  Battle cry: \"{persona.get('battle_line')}\""
-            if persona.get('battle_line')
-            else None,
-            _pair_line('Likes', persona.get('likes'), 'Dislikes', persona.get('dislikes')),
-            _pair_line(
-                'Responds well to',
-                persona.get('responds_well_to'),
-                'poorly to',
-                persona.get('responds_poorly_to'),
-            ),
-            f"  Toward strangers: {persona.get('attitude_toward_strangers')}"
-            if persona.get('attitude_toward_strangers')
-            else None,
-            f"  Would join a party for: {persona.get('recruitment_lever')}"
-            if persona.get('recruitment_lever')
-            else None,
-        ]
+    # Lineage, way of life, voice, tastes, persuasion rubric
+    lines += [
+        _lineage_line(taxonomy),
+        _way_of_life_line(ecology),
+        _mind_line(ecology),
+        f"  Voice: {persona.get('speech_style')}" if persona.get('speech_style') else None,
+        f"  Battle cry: \"{persona.get('battle_line')}\"" if persona.get('battle_line') else None,
+        _pair_line('Likes', persona.get('likes'), 'Dislikes', persona.get('dislikes')),
+        _pair_line(
+            'Responds well to',
+            persona.get('responds_well_to'),
+            'poorly to',
+            persona.get('responds_poorly_to'),
+        ),
+        f"  Toward strangers: {persona.get('attitude_toward_strangers')}"
+        if persona.get('attitude_toward_strangers')
+        else None,
+        f"  Would join a party for: {persona.get('recruitment_lever')}"
+        if persona.get('recruitment_lever')
+        else None,
+    ]
 
-    # ----- full: + inner life, bonds, class, origins -----
-    if tier == 'full':
-        bonds = persona.get('social_bonds') or {}
-        goals = ", ".join(persona.get('goals') or [])
-        fears = ", ".join(persona.get('fears') or [])
-        hobbies = ", ".join(persona.get('hobbies') or [])
-        lines += [
-            _class_line(monster.class_taxonomy, persona.get('profession')),
-            f"  Beliefs: {persona.get('beliefs')}" if persona.get('beliefs') else None,
-            f"  Moral character: {persona.get('moral_character')}"
-            if persona.get('moral_character')
-            else None,
-            f"  Motivations: {persona.get('motivations')}" if persona.get('motivations') else None,
-            f"  Goals: {goals}" if goals else None,
-            f"  Fears: {fears}" if fears else None,
-            f"  Hobbies: {hobbies}" if hobbies else None,
-            f"  Drawn to {bonds.get('drawn_to')}; clashes with {bonds.get('clashes_with')}"
-            if bonds.get('drawn_to') or bonds.get('clashes_with')
-            else None,
-            _origins_line(ecology),
-        ]
+    # Inner life, bonds, class, origins
+    bonds = persona.get('social_bonds') or {}
+    goals = ", ".join(persona.get('goals') or [])
+    fears = ", ".join(persona.get('fears') or [])
+    hobbies = ", ".join(persona.get('hobbies') or [])
+    lines += [
+        _class_line(monster.class_taxonomy, persona.get('profession')),
+        f"  Beliefs: {persona.get('beliefs')}" if persona.get('beliefs') else None,
+        f"  Moral character: {persona.get('moral_character')}"
+        if persona.get('moral_character')
+        else None,
+        f"  Motivations: {persona.get('motivations')}" if persona.get('motivations') else None,
+        f"  Goals: {goals}" if goals else None,
+        f"  Fears: {fears}" if fears else None,
+        f"  Hobbies: {hobbies}" if hobbies else None,
+        f"  Drawn to {bonds.get('drawn_to')}; clashes with {bonds.get('clashes_with')}"
+        if bonds.get('drawn_to') or bonds.get('clashes_with')
+        else None,
+        _origins_line(ecology),
+    ]
 
     if include_secret and persona.get('secret'):
         lines.append(f"  Secret (it guards this - never state it openly): {persona.get('secret')}")
@@ -139,11 +129,11 @@ def build_monster_block(
 
 
 def build_speaker_block(monster, condition: str = None, memory_lines: list = None) -> str:
-    """The FULL block for a monster that is about to SPEAK in a dialogue
-    prompt - always full tier, secret included, regardless of window bin"""
+    """The block for a monster that is about to SPEAK in a dialogue
+    prompt - the same full block as everywhere, plus the SECRET it guards"""
 
     return build_monster_block(
-        monster, tier='full', condition=condition, include_secret=True, memory_lines=memory_lines
+        monster, condition=condition, include_secret=True, memory_lines=memory_lines
     )
 
 

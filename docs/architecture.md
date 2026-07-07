@@ -136,15 +136,16 @@ valves, and fairness guardrails. The same pattern rules growth
 **If you're adding a mechanic: let the LLM choose among words you define,
 and let code own what the words do.**
 
-## Context budgets (fitting a game into a small model)
+## Context budgets (spending tokens deliberately)
 
-`game/utils/context_limits.py` gives every prompt block a budget that
-scales with `LLM_CONTEXT_SIZE`:
+The supported floor is a 1M-token context window, so prompts always
+fit — `game/utils/context_limits.py` budgets for COST and ATTENTION
+instead, under a hard ceiling of 70% of the window:
 
-- **Required blocks** (party/monster identity) are never truncated;
-  their *detail tier* (compact/standard/full) is binned by window size.
-- **Flexible blocks** (logs, dialogue, memories) each get a percentage
-  share and keep their most recent content when clamped.
+- **Required blocks** (party/monster identity) are never truncated and
+  always carry the full persona.
+- **Flexible blocks** (logs, dialogue, memories) each get an absolute
+  token cap and keep their most recent content when clamped.
 - **Rolling summaries** (`game/utils/rolling_summary.py`) condense old
   history via the LLM so long chats and runs stay affordable — raw
   entries are never deleted.

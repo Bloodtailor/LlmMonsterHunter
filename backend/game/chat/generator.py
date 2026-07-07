@@ -41,16 +41,16 @@ def build_chat_memories_block(monster_id: int) -> str:
 
 
 def build_chat_player_block() -> str:
-    """WHO the monster is talking to: the player character as a compact
-    context block (chats are AS the character - the monster should know
-    the face across the fire). Pre-character worlds keep the old generic."""
+    """WHO the monster is talking to: the player character as a context
+    block (chats are AS the character - the monster should know the face
+    across the fire). Pre-character worlds keep the old generic."""
     from backend.game.monster.context_builder import build_monster_block
     from backend.game.player.manager import get_player_monster
 
     player = get_player_monster()
     if player is None:
         return 'The adventurer the party follows - no more is known of them yet.'
-    return build_monster_block(player, tier='compact')
+    return build_monster_block(player)
 
 
 def queue_chat_reply(monster, player_message: str, workflow_name: str) -> int:

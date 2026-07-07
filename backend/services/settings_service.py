@@ -39,7 +39,7 @@ def get_llm_settings() -> dict[str, Any]:
                     'model_file': Path(model_path).name if model_path else None,
                     'loaded': bool(model_status.get('loaded')),
                     'error': model_status.get('error'),
-                    'context_size': int(os.getenv('LLM_CONTEXT_SIZE', '4096')),
+                    'context_size': int(os.getenv('LLM_CONTEXT_SIZE', '1000000')),
                     'gpu_layers': int(os.getenv('LLM_GPU_LAYERS', '35')),
                 },
                 'deepseek': {
@@ -109,8 +109,7 @@ def update_llm_settings(payload: dict[str, Any]) -> dict[str, Any]:
                 return error_response('Switching to DeepSeek needs a model - fetch or type one')
             if not context_window:
                 return error_response(
-                    f"'{model}' is not a model this game knows - "
-                    'set its context window manually'
+                    f"'{model}' is not a model this game knows - set its context window manually"
                 )
 
         new_value = {
@@ -249,8 +248,15 @@ def _resolve_context_window(
             )
         return window, None
 
-    if stored.get('context_window'):
-        return stored['context_window'], None
+    # A stored window below the (raised) floor is treated as absent so a
+    # pre-floor row self-heals through the known-models auto-fill on its
+    # next save instead of re-persisting an unsupported size
+    stored_window = stored.get('context_window')
+    try:
+        if stored_window and int(stored_window) >= minimum:
+            return stored_window, None
+    except (TypeError, ValueError):
+        pass
 
     if model and model in known_models:
         return known_models[model], None
