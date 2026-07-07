@@ -205,6 +205,29 @@ def main():
                 any('turned back' in (m.content or '') for m in abandoned_memories),
             )
 
+            # ===== an interrupted session sweeps with a story =====
+            print('\n-- the interrupted-run sweep (title screen Continue) --')
+            from backend.services import dungeon_service
+
+            _in_dungeon_state(manager)
+            stranded = _make_monster('Stranded Mid-Run')
+            created_monsters.append(stranded)
+            FollowingMonster.add_follower(stranded.id)
+            spoils.record_run_recruit(stranded.id)
+
+            result = dungeon_service.abandon_run(interrupted=True)
+            check('the sweep reports the run closed', result.get('abandoned') is True)
+            check('the world is out of the dungeon', not manager.is_in_dungeon())
+            check(
+                'the stranded recruit was released',
+                not FollowingMonster.is_following(stranded.id),
+            )
+            last_run = manager.get_last_run_log() or {}
+            check(
+                'the unknown force made it into the run story',
+                any('unknown force' in str(entry) for entry in last_run.get('entries', [])),
+            )
+
         finally:
             # Leave no debris in the shared test DB
             for monster in created_monsters:

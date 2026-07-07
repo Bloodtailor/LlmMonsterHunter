@@ -123,7 +123,8 @@ def get_dungeon_state():
 @dungeon_bp.route('/abandon', methods=['POST'])
 def abandon_run():
     """Call the party home mid-run (closes the run as abandoned) - thin HTTP wrapper"""
-    result = dungeon_service.abandon_run()
+    data = request.get_json(silent=True) or {}
+    result = dungeon_service.abandon_run(interrupted=bool(data.get('interrupted')))
     return jsonify(result), 200 if result['success'] else 400
 
 

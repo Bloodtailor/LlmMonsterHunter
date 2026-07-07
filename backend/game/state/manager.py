@@ -148,8 +148,9 @@ FIRST_RUN_COMPLETE_KEY = 'first_run_complete'
 
 
 def is_first_run_complete() -> bool:
-    """Has the guided opening ever been finished? (Gates the title
-    screen's Continue button; New Game is always available)"""
+    """Has the guided opening ever been finished? (The record of it -
+    the title screen's Continue now gates on has_world_data instead, so
+    an interrupted first run never strands a world behind New Game)"""
     return bool(GlobalVariable.get(FIRST_RUN_COMPLETE_KEY, False))
 
 

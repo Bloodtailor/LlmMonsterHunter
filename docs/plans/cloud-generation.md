@@ -169,6 +169,11 @@ suites, MySQL running), `ruff check backend setup tools`,
 `tools/check_file_sizes.py`; frontend `npm test` + `npx prettier --check
 src`.
 
+Dev database, once (the test DB heals itself via harness markers):
+`python -m backend.tests.add_image_log_columns` — adds the
+`image_logs.params`/`model_name` columns that `create_all` cannot ALTER
+in. (Ran 2026-07-07 after the first soak hit the missing column.)
+
 Live soak (Aaron, real keys, after M5): Settings → Images → paste Gemini
 key → fetch models → pick Nano Banana 2 → test paint → generate a monster
 (art arrives; dev log shows model + params) → dungeon run (enemy art) →
