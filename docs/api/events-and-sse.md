@@ -93,6 +93,12 @@ and the item-consumption flows:
 - `inventory.cocatok_removed` — `{ cocatok_id, title }` (a keepsake minted
   mid-run was taken back — the run's spoils were forfeited on defeat/abandon)
 
+### Game-state domain events
+- `game.world_erased` — `{ deleted_rows }` (per-table counts): New Game
+  wiped the world. Emitted AFTER the wipe transaction commits, so
+  listeners that refetch on it read the empty world (PartyContext empties
+  the roster and player live — no refresh needed).
+
 `workflow_type` values seen in workflow events: `generate_detailed_monster`,
 `generate_ability`, `evolve_monster`, `enter_dungeon`, `choose_path`,
 `respond_to_monster`, `sneak_past`, `surprise_attack`, `setup_camp`,

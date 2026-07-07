@@ -90,6 +90,24 @@ class GameWorkflow(BaseModel):
         self.error_message = error_message
 
     @classmethod
+    def close_dangling(cls) -> int:
+        """
+        Close pending/processing rows left behind by a dead process.
+        The queue itself is IN-MEMORY - rows from a previous run will
+        never be picked up again, and anything reading this table (the
+        New Game busy guard, the dev screen) must not mistake them for
+        live work. Called at startup, mirroring DungeonRun.begin()'s
+        dangling-run cleanup. Returns how many rows were closed.
+        """
+        dangling = cls.query.filter(cls.status.in_(('pending', 'processing'))).all()
+        for workflow in dangling:
+            workflow.mark_failed(
+                'Orphaned by a backend shutdown - the queue does not resume old work'
+            )
+            workflow.save()
+        return len(dangling)
+
+    @classmethod
     def create_workflow(cls, workflow_type: str, context_data: dict[str, Any], priority: int = 5):
         """
         Create a new workflow record

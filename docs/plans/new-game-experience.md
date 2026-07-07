@@ -142,3 +142,10 @@ with the player fighting as a commanded ally.
   end-to-end on the real model + ComfyUI without touching the dev
   world. The whole wizard was verified live this way (options → forge
   → paint → upload guardrails → select → opening).
+- **Live soak fix:** the New Game busy guard counted `game_workflows`
+  ROWS - but the queue is in-memory, so rows left pending/processing by
+  any backend shutdown lingered forever and blocked New Game
+  permanently (hit on Aaron's world day one). The guard now asks the
+  LIVE queue, and startup closes dangling rows
+  (`GameWorkflow.close_dangling()`, mirroring `DungeonRun.begin()`'s
+  dangling-run cleanup).

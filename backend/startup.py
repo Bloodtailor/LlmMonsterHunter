@@ -89,7 +89,14 @@ def initialize_workflows(app):
     with app.app_context():
         try:
             from backend.core.workflow_registry import list_workflows
+            from backend.models.game_workflow import GameWorkflow
             from backend.workflow.workflow_queue import get_queue
+
+            # The queue is in-memory: rows still pending/processing in
+            # the table are strays from the last shutdown, not live work
+            orphaned_count = GameWorkflow.close_dangling()
+            if orphaned_count:
+                print(f"Closed {orphaned_count} workflow row(s) orphaned by the last shutdown")
 
             game_queue = get_queue()
             game_queue.set_flask_app(app)
