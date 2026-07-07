@@ -15,15 +15,17 @@
 
 At its heart, this is the archetypal fantasy adventure of capturing, training, and battling creatures. But here, every monster, every encounter, every outcome is generated in real time by AI. It's an experiment in a new coding paradigm where the code itself doesn't define the gameplay — it only provides context management and data storage, while AI does the actual storytelling, balancing, and decision-making.
 
-Where traditional games spend compute on rendering high-fidelity graphics, this project spends compute on LLMs and image models. Where most games ship with gigabytes of pre-made assets, here you download a model, and the monsters, visuals, personalities, and even battle outcomes are created as you play.
+Where traditional games spend compute on rendering high-fidelity graphics, this project spends compute on LLMs and image models. Where most games ship with gigabytes of pre-made assets, here you bring two API keys, and the monsters, visuals, personalities, and even battle outcomes are created as you play.
 
-This is a **personal project**, built solo for **educational purposes** and as part of my **portfolio**. If you've somehow found this repo — welcome! There's an **interactive setup** to guide you through installation. That said, because of the number of dependencies (Python, Node, MySQL, CUDA, ComfyUI, etc.), even with the setup script it may take a few hours to get running.
+This is the **API-first** edition of the project: text generation runs on 1M-token-context cloud models (DeepSeek) and card art on the Gemini image API — a sibling repository, [LlmMonsterHunter-Local](https://github.com/Bloodtailor/LlmMonsterHunter-Local), explores the opposite bet: redesigning the game around small local models.
+
+This is a **personal project**, built solo for **educational purposes** and as part of my **portfolio**. If you've somehow found this repo — welcome! There's an **interactive setup** to guide you through installation, and the requirements are ordinary (Python, Node, MySQL, two API keys) — no GPU, no CUDA, no local models.
 
 ---
 
 ## ✨ **Key Features**
 
-- **Dynamic Monster Generation** — every creature is created by an LLM with a unique persona, taxonomy, backstory, and abilities, plus ComfyUI-generated card art
+- **Dynamic Monster Generation** — every creature is created by an LLM with a unique persona, taxonomy, backstory, and abilities, plus Gemini-painted card art; evolution repaints use the old art as a **reference image**, so a transformed monster stays recognizably itself
 - **Text-Driven, LLM-Refereed Battles** — turn-based combat narrated by the LLM; monster wellbeing and stamina/mana are positions on *word ladders*, never HP math. Attack, defend, use abilities, or **type your own free-text action** — the referee decides if it's possible
 - **Battlefield Negotiation & Recruitment** — monsters join only by their own will; bargain, threaten, or plead mid-battle, and enemies can talk, plead, or flee on their own turns too
 - **Dungeon Exploration** — choose between mysterious paths that each secretly hold an event: explorable locations, riddle-posing monsters, battles, treasure, or a face from a previous run
@@ -46,8 +48,12 @@ All core mechanics are implemented and playable. Each initiative below has a ful
 | [Memories & growth](docs/plans/monster-memory-evolution.md) | Cross-run memories, returning monsters, growth reflections, stamina/mana ladders |
 | [Campfire Chat](docs/plans/monster-chat.md) | Home-base conversations, memory extraction, rolling summaries for all logs |
 | [Evolution Altar](docs/plans/monster-evolution.md) | Transformative evolution with lineage, art regen, evolved personas |
+| [Game Loop v1](docs/plans/game-loop-v1.md) | Title screen, guided first run, expedition notices + danger, run goals + stakes, affinity + wary autonomy, post-run chronicle |
+| [New Game & player character](docs/plans/new-game-experience.md) | New Game world wipe, character-creation wizard with portrait, player always in the party, chat-as-player |
+| [Settings + DeepSeek](docs/plans/game-settings.md) | In-game settings panel, DeepSeek cloud provider with live model discovery and exact token usage |
+| [Cloud generation](docs/plans/cloud-generation.md) | 1M-token context floor (absolute token caps, 70% ceiling), ComfyUI → Gemini image API, reference-image evolution repaints, Images settings section |
 
-**What's next:** turning the mechanics into a *game* — title screen, guided first run, run goals and stakes, difficulty, and an affinity system. See [docs/plans/](docs/plans/) for the Game Loop v1 proposal.
+**What's next:** living on the cloud stack — tuning prompt budgets and art style in real play, then new gameplay initiatives on top of it.
 
 ![Monster Sanctuary](docs/assets/images/monster_sanctuary.png)
 
@@ -55,7 +61,7 @@ All core mechanics are implemented and playable. Each initiative below has a ful
 
 ## 🏗️ **Architecture**
 
-The short version: a strictly-layered Flask backend orchestrates a local LLM and ComfyUI through **one gateway and two queues**, streams tokens and domain events to React over **SSE**, and follows one philosophy everywhere: **the LLM only ever picks words — Python owns every number.**
+The short version: a strictly-layered Flask backend orchestrates a text LLM (DeepSeek, or a local GGUF as an unsupported escape hatch) and the Gemini image API through **one gateway and two queues**, streams tokens and domain events to React over **SSE**, and follows one philosophy everywhere: **the LLM only ever picks words — Python owns every number.**
 
 - Expensive actions queue a **workflow** and return immediately; results stream over SSE
 - Combat uses **word ladders** (`fresh → … → incapacitated`), not HP math
@@ -67,7 +73,7 @@ Read the full tour in [docs/architecture.md](docs/architecture.md), tweak anythi
 ### Tech Stack
 - **Backend:** Python 3.9+, Flask 3.0, MySQL 8.0, SQLAlchemy
 - **Frontend:** React 18 (CRA), custom component library, SSE
-- **AI:** llama-cpp-python (local GGUF), ComfyUI (SDXL Turbo)
+- **AI:** DeepSeek API (text, 1M context), Gemini image API ("Nano Banana 2" card art); llama-cpp-python remains as an unsupported local escape hatch
 
 ---
 
@@ -79,21 +85,23 @@ Read the full tour in [docs/architecture.md](docs/architecture.md), tweak anythi
 - Python 3.9+
 - Node.js 16+ (includes npm)
 - MySQL Server
-- NVIDIA GPU Drivers (latest)
-- CUDA Toolkit 12.x
-- Visual Studio Build Tools (with C++ components)
-- ComfyUI (installed separately)
 
-### Required Models
-- **Text Model:** 7B GGUF model (recommended: *kunoichi-7b*)
-- **Image Model:** SDXL Turbo (recommended: [DreamShaper XL Turbo](https://civitai.com/models/112902/dreamshaper-xl))
+### API Keys
+Both are pasted **in-game** (gear icon → Settings) — no env files, no restart:
+
+- **Text:** a [DeepSeek](https://platform.deepseek.com/) API key (the v4 family carries the required 1M-token context window)
+- **Card art (optional):** a [Google Gemini](https://aistudio.google.com/) API key — the game plays fully art-less without one
+
+Cost ballpark: card art runs ~$0.07 per image on the default model (Nano Banana 2), so a heavy session is a dollar or two in images plus DeepSeek tokens.
+
+*The unsupported local escape hatch* (an NVIDIA GPU, CUDA 12.x, Visual Studio Build Tools, and a ≥1M-context GGUF model) still exists behind an opt-in question in the setup walkthrough — the game no longer supports models with smaller context windows.
 
 ### Starting the Game
 
 - Run **`start_game.bat`** to launch the game.
   - This will guide you through the setup walkthrough on first run.
-  - Make sure your **ComfyUI server is already running** before starting.
   - After the first setup, `start_game.bat` starts both the backend and frontend together.
+  - Once the game opens, paste your API keys under **⚙️ Settings**.
 - Or individually: **`start_backend.bat`** / **`start_frontend.bat`**
 
 ⚡ *With everything installed, the game will be available at:*
@@ -121,7 +129,7 @@ This project is licensed under the MIT License – see the [LICENSE](LICENSE) fi
 
 ## 🙏 **Acknowledgments**
 
-- **Open Source Community** – Flask, React, llama.cpp, ComfyUI, and countless others
+- **Open Source Community** – Flask, React, llama.cpp, and countless others
 - **AI Research Community** – for advancing the tech that makes this experiment possible
 
 ---

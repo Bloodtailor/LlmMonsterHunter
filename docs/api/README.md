@@ -10,7 +10,7 @@ links to the per-domain files.
 - [Inventory](inventory.md) — the party's items (LLM-adjudicated consumables) and CoCaTok victory keepsakes, where they come from, and how items are used
 - [Dungeon & Battle](dungeon-and-battle.md) — the gameplay loop: entering dungeons, choosing paths, exploring locations, monster dialogues, free-form ability use, and turn-based battles
 - [Generation & System](generation-and-system.md) — generation logs, health check, and the in-app test runner
-- [Settings](settings.md) — the in-game settings panel's backend: LLM provider config (local vs DeepSeek), stored in the one table that survives New Game
+- [Settings](settings.md) — the in-game settings panel's backend: LLM provider config (local vs DeepSeek) and the Gemini image painter, stored in the one table that survives New Game
 - [Events & SSE](events-and-sse.md) — the SSE endpoint, the full event catalog, and how the frontend event registry consumes it
 - [Data Models](data-models.md) — shared object shapes referenced across endpoints
 

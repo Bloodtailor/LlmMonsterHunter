@@ -1,7 +1,8 @@
 # Cloud Generation — 1M-Token Context Floor + Gemini Image API — Plan
 
-**Status:** IN PROGRESS (July 2026) — approved 2026-07-07; milestones land
-one commit each, prefix `Cgn-M#`.
+**Status:** IMPLEMENTED (July 2026) — all five milestones landed, one
+commit each (prefix `Cgn-M#`). Pending Aaron's live soak with a real
+Gemini key: the verification checklist below.
 **Branch:** `feature/cloud-generation`.
 
 Aaron's July 7 2026 executive decision, refined by the same-day repo
@@ -192,4 +193,28 @@ Cost sanity: NB2 at 1K ≈ $0.067/image → a heavy session (~20–30 images)
 
 ## Deviations
 
-- (none yet)
+- **Pre-M1 (format sweep):** 14 files on main failed the pinned ruff
+  0.15.20's format check — CI on main had been red since PR #166. Swept
+  mechanically in their own commit before Cgn-M1 so milestone diffs stay
+  clean and the branch's CI can go green.
+- **M1 (below-floor rows, refined):** a below-floor stored window on a
+  KNOWN 1M-class model heals to the known-models map instead of falling
+  local (the model really has the window; only the stale number was
+  wrong). Only legacy/unknown models with no supported size resolve
+  local. The service also treats a below-floor STORED window as absent
+  on save, so old rows self-heal through auto-fill.
+- **M2 (Gemini API shape):** the 3.1-generation image models speak the
+  new **Interactions API** (`POST /v1beta/interactions`, typed `input`
+  blocks, `response_format` carrying `aspect_ratio`/`image_size`,
+  image bytes in `output_image` with a `steps` fallback) rather than
+  `generateContent`. The provider and its suite pin that shape.
+- **M3 (art_regenerated honesty):** evolution's `art_regenerated` flag
+  now reports the actual paint result — the old code marked it true
+  whenever the attempt ran, even if the paint quietly failed.
+- **M4 (live-boot verification):** backend boot with the real dev DB
+  confirmed the legacy outputs tree migrated (monster_card_art,
+  player_card_art, player_uploads) and the panel's Images section
+  renders with the enable-requires-key gate working; the saved DeepSeek
+  row was already `deepseek-v4-pro` (1M), so the soak's re-pick step
+  should be a no-op. A stale LLM-section hint ("65536 is plenty") was
+  corrected to the 1M floor while in the panel.

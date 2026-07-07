@@ -8,7 +8,7 @@ import sys
 
 from setup.check_requirements import check_requirements
 from setup.checks import COMPONENT_CHECKS, run_component_diagnostic
-from setup.flows import COMPONENT_FLOWS
+from setup.flows import COMPONENT_FLOWS, LOCAL_EXTRA_COMPONENTS
 from setup.utils.ux_utils import (
     print_continue,
     print_error,
@@ -26,6 +26,20 @@ def auto_setup_basic_backend():
     auto_setup_basic_backend()
 
 
+def _ask_about_local_extras():
+    """One gate for the GPU/CUDA/Build-Tools/GGUF chain."""
+    print()
+    print_header("Optional: local-LLM extras")
+    print("The game is API-first: text runs on DeepSeek and card art on Gemini,")
+    print("both configured IN-GAME (gear icon -> Settings) with API keys.")
+    print("The remaining components (NVIDIA GPU & CUDA, Visual Studio Build")
+    print("Tools, a local GGUF model) only matter for the UNSUPPORTED")
+    print("local-model escape hatch: the game requires a 1M-token context")
+    print("window, and consumer GPUs don't run 1M-token models.")
+    print()
+    return prompt_user_confirmation("Set up the local-LLM extras anyway? [y/N]: ")
+
+
 def main_interactive_setup(dry_run=False):
     """Interactive setup for missing requirements."""
     print_header("Interactive Environment Setup")
@@ -37,7 +51,17 @@ def main_interactive_setup(dry_run=False):
     component_names = list(COMPONENT_FLOWS.keys())
     total_components = len(component_names)
 
+    # The game is API-first: text (DeepSeek) and card art (Gemini) run on
+    # keys pasted IN-GAME, so the local-LLM chain is one opt-in question
+    include_local_extras = None
+
     for current, component_name in enumerate(component_names, 1):
+        if component_name in LOCAL_EXTRA_COMPONENTS:
+            if include_local_extras is None:
+                include_local_extras = _ask_about_local_extras()
+            if not include_local_extras:
+                continue
+
         # Check if already working
         check_function = COMPONENT_CHECKS[component_name]
         try:

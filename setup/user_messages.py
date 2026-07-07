@@ -405,7 +405,7 @@ MESSAGES = {
         "Expected minimum performance with your hardware:",
         "",
         "⚡  LLM inference: 20+ tokens per second",
-        "🖼️  Image generation: 30 seconds or faster per image (if ComfyUI enabled)",
+        "🖼️  Image generation: runs in the cloud (Gemini) - the GPU is not involved",
         "🤖  The recommended AI models should work without any manual configuration.",
         "",
         "Any remaining setup issues are likely with software configuration rather than hardware limitations.",
