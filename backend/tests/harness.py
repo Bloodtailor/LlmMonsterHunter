@@ -16,8 +16,16 @@ def test_db_name() -> str:
     return os.getenv('DB_NAME_TEST', 'monster_hunter_game_test')
 
 
+# Columns that create_all can't add to tables that already exist. When a
+# marker is missing from the TEST database, the whole database is dropped
+# and rebuilt - it is disposable by contract (suites create their own
+# rows). Add a (table, column) pair here whenever a model gains a column.
+_SCHEMA_MARKERS = (('monsters', 'affinity'),)
+
+
 def _ensure_database_exists():
-    """Create the test database if it's missing (idempotent)"""
+    """Create the test database if it's missing, and REBUILD it when its
+    schema has drifted behind the models (create_all never ALTERs)"""
     import pymysql
 
     connection = pymysql.connect(
@@ -32,9 +40,37 @@ def _ensure_database_exists():
                 f"CREATE DATABASE IF NOT EXISTS `{test_db_name()}` "
                 "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
             )
+
+            if _schema_drifted(cursor):
+                print(f"🔁 Test DB schema drifted - rebuilding '{test_db_name()}'")
+                cursor.execute(f"DROP DATABASE `{test_db_name()}`")
+                cursor.execute(
+                    f"CREATE DATABASE `{test_db_name()}` "
+                    "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+                )
         connection.commit()
     finally:
         connection.close()
+
+
+def _schema_drifted(cursor) -> bool:
+    """Does any existing test table lack a marker column?"""
+    for table, column in _SCHEMA_MARKERS:
+        cursor.execute(
+            "SELECT COUNT(*) FROM information_schema.tables "
+            "WHERE table_schema = %s AND table_name = %s",
+            (test_db_name(), table),
+        )
+        if cursor.fetchone()[0] == 0:
+            continue  # table not created yet - create_all will handle it
+        cursor.execute(
+            "SELECT COUNT(*) FROM information_schema.columns "
+            "WHERE table_schema = %s AND table_name = %s AND column_name = %s",
+            (test_db_name(), table, column),
+        )
+        if cursor.fetchone()[0] == 0:
+            return True
+    return False
 
 
 def build_test_app() -> Flask:

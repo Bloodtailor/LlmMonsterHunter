@@ -48,7 +48,7 @@ Token-aware budgets that scale with `LLM_CONTEXT_SIZE`.
 | `RESOURCE_LADDER` | brimming → steady → strained → drained → spent | Stamina/mana reserves (refill on dungeon entry, camp rest, restores) |
 | `RESOURCE_DELTAS` | minor `1`, moderate `2`, heavy `3`, restore_minor `-1`, restore_major `-2` | Referee cost words → ladder steps |
 | `ABILITY_POOL_BY_TYPE` | attack/defense/movement → stamina; support/special/utility → mana | Default pool an ability drains when the referee stays silent |
-| `ENEMY_COUNT_RANGE` | `(1, 2)` | Enemies per battle (design allows up to 7; each enemy costs ~4 LLM calls + art) |
+| `ENEMY_COUNT_RANGE` | `(1, 2)` *(danger)* | Enemies per battle (design allows up to 7; each enemy costs ~4 LLM calls + art). Overridden by the expedition's danger profile |
 | `MAX_CONSECUTIVE_ENEMY_TURNS` | `6` | Softlock valve — forces an ally turn after this many enemy turns |
 | `OVERDUE_WAIT_MULTIPLIER` | `2` | Fairness valve — a monster waiting 2× the combatant count is force-picked |
 | `PLAYER_TEXT_MAX_CHARS` | `500` | Cap on free-text actions and talk |
@@ -58,16 +58,79 @@ Token-aware budgets that scale with `LLM_CONTEXT_SIZE`.
 
 Path events are rolled **in Python** at generation time and hidden from
 the player (and from the LLM's narration) until a path is chosen.
+Knobs marked *(danger)* are overridden by the active expedition's danger
+profile — see the Expeditions section below.
 
 | Knob | Default | Effect |
 |---|---|---|
-| `EVENT_WEIGHTS` | explore `0.55`, dialogue `0.18`, battle `0.18`, treasure `0.09` | What waits behind each path |
-| `RETURNING_EVENT_WEIGHT` | `0.12` | Weight of a remembered monster returning (only when the pool is nonempty) |
-| `EXPLORE_MONSTERS_CHANCE` | `0.5` | Chance an explore location has (non-hostile) monsters |
+| `EVENT_WEIGHTS` | explore `0.55`, dialogue `0.18`, battle `0.18` *(danger)*, treasure `0.09` | What waits behind each path |
+| `RETURNING_EVENT_WEIGHT` | `0.12` *(danger)* | Weight of a remembered monster returning (only when the pool is nonempty) |
+| `EXPLORE_MONSTERS_CHANCE` | `0.5` *(danger)* | Chance an explore location has (non-hostile) monsters |
 | `EXPLORE_MONSTER_COUNT_RANGE` | `(1, 2)` | How many dwell there |
 | `PATH_COUNT_RANGE` | `(2, 4)` | Paths per junction |
 | `EXIT_PATH_CHANCE` | `0.33` | Chance one path is a dungeon exit |
 | `PATH_OVERGENERATE_COUNT` | `6` | Paths asked of the LLM per batch (the LAST ones are used — small local models repeat themselves early) |
+
+## Expeditions — `backend/game/dungeon/run_context.py` + `handlers/notices.py`
+
+The entrance notice board: the LLM writes each notice's title/pitch/theme,
+**Python rolls its danger word**, and the chosen notice becomes the run's
+`run_context`. The theme threads into every location/path/monster prompt
+(one `expedition_brief` block); the danger word maps to the code knobs
+below. `run_context.py` is also where the run's goal will live.
+
+| Knob | Default | Effect |
+|---|---|---|
+| `NOTICE_COUNT` (notices.py) | `3` | Notices posted per board |
+| `NOTICE_DANGER_WEIGHTS` (notices.py) | calm `0.30`, risky `0.45`, perilous `0.25` | Odds of each danger word per notice |
+| `DEFAULT_DANGER` | `risky` | Danger assumed for the referee hint when no notice was answered |
+| `DANGER_PROFILES` | ↓ | What each danger word turns into |
+
+Danger word → code knobs (`DANGER_PROFILES`); a run without a notice
+keeps every default, and `risky` **is** the defaults:
+
+| Knob | calm | risky | perilous |
+|---|---|---|---|
+| `enemy_count_range` | (1, 1) | (1, 2) | (2, 3) |
+| `battle_event_weight` | 0.12 | 0.18 | 0.26 |
+| `explore_monsters_chance` | 0.4 | 0.5 | 0.65 |
+| `returning_event_weight` | 0.10 | 0.12 | 0.16 |
+| `referee_hint` | judge kindly | judge fairly | judge harshly |
+
+## Run goals — `backend/game/dungeon/goal.py`
+
+One goal per run, written at the entrance (themed). After each RESOLVED
+event (explore/treasure arrival, dialogue outcome, battle victory) the
+goal referee answers one word: `no / progress / complete`. The fulfilled
+goal pays out at the exit (`handlers/exit_run.py`): one rare item + a
+code-owned `notable` growth step per member. Defeat forfeits the reward.
+
+| Knob | Default | Effect |
+|---|---|---|
+| `GOAL_MIN_EVENTS` | `3` | THE VALVE: `complete` is ignored before this many resolved events — no first-door wins |
+| `GOAL_CHECK_LOG_TAIL` | `4` | How many recent dungeon-log entries the goal referee judges by |
+| `GOAL_ANSWERS` | no / progress / complete | The referee's word ladder (anything else counts as `no`) |
+| reward growth tier | `notable` (exit_run.py) | The bonus growth step each member gets for a fulfilled goal (caps still apply) |
+
+## Affinity — `backend/game/monster/affinity.py`
+
+How deeply a monster trusts the party. Moved ONE step at a time by
+code-visible events; the LLM only ever reads the word. The headline
+effect: a **wary monster acts on its own in battle**
+(`battle/turn/autonomy.py`) — its turn auto-resolves like an enemy turn
+and the player watches. Devoted monsters get a friendlier referee line;
+the affinity line also rides chat and evolution-narration context.
+
+| Knob | Default | Effect |
+|---|---|---|
+| `AFFINITY_LADDER` | wary → familiar → trusting → devoted | The trust word ladder (stored on `monsters.affinity`; NULL reads wary) |
+| `DEFAULT_AFFINITY` | `wary` | Where new recruits start — your newest companion fights beside you, not FOR you |
+| `MAX_AFFINITY_STEPS_PER_RUN` | `2` | THE VALVE: in-run events can deepen each bond at most this much per run |
+| autonomy tier | `wary` only (`is_autonomous`) | Which tier ignores commands in battle |
+| step events | first-heals by an ally, camp rest, rejoining with memories, surviving a run (exit), a memory-producing home chat, evolution | Each moves affinity +1 (in-run ones under the valve; home ones unbudgeted) |
+
+Existing followers were backfilled to `trusting` by
+`backend/tests/add_affinity_column.py` (idempotent dev-DB script).
 
 ## Growth — `backend/game/memory/growth.py`
 

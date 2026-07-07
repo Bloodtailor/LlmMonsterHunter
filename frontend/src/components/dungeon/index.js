@@ -10,7 +10,7 @@ export { default as DungeonLocationScreen } from './screens/DungeonLocationScree
 // ===== COMPONENTS =====
 export { default as DungeonEntryText } from './components/DungeonEntryText.js';
 export { default as ContinueToDoorsButton } from './components/ContinueToDoorsButton.js';
-export { default as AutoEnterDungeonEffect } from './components/AutoEnterDungeonEffect.js';
+export { default as ExpeditionNoticeBoard } from './components/ExpeditionNoticeBoard.js';
 export { default as DungeonResetButton } from './components/DungeonResetButton.js';
 export { default as EncounterLocationHeader } from './components/EncounterLocationHeader.js';
 export { default as EncounterTextDisplay } from './components/EncounterTextDisplay.js';

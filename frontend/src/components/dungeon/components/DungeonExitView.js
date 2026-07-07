@@ -22,7 +22,8 @@ function growthBadges(growth) {
  * Exit narrative + the exit ceremony + return home - the run is over
  */
 function DungeonExitView() {
-  const { exitText, growthResults, resetDungeon } = useDungeon();
+  const { exitText, growthResults, goal, goalReward, chronicleText, runNumber, resetDungeon } =
+    useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
   if (!exitText) return null;
@@ -63,6 +64,46 @@ function DungeonExitView() {
         </CardSection>
       </Card>
 
+      {/* The goal's outcome - fulfilled goals pay out, failed ones sting */}
+      {goal && goal.text && (
+        <Card size="xl" background="dark">
+          <CardSection type="content" alignment="center" padding="md">
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
+              <Badge variant={goal.status === 'complete' ? 'success' : 'warning'} size="md">
+                {goal.status === 'complete' ? '✓ Goal fulfilled' : 'Goal unfinished'}
+              </Badge>
+              <span style={{ fontStyle: 'italic' }}>{goal.text}</span>
+            </div>
+            {goalReward && goalReward.item && (
+              <p style={{ marginTop: '12px', marginBottom: 0 }}>
+                {goalReward.item.emoji || '🏅'} The dungeon yielded a reward:{' '}
+                <strong>{goalReward.item.name}</strong> — {goalReward.item.description}
+              </p>
+            )}
+            {goalReward && goalReward.growth && goalReward.growth.length > 0 && (
+              <p
+                style={{
+                  marginTop: '8px',
+                  marginBottom: 0,
+                  color: 'var(--color-text-muted)',
+                  fontSize: 'var(--font-size-sm)',
+                }}
+              >
+                The accomplishment left its mark: bonus growth for the whole party.
+              </p>
+            )}
+          </CardSection>
+        </Card>
+      )}
+
       {/* The exit ceremony - what the run made of each member */}
       {growthResults && growthResults.length > 0 && (
         <Card size="xl" background="dark">
@@ -101,6 +142,23 @@ function DungeonExitView() {
                 </div>
               ))}
             </div>
+          </CardSection>
+        </Card>
+      )}
+
+      {/* The run's chronicle - this run's place in the saga, streamed */}
+      {chronicleText && (
+        <Card size="xl" background="dark">
+          <CardSection
+            type="header"
+            size="md"
+            title={`📜 The Chronicle${runNumber ? ` — Run ${runNumber}` : ''}`}
+            alignment="center"
+          />
+          <CardSection type="content">
+            <p style={{ ...reflectionStyles, maxWidth: '720px', margin: '0 auto' }}>
+              {chronicleText}
+            </p>
           </CardSection>
         </Card>
       )}

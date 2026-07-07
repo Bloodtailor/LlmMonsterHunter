@@ -8,5 +8,16 @@
       "parser_name": "none"
     },
     "prompt_template": "You are the chronicler of a fantasy monster-hunting adventure. Your records must stay short enough to reread at a glance, so older lines get condensed - carefully, losing nothing that matters.\n\n========== WHAT THESE LINES ARE ==========\n{source_label}\n\n========== ALREADY CONDENSED (for continuity - do NOT repeat it) ==========\n{prior_summary}\n\n========== THE LINES TO CONDENSE ==========\n{batch_lines}\n\n========== YOUR TASK ==========\nWrite 2-4 plain past-tense sentences that preserve ONLY what could matter later: names, decisions and their outcomes, promises and debts, discoveries about the world, injuries and losses, and how relationships shifted. Merge repetitive moments into one statement. Never invent anything the lines do not say. No headers, no lists, no quotes unless the exact words mattered.\n\nSummary:"
+  },
+
+  "run_chronicle": {
+    "description": "The post-run chronicle: one streamed story beat condensing the whole run, stamped with its run number (persisted to the run's history row)",
+    "max_tokens": 500,
+    "temperature": 0.8,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You are the chronicler of a fantasy monster-hunting saga, writing the entry for an expedition that just ended. These entries ARE the saga - each run of the dungeon becomes one story beat in the record.\n\n========== CONTEXT ==========\n\n--- The run being chronicled ---\nRun number {run_number}, ending in {result_word} for the party.\n\n--- The party ---\n{party_summary}\n\n--- The goal ---\n{goal_line}\n\n--- Companions ---\n{companions_line}\n\n--- Everything that happened, oldest first ---\n{dungeon_log}\n\n========== YOUR TASK ==========\nWrite the chronicle entry: ONE flowing paragraph of 4-6 sentences in plain past tense, condensing this run into the story it was. Include: how the expedition began and what it sought, the moments that mattered (use the log - real names, real events), the goal's fate, who was met, won over, or lost, and how it ended. Open with 'Run {run_number}:' exactly. Vivid but factual - never invent anything the log does not say. No headers, no lists.\n\nResponse:"
   }
 }

@@ -1,7 +1,7 @@
 {
   "generate_ability": {
     "description": "Generate a single unique ability for a specific monster based on its characteristics",
-    "max_tokens": 150,
+    "max_tokens": 200,
     "temperature": 0.9,
     "parser": {
       "type": "json",

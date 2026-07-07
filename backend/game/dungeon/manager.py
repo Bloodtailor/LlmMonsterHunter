@@ -34,6 +34,11 @@ _EMPTY_STATE = {
     'seen_monster_ids': [],  # every monster staged this run (excluded from returning pools)
     'dungeon_log': [],  # everything that has happened this run, oldest first
     'dungeon_log_summaries': [],  # [{'through': int, 'text': str}] - rolling condensed batches
+    # Provisional spoils - kept only by exiting alive (dungeon/spoils.py)
+    'run_recruits': [],  # monster ids recruited this run
+    'run_item_ids': [],  # item ids found/granted this run
+    'run_cocatok_ids': [],  # victory keepsakes minted this run
+    'affinity_steps': {},  # monster_id: steps gained this run (affinity.py valve)
 }
 
 # ===== CORE STATE ACCESS =====
@@ -58,25 +63,28 @@ def is_in_dungeon() -> bool:
 
 def start_dungeon(location: dict[str, Any], paths: dict[str, Any], run_id: int = None) -> None:
     """Begin a dungeon run at a starting location with its first paths"""
-    save_dungeon_state(
+    import copy
+
+    # Deep copy - the fresh state's lists must never alias _EMPTY_STATE's
+    state = copy.deepcopy(_EMPTY_STATE)
+    state.update(
         {
             'in_dungeon': True,
             'current_location': location,
             'available_paths': paths,
-            'active_encounter': None,
-            'party_conditions': {},
-            'party_resources': {},
-            'run_journal': {},
             'run_id': run_id,
-            'seen_monster_ids': [],
-            'dungeon_log': [],
-            'dungeon_log_summaries': [],
         }
     )
+    save_dungeon_state(state)
 
 
 def exit_dungeon() -> None:
-    """End the dungeon run and clear all state"""
+    """End the dungeon run and clear all state - including the run's
+    modifiers (every run ending passes through here: victory, defeat,
+    abandonment)"""
+    from backend.game.dungeon.run_context import clear_run_context
+
+    clear_run_context()
     save_dungeon_state(dict(_EMPTY_STATE))
 
 

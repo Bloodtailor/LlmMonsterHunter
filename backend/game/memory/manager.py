@@ -28,6 +28,9 @@ MEMORY_KINDS = (
     # invisible to growth_total_pct - evolution sits
     # outside the growth/return lifetime caps)
     'run_complete',  # it walked out of the dungeon with the party
+    'bond_broken',  # it joined mid-run, but the party never carried the
+    # bond out alive (defeat/abandonment released it - spoils.py)
+    'affinity_grew',  # its trust in the party climbed a tier (affinity.py)
     # Home-base chat kinds (extracted from conversation, source recorded)
     'confided',  # it opened up about itself or its past
     'grew_closer',  # its bond with the adventurer/party deepened

@@ -44,6 +44,9 @@ export function useInventoryCollection(kind = 'items') {
   useEventSubscription('inventoryCocatokAdded', () => {
     if (kind === 'cocatoks') reload();
   });
+  useEventSubscription('inventoryCocatokRemoved', () => {
+    if (kind === 'cocatoks') reload();
+  });
 
   return {
     entries: api.data.entries, // Always an array

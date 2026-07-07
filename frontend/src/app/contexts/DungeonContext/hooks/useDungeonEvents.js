@@ -9,6 +9,8 @@ import { useStreamedGeneration } from '../../../../api/events/useStreamedGenerat
 
 // Every workflow this context owns - used for error surfacing
 const DUNGEON_WORKFLOWS = [
+  'begin_first_run',
+  'generate_expedition_notices',
   'enter_dungeon',
   'choose_path',
   'respond_to_monster',
@@ -28,6 +30,13 @@ export function useDungeonEvents(stateHook) {
   const { state, setters } = stateHook;
 
   const {
+    setOpeningText,
+    setIsOpeningReady,
+    setNotices,
+    setIsGeneratingNotices,
+    setExpedition,
+    setGoal,
+    setGoalReward,
     setEntryText,
     setCurrentLocation,
     setPaths,
@@ -57,8 +66,15 @@ export function useDungeonEvents(stateHook) {
     setTreasureText,
     setTreasureItem,
     setExitText,
+    setChronicleText,
+    setRunNumber,
     setErrorState,
   } = setters;
+
+  // Stream the opening scene announced by the begin_first_run workflow
+  useStreamedGeneration('opening_text_generation_id', {
+    onText: (partialText) => setOpeningText(partialText),
+  });
 
   // Stream the entry text announced by the enter_dungeon workflow
   useStreamedGeneration('entry_text_generation_id', {
@@ -90,11 +106,21 @@ export function useDungeonEvents(stateHook) {
     onText: (partialText) => setReunionText(partialText),
   });
 
+  // Stream the run's chronicle - the exit ceremony's closing story beat
+  useStreamedGeneration('chronicle_text_generation_id', {
+    onText: (partialText) => setChronicleText(partialText),
+  });
+
   // The choose_path workflow announces the arrival location mid-flight
   useEventSubscription('workflowUpdate', (eventData) => {
     if (eventData?.step === 'location_generated' && eventData.data?.current_location) {
       setCurrentLocation(eventData.data.current_location);
     }
+  });
+
+  // The goal referee recorded progress or completion on the run's goal
+  useEventSubscription('dungeonGoalUpdated', ({ goal }) => {
+    if (goal) setGoal(goal);
   });
 
   // The encounter monsters reveal themselves as they are generated:
@@ -152,6 +178,7 @@ export function useDungeonEvents(stateHook) {
   const handleWorkflowFailure = (workflowType, error) => {
     if (!DUNGEON_WORKFLOWS.includes(workflowType)) return;
 
+    setIsGeneratingNotices(false);
     setIsMonsterResponding(false);
     setIsSneaking(false);
     setIsAmbushing(false);
@@ -193,7 +220,19 @@ export function useDungeonEvents(stateHook) {
     }
 
     switch (workflowType) {
+      case 'begin_first_run':
+        // The scene may still be streaming tokens, but the run can start
+        setIsOpeningReady(true);
+        break;
+
+      case 'generate_expedition_notices':
+        setIsGeneratingNotices(false);
+        setNotices(result.notices || []);
+        break;
+
       case 'enter_dungeon':
+        setExpedition(result.expedition || null);
+        setGoal(result.goal || null);
         setCurrentLocation(result.current_location || null);
         setPaths(result.paths || null);
         setArePathsReady(true);
@@ -206,6 +245,11 @@ export function useDungeonEvents(stateHook) {
         if (result.exited) {
           setExitText(result.exit_text || 'You emerge back into the daylight.');
           setGrowthResults(result.growth || []);
+          if (result.goal) setGoal(result.goal);
+          setGoalReward(result.goal_reward || null);
+          // The final text arrives with the result even if streaming missed
+          if (result.chronicle) setChronicleText(result.chronicle);
+          setRunNumber(result.run_number || null);
         } else if (result.event === 'monster_dialogue') {
           // The monster opens the conversation: greeting, then its question
           setDialogue((prev) => {

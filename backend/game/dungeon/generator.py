@@ -2,7 +2,6 @@
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming completely
 
-import random
 from typing import Any
 
 from backend.game.dungeon.events import (
@@ -11,6 +10,8 @@ from backend.game.dungeon.events import (
     roll_include_exit,
     roll_path_count,
 )
+from backend.game.dungeon.fallbacks import get_fallback_location, get_fallback_path
+from backend.game.dungeon.run_context import expedition_brief
 from backend.game.state.manager import get_party_summary
 from backend.game.utils import build_and_generate, build_and_stream, clamp_context
 
@@ -88,7 +89,7 @@ def generate_entry_text(workflow_name) -> dict[str, Any]:
     """Generate entry text - assumes valid party_summary"""
 
     party_summary = get_party_summary()
-    variables = {'party_summary': party_summary}
+    variables = {'party_summary': party_summary, 'expedition_brief': expedition_brief()}
     entry_text_generation_id = build_and_stream('entry_atmosphere', workflow_name, variables)
 
     return entry_text_generation_id
@@ -98,9 +99,11 @@ def generate_random_location(workflow_name) -> dict[str, Any]:
     """Generate location - no validation, fallback on any error"""
 
     try:
-        location = build_and_generate('random_location', workflow_name)
+        location = build_and_generate(
+            'random_location', workflow_name, {'expedition_brief': expedition_brief()}
+        )
     except Exception:
-        location = _get_fallback_location()
+        location = get_fallback_location()
 
     return location
 
@@ -150,6 +153,7 @@ def generate_paths(location: dict[str, Any], workflow_name: str) -> dict[str, di
                 'location_name': location.get('name', 'Unknown Location'),
                 'location_description': location.get('description', ''),
                 'total_count': PATH_OVERGENERATE_COUNT,
+                'expedition_brief': expedition_brief(),
             },
         )
         raw_paths = batch.get('paths') or []
@@ -163,7 +167,7 @@ def generate_paths(location: dict[str, Any], workflow_name: str) -> dict[str, di
     # creative ones, so take from the END of the batch
     chosen = generated[-regular_count:] if len(generated) >= regular_count else list(generated)
     while len(chosen) < regular_count:
-        chosen.append(_get_fallback_path())
+        chosen.append(get_fallback_path())
 
     # Remembered monsters can only return when some are eligible (checked
     # once per junction; re-checked when the path is actually taken)
@@ -187,6 +191,7 @@ def generate_paths(location: dict[str, Any], workflow_name: str) -> dict[str, di
         variables = {
             'location_name': location.get('name', 'Unknown Location'),
             'location_description': location.get('description', ''),
+            'expedition_brief': expedition_brief(),
         }
 
         try:
@@ -217,12 +222,13 @@ def generate_arrival_location(
         'previous_location_description': previous_location.get('description', ''),
         'path_name': path.get('name', 'Mysterious Passage'),
         'path_description': path.get('description', ''),
+        'expedition_brief': expedition_brief(),
     }
 
     try:
         location = build_and_generate('arrival_location', workflow_name, variables)
     except Exception:
-        location = _get_fallback_location()
+        location = get_fallback_location()
 
     return location
 
@@ -544,6 +550,8 @@ def generate_monster_question(
     Returns {'greeting': str, 'question': str} - always
     """
 
+    from backend.game.dungeon.first_run import dialogue_hint
+
     try:
         result = build_and_generate(
             'monster_question',
@@ -556,6 +564,7 @@ def generate_monster_question(
                 'monster_details': build_speaking_monsters_details([monster]),
                 'party_details': build_party_dungeon_details(),
                 'dungeon_log': _dungeon_log_text(),
+                'first_run_hint': dialogue_hint(),
             },
         )
         greeting = str(result.get('greeting') or '').strip()
@@ -578,6 +587,7 @@ def generate_dialogue_turn(
     Returns {'response': str, 'outcome': validated outcome} - always
     """
 
+    from backend.game.dungeon.first_run import dialogue_hint
     from backend.game.dungeon.outcomes import validate_outcome
 
     try:
@@ -593,6 +603,7 @@ def generate_dialogue_turn(
                 'party_details': build_party_dungeon_details(),
                 'dialogue_history': dialogue_history,
                 'dungeon_log': _dungeon_log_text(),
+                'first_run_hint': dialogue_hint(),
             },
         )
         return {
@@ -631,55 +642,5 @@ def build_door_choices(loc1: dict[str, Any], loc2: dict[str, Any]) -> dict[str, 
     return door_choices
 
 
-def _get_fallback_path() -> dict[str, str]:
-    """Get fallback path - always works"""
-
-    fallback_paths = [
-        {
-            "name": "Crumbling Archway",
-            "description": "A stone archway whose carvings have long worn away, opening into darkness beyond.",
-        },
-        {
-            "name": "Narrow Crawlspace",
-            "description": "A tight gap between fallen slabs, just wide enough for one adventurer at a time.",
-        },
-        {
-            "name": "Iron-Banded Door",
-            "description": "A heavy wooden door reinforced with rusted iron bands, slightly ajar.",
-        },
-        {
-            "name": "Rope Ladder",
-            "description": "A frayed rope ladder descending into an unlit shaft below.",
-        },
-    ]
-
-    return random.choice(fallback_paths)
-
-
-def _get_fallback_location() -> dict[str, str]:
-    """Get fallback location - always works"""
-
-    fallback_locations = [
-        {
-            "name": "Echoing Cavern",
-            "description": "Ancient stone walls glisten with moisture as your footsteps echo endlessly into the darkness ahead.",
-        },
-        {
-            "name": "Crystal Grove",
-            "description": "Luminescent crystals cast dancing shadows across twisted root formations that seem to pulse with inner life.",
-        },
-        {
-            "name": "Forgotten Sanctum",
-            "description": "Weathered statues stand sentinel in this abandoned temple, their eyes seeming to follow your every movement.",
-        },
-        {
-            "name": "Whispering Chamber",
-            "description": "Strange murmurs drift through the air in this circular room, though no source can be seen.",
-        },
-        {
-            "name": "Moonlit Corridor",
-            "description": "Pale light filters down through cracks in the ceiling, illuminating dust motes that dance like tiny spirits.",
-        },
-    ]
-
-    return random.choice(fallback_locations)
+# Deterministic fallbacks for failed generations live in
+# game/dungeon/fallbacks.py (get_fallback_path / get_fallback_location)

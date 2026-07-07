@@ -6,6 +6,33 @@
 import { get, post } from '../core/client.js';
 import { transformMonsters } from '../transformers/monsters.js';
 
+// ===== GAME STATE (the title screen's save summary) =====
+
+/**
+ * High-level save state: has the guided opening ever been finished,
+ * and what the world holds so far (drives the title screen)
+ * @returns {Promise<object>} Clean transformed response
+ */
+export async function getGameState() {
+  const response = await get('/api/game-state');
+
+  return {
+    success: response.success ?? getGameState.defaults.success,
+    firstRunComplete: response.first_run_complete ?? getGameState.defaults.firstRunComplete,
+    followingCount: response.following_count ?? getGameState.defaults.followingCount,
+    partyCount: response.party_count ?? getGameState.defaults.partyCount,
+    inDungeon: response.in_dungeon ?? getGameState.defaults.inDungeon,
+    _raw: response,
+  };
+}
+getGameState.defaults = {
+  success: null,
+  firstRunComplete: false,
+  followingCount: 0,
+  partyCount: 0,
+  inDungeon: false,
+};
+
 // ===== FOLLOWING MONSTERS (Player Collection) =====
 
 /**

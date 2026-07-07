@@ -113,6 +113,10 @@ Combat and resources use **word ladders**, not math
 
 - Wellbeing: `fresh → scuffed → wounded → battered → critical → incapacitated`
 - Reserves: `brimming → steady → strained → drained → spent`
+- Affinity: `wary → familiar → trusting → devoted` (a wary monster acts on
+  its own in battle — `game/monster/affinity.py`)
+- Danger: `calm → risky → perilous` (the expedition notice's difficulty
+  word → code knobs — `game/dungeon/run_context.py`)
 
 The LLM referee narrates an action and answers with a single **word**
 (impact: `light/heavy/devastating/heal_*`; cost: `minor/moderate/heavy/

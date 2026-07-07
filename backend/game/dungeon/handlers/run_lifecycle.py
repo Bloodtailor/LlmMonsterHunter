@@ -13,7 +13,7 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     workflow_name = 'enter_dungeon'
 
     from backend.game.battle import manager as battle_manager
-    from backend.game.dungeon import manager
+    from backend.game.dungeon import manager, run_context
     from backend.game.dungeon.generator import (
         generate_entry_text,
         generate_paths,
@@ -29,10 +29,28 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     # is cleared (start_dungeon below resets the dungeon state and log)
     battle_manager.end_battle()
 
+    # The chosen expedition notice (validated by the service) shapes this
+    # whole run. Its theme and danger enter the run context BEFORE any
+    # generation, so even the starting location is already themed.
+    # A guided FIRST RUN skips the board: fixed gentle theme, calm danger,
+    # the fixed goal, and the scripted event sequence.
+    notice = context.get('notice') or {}
+    if context.get('first_run'):
+        from backend.game.dungeon.first_run import begin_first_run_context
+
+        begin_first_run_context()
+    else:
+        run_context.begin_run_context(theme=notice.get('theme'), danger=notice.get('danger'))
+    run_context.clear_pending_notices()
+
     # A leftover run (the player walked away mid-run) still deserves
-    # its place in the chat context - snapshot its log before begin()
-    # closes it and start_dungeon wipes it
+    # its place in the chat context - its provisional spoils are
+    # forfeited (walking away is not exiting alive), then its log is
+    # snapshotted before begin() closes it and start_dungeon wipes it
     if manager.is_in_dungeon():
+        from backend.game.dungeon.spoils import forfeit_run_spoils
+
+        forfeit_run_spoils('abandoned')
         manager.snapshot_last_run_log('abandoned')
 
     # Open this run's row in the run history (closes any dangling
@@ -48,6 +66,15 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
 
     # Step 2
     step.emit("emit_generation_id")
+
+    # Step 2.5 - the run's goal, BEFORE the first location generates, so
+    # even the starting location can lean toward it (rides in the brief).
+    # The first run's goal is fixed and was set with its context above.
+    from backend.game.dungeon import goal as run_goal
+
+    if not context.get('first_run'):
+        step.emit("generate_run_goal")
+        run_goal.generate_run_goal(workflow_name)
 
     # Step 3
     step.emit("generate_starting_location")
@@ -73,6 +100,14 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
     manager.set_party_resources(party_resources)
 
     # The run's story begins
+    if notice:
+        manager.append_dungeon_log(
+            f"The party answered an expedition notice: '{notice.get('title', 'Unnamed')}' "
+            f"({notice.get('theme', 'no theme')}; danger: {notice.get('danger', 'unknown')})."
+        )
+    goal_state = run_goal.goal_snapshot()
+    if goal_state:
+        manager.append_dungeon_log(f"The party set out with a goal: {goal_state['text']}")
     manager.append_dungeon_log(
         f"The party ({get_party_summary()}) entered the dungeon and arrived at "
         f"{location.get('name', 'an unknown place')}: {location.get('description', '')}"
@@ -84,6 +119,14 @@ def run_enter_dungeon(context: dict, step: WorkflowStep) -> dict[str, Any]:
             "paths": manager.get_public_paths(),
             "party_conditions": party_conditions,
             "party_resources": party_resources,
+            "expedition": {
+                "theme": notice.get('theme'),
+                "danger": notice.get('danger'),
+                "title": notice.get('title'),
+            }
+            if notice
+            else None,
+            "goal": goal_state,
         }
     )
 

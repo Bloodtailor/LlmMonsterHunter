@@ -31,4 +31,12 @@ export const inventoryEventHandlers = {
       cocatok: transformCoCaTok(eventData.cocatok),
     });
   },
+
+  // A run's keepsake was taken back (spoils forfeited on defeat/abandon)
+  'inventory.cocatok_removed': (eventData) => {
+    broadcastEvent('inventoryCocatokRemoved', {
+      cocatokId: eventData.cocatok_id || null,
+      title: eventData.title || null,
+    });
+  },
 };

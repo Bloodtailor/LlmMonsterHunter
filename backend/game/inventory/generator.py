@@ -82,6 +82,29 @@ def generate_reward_item(location: dict, monster, dialogue_history: str = '') ->
     return item
 
 
+def generate_goal_reward_item(goal_text: str, progress_notes: list[str]) -> Item:
+    """The rare item the exit ceremony awards for a fulfilled run goal -
+    it commemorates the goal itself"""
+
+    try:
+        data = build_and_generate(
+            'goal_reward_item',
+            'inventory_generation',
+            {
+                'goal_text': goal_text,
+                'progress_notes': "\n".join(f"- {note}" for note in progress_notes)
+                or "The deed itself is the record.",
+            },
+        )
+    except Exception:
+        data = {}
+
+    item = _build_item(data, source_note=f"Earned by fulfilling a run's goal: {goal_text[:120]}")
+    item.save()
+    emit_inventory_item_added(item.to_dict())
+    return item
+
+
 def generate_treasure_discovery_text(location: dict, item: Item, workflow_name: str) -> int:
     """Queue streamed narration of finding the (already generated) item
     - returns generation_id"""

@@ -1,7 +1,9 @@
 # CoCaTok Database Model - Collectable Card Tokens
 # Unique vanity keepsakes commemorating victories. Rendered on the frontend
 # by the CoCaTok component from color + emoji (no AI art). Keepsakes are
-# permanent - there is deliberately no delete path.
+# permanent once carried out of a run alive; ones minted MID-RUN are
+# provisional spoils - a defeat or abandonment takes them back with
+# everything else the run gathered (game/dungeon/spoils.py).
 
 from sqlalchemy import Column, String, Text
 

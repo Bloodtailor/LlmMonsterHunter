@@ -68,20 +68,30 @@ and Sanctuary auto-refresh):
   old name/species/stats and `old_card_art_path` so the ceremony UI can show
   the before-form without a fetch. Later ceremony stages keep arriving as
   ordinary `monster.updated` patches.
+- `monster.affinity_changed` — `{ monster_id, affinity, reason }`: the
+  monster's trust in the party climbed a tier
+  (`wary → familiar → trusting → devoted`); `reason` names the
+  code-visible event that moved it (e.g. `camp_rest`, `healed_by_ally`).
 
 ### Dungeon domain events
 - `dungeon.monster_revealed` — `{ monster }` (full `MonsterObject`): a
   PRE-EXISTING monster was staged into the current encounter (returning
   monsters and blend-ins). New monsters announce via `monster.created`;
   this event exists because existing monsters never re-fire creation events.
+- `dungeon.goal_updated` — `{ goal: { text, status, progress_notes } }`:
+  the goal referee recorded progress on (or completion of) the run's goal.
+  `status` is `pending` or `complete`.
 
 ### Inventory domain events
 Facts about the party's possessions, emitted from the inventory generator
 and the item-consumption flows:
 - `inventory.item_added` — `{ item }` (`ItemObject` — treasure or dialogue reward)
 - `inventory.item_updated` — `{ item }` (a use was spent, uses remain)
-- `inventory.item_consumed` — `{ item_id, name }` (last use spent; the item is gone)
+- `inventory.item_consumed` — `{ item_id, name }` (last use spent OR the
+  item was forfeited with the run's spoils; either way it is gone)
 - `inventory.cocatok_added` — `{ cocatok }` (`CoCaTokObject` — a victory was minted)
+- `inventory.cocatok_removed` — `{ cocatok_id, title }` (a keepsake minted
+  mid-run was taken back — the run's spoils were forfeited on defeat/abandon)
 
 `workflow_type` values seen in workflow events: `generate_detailed_monster`,
 `generate_ability`, `evolve_monster`, `enter_dungeon`, `choose_path`,

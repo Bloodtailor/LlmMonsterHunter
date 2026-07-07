@@ -149,6 +149,12 @@ def chat_housekeeping(context: dict, on_update: Callable[[str, dict[str, Any]], 
                 # Reviewed - even an empty result means "nothing worth keeping"
                 ChatThread.advance_extraction_watermark(monster_id, segment[-1].id)
 
+                # A talk that produced real memories deepens the bond
+                if memories_saved:
+                    from backend.game.monster.affinity import step_affinity
+
+                    step_affinity(monster_id, 'campfire_chat')
+
         progress_data.update({"memories_saved": len(memories_saved)})
 
         # ===== 2. ROLLING SUMMARY (one batch at most) =====

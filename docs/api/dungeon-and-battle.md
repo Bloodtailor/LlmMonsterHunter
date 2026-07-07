@@ -65,17 +65,54 @@ During battles, abilities are used on the monster's turn and cost that turn.
 
 ## Dungeon (`/api/dungeon`)
 
+### POST /dungeon/first-run
+New Game: streams the opening scene (the wish-granting premise) via
+`workflow.update` step `emit_generation_id`
+(`data.opening_text_generation_id`). Always available — replaying the
+opening wipes nothing. The frontend then calls
+`GET /dungeon/enter?first_run=true`. Rejected while a run is active.
+**Success:** `{ "success": true, "workflow_id": number }`
+**`workflow.completed` result:** `{ success, opening_started: true }`
+
+**The guided first run** (`first_run=true` on enter): the ONE entry
+allowed with an empty party. It skips the notice board (fixed gentle
+theme, `calm` danger, fixed goal "leave with a new companion") and
+scripts the path events — every path at the first junction carries a
+`monster_dialogue` tuned winnable by words (the first monster is
+RECRUITED, not generated; it auto-joins the empty active party and the
+goal completes), the next junction carries a `monster_battle` beside the
+new (wary — it fights on its own terms) companion, then the exit
+appears. Walking out alive sets `first_run_complete`.
+
+### POST /dungeon/expedition-notices
+Generates the entrance notice board: 2-3 expedition notices, each with an
+LLM-written `title`, `pitch`, and `theme`, plus a **Python-rolled** danger
+word (`calm | risky | perilous`). The chosen notice's id is passed to
+`/dungeon/enter`; its theme threads into every location/path/monster
+generation for the run and its danger maps to code knobs (enemy counts,
+event weights, referee bias — see docs/tuning.md). Rejected while a run
+is active.
+**Success:** `{ "success": true, "workflow_id": number }`
+**`workflow.completed` result:** `{ success, notices: [{ id, title, pitch, theme, danger }] }`
+
 ### GET /dungeon/enter
-Requires a ready active party. Streams entry text, generates a starting
-location and its paths (each path is a *route onward*, not a destination —
-its true destination and its hidden event are generated now but withheld).
+Requires a ready active party. Optional query param `notice_id` answers
+one of the board's posted notices (validated against the stored board) —
+its theme + danger become the run's context. Without `notice_id` the run
+is an ordinary, unthemed expedition.
+Streams entry text, generates a starting location and its paths (each
+path is a *route onward*, not a destination — its true destination and
+its hidden event are generated now but withheld).
 Opens a `dungeon_runs` history row and refills the party's stamina/mana
 pools — **entering is the only guaranteed reset of reserves**.
 **Success:** `{ "success": true, "workflow_id": number }`
-**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions, party_resources: { "[monster_id]": { "stamina": word, "mana": word } } }`
+**`workflow.completed` result:** `{ success, current_location: LocationObject, paths: { [path_id]: PathObject }, party_conditions, party_resources: { "[monster_id]": { "stamina": word, "mana": word } }, expedition: { title, theme, danger } | null, goal: { text, status, progress_notes } | null }`
 Reserve words ladder: `brimming > steady > strained > drained > spent`.
 Also streams entry text via `workflow.update` step `emit_generation_id`
 (`data.entry_text_generation_id`) + `llm.generation.update`.
+Every run gets ONE goal (LLM-written, themed). After resolved events the
+goal referee may emit `dungeon.goal_updated` with the updated snapshot;
+a goal can only complete after `GOAL_MIN_EVENTS` resolved events.
 
 ### POST /dungeon/choose-path
 **Request:** `{ "path_id": string }` (e.g. `"path_1"`)
@@ -112,11 +149,19 @@ The monster asks a question of its own devising; answer via `/dungeon/respond`.
 **`workflow.completed` result — exit path taken:**
 ```json
 { "success": true, "exited": true, "exit_text": string,
-  "growth": [GrowthResult] }
+  "growth": [GrowthResult],
+  "goal": { "text": string, "status": "pending"|"complete", "progress_notes": string[] } | null,
+  "goal_reward": { "item": ItemObject, "growth": [GrowthResult] } | null,
+  "chronicle": string | null, "run_number": number | null }
 ```
 The exit is the EXIT CEREMONY: every party member runs a growth reflection
-over its run journal (see *Memory & evolution* below); the run's history row
-closes as `victory_exit`.
+over its run journal (see *Memory & evolution* below); a FULFILLED goal
+adds the reward ceremony (one rare item + a code-owned `notable` growth
+step per member — `goal_reward` is null for unfinished goals); THE
+CHRONICLE condenses the whole run into one story beat (streamed via
+`data.chronicle_text_generation_id`, final text also in the result, and
+persisted to the run row's `summary` — the Sanctuary timeline becomes a
+saga); the run's history row closes as `victory_exit`.
 **Returning-monster event** (`returning_monster`, weight 0.12 whenever
 remembered monsters are eligible): a previously-met monster comes back
 TRANSFORMED by its memories (code-clamped stat boost, possibly an answering
@@ -220,13 +265,17 @@ per-monster waiting counts) / turn history / battle log, and paths
 debug panel in the frontend. Synchronous. Never use for game UI.
 
 ### POST /dungeon/abandon
-Call the party home mid-run. The active run closes as `abandoned` — its
-log is snapshotted to `last_run_log` first so home-base chats can still
-look back on it — any battle ends, and the run state wipes. Synchronous,
-no LLM. A quiet no-op when not in a dungeon, so the frontend can use it
-to clear stale run state (a run otherwise only ends by taking an exit
-path, being defeated, or entering the dungeon again).
-**Success:** `{ "success": true, "abandoned": boolean, "in_dungeon": false }`
+Call the party home mid-run. Walking away is not exiting alive: **the
+run's provisional spoils are forfeited first** (recruits joined this run
+are released with a `bond_broken` memory; items and CoCaToks gained this
+run are deleted, emitting `inventory.item_consumed` /
+`inventory.cocatok_removed`). Then the active run closes as `abandoned` —
+its log is snapshotted to `last_run_log` first so home-base chats can
+still look back on it — any battle ends, and the run state wipes.
+Synchronous, no LLM. A quiet no-op when not in a dungeon, so the frontend
+can use it to clear stale run state (a run otherwise only ends by taking
+an exit path, being defeated, or entering the dungeon again).
+**Success:** `{ "success": true, "abandoned": boolean, "in_dungeon": false, "spoils_lost": { "released_names": string[], "lost_item_names": string[] } }`
 
 ### GET /dungeon/state
 Public dungeon state (hidden path events/destinations stripped). Synchronous.
@@ -299,19 +348,28 @@ Public battle snapshot. Synchronous.
 ### Battle results over SSE
 Each resolved turn is a `workflow.update` step `action_resolved` with
 `data.action_result` (narration, actor/target, impact, an optional
-`dialogue` for talk turns, and a `battle_snapshot`). The frontend queues
-these for click-through. The `battle_turn` `workflow.completed` result is
-one of:
+`dialogue` for talk turns, `autonomous: boolean`, and a
+`battle_snapshot`). The frontend queues these for click-through.
+**Wary allies act on their own:** when the turn director picks a party
+monster whose affinity is `wary`, control never reaches the player — the
+LLM chooses its action (attack/ability/defend, never against the party),
+the turn resolves with `autonomous: true`, and the loop continues. Its
+one-sentence thought still streams first. The `battle_turn`
+`workflow.completed` result is one of:
 - `{ pending: "player_turn", pending_actor, pending_actor_name, battle_snapshot }`
 - `{ pending: "player_response", pending_talk: { speaker_name, dialogue }, battle_snapshot }`
-- `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, cocatok, defeat_reflection: string|null, battle_snapshot }`
+- `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, cocatok, defeat_reflection: string|null, spoils_lost: { released_names, lost_item_names } | null, chronicle: string|null, run_number: number|null, battle_snapshot }`
 
 `resolution` explains *how* it ended: `combat | joined | yielded | fled |
 spared`. On `joined`, the surviving enemies are added to the following list
-(`joined_names` lists them) — this is the capture mechanic. `defeat` clears
-the dungeon run backend-side — but first the party takes ONE collective
-`defeat_reflection` (the lesson of the loss; a shared `lesson` memory lands
-on every member) and the run's history row closes as `defeat`.
+(`joined_names` lists them) — this is the capture mechanic; **recruits are
+provisional until the party exits alive**. `defeat` clears the dungeon run
+backend-side — but first the party takes ONE collective `defeat_reflection`
+(the lesson of the loss; a shared `lesson` memory lands on every member),
+**the run's spoils are forfeited** (`spoils_lost`: recruits joined this run
+released with `bond_broken` memories — prime returning-monster fuel — and
+this run's items/CoCaToks deleted with inventory events), and the run's
+history row closes as `defeat`.
 
 ## Memory & evolution
 

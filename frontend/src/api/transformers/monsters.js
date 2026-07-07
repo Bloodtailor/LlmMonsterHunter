@@ -25,6 +25,8 @@ export function transformMonster(rawMonster) {
     // Identity & CMDTS (see docs/plans/monster-depth-cmdts.md)
     rarity: rawMonster.rarity || null,
     partyRole: rawMonster.party_role || null,
+    // How deeply it trusts the party (wary monsters act on their own in battle)
+    affinity: rawMonster.affinity || 'wary',
     generationStage: rawMonster.generation_stage || 'complete',
     taxonomy: rawMonster.taxonomy || {},
     classTaxonomy: rawMonster.class_taxonomy || [],

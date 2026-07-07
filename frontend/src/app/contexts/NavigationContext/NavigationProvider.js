@@ -12,8 +12,8 @@ import { NavigationContext } from './NavigationContext.js';
  * @param {React.ReactNode} props.children - Child components
  */
 function NavigationProvider({ children }) {
-  // Game screen navigation state - starts at homebase
-  const [currentGameScreen, setCurrentGameScreen] = useState('homebase');
+  // Game screen navigation state - the game opens on the title screen
+  const [currentGameScreen, setCurrentGameScreen] = useState('title');
 
   /**
    * Navigate to a different game screen

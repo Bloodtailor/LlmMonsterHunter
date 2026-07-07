@@ -7,7 +7,7 @@
       "type": "text",
       "parser_name": "none"
     },
-    "prompt_template": "You are the narrator of a fantasy dungeon adventure.\n\n========== CONTEXT ==========\n\n--- The player's party ---\n{party_summary}\n\n--- The moment ---\nThe party is standing at the entrance to a mysterious dungeon, about to begin a new expedition.\n\n========== YOUR TASK ==========\nWrite 1-2 sentences of atmospheric text describing the entrance and setting the mood for adventure. Immersive and exciting, but not overly dramatic.\n\nResponse:"
+    "prompt_template": "You are the narrator of a fantasy dungeon adventure.\n\n========== CONTEXT ==========\n\n--- The player's party ---\n{party_summary}\n\n--- The expedition brief ---\n{expedition_brief}\n\n--- The moment ---\nThe party is standing at the entrance to a mysterious dungeon, about to begin a new expedition.\n\n========== YOUR TASK ==========\nWrite 1-2 sentences of atmospheric text describing the entrance and setting the mood for adventure, colored by the expedition brief. Immersive and exciting, but not overly dramatic.\n\nResponse:"
   },
 
   "random_location": {
@@ -20,7 +20,7 @@
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== YOUR TASK ==========\nGenerate one mysterious dungeon location for exploration. Make it interesting and unique - avoid generic names. The description is 1-2 sentences of what a visitor sees, hears, and feels: atmospheric and immersive.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of what you see, hear, and feel in this location.\"}}\n\nJSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The expedition brief ---\n{expedition_brief}\n\n========== YOUR TASK ==========\nGenerate one mysterious dungeon location for exploration, fitting the expedition brief above. Make it interesting and unique - avoid generic names. The description is 1-2 sentences describing the location ITSELF - its structures, materials, light, sounds, air, and the marks its history has left on it. Describe only the place: do NOT mention the party, visitors, or anyone arriving or moving through it.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of the location itself - its structures, light, sounds, and atmosphere.\"}}\n\nJSON:"
   },
 
   "door_choices": {
@@ -68,7 +68,7 @@
       "expected_fields": ["paths"],
       "required_fields": ["paths"]
     },
-    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party is currently at ---\n{location_name}: {location_description}\n\n========== YOUR TASK ==========\nGenerate {total_count} DIFFERENT paths leading onward from this location. A path is a physical route the party can take - a door, stairway, tunnel, opening, ladder, bridge, gap in a wall, etc.\n\nRules:\n1. Describe each PATH ITSELF, not where it leads. The party should usually NOT be able to tell what lies beyond.\n2. Make every path different from the others in kind and character - different structures, materials, directions, and moods.\n3. Each description is 1-2 sentences: what the path looks like and hints of its history.\n\nExamples of good paths: a rusty trap door that may have been used by prison staff long ago; a spiral staircase leading upward; a hole through the brick wall that looks like it was made by a wrecking ball; a mysterious decorated wooden door that looks out of place.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format. The paths array must contain exactly {total_count} entries:\n{{\"paths\": [{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of the path itself, NOT what lies beyond it.\"}}, ...]}}\n\nJSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party is currently at ---\n{location_name}: {location_description}\n\n--- The expedition brief ---\n{expedition_brief}\n\n========== YOUR TASK ==========\nGenerate {total_count} DIFFERENT paths leading onward from this location, fitting the expedition brief. A path is a physical route the party can take - a door, stairway, tunnel, opening, ladder, bridge, gap in a wall, etc.\n\nRules:\n1. Describe each PATH ITSELF, not where it leads. The party should usually NOT be able to tell what lies beyond.\n2. Make every path different from the others in kind and character - different structures, materials, directions, and moods.\n3. Each description is 1-2 sentences: what the path looks like and hints of its history.\n\nExamples of good paths: a rusty trap door that may have been used by prison staff long ago; a spiral staircase leading upward; a hole through the brick wall that looks like it was made by a wrecking ball; a mysterious decorated wooden door that looks out of place.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format. The paths array must contain exactly {total_count} entries:\n{{\"paths\": [{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of the path itself, NOT what lies beyond it.\"}}, ...]}}\n\nJSON:"
   },
 
   "exit_path": {
@@ -81,7 +81,7 @@
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party is currently at ---\n{location_name}: {location_description}\n\n========== YOUR TASK ==========\nGenerate ONE path that clearly leads OUT of the dungeon and back to the safety of the outside world. The party should be able to recognize this as a way out - daylight through a crack, fresh air from a passage, a familiar stairway upward, etc.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of this way out and why it clearly leads to the surface.\"}}\n\nJSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party is currently at ---\n{location_name}: {location_description}\n\n--- The expedition brief ---\n{expedition_brief}\n\n========== YOUR TASK ==========\nGenerate ONE path that clearly leads OUT of the dungeon and back to the safety of the outside world. The party should be able to recognize this as a way out - daylight through a crack, fresh air from a passage, a familiar stairway upward, etc.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Short Path Name\", \"description\": \"1-2 sentence description of this way out and why it clearly leads to the surface.\"}}\n\nJSON:"
   },
 
   "arrival_location": {
@@ -94,6 +94,56 @@
       "expected_fields": ["name", "description"],
       "required_fields": ["name", "description"]
     },
-    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party was at ---\n{previous_location_name}: {previous_location_description}\n\n--- The path they chose to take onward ---\n{path_name}: {path_description}\n\n========== YOUR TASK ==========\nGenerate the location the party arrives at after taking this path. It should make sense as somewhere this path could lead, but it may surprise the party - the path only sometimes hints at its destination. Avoid generic names.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of what the party sees, hears, and feels in this new location.\"}}\n\nJSON:"
+    "prompt_template": "You are a dungeon designer for a fantasy game.\n\n========== CONTEXT ==========\n\n--- The location the party was at ---\n{previous_location_name}: {previous_location_description}\n\n--- The path they chose to take onward ---\n{path_name}: {path_description}\n\n--- The expedition brief ---\n{expedition_brief}\n\n========== YOUR TASK ==========\nGenerate the location this path leads to, fitting the expedition brief. It should make sense as somewhere this path could go, but it may surprise - a path only sometimes hints at its destination. Avoid generic names. The description is 1-2 sentences describing the location ITSELF - its structures, light, sounds, air, and the marks of its history. Describe only the place: do NOT mention the party, visitors, or anyone arriving.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"name\": \"Location Name\", \"description\": \"1-2 sentence description of the location itself - its structures, light, sounds, and atmosphere.\"}}\n\nJSON:"
+  },
+
+  "opening_scene": {
+    "description": "The game's streamed opening: the wish-granting-power premise, told as the adventurer first approaches the dungeon",
+    "max_tokens": 500,
+    "temperature": 0.85,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You are the narrator of a fantasy adventure, speaking the story's very first words to a brand-new player.\n\n========== THE PREMISE (weave it in, do not recite it) ==========\nSomewhere in the deep places of this world sleeps a mysterious power that can grant ANY wish. Every monster alive seeks it, each for its own deeply personal reason - to bring someone back, to be free of a curse, to matter. The adventurer now standing at the dungeon's mouth has a wish of their own, and no companions yet - the bonds will have to be made down there, with creatures whose wishes are as real as theirs.\n\n========== YOUR TASK ==========\nWrite the opening scene in 4-6 sentences of second-person narration ('you'): the road that brought them here, the first sight of the dungeon entrance, the weight of the wish they carry, and the truth that everything down there wants something too. End with them standing at the threshold, about to take the first step in. Evocative but plain-spoken - no purple prose, no numbers, no game terms.\n\nResponse:"
+  },
+
+  "run_goal": {
+    "description": "Write the run's ONE goal - concrete, checkable, achievable through exploration and encounters",
+    "max_tokens": 300,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["goal"],
+      "required_fields": ["goal"]
+    },
+    "prompt_template": "You are the quest-writer for a dungeon expedition. Every expedition sets out with ONE goal.\n\n========== CONTEXT ==========\n\n--- The expedition brief ---\n{expedition_brief}\n\n--- The party setting out ---\n{party_summary}\n\n========== YOUR TASK ==========\nWrite ONE goal for this run, fitting the expedition brief. It must be:\n- CONCRETE and CHECKABLE: someone reading the run's log should be able to say whether it happened (find a specific kind of place, recover a specific kind of thing, learn a truth, befriend a creature of a certain nature...).\n- Achievable through exploring, talking, and battling - the things an expedition actually does.\n- One sentence, evocative but unambiguous.\n\nExamples of good goals: \"Find the moonlit spring said to rise somewhere in these halls\"; \"Befriend a creature of the deep water and leave as its ally\"; \"Recover a keepsake left behind by an earlier expedition\".\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"goal\": \"One-sentence goal.\"}}\n\nJSON:"
+  },
+
+  "goal_check": {
+    "description": "THE GOAL REFEREE: did what just happened touch the run's goal? One word: no / progress / complete",
+    "max_tokens": 250,
+    "temperature": 0.6,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["answer", "note"],
+      "required_fields": ["answer"]
+    },
+    "prompt_template": "You are the referee of a dungeon expedition, judging progress toward the run's goal.\n\n========== CONTEXT ==========\n\n--- The run's goal ---\n{goal_text}\n\n--- Progress recorded so far ---\n{progress_so_far}\n\n--- What just happened (most recent last) ---\n{recent_events}\n\n========== YOUR TASK ==========\nJudge STRICTLY whether what just happened moved the party toward the goal. Answer with exactly ONE word:\n- \"no\": what happened has nothing to do with the goal - THE MOST COMMON ANSWER. Ordinary exploring, unrelated fights, and small talk are all \"no\".\n- \"progress\": a real, concrete step toward the goal happened (a true clue found, the right kind of place or creature encountered, part of the task done).\n- \"complete\": the goal as stated has been FULLY accomplished. Be strict - partial progress is \"progress\", not \"complete\".\nIf progress or complete: set note to ONE short sentence recording what counted. Otherwise set note to null.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"answer\": \"no\", \"note\": null}}\n\nJSON:"
+  },
+
+  "expedition_notices": {
+    "description": "The expedition board at the dungeon entrance - the LLM writes each notice's title, pitch, and theme; Python rolls its danger",
+    "max_tokens": 700,
+    "temperature": 0.9,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["notices"],
+      "required_fields": ["notices"]
+    },
+    "prompt_template": "You are the keeper of the expedition board at the entrance of an ever-shifting dungeon. Adventurers read your notices to choose their next expedition.\n\n========== YOUR TASK ==========\nWrite {notice_count} DIFFERENT expedition notices. Each notice has:\n- title: a short, evocative expedition name (e.g. \"The Sunken Belfry\", \"Where the Moss Sings\")\n- pitch: 1-2 sentences selling this expedition to adventurers - what has been sighted, rumored, or promised down there.\n- theme: ONE sentence naming the running theme this expedition's locations and creatures all share (e.g. \"flooded ruins and creatures that learned to hunt in dark water\").\n\nMake the notices feel like DIFFERENT worlds - different materials, moods, and kinds of creatures. Avoid generic dungeon cliches.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format. The notices array must contain exactly {notice_count} entries:\n{{\"notices\": [{{\"title\": \"Short Expedition Name\", \"pitch\": \"1-2 sentence pitch.\", \"theme\": \"One sentence naming the shared theme.\"}}, ...]}}\n\nJSON:"
   }
 }

@@ -118,7 +118,8 @@ GENERATOR_VARIABLES = {
         'secret_knowledge',
         'dungeon_log',
     },
-    # Battle referees (battle/generator.py) - carry the resource cost fields
+    # Battle referees (battle/generator.py) - carry the resource cost
+    # fields and the expedition's danger-biased referee hint
     'action_resolution': {
         'location_name',
         'actor_details',
@@ -126,6 +127,7 @@ GENERATOR_VARIABLES = {
         'target_details',
         'battle_situation',
         'recent_log',
+        'referee_hint',
     },
     'freeform_action_resolution': {
         'location_name',
@@ -135,8 +137,34 @@ GENERATOR_VARIABLES = {
         'player_info',
         'battle_situation',
         'recent_log',
+        'referee_hint',
     },
+    # Expedition flow (dungeon/generator.py + handlers/notices.py) - the
+    # run's theme/danger/goal ride in as one expedition_brief block
+    'expedition_notices': {'notice_count'},
+    'entry_atmosphere': {'party_summary', 'expedition_brief'},
+    'random_location': {'expedition_brief'},
+    'arrival_location': {
+        'previous_location_name',
+        'previous_location_description',
+        'path_name',
+        'path_description',
+        'expedition_brief',
+    },
+    'path_choices': {
+        'location_name',
+        'location_description',
+        'total_count',
+        'expedition_brief',
+    },
+    'exit_path': {'location_name', 'location_description', 'expedition_brief'},
+    # Run goals (dungeon/goal.py + inventory/generator.py)
+    'run_goal': {'expedition_brief', 'party_summary'},
+    'goal_check': {'goal_text', 'recent_events', 'progress_so_far'},
+    'goal_reward_item': {'goal_text', 'progress_notes'},
     'enemy_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
+    # A wary ally acting on its own terms (battle/turn/autonomy.py)
+    'ally_autonomous_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
     # Dungeon ability referee (dungeon/generator.py resolve_dungeon_ability)
     'dungeon_ability_use': {
         'location_name',
@@ -195,6 +223,17 @@ GENERATOR_VARIABLES = {
     },
     # Rolling summaries (game/utils/rolling_summary.py)
     'condense_history': {'source_label', 'prior_summary', 'batch_lines'},
+    # The post-run chronicle (game/dungeon/chronicle.py)
+    'run_chronicle': {
+        'run_number',
+        'result_word',
+        'party_summary',
+        'goal_line',
+        'companions_line',
+        'dungeon_log',
+    },
+    # The first-run opening scene (game/dungeon/first_run.py - no variables)
+    'opening_scene': set(),
     # Home-base chat (game/chat/generator.py)
     'home_chat_reply': {
         'monster_details',

@@ -31,7 +31,6 @@ SOURCE_GLOBS = (
 GRANDFATHERED = {
     'backend/game/dungeon/generator.py': 685,
     'backend/game/monster/evolution.py': 556,
-    'backend/game/monster/generator.py': 534,
     'backend/tests/test_chat_and_summaries.py': 548,
     'backend/tests/test_evolution.py': 522,
     'setup/user_messages.py': 1092,

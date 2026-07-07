@@ -42,14 +42,28 @@ def apply_dialogue_outcome(
     item_data = None
 
     if outcome == 'join_party':
+        from backend.game.dungeon.spoils import record_run_recruit
         from backend.models.following_monsters import FollowingMonster
 
         for monster_id in monster_ids:
             monster = Monster.get_monster_by_id(int(monster_id))
             if monster:
-                FollowingMonster.add_follower(int(monster_id))
+                # Provisional until the party exits alive (only NEW
+                # followers are at stake)
+                if FollowingMonster.add_follower(int(monster_id)):
+                    record_run_recruit(int(monster_id))
+
+                    # Choosing the party AGAIN - with memories of them -
+                    # is a reunion; the renewed bond starts a step warmer
+                    from backend.game.monster.affinity import step_affinity
+                    from backend.models.monster_memory import MonsterMemory
+
+                    if MonsterMemory.query.filter_by(monster_id=int(monster_id)).count() > 0:
+                        step_affinity(int(monster_id), 'rejoined_after_memories')
                 joined_names.append(monster.name)
         log_note = f"{', '.join(joined_names) or 'The monster'} joined the party as a follower."
+
+        _apply_first_run_recruitment(monster_ids)
 
     elif outcome == 'allow_passage':
         log_note = "The monster allowed the party to continue on their way."
@@ -69,6 +83,9 @@ def apply_dialogue_outcome(
                 giver,
                 get_encounter_dialogue_text(),
             )
+            from backend.game.dungeon.spoils import record_run_item
+
+            record_run_item(item.id)  # provisional until the exit
             item_data = item.to_dict()
             log_note = f"{giver.name} rewarded the party with {item.name} ({item.description})"
         else:
@@ -81,6 +98,30 @@ def apply_dialogue_outcome(
     _write_outcome_memories(outcome, monster_ids, location, item_data)
 
     return {'joined_names': joined_names, 'log_note': log_note, 'item': item_data}
+
+
+def _apply_first_run_recruitment(monster_ids: list[int]) -> None:
+    """
+    The guided first run's turning point: the FIRST companion joins. It
+    steps straight into the (empty) active party so the scripted battle
+    has an ally, and the fixed goal completes right here - recruited, not
+    generated. Never raises; a no-op outside the first run.
+    """
+    try:
+        from backend.game.dungeon.first_run import is_first_run
+
+        if not is_first_run() or not monster_ids:
+            return
+
+        from backend.game.dungeon.goal import complete_goal_directly
+        from backend.game.state.manager import get_party_monster_ids, set_active_party
+
+        if not get_party_monster_ids():
+            set_active_party([int(monster_ids[0])])
+
+        complete_goal_directly('The first companion chose to come along.')
+    except Exception as first_run_error:
+        print(f"❌ First-run recruitment step failed (the join stands): {first_run_error}")
 
 
 # What each resolving outcome writes into the monster's permanent memory.

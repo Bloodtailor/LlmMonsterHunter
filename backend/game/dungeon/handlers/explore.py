@@ -12,9 +12,9 @@ def run_location_explore(step: WorkflowStep, location: dict, workflow_name: str)
     from backend.game.dungeon import manager
     from backend.game.dungeon.events import roll_explore_monster_count, roll_monsters_present
     from backend.game.dungeon.generator import generate_look_around_text
+    from backend.game.monster.card_art import generate_card_art
     from backend.game.monster.generator import (
         generate_ability,
-        generate_card_art,
         generate_contextual_monster,
     )
 

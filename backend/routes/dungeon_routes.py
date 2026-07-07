@@ -9,10 +9,28 @@ from backend.services import dungeon_service
 dungeon_bp = Blueprint('dungeon', __name__, url_prefix='/api/dungeon')
 
 
+@dungeon_bp.route('/first-run', methods=['POST'])
+def begin_first_run():
+    """New Game: stream the opening scene - thin HTTP wrapper"""
+    result = dungeon_service.begin_first_run()
+    return jsonify(result), 200 if result['success'] else 400
+
+
+@dungeon_bp.route('/expedition-notices', methods=['POST'])
+def generate_expedition_notices():
+    """Generate the entrance notice board - thin HTTP wrapper"""
+    result = dungeon_service.generate_expedition_notices()
+    return jsonify(result), 200 if result['success'] else 400
+
+
 @dungeon_bp.route('/enter', methods=['GET'])
 def enter_dungeon():
-    """Enter dungeon - thin HTTP wrapper"""
-    result = dungeon_service.enter_dungeon()
+    """Enter dungeon (optionally answering a posted notice, or starting
+    the guided first run) - thin HTTP wrapper"""
+    result = dungeon_service.enter_dungeon(
+        notice_id=request.args.get('notice_id'),
+        first_run=request.args.get('first_run', '').lower() == 'true',
+    )
     return jsonify(result), 200 if result['success'] else 400
 
 
@@ -112,5 +130,7 @@ def abandon_run():
 @dungeon_bp.route('/debug-context', methods=['GET'])
 def get_debug_context():
     """DEVELOPER ONLY: full LLM context X-ray (includes hidden info) - thin HTTP wrapper"""
-    result = dungeon_service.get_debug_context()
+    from backend.services import dungeon_debug_service
+
+    result = dungeon_debug_service.get_debug_context()
     return jsonify(result), 200 if result['success'] else 400

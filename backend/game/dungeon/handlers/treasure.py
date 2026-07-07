@@ -14,9 +14,13 @@ def run_treasure(step: WorkflowStep, location: dict, workflow_name: str) -> dict
         generate_treasure_item,
     )
 
-    # Step 3 - the item itself (emits inventory.item_added)
+    # Step 3 - the item itself (emits inventory.item_added; provisional
+    # until the party exits alive)
     step.emit("generate_treasure_item")
     item = generate_treasure_item(location)
+    from backend.game.dungeon.spoils import record_run_item
+
+    record_run_item(item.id)
     step.data.update({"item": item.to_dict()})
 
     # Step 4 - queue streamed discovery narration referencing the item

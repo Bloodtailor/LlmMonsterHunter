@@ -53,7 +53,7 @@ class TurnContext:
         return None, None
 
     def details_of(self, side, monster_id):
-        from backend.game.battle.generator import build_monster_battle_details
+        from backend.game.battle.context_blocks import build_monster_battle_details
 
         monster = self.monsters.get(str(monster_id))
         if monster:

@@ -16,6 +16,22 @@ export function useDungeonState() {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState(null);
 
+  // The opening scene (New Game - the wish-granting premise, streamed)
+  const [openingText, setOpeningText] = useState('');
+  const [isOpeningReady, setIsOpeningReady] = useState(false);
+
+  // The entrance notice board - the expeditions the player picks from
+  const [notices, setNotices] = useState(null); // null until the board arrives
+  const [isGeneratingNotices, setIsGeneratingNotices] = useState(false);
+
+  // The expedition the party answered ({ title, theme, danger } or null)
+  const [expedition, setExpedition] = useState(null);
+
+  // The run's goal ({ text, status, progress_notes }) and the reward the
+  // exit ceremony paid out for completing it ({ item, growth })
+  const [goal, setGoal] = useState(null);
+  const [goalReward, setGoalReward] = useState(null);
+
   // Entry text streaming (dungeon entrance)
   const [entryText, setEntryText] = useState('');
 
@@ -78,6 +94,10 @@ export function useDungeonState() {
   // Exit state - set when the party takes an exit path
   const [exitText, setExitText] = useState(null);
 
+  // The run's chronicle - streamed at the exit, stamped with the run number
+  const [chronicleText, setChronicleText] = useState('');
+  const [runNumber, setRunNumber] = useState(null);
+
   // Helper to set error state
   const setErrorState = useCallback((errorMessage) => {
     setIsError(!!errorMessage);
@@ -114,6 +134,13 @@ export function useDungeonState() {
   const resetState = useCallback(() => {
     setIsError(false);
     setError(null);
+    setOpeningText('');
+    setIsOpeningReady(false);
+    setNotices(null);
+    setIsGeneratingNotices(false);
+    setExpedition(null);
+    setGoal(null);
+    setGoalReward(null);
     setEntryText('');
     setCurrentLocation(null);
     setPaths(null);
@@ -143,6 +170,8 @@ export function useDungeonState() {
     setTreasureText('');
     setTreasureItem(null);
     setExitText(null);
+    setChronicleText('');
+    setRunNumber(null);
   }, []);
 
   return {
@@ -150,6 +179,13 @@ export function useDungeonState() {
     state: {
       isError,
       error,
+      openingText,
+      isOpeningReady,
+      notices,
+      isGeneratingNotices,
+      expedition,
+      goal,
+      goalReward,
       entryText,
       currentLocation,
       paths,
@@ -179,11 +215,20 @@ export function useDungeonState() {
       treasureText,
       treasureItem,
       exitText,
+      chronicleText,
+      runNumber,
     },
 
     // Internal setters (for other hooks)
     setters: {
       setErrorState,
+      setOpeningText,
+      setIsOpeningReady,
+      setNotices,
+      setIsGeneratingNotices,
+      setExpedition,
+      setGoal,
+      setGoalReward,
       setEntryText,
       setCurrentLocation,
       setPaths,
@@ -213,6 +258,8 @@ export function useDungeonState() {
       setTreasureText,
       setTreasureItem,
       setExitText,
+      setChronicleText,
+      setRunNumber,
       clearEncounter,
     },
 

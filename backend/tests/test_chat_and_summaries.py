@@ -304,8 +304,8 @@ def main():
                 chat_generator.extract_chat_memories = real_extract
                 rolling_summary.summarize_lines = real_summarize
 
-            rows = MonsterMemory.for_monster(test_monster.id)
-            new_rows = rows[memories_before:]
+            rows = MonsterMemory.for_monster(test_monster.id)[memories_before:]
+            new_rows = [r for r in rows if r.kind != 'affinity_grew']  # M5: talks deepen bonds
             check('housekeeping succeeded', result.get('success') is True, str(result))
             check('extraction wrote the memories', len(new_rows) == 2)
             check(

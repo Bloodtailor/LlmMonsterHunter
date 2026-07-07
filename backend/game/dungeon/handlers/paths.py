@@ -17,7 +17,7 @@ def run_choose_path(context: dict, step: WorkflowStep) -> dict[str, Any]:
     """
     workflow_name = 'choose_path'
 
-    from backend.game.dungeon import manager
+    from backend.game.dungeon import goal, manager
     from backend.game.dungeon.generator import generate_arrival_location
 
     # Step 0 - validate required keys
@@ -58,6 +58,13 @@ def run_choose_path(context: dict, step: WorkflowStep) -> dict[str, Any]:
 
     event = path.get('event')
 
+    # A guided first run consumes its script one taken path at a time -
+    # the NEXT junction's paths carry the story's next beat
+    from backend.game.dungeon import first_run
+
+    if first_run.is_first_run() and event == first_run.next_scripted_event():
+        first_run.advance_scripted_event()
+
     # === EVENT: RETURNING MONSTER (someone here remembers the party) ===
     if event == 'returning_monster':
         response = reunion.run_returning_monster(step, location, workflow_name)
@@ -69,11 +76,17 @@ def run_choose_path(context: dict, step: WorkflowStep) -> dict[str, Any]:
 
     # === EVENT: LOCATION EXPLORE (the most common arrival) ===
     if event == 'location_explore':
-        return explore.run_location_explore(step, location, workflow_name)
+        response = explore.run_location_explore(step, location, workflow_name)
+        # A resolved arrival is a goal-check moment ("find the spring"
+        # completes by ARRIVING somewhere) - never blocks the response
+        goal.check_goal_progress(workflow_name)
+        return response
 
     # === EVENT: TREASURE (a hidden item waits to be discovered) ===
     if event == 'treasure':
-        return treasure.run_treasure(step, location, workflow_name)
+        response = treasure.run_treasure(step, location, workflow_name)
+        goal.check_goal_progress(workflow_name)
+        return response
 
     # === EVENT: MONSTER DIALOGUE (a monster stops the party with a question) ===
     if event == 'monster_dialogue':

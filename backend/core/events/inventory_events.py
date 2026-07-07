@@ -29,6 +29,13 @@ INVENTORY_EVENTS = {
         'data_fields': {'cocatok': 'Complete CoCaTok data (from cocatok.to_dict())'},
         'send_to_frontend': True,
     },
+    'inventory.cocatok_removed': {
+        'data_fields': {
+            'cocatok_id': 'Database ID of the keepsake taken back (spoils forfeited)',
+            'title': 'The title of the removed CoCaTok (for narration)',
+        },
+        'send_to_frontend': True,
+    },
 }
 
 # Register inventory events with the core registry
@@ -55,3 +62,8 @@ def emit_inventory_item_consumed(item_id: int, name: str) -> bool:
 def emit_inventory_cocatok_added(cocatok: dict[str, Any]) -> bool:
     """Emit when a victory mints a new CoCaTok keepsake"""
     return _emit_from_schema('inventory.cocatok_added', cocatok=cocatok)
+
+
+def emit_inventory_cocatok_removed(cocatok_id: int, title: str) -> bool:
+    """Emit when a run's keepsake is taken back (spoils forfeited)"""
+    return _emit_from_schema('inventory.cocatok_removed', cocatok_id=cocatok_id, title=title)

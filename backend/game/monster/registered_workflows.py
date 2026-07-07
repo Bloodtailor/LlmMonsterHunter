@@ -18,9 +18,9 @@ def generate_detailed_monster(
     progress_data = {}
 
     try:
+        from backend.game.monster.card_art import generate_card_art
         from backend.game.monster.generator import (
             generate_ability,
-            generate_card_art,
             generate_monster_blueprint,
             generate_monster_persona,
             generate_monster_story,
@@ -201,6 +201,11 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
             },
         )
 
+        # The party stood witness to its transformation - the bond deepens
+        from backend.game.monster.affinity import step_affinity
+
+        step_affinity(monster.id, 'evolved_together')
+
         # Step 8 - a new face for the new form (old art stays on disk,
         # its path lives in the lineage row). Prose failure skips this so
         # the art never mismatches the appearance block.
@@ -209,7 +214,7 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
             step = "regenerating_art"
             on_update(step, progress_data)
             try:
-                from backend.game.monster.generator import generate_card_art
+                from backend.game.monster.card_art import generate_card_art
 
                 generate_card_art(monster)
                 art_regenerated = True

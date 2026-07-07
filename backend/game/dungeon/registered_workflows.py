@@ -11,7 +11,8 @@ from backend.core.utils.responses import error_response
 from backend.core.workflow_registry import register_workflow
 from backend.core.workflow_steps import WorkflowStep
 
-from .handlers import camp, items_abilities, paths, run_lifecycle, stealth, talk
+from . import first_run
+from .handlers import camp, items_abilities, notices, paths, run_lifecycle, stealth, talk
 
 
 def _step_error(step: WorkflowStep, error: Exception) -> dict:
@@ -19,6 +20,36 @@ def _step_error(step: WorkflowStep, error: Exception) -> dict:
     return error_response(
         {'failed_at': step.name, 'completed_work': step.data, 'error': str(error)}
     )
+
+
+@register_workflow()
+def begin_first_run(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
+    """
+    New Game: stream the opening scene (the wish-granting premise). The
+    frontend follows opening_text_generation_id, then enters the dungeon
+    with first_run=true for the guided, scripted first expedition.
+    """
+    step = WorkflowStep(on_update)
+    try:
+        return first_run.run_begin_first_run(context, step)
+    except Exception as e:
+        return _step_error(step, e)
+
+
+@register_workflow()
+def generate_expedition_notices(
+    context: dict, on_update: Callable[[str, dict[str, Any]], None]
+) -> dict:
+    """
+    Write the expedition notices posted at the dungeon entrance: the LLM
+    invents each notice's theme and pitch, Python rolls its danger word.
+    The player's chosen notice shapes the whole run (theme + difficulty).
+    """
+    step = WorkflowStep(on_update)
+    try:
+        return notices.run_generate_notices(context, step)
+    except Exception as e:
+        return _step_error(step, e)
 
 
 @register_workflow()

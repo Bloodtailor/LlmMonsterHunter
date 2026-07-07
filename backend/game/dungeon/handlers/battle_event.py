@@ -14,15 +14,16 @@ def run_monster_battle(step: WorkflowStep, location: dict, workflow_name: str) -
     import random as _random
 
     from backend.game.battle.constants import ENEMY_COUNT_RANGE
+    from backend.game.battle.context_blocks import build_side_details
     from backend.game.battle.generator import (
-        build_side_details,
         generate_battle_arrival_text,
         generate_battle_intro,
     )
     from backend.game.dungeon import manager
+    from backend.game.dungeon.run_context import danger_knob
+    from backend.game.monster.card_art import generate_card_art
     from backend.game.monster.generator import (
         generate_ability,
-        generate_card_art,
         generate_contextual_monster,
     )
     from backend.game.state.manager import get_party_details
@@ -40,7 +41,8 @@ def run_monster_battle(step: WorkflowStep, location: dict, workflow_name: str) -
     # be running with this pack (blend-in).
     from backend.game.memory import returning
 
-    enemy_count = _random.randint(*ENEMY_COUNT_RANGE)
+    # The expedition's danger word decides how many enemies this can be
+    enemy_count = _random.randint(*danger_knob('enemy_count_range', ENEMY_COUNT_RANGE))
     enemies = []
 
     blended = returning.maybe_blend_in()

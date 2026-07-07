@@ -17,6 +17,10 @@ SUITES = [
     'test_returning',
     'test_evolution',
     'test_chat_and_summaries',
+    'test_expedition',
+    'test_stakes',
+    'test_affinity',
+    'test_first_run',
 ]
 
 

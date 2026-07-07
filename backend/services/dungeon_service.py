@@ -28,19 +28,72 @@ def _encounter_blocks_travel(encounter: Optional[dict[str, Any]]) -> bool:
     return True
 
 
-def enter_dungeon() -> dict[str, Any]:
+def generate_expedition_notices() -> dict[str, Any]:
+    """
+    Queue the entrance notice board: the LLM writes 2-3 themed expedition
+    notices, Python rolls each one's danger word. The player's choice is
+    passed back to enter_dungeon as notice_id.
+    Trust boundary: the board is only for parties still at home.
+    """
+
+    if manager.is_in_dungeon():
+        return error_response("Already on an expedition - the notice board is behind you")
+
+    success, workflow_id = request_workflow(workflow_type="generate_expedition_notices")
+
+    if success:
+        return success_response({'workflow_id': workflow_id})
+    else:
+        return error_response("Failed to queue expedition notices workflow")
+
+
+def begin_first_run() -> dict[str, Any]:
+    """
+    New Game: queue the opening scene (the wish-granting premise). Always
+    available - replaying the opening wipes nothing, and a leftover run
+    is NOT a blocker: entering the first dungeon abandons it properly
+    (spoils forfeited, log snapshotted) exactly like any re-entry.
+    The frontend follows the streamed text, then calls enter_dungeon
+    with first_run=true.
+    """
+
+    success, workflow_id = request_workflow(workflow_type="begin_first_run")
+
+    if success:
+        return success_response({'workflow_id': workflow_id})
+    else:
+        return error_response("Failed to queue the opening scene workflow")
+
+
+def enter_dungeon(notice_id: str = None, first_run: bool = False) -> dict[str, Any]:
     """
     Enter dungeon with validation
-    Trust boundary: validates party readiness, then queues the workflow
+    Trust boundary: validates party readiness and (when given) that the
+    chosen expedition notice is one the board actually posted, then
+    queues the workflow with the full validated notice.
+    A guided FIRST RUN is the one entry allowed with an EMPTY party -
+    the first companion is recruited inside, not brought along.
     """
 
-    # Validate party is ready
-    party_validation = validate_party_ready_for_dungeon()
-    error_check = validate_and_continue(party_validation)
-    if error_check:
-        return error_check
+    if not first_run:
+        # Validate party is ready (first runs may start empty-handed)
+        party_validation = validate_party_ready_for_dungeon()
+        error_check = validate_and_continue(party_validation)
+        if error_check:
+            return error_check
 
-    success, workflow_id = request_workflow(workflow_type="enter_dungeon")
+    context = {}
+    if first_run:
+        context['first_run'] = True
+    elif notice_id:
+        from backend.game.dungeon.run_context import get_pending_notice
+
+        notice = get_pending_notice(str(notice_id))
+        if not notice:
+            return error_response("Unknown expedition notice - generate the board again")
+        context['notice'] = notice
+
+    success, workflow_id = request_workflow(workflow_type="enter_dungeon", context=context)
 
     if success:
         return success_response({'workflow_id': workflow_id})
@@ -345,93 +398,6 @@ def continue_exploring() -> dict[str, Any]:
         return error_response("Failed to queue continue exploring workflow")
 
 
-def get_debug_context() -> dict[str, Any]:
-    """
-    DEVELOPER X-RAY: everything the dungeon/battle LLM prompts are built
-    from, produced by the SAME builder functions the generators use - so
-    the debug panel shows exactly what the LLM sees. Includes hidden
-    information (path events, destinations); never use for game UI.
-    """
-    from backend.game.battle.generator import (
-        build_battle_situation,
-        build_combatant_summary,
-        build_recent_log,
-        build_turn_history,
-    )
-    from backend.game.dungeon.generator import build_monsters_details, build_party_dungeon_details
-    from backend.game.state.manager import get_party_summary
-    from backend.models.monster import Monster
-
-    dungeon_state = manager.get_dungeon_state()
-    encounter = dungeon_state.get('active_encounter') or {}
-
-    encounter_monsters = [
-        m
-        for m in (Monster.get_monster_by_id(int(mid)) for mid in encounter.get('monster_ids', []))
-        if m
-    ]
-
-    battle_state = battle_manager.get_battle_state()
-    battle_monsters = {}
-    if battle_state.get('in_battle'):
-        for side in ('allies', 'enemies'):
-            for monster_id in battle_state.get(side, {}):
-                battle_monsters[monster_id] = Monster.get_monster_by_id(int(monster_id))
-
-    return success_response(
-        {
-            'in_dungeon': dungeon_state.get('in_dungeon', False),
-            'current_location': dungeon_state.get('current_location'),
-            # The rolling story of the run: raw entries + the budget-clamped
-            # text actually injected into every dungeon prompt
-            'dungeon_log': {
-                'entries': manager.get_dungeon_log_entries(),
-                'clamped_text': manager.get_dungeon_log_text(),
-            },
-            # The party exactly as dungeon prompts describe it
-            'party': {
-                'summary': get_party_summary(),
-                'details_text': build_party_dungeon_details(),
-                'conditions': dungeon_state.get('party_conditions', {}),
-                'resources': dungeon_state.get('party_resources', {}),
-            },
-            # Run identity and the per-monster journal feeding growth reflections
-            'run_id': dungeon_state.get('run_id'),
-            'run_journal': dungeon_state.get('run_journal', {}),
-            'seen_monster_ids': dungeon_state.get('seen_monster_ids', []),
-            # The active encounter's context blocks
-            'encounter': {
-                'event': encounter.get('event'),
-                'monster_ids': encounter.get('monster_ids', []),
-                'monsters_present': encounter.get('monsters_present'),
-                'camped': encounter.get('camped'),
-                'dialogue_entries': encounter.get('dialogue', []),
-                'dialogue_clamped_text': manager.get_encounter_dialogue_text() if encounter else '',
-                'monster_details_text': build_monsters_details(encounter_monsters)
-                if encounter_monsters
-                else '',
-            }
-            if encounter
-            else None,
-            # Paths WITH their hidden events and destinations (the X-ray part)
-            'paths_full': dungeon_state.get('available_paths', {}),
-            # The battle's context blocks, as the referee/director prompts see them
-            'battle': {
-                'in_battle': battle_state.get('in_battle', False),
-                'phase': battle_state.get('phase'),
-                'turn_count': battle_state.get('turn_count', 0),
-                'situation_text': build_battle_situation(battle_state),
-                'combatant_summary_text': build_combatant_summary(battle_monsters, battle_state),
-                'turn_history_text': build_turn_history(battle_state),
-                'recent_log_text': build_recent_log(battle_state),
-                'recent_log_entries': battle_state.get('recent_log', []),
-            }
-            if battle_state.get('in_battle')
-            else {'in_battle': False},
-        }
-    )
-
-
 def get_dungeon_state() -> dict[str, Any]:
     """
     Get the PUBLIC dungeon state (no hidden path events or destinations)
@@ -471,14 +437,19 @@ def abandon_run() -> dict[str, Any]:
     """
 
     from backend.game.battle import manager as battle_manager
+    from backend.game.dungeon.spoils import forfeit_run_spoils
     from backend.models.dungeon_run import DungeonRun
 
     if not manager.is_in_dungeon():
         return success_response({'abandoned': False, 'in_dungeon': False})
+
+    # Walking away is not exiting alive - this run's provisional
+    # recruits and possessions stay behind (memories remain)
+    spoils_lost = forfeit_run_spoils('abandoned')
 
     manager.snapshot_last_run_log('abandoned')
     DungeonRun.close('abandoned')
     battle_manager.end_battle()
     manager.exit_dungeon()
 
-    return success_response({'abandoned': True, 'in_dungeon': False})
+    return success_response({'abandoned': True, 'in_dungeon': False, 'spoils_lost': spoils_lost})

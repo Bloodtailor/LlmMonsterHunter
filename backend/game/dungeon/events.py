@@ -1,7 +1,9 @@
 # Dungeon Events - Random Event Assignment for Paths
 # Events are chosen randomly in Python (NOT by the LLM) when paths are
 # generated, stored in dungeon state, and hidden from the player until
-# they choose the path
+# they choose the path.
+# The constants below are the no-run defaults; an active expedition's
+# danger word (dungeon/run_context.py) overrides the marked knobs.
 
 import random
 
@@ -40,18 +42,35 @@ RETURNING_EVENT_WEIGHT = 0.12
 
 
 def assign_random_event(include_returning: bool = False) -> str:
-    """Pick a weighted random event for a path from the available events"""
-    events = list(EVENT_WEIGHTS.keys())
-    weights = list(EVENT_WEIGHTS.values())
+    """Pick a weighted random event for a path from the available events.
+    The active run's danger word (run_context) shifts the battle and
+    returning weights; without a run this rolls exactly the table above.
+    A guided FIRST RUN doesn't roll at all - every path at the junction
+    carries the script's next beat (dungeon/first_run.py)."""
+    from backend.game.dungeon.first_run import next_scripted_event
+    from backend.game.dungeon.run_context import danger_knob
+
+    scripted = next_scripted_event()
+    if scripted:
+        return scripted
+
+    weight_map = dict(EVENT_WEIGHTS)
+    weight_map['monster_battle'] = danger_knob(
+        'battle_event_weight', weight_map['monster_battle']
+    )
+    events = list(weight_map.keys())
+    weights = list(weight_map.values())
     if include_returning:
         events.append('returning_monster')
-        weights.append(RETURNING_EVENT_WEIGHT)
+        weights.append(danger_knob('returning_event_weight', RETURNING_EVENT_WEIGHT))
     return random.choices(events, weights=weights, k=1)[0]
 
 
 def roll_monsters_present() -> bool:
-    """Roll whether an explore location has monsters in it"""
-    return random.random() < EXPLORE_MONSTERS_CHANCE
+    """Roll whether an explore location has monsters in it (danger-aware)"""
+    from backend.game.dungeon.run_context import danger_knob
+
+    return random.random() < danger_knob('explore_monsters_chance', EXPLORE_MONSTERS_CHANCE)
 
 
 def roll_explore_monster_count() -> int:
@@ -65,5 +84,10 @@ def roll_path_count() -> int:
 
 
 def roll_include_exit() -> bool:
-    """Roll whether one of the paths is a dungeon exit"""
+    """Roll whether one of the paths is a dungeon exit. On a guided first
+    run the exit appears exactly when the script is spent - never before."""
+    from backend.game.dungeon.first_run import is_first_run, next_scripted_event
+
+    if is_first_run():
+        return next_scripted_event() is None
     return random.random() < EXIT_PATH_CHANCE

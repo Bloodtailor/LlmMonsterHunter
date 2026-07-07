@@ -249,14 +249,14 @@ def queue_evolution_narration(monster, evolution, guidance: str, workflow_name: 
     Returns the generation id the frontend streams from.
     """
     from backend.game.memory.manager import build_memory_block
-    from backend.game.monster.context_builder import build_speaker_block
+    from backend.game.monster.affinity import speaker_block_with_affinity
     from backend.game.utils import build_and_stream
 
     return build_and_stream(
         'evolution_narration',
         workflow_name,
         {
-            'monster_details': build_speaker_block(monster),
+            'monster_details': speaker_block_with_affinity(monster),
             'monster_memories': build_memory_block(monster.id),
             'transformation_facts': build_transformation_facts(evolution),
             'player_guidance': guidance or NO_GUIDANCE_NOTE,
