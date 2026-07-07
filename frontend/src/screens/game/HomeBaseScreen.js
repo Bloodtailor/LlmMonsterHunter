@@ -48,6 +48,15 @@ function HomeBaseScreen() {
                         >
                             Campfire Chat
                         </Button>
+
+                        <Button
+                            size="xl"
+                            icon="⬆️"
+                            variant="secondary"
+                            onClick={() => navigateToGameScreen('monster-evolution')}
+                        >
+                            Evolution Altar
+                        </Button>
                     </div>
                 </CardSection>
             </Card>

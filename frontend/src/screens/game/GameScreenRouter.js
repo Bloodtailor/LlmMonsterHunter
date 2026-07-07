@@ -9,6 +9,7 @@ import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
 import HomeBaseScreen from './HomeBaseScreen.js';
 import MonsterSanctuaryScreen from './MonsterSanctuaryScreen.js';
 import MonsterChatScreen from './MonsterChatScreen.js';
+import MonsterEvolutionScreen from './MonsterEvolutionScreen.js';
 
 // Import dungeon screens
 import { DungeonEntranceScreen } from '../../components/dungeon/index.js';
@@ -34,6 +35,9 @@ function GameScreenRouter() {
 
     case 'monster-chat':
       return <MonsterChatScreen />;
+
+    case 'monster-evolution':
+      return <MonsterEvolutionScreen />;
 
     case 'dungeon-entrance':
       return <DungeonEntranceScreen />;

@@ -24,29 +24,46 @@ function PartyProvider({ children }) {
     partyHook.getActiveParty();
   }, [followingHook.getFollowingMonsters, partyHook.getActiveParty]);
 
-  // Live copy of the party's monsters - growth moments (stat bumps, new
-  // or reworded abilities, persona notes) patch cards in place, so camp
-  // and exit ceremonies show on the party panel without a refetch
+  // Live copies of BOTH roster lists - growth moments, evolution
+  // ceremonies, and fresh card art patch cards in place, so party panels
+  // and pickers (chat, evolution) show changes without a refetch
   const [livePartyMonsters, setLivePartyMonsters] = useState(partyHook.partyMonsters);
+  const [liveFollowingMonsters, setLiveFollowingMonsters] = useState(followingHook.followingMonsters);
 
   useEffect(() => {
     setLivePartyMonsters(partyHook.partyMonsters);
   }, [partyHook.partyMonsters]);
 
+  useEffect(() => {
+    setLiveFollowingMonsters(followingHook.followingMonsters);
+  }, [followingHook.followingMonsters]);
+
+  const patchRosterLists = (patchMonster) => {
+    setLivePartyMonsters(prev => (prev || []).map(patchMonster));
+    setLiveFollowingMonsters(prev => (prev || []).map(patchMonster));
+  };
+
   useEventSubscription('monsterUpdated', ({ monster }) => {
     if (!monster?.id) return;
-    setLivePartyMonsters(prev => (prev || []).map(existing =>
-      existing.id === monster.id ? monster : existing
-    ));
+    patchRosterLists(existing => (existing.id === monster.id ? monster : existing));
   });
 
   useEventSubscription('monsterAbilityAdded', ({ monsterId, ability }) => {
     if (!monsterId || !ability) return;
-    setLivePartyMonsters(prev => (prev || []).map(monster =>
+    patchRosterLists(monster =>
       monster.id === monsterId
         ? { ...monster, abilities: [...(monster.abilities || []), ability], abilityCount: (monster.abilityCount || 0) + 1 }
         : monster
-    ));
+    );
+  });
+
+  useEventSubscription('monsterArtReady', ({ monsterId, imagePath }) => {
+    if (!monsterId || !imagePath) return;
+    patchRosterLists(monster =>
+      monster.id === monsterId
+        ? { ...monster, cardArt: { exists: true, relativePath: imagePath } }
+        : monster
+    );
   });
 
   // Helper functions for party management
@@ -146,7 +163,7 @@ function PartyProvider({ children }) {
     partyMonsters: livePartyMonsters, // Full monster objects, live-patched by growth events
     isLoading,
 
-    followingMonsters: followingHook.followingMonsters,
+    followingMonsters: liveFollowingMonsters, // Full monster objects, live-patched like the party
     followingSize: followingHook.count,
     loadingFollowers,
     

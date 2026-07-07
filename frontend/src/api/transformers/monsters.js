@@ -147,6 +147,52 @@ export function transformMemories(rawMemories) {
 }
 
 /**
+ * Transform a raw evolution lineage record into frontend shape
+ * @param {object} rawEvolution - Raw evolution from monster.evolved / the evolutions endpoint
+ * @returns {object|null} Clean evolution object
+ */
+export function transformEvolution(rawEvolution) {
+  if (!rawEvolution || !rawEvolution.id) {
+    console.warn('Invalid evolution object provided to transformer');
+    return null;
+  }
+
+  return {
+    id: rawEvolution.id,
+    monsterId: rawEvolution.monster_id,
+    stage: rawEvolution.stage,
+    guidance: rawEvolution.guidance || null,
+    narrative: rawEvolution.narrative || null,
+    oldName: rawEvolution.old_name,
+    oldSpecies: rawEvolution.old_species,
+    oldRarity: rawEvolution.old_rarity || null,
+    newName: rawEvolution.new_name,
+    newSpecies: rawEvolution.new_species,
+    newRarity: rawEvolution.new_rarity,
+    oldStats: {
+      maxHealth: rawEvolution.old_stats?.max_health ?? 0,
+      attack: rawEvolution.old_stats?.attack ?? 0,
+      defense: rawEvolution.old_stats?.defense ?? 0,
+      speed: rawEvolution.old_stats?.speed ?? 0
+    },
+    appliedBoostPct: rawEvolution.applied_boost_pct ?? 0,
+    oldCardArtPath: rawEvolution.old_card_art_path || null,
+    details: rawEvolution.details || {},
+    createdAt: rawEvolution.created_at ? new Date(rawEvolution.created_at) : null
+  };
+}
+
+/**
+ * Transform array of raw evolutions into clean game objects
+ * @param {Array} rawEvolutions - Array of raw evolution objects from API
+ * @returns {Array} Array of clean evolution objects (filters out invalid ones)
+ */
+export function transformEvolutions(rawEvolutions) {
+  if (!Array.isArray(rawEvolutions)) return [];
+  return rawEvolutions.map(transformEvolution).filter(Boolean);
+}
+
+/**
  * Transform monster statistics object into clean format
  * @param {object} rawStats - Raw monster statistics from API
  * @returns {object} Clean monster statistics object

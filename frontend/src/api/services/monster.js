@@ -9,6 +9,7 @@ import {
   transformMonsters,
   transformAbility,
   transformMemories,
+  transformEvolutions,
 } from '../transformers/monsters.js';
 
 // ===== MONSTER COLLECTION =====
@@ -117,6 +118,49 @@ generateAbility.defaults = {
   requestId: null,
   logId: null,
   error: null
+};
+
+/**
+ * Evolve a following monster at home base using the evolve_monster
+ * workflow. The transform arrives via SSE (monster.updated +
+ * monster.evolved), the ceremony narration streams (workflow.update step
+ * emit_generation_id -> data.evolution_text_generation_id), and the full
+ * outcome lands in workflow.completed.
+ * @param {number} monsterId - The monster to evolve
+ * @param {string} [guidance] - Optional whisper steering the evolved form (<=200 chars)
+ * @returns {Promise<object>} Clean transformed response with workflowId
+ */
+export async function evolveMonster(monsterId, guidance) {
+
+  const body = guidance && String(guidance).trim() ? { guidance: String(guidance).trim() } : {};
+  const response = await post(`/api/monsters/${monsterId}/evolve`, body);
+
+  return {
+    success: response.success ?? evolveMonster.defaults.success,
+    workflowId: response.workflow_id ?? evolveMonster.defaults.workflowId,
+    _raw: response
+  };
+}
+evolveMonster.defaults = {
+  success: null,
+  workflowId: null,
+};
+
+/**
+ * Load one monster's evolution lineage (oldest first - its forms in order)
+ * @param {number} monsterId - Monster database ID
+ * @returns {Promise<object>} Clean transformed response with evolutions array
+ */
+export async function loadMonsterEvolutions(monsterId) {
+  const response = await get(`/api/monsters/${monsterId}/evolutions`);
+
+  return {
+    evolutions: transformEvolutions(response.evolutions ?? loadMonsterEvolutions.defaults.evolutions),
+    _raw: response
+  };
+}
+loadMonsterEvolutions.defaults = {
+  evolutions: []
 };
 
 /**
