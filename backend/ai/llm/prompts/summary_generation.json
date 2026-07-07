@@ -1,0 +1,12 @@
+{
+  "condense_history": {
+    "description": "Condense one batch of old history lines (chat, dungeon log, or battle log) into a compact summary, keeping only what could matter later",
+    "max_tokens": 220,
+    "temperature": 0.4,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You are the chronicler of a fantasy monster-hunting adventure. Your records must stay short enough to reread at a glance, so older lines get condensed - carefully, losing nothing that matters.\n\n========== WHAT THESE LINES ARE ==========\n{source_label}\n\n========== ALREADY CONDENSED (for continuity - do NOT repeat it) ==========\n{prior_summary}\n\n========== THE LINES TO CONDENSE ==========\n{batch_lines}\n\n========== YOUR TASK ==========\nWrite 2-4 plain past-tense sentences that preserve ONLY what could matter later: names, decisions and their outcomes, promises and debts, discoveries about the world, injuries and losses, and how relationships shifted. Merge repetitive moments into one statement. Never invent anything the lines do not say. No headers, no lists, no quotes unless the exact words mattered.\n\nSummary:"
+  }
+}

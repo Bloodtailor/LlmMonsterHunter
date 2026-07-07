@@ -72,10 +72,14 @@ def build_battle_situation(state: Dict[str, Any]) -> str:
     )
 
 def build_recent_log(state: Dict[str, Any]) -> str:
+    """The battle so far: condensed old turns + recent turns verbatim"""
+    from backend.game.utils.rolling_summary import compose_history, covered_count
+    summaries = state.get('log_summaries', [])
     log = state.get('recent_log', [])
-    if not log:
-        return "The battle has just begun."
-    return clamp_context('battle_log', "\n".join(log))
+    return compose_history(
+        'battle_log', summaries, log[covered_count(summaries):],
+        'battle_log', empty_text="The battle has just begun."
+    )
 
 def _validated_resource_delta(raw) -> Optional[str]:
     """
