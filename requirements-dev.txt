@@ -1,0 +1,3 @@
+# Developer tooling (not needed to play): lint/format + test runner
+ruff==0.15.20
+pytest==9.1.1

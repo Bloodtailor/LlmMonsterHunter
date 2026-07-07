@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "axios": "^1.5.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
     "react-router-dom": "^6.15.0",
-    "axios": "^1.5.0"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -19,6 +19,28 @@
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "rules": {
+      "max-lines": [
+        "error",
+        {
+          "max": 500,
+          "skipBlankLines": false,
+          "skipComments": false
+        }
+      ]
+    },
+    "overrides": [
+      {
+        "files": [
+          "src/screens/developer/BYOComponentTestScreen.js",
+          "src/screens/developer/ExplosionDemo.js",
+          "src/components/UiExamples/*.js"
+        ],
+        "rules": {
+          "max-lines": "off"
+        }
+      }
     ]
   },
   "browserslist": {
@@ -33,5 +55,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000"
+  "proxy": "http://localhost:5000",
+  "devDependencies": {
+    "prettier": "^3.9.4"
+  }
 }

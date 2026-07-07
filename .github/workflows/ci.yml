@@ -1,0 +1,80 @@
+# CI - lint, format, file-size ceiling, and the offline suites.
+# The suites stub the LLM and use a dedicated test database, so CI needs
+# MySQL but neither a GPU nor llama-cpp-python (it imports lazily).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_USER: root
+      DB_PASSWORD: ''
+      DB_NAME_TEST: monster_hunter_game_test
+      LLM_CONTEXT_SIZE: '4096'
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install dependencies (no LLM engine)
+        run: pip install -r requirements/base.txt -r requirements-dev.txt
+
+      - name: Lint
+        run: python -m ruff check backend setup tools
+
+      - name: Format check
+        run: python -m ruff format --check backend setup tools
+
+      - name: File-size ceiling
+        run: python tools/check_file_sizes.py
+
+      - name: Offline suites
+        run: python -m pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format check
+        run: npx prettier --check src
+
+      - name: Tests
+        run: npm test -- --watchAll=false --passWithNoTests
+        env:
+          CI: 'true'

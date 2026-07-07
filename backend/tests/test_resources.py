@@ -92,12 +92,24 @@ def main():
 
     # ===== Battle seeding =====
     print('\n-- start_battle pool seeding --')
-    # Offline: stub out persistence so no app context is needed
+    # Offline: stub out persistence so no app context is needed - and
+    # RESTORE it, other suites share this process under pytest
+    real_save_battle_state = battle.save_battle_state
     battle.save_battle_state = lambda state: None
-    seeded = battle.start_battle(
-        {'1': {'name': 'Ally', 'condition': 'wounded', 'stamina': 'strained', 'mana': 'drained'}},
-        {'7': {'name': 'Enemy', 'condition': 'fresh'}},
-    )
+    try:
+        seeded = battle.start_battle(
+            {
+                '1': {
+                    'name': 'Ally',
+                    'condition': 'wounded',
+                    'stamina': 'strained',
+                    'mana': 'drained',
+                }
+            },
+            {'7': {'name': 'Enemy', 'condition': 'fresh'}},
+        )
+    finally:
+        battle.save_battle_state = real_save_battle_state
     check(
         'ally pools carry in from the run',
         seeded['allies']['1']['stamina'] == 'strained'

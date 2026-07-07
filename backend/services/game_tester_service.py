@@ -46,8 +46,25 @@ def run_test_file(test_name):
             spec = importlib.util.spec_from_file_location(test_name, test_file_path)
             test_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(test_module)
+
+            # Utility scripts run at import. Suites define main() - which
+            # exec_module never triggers (__name__ is the file stem, not
+            # '__main__') - so call it; it returns the failed-check count
+            failed_checks = 0
+            if hasattr(test_module, 'main'):
+                failed_checks = int(test_module.main() or 0)
         finally:
             sys.stdout = old_stdout
+
+        if failed_checks:
+            return jsonify(
+                {
+                    'success': False,
+                    'test_name': test_name,
+                    'error': f'{failed_checks} check(s) failed',
+                    'output': tee.getvalue(),
+                }
+            ), 200
 
         return jsonify(
             {
