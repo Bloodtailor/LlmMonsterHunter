@@ -4,7 +4,14 @@ print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
 # Import core event bus functionality
 # Import ai_events module to ensure events get registered
-from . import ai_events, dungeon_events, inventory_events, monster_events, workflow_events
+from . import (
+    ai_events,
+    dungeon_events,
+    game_state_events,
+    inventory_events,
+    monster_events,
+    workflow_events,
+)
 
 # Import AI event emission functions
 from .ai_events import (
@@ -33,6 +40,9 @@ from .event_registry import (
     get_sse_events,
     register_events,
 )
+
+# Import game-state domain event emission functions
+from .game_state_events import emit_game_world_erased
 
 # Import inventory domain event emission functions
 from .inventory_events import (
@@ -96,6 +106,8 @@ __all__ = [
     'emit_monster_memory_added',
     # Dungeon Domain Event Emission Functions
     'emit_dungeon_monster_revealed',
+    # Game-State Domain Event Emission Functions
+    'emit_game_world_erased',
     # Inventory Domain Event Emission Functions
     'emit_inventory_item_added',
     'emit_inventory_item_updated',

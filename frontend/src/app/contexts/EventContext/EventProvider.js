@@ -11,6 +11,7 @@ import { workflowEventHandlers } from '../../../api/events/workflowEventHandlers
 import { monsterEventHandlers } from '../../../api/events/monsterEventHandlers.js';
 import { inventoryEventHandlers } from '../../../api/events/inventoryEventHandlers.js';
 import { dungeonEventHandlers } from '../../../api/events/dungeonEventHandlers.js';
+import { gameStateEventHandlers } from '../../../api/events/gameStateEventHandlers.js';
 
 // Module-level constant - stable reference, combined once
 const sseEventHandlers = {
@@ -19,6 +20,7 @@ const sseEventHandlers = {
   ...monsterEventHandlers,
   ...inventoryEventHandlers,
   ...dungeonEventHandlers,
+  ...gameStateEventHandlers,
 };
 
 function EventProvider({ children }) {

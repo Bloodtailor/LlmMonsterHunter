@@ -60,4 +60,10 @@ def wipe_world() -> dict[str, int]:
         raise
 
     print_success(f"World wiped for a new game ({sum(deleted.values())} rows erased)")
+
+    # Post-commit, so every listener that refetches on this reads the
+    # empty world (the frontend's roster state empties itself live)
+    from backend.core.events import emit_game_world_erased
+
+    emit_game_world_erased(deleted_rows=deleted)
     return deleted

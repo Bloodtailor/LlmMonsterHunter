@@ -64,6 +64,18 @@ function PartyProvider({ children }) {
     if (!playerMonster) loadPlayer();
   });
 
+  // New Game erased the world: empty every roster NOW (no refresh
+  // needed), then refetch so the hooks' own state agrees with the
+  // empty world
+  useEventSubscription('worldErased', () => {
+    setLivePartyMonsters([]);
+    setLiveFollowingMonsters([]);
+    setPlayerMonster(null);
+    followingHook.getFollowingMonsters();
+    partyHook.getActiveParty();
+    loadPlayer();
+  });
+
   useEventSubscription('monsterUpdated', ({ monster }) => {
     if (!monster?.id) return;
     patchRosterLists((existing) => (existing.id === monster.id ? monster : existing));

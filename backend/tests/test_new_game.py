@@ -211,8 +211,23 @@ def main():
             # clears the stray with everything else
             GameWorkflow.create_workflow('test_stale_leftover', {}).save()
 
+            # The frontend empties its rosters on this event - it must
+            # fire, and only after the world is already gone
+            from backend.core.events import subscribe_to_event
+
+            erased_events = []
+            subscribe_to_event(
+                'game.world_erased',
+                lambda event: erased_events.append(game_row_counts()['monsters']),
+            )
+
             result = game_state_service.start_new_game()
             check('a stale table row never blocks the wipe', result['success'] is True)
+            check(
+                'the world-erased event fired over an empty world',
+                erased_events == [0],
+                str(erased_events),
+            )
 
             counts = game_row_counts()
             check(
