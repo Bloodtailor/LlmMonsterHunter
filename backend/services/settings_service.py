@@ -192,7 +192,13 @@ def test_llm_generation() -> dict[str, Any]:
             max_tokens=48,
         )
 
-        # Name the engine that answered from the log - the source of truth
+        # Name the engine that answered from the log - the source of truth.
+        # The queue worker wrote the token counts in ITS session while this
+        # request's REPEATABLE READ snapshot was already open - end the
+        # snapshot first or prompt_tokens reads as None
+        from backend.models.core import db
+
+        db.session.rollback()
         log = GenerationLog.query.get(result['generation_id'])
         llm_log = log.llm_log if log else None
 
