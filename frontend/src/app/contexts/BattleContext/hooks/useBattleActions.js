@@ -34,6 +34,7 @@ export function useBattleActions(stateHook) {
     setOutcomeText,
     setJoinedNames,
     setVictoryCocatok,
+    setDefeatReflection,
     setBattleError
   } = setters;
 
@@ -72,6 +73,8 @@ export function useBattleActions(stateHook) {
       setJoinedNames(result.joined_names || []);
       // A victory minted a CoCaTok keepsake - hold it for the pickup ceremony
       setVictoryCocatok(result.cocatok ? transformCoCaTok(result.cocatok) : null);
+      // A defeat carries one collective lesson out of the dungeon
+      setDefeatReflection(result.defeat_reflection || null);
     }
 
     setTurnResult(null);
@@ -80,7 +83,7 @@ export function useBattleActions(stateHook) {
   }, [
     setDisplayedBattle, setPendingActorId, setPendingActorName, setPendingTalk,
     setCurrentSelection, setOutcome, setResolution, setOutcomeText, setJoinedNames,
-    setVictoryCocatok, setTurnResult, setCurrentNarration, setIsProcessing
+    setVictoryCocatok, setDefeatReflection, setTurnResult, setCurrentNarration, setIsProcessing
   ]);
 
   // Some turns have nothing to click through (e.g. opening initiative

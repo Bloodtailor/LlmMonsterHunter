@@ -96,6 +96,43 @@ export function useLiveMonsterCollection() {
 }
 
 /**
+ * Hook for one monster's permanent memories (its life in order)
+ * Fetches once per monster and live-appends as new memories are written
+ * (monster.memory_added fires from battles, dialogues, camps, returns...)
+ */
+export function useMonsterMemories(monsterId) {
+  const [memories, setMemories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!monsterId) {
+      setMemories([]);
+      return;
+    }
+    let cancelled = false;
+    setIsLoading(true);
+    monstersApi.loadMonsterMemories(monsterId)
+      .then(result => {
+        if (!cancelled) setMemories(result.memories);
+      })
+      .catch(() => { /* memories are flavor - never break the card */ })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [monsterId]);
+
+  useEventSubscription('monsterMemoryAdded', ({ monsterId: eventMonsterId, memory }) => {
+    if (!memory || eventMonsterId !== monsterId) return;
+    setMemories(prev =>
+      prev.some(existing => existing.id === memory.id) ? prev : [...prev, memory]
+    );
+  });
+
+  return { memories, isLoading };
+}
+
+/**
  * Hook for monster generation (mutation)
  */
 export function useMonsterGeneration() {

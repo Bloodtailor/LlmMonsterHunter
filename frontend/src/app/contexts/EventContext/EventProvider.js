@@ -10,13 +10,15 @@ import { aiEventHandlers } from '../../../api/events/aiEventHandlers.js';
 import { workflowEventHandlers } from '../../../api/events/workflowEventHandlers.js';
 import { monsterEventHandlers } from '../../../api/events/monsterEventHandlers.js';
 import { inventoryEventHandlers } from '../../../api/events/inventoryEventHandlers.js';
+import { dungeonEventHandlers } from '../../../api/events/dungeonEventHandlers.js';
 
 // Module-level constant - stable reference, combined once
 const sseEventHandlers = {
   ...aiEventHandlers,
   ...workflowEventHandlers,
   ...monsterEventHandlers,
-  ...inventoryEventHandlers
+  ...inventoryEventHandlers,
+  ...dungeonEventHandlers
 };
 
 function EventProvider({ children }) {

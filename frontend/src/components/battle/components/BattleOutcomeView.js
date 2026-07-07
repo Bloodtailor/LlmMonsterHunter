@@ -11,7 +11,7 @@ import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
 
 function BattleOutcomeView() {
-  const { outcome, outcomeText, joinedNames, victoryCocatok, isProcessing, resetBattle } = useBattleContext();
+  const { outcome, outcomeText, joinedNames, victoryCocatok, defeatReflection, isProcessing, resetBattle } = useBattleContext();
   const { continueExploring, resetDungeon } = useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
@@ -61,6 +61,22 @@ function BattleOutcomeView() {
         <CardSection type="content" alignment="center">
           <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'bold' }}>
             🎉 {joinedNames.join(' and ')} {joinedNames.length === 1 ? 'has' : 'have'} joined your followers!
+          </p>
+        </CardSection>
+      )}
+
+      {/* The lesson the party carries out of a defeat */}
+      {!isVictory && defeatReflection && (
+        <CardSection type="content" alignment="center">
+          <p style={{
+            ...textStyles,
+            fontStyle: 'italic',
+            fontSize: 'var(--font-size-md)',
+            color: 'var(--color-text-secondary)',
+            maxWidth: '560px',
+            margin: '0 auto'
+          }}>
+            📿 {defeatReflection}
           </p>
         </CardSection>
       )}

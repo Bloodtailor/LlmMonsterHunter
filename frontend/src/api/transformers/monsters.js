@@ -114,6 +114,39 @@ export function transformAbilities(rawAbilities) {
 }
 
 /**
+ * Transform a raw monster memory into frontend shape
+ * @param {object} rawMemory - Raw memory from monster.memory_added / the memories endpoint
+ * @returns {object|null} Clean memory object
+ */
+export function transformMemory(rawMemory) {
+  if (!rawMemory || !rawMemory.id) {
+    console.warn('Invalid memory object provided to transformer');
+    return null;
+  }
+
+  return {
+    id: rawMemory.id,
+    monsterId: rawMemory.monster_id,
+    runId: rawMemory.run_id,
+    runNumber: rawMemory.details?.run_number ?? null,
+    kind: rawMemory.kind,
+    content: rawMemory.content,
+    details: rawMemory.details || {},
+    createdAt: rawMemory.created_at ? new Date(rawMemory.created_at) : null
+  };
+}
+
+/**
+ * Transform array of raw memories into clean game objects
+ * @param {Array} rawMemories - Array of raw memory objects from API
+ * @returns {Array} Array of clean memory objects (filters out invalid ones)
+ */
+export function transformMemories(rawMemories) {
+  if (!Array.isArray(rawMemories)) return [];
+  return rawMemories.map(transformMemory).filter(Boolean);
+}
+
+/**
  * Transform monster statistics object into clean format
  * @param {object} rawStats - Raw monster statistics from API
  * @returns {object} Clean monster statistics object

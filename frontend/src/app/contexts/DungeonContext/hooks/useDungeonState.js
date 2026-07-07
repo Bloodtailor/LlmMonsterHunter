@@ -51,9 +51,20 @@ export function useDungeonState() {
   const [isCamping, setIsCamping] = useState(false);
   const [hasCamped, setHasCamped] = useState(false);
 
+  // Returning monster - a remembered creature crosses the party's path
+  const [reunionText, setReunionText] = useState(''); // streamed recognition scene
+  const [isReturningEncounter, setIsReturningEncounter] = useState(false);
+
+  // Growth - reflections from camp spotlights and the exit ceremony
+  // [{ monster_id, monster_name, reflection, stat, tier, new_ability, reworded_ability }]
+  const [growthResults, setGrowthResults] = useState([]);
+
   // Party in the dungeon - conditions persist across the run, and any
   // monster can use its abilities on anything (the LLM referees it)
   const [partyConditions, setPartyConditions] = useState({}); // { monsterId: condition }
+
+  // Stamina/mana word ladders - refill only on dungeon entry (and camp rest)
+  const [partyResources, setPartyResources] = useState({}); // { monsterId: { stamina, mana } }
   const [isUsingAbility, setIsUsingAbility] = useState(false);
   const [abilityResult, setAbilityResult] = useState(null); // { narration, effect }
 
@@ -90,10 +101,14 @@ export function useDungeonState() {
     setCampText('');
     setIsCamping(false);
     setHasCamped(false);
+    setReunionText('');
+    setIsReturningEncounter(false);
+    setGrowthResults([]);
     setAbilityResult(null);
     setItemResult(null);
     setTreasureText('');
     setTreasureItem(null);
+    // partyResources intentionally survives - reserves belong to the RUN
   }, []);
 
   // Reset all state to initial values
@@ -117,7 +132,11 @@ export function useDungeonState() {
     setCampText('');
     setIsCamping(false);
     setHasCamped(false);
+    setReunionText('');
+    setIsReturningEncounter(false);
+    setGrowthResults([]);
     setPartyConditions({});
+    setPartyResources({});
     setIsUsingAbility(false);
     setAbilityResult(null);
     setIsUsingItem(false);
@@ -149,7 +168,11 @@ export function useDungeonState() {
       campText,
       isCamping,
       hasCamped,
+      reunionText,
+      isReturningEncounter,
+      growthResults,
       partyConditions,
+      partyResources,
       isUsingAbility,
       abilityResult,
       isUsingItem,
@@ -179,7 +202,11 @@ export function useDungeonState() {
       setCampText,
       setIsCamping,
       setHasCamped,
+      setReunionText,
+      setIsReturningEncounter,
+      setGrowthResults,
       setPartyConditions,
+      setPartyResources,
       setIsUsingAbility,
       setAbilityResult,
       setIsUsingItem,

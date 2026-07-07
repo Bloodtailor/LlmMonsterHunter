@@ -48,7 +48,11 @@ export function useDungeonEvents(stateHook) {
     setCampText,
     setIsCamping,
     setHasCamped,
+    setReunionText,
+    setIsReturningEncounter,
+    setGrowthResults,
     setPartyConditions,
+    setPartyResources,
     setIsUsingAbility,
     setAbilityResult,
     setIsUsingItem,
@@ -84,6 +88,11 @@ export function useDungeonEvents(stateHook) {
     onText: (partialText) => setTreasureText(partialText)
   });
 
+  // Stream the reunion scene - the party recognizes a returning monster
+  useStreamedGeneration('reunion_text_generation_id', {
+    onText: (partialText) => setReunionText(partialText)
+  });
+
   // The choose_path workflow announces the arrival location mid-flight
   useEventSubscription('workflowUpdate', (eventData) => {
     if (eventData?.step === 'location_generated' && eventData.data?.current_location) {
@@ -101,6 +110,18 @@ export function useDungeonEvents(stateHook) {
   useEventSubscription('monsterCreated', ({ monster }) => {
     if (isEncounterUnfolding() && monster) {
       setEncounterMonsters(prev => [...prev, monster]);
+    }
+  });
+
+  // A PRE-EXISTING monster staged into the encounter (returning monsters
+  // and blend-ins arrive complete - no monster.created fires for them)
+  useEventSubscription('dungeonMonsterRevealed', ({ monster }) => {
+    if (isEncounterUnfolding() && monster) {
+      setEncounterMonsters(prev =>
+        prev.some(existing => existing.id === monster.id)
+          ? prev.map(existing => existing.id === monster.id ? monster : existing)
+          : [...prev, monster]
+      );
     }
   });
 
@@ -160,9 +181,12 @@ export function useDungeonEvents(stateHook) {
       return;
     }
 
-    // Most workflows report the party's current conditions
+    // Most workflows report the party's current conditions and reserves
     if (DUNGEON_WORKFLOWS.includes(workflowType) && result.party_conditions) {
       setPartyConditions(result.party_conditions);
+    }
+    if (DUNGEON_WORKFLOWS.includes(workflowType) && result.party_resources) {
+      setPartyResources(result.party_resources);
     }
 
     switch (workflowType) {
@@ -173,8 +197,12 @@ export function useDungeonEvents(stateHook) {
         break;
 
       case 'choose_path':
+        if (result.returning) {
+          setIsReturningEncounter(true);
+        }
         if (result.exited) {
           setExitText(result.exit_text || 'You emerge back into the daylight.');
+          setGrowthResults(result.growth || []);
         } else if (result.event === 'monster_dialogue') {
           // The monster opens the conversation: greeting, then its question
           setDialogue(prev => {
@@ -231,6 +259,7 @@ export function useDungeonEvents(stateHook) {
       case 'setup_camp':
         setIsCamping(false);
         setHasCamped(true);
+        setGrowthResults(result.growth || []);
         break;
 
       case 'use_dungeon_ability':

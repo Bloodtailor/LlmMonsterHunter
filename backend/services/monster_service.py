@@ -47,6 +47,20 @@ def get_monster_by_id(monster_id: int) -> Dict[str, Any]:
     """Get monster - delegate directly (routes handle integer validation)"""
     return monster.manager.get_monster_by_id(monster_id)
 
+def get_monster_memories(monster_id: int) -> Dict[str, Any]:
+    """A monster's permanent memories, oldest first (its life in order)"""
+    from backend.models.monster import Monster
+    from backend.models.monster_memory import MonsterMemory
+
+    if not Monster.get_monster_by_id(monster_id):
+        return error_response('Monster not found')
+
+    memories = MonsterMemory.for_monster(monster_id)
+    return success_response({
+        'monster_id': monster_id,
+        'memories': [memory.to_dict() for memory in memories]
+    })
+
 def generate_ability(monster_id: int) -> Dict[str, Any]:
     """Generate ability - only validate monster exists"""
 

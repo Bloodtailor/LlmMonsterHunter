@@ -46,6 +46,7 @@ export function useBattleState() {
   const [outcomeText, setOutcomeText] = useState(null);
   const [joinedNames, setJoinedNames] = useState([]);  // monsters who joined the party
   const [victoryCocatok, setVictoryCocatok] = useState(null); // the minted keepsake (pickup ceremony)
+  const [defeatReflection, setDefeatReflection] = useState(null); // the lesson the party carries out
 
   // Errors
   const [battleError, setBattleError] = useState(null);
@@ -68,6 +69,7 @@ export function useBattleState() {
     setOutcomeText(null);
     setJoinedNames([]);
     setVictoryCocatok(null);
+    setDefeatReflection(null);
     setBattleError(null);
   }, []);
 
@@ -90,6 +92,7 @@ export function useBattleState() {
       outcomeText,
       joinedNames,
       victoryCocatok,
+      defeatReflection,
       battleError
     },
 
@@ -111,6 +114,7 @@ export function useBattleState() {
       setOutcomeText,
       setJoinedNames,
       setVictoryCocatok,
+      setDefeatReflection,
       setBattleError
     },
 

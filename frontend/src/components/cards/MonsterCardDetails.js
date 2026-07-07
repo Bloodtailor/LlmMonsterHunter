@@ -15,7 +15,29 @@ import {
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 import { useTypographyScale } from '../../shared/hooks/useTypographyScale.js';
 import useCooldown from '../../shared/hooks/useButtonCooldown.js';
-import { useAbilityGeneration } from '../../app/hooks/useMonsters.js';
+import { useAbilityGeneration, useMonsterMemories } from '../../app/hooks/useMonsters.js';
+
+// Memory kinds -> a small glyph for the timeline (kinds carry the tone)
+const MEMORY_KIND_ICONS = {
+  was_defeated: '💥',
+  defeated_party: '👑',
+  joined_party: '🤝',
+  yielded_to_party: '🏳️',
+  fled_from_party: '💨',
+  spared_party: '🕊️',
+  let_party_pass: '🚪',
+  gave_reward: '🎁',
+  punished_party: '⚖️',
+  talked_with_party: '💬',
+  avoided: '👀',
+  camp: '🔥',
+  growth: '🌱',
+  lesson: '📿',
+  returned: '🔁',
+  run_complete: '🏆'
+};
+
+const MAX_MEMORIES_SHOWN = 10;
 
 // Classic rarity palette for the rarity badge
 const RARITY_COLORS = {
@@ -97,6 +119,10 @@ function MonsterCardDetails({
   const persona = monster.persona || {};
   const isXL = size === CARD_SIZES.XL;
 
+  // Memories: only the full-size card fetches them (they live-append as
+  // the monster records new moments with the party)
+  const { memories } = useMonsterMemories(isXL ? monster.id : null);
+
   const joinList = (values) => (values || []).join(', ');
 
   // The full persona dossier (XL card only). The monster's SECRET is
@@ -119,7 +145,8 @@ function MonsterCardDetails({
     ['Responds poorly to', joinList(persona.responds_poorly_to)],
     ['Would join a party for', persona.recruitment_lever],
     ['Drawn to', persona.social_bonds?.drawn_to],
-    ['Clashes with', persona.social_bonds?.clashes_with]
+    ['Clashes with', persona.social_bonds?.clashes_with],
+    ['Grudges & bonds', joinList(persona.grudges_and_bonds)]
   ].filter(([, value]) => value);
 
   const lineage = ['domain', 'kingdom', 'family', 'genus', 'species']
@@ -325,6 +352,34 @@ function MonsterCardDetails({
                 <span className={getTextSize('caption')}>{value}</span>
               </div>
             ))}
+          </div>
+        </CardSection>
+      )}
+
+      {/* Memories - full-size card only; what this monster remembers of
+          the party, newest first (live-appends as new moments happen) */}
+      {isXL && memories.length > 0 && (
+        <CardSection
+          type="content"
+          size={size}
+          classType={classType}
+          title="🕯️ Memories"
+        >
+          <div className="monster-card-dossier">
+            {[...memories].reverse().slice(0, MAX_MEMORIES_SHOWN).map((memory) => (
+              <div key={memory.id} className="monster-card-dossier-row">
+                <span className={`monster-card-dossier-label ${getTextSize('caption')}`}>
+                  {MEMORY_KIND_ICONS[memory.kind] || '🕯️'}{' '}
+                  {memory.runNumber ? `run ${memory.runNumber}` : 'long ago'}
+                </span>
+                <span className={getTextSize('caption')}>{memory.content}</span>
+              </div>
+            ))}
+            {memories.length > MAX_MEMORIES_SHOWN && (
+              <div className={`more-abilities-indicator ${getTextSize('caption')}`}>
+                +{memories.length - MAX_MEMORIES_SHOWN} older memories
+              </div>
+            )}
           </div>
         </CardSection>
       )}

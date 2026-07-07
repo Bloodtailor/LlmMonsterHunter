@@ -5,11 +5,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { PartyContext } from './PartyContext.js';
 import { GAME_RULES } from '../../../shared/constants/constants.js';
-import { 
-  useFollowingMonsters, 
-  useActiveParty, 
+import {
+  useFollowingMonsters,
+  useActiveParty,
   useSetActiveParty
 } from '../../hooks/useGameState.js';
+import { useEventSubscription } from '../../../api/events/useEventSubscription.js';
 
 function PartyProvider({ children }) {
   // Domain hooks for game state
@@ -22,6 +23,31 @@ function PartyProvider({ children }) {
     followingHook.getFollowingMonsters();
     partyHook.getActiveParty();
   }, [followingHook.getFollowingMonsters, partyHook.getActiveParty]);
+
+  // Live copy of the party's monsters - growth moments (stat bumps, new
+  // or reworded abilities, persona notes) patch cards in place, so camp
+  // and exit ceremonies show on the party panel without a refetch
+  const [livePartyMonsters, setLivePartyMonsters] = useState(partyHook.partyMonsters);
+
+  useEffect(() => {
+    setLivePartyMonsters(partyHook.partyMonsters);
+  }, [partyHook.partyMonsters]);
+
+  useEventSubscription('monsterUpdated', ({ monster }) => {
+    if (!monster?.id) return;
+    setLivePartyMonsters(prev => (prev || []).map(existing =>
+      existing.id === monster.id ? monster : existing
+    ));
+  });
+
+  useEventSubscription('monsterAbilityAdded', ({ monsterId, ability }) => {
+    if (!monsterId || !ability) return;
+    setLivePartyMonsters(prev => (prev || []).map(monster =>
+      monster.id === monsterId
+        ? { ...monster, abilities: [...(monster.abilities || []), ability], abilityCount: (monster.abilityCount || 0) + 1 }
+        : monster
+    ));
+  });
 
   // Helper functions for party management
   const isInParty = (monsterId) => {
@@ -117,7 +143,7 @@ function PartyProvider({ children }) {
   const value = {
     // State - use hook data
     party: partyHook.ids,
-    partyMonsters: partyHook.partyMonsters, // NEW: Array of full monster objects for party members
+    partyMonsters: livePartyMonsters, // Full monster objects, live-patched by growth events
     isLoading,
 
     followingMonsters: followingHook.followingMonsters,

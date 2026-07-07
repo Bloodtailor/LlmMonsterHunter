@@ -4,6 +4,7 @@
 
 import React from 'react';
 import MonsterCard from '../../cards/MonsterCard.js';
+import ResourceBadges from './ResourceBadges.js';
 import { Badge, Card, CardSection } from '../../../shared/ui/index.js';
 
 // Condition ladder -> badge look
@@ -52,6 +53,8 @@ function BattleMonsterTile({ monster, entry }) {
           <Badge variant="secondary" size="sm">🛡️ defending</Badge>
         )}
       </div>
+
+      {!isDown && <ResourceBadges stamina={entry?.stamina} mana={entry?.mana} />}
     </div>
   );
 }
