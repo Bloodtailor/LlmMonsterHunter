@@ -6,8 +6,10 @@
 # "it used to be..." possible. Data storage only - the transform logic
 # lives in backend/game/monster/evolution.py.
 
+from sqlalchemy import JSON, Column, Float, ForeignKey, Integer, String, Text
+
 from .base import BaseModel
-from sqlalchemy import Column, Integer, String, Text, JSON, Float, ForeignKey
+
 
 class MonsterEvolution(BaseModel):
     """

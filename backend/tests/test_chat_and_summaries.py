@@ -31,20 +31,19 @@ def main():
     app = build_test_app()
 
     with app.app_context():
-        from backend.models.core import db, create_tables
-        from backend.models.monster import Monster
-        from backend.models.following_monsters import FollowingMonster
-        from backend.models.monster_memory import MonsterMemory
+        from backend.game.battle import manager as battle
+        from backend.game.chat import manager as chat
+        from backend.game.dungeon import manager as dungeon
+        from backend.game.memory import manager as memory
+        from backend.game.utils import context_limits, rolling_summary
         from backend.models.chat_message import ChatMessage
         from backend.models.chat_summary import ChatSummary
         from backend.models.chat_thread import ChatThread
+        from backend.models.core import create_tables, db
+        from backend.models.following_monsters import FollowingMonster
         from backend.models.global_variables import GlobalVariable
-        from backend.game.dungeon import manager as dungeon
-        from backend.game.battle import manager as battle
-        from backend.game.chat import manager as chat
-        from backend.game.memory import manager as memory
-        from backend.game.utils import context_limits
-        from backend.game.utils import rolling_summary
+        from backend.models.monster import Monster
+        from backend.models.monster_memory import MonsterMemory
 
         print('🧪 CHAT & ROLLING SUMMARY TESTS')
         print('=' * 50)
@@ -389,8 +388,8 @@ def main():
 
             # ===== Abandon run (call the party home) =====
             print('\n-- abandon_run --')
-            from backend.services import dungeon_service
             from backend.models.dungeon_run import DungeonRun
+            from backend.services import dungeon_service
 
             dungeon.save_dungeon_state(dict(dungeon._EMPTY_STATE))
             result = dungeon_service.abandon_run()

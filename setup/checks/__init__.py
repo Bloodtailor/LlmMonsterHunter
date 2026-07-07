@@ -4,15 +4,13 @@ Pure detection/validation logic for all system components
 """
 
 from .basic_backend_checks import check_basic_backend_requirements, get_basic_backend_diagnostic
-from .nodejs_checks import check_nodejs_requirements, get_nodejs_diagnostic
-from .mysql_checks import check_mysql_requirements, get_mysql_diagnostic
 from .database_checks import check_database_requirements, get_database_diagnostic
 from .gpu_cuda_checks import check_gpu_cuda_requirements, get_gpu_cuda_diagnostic
-from .vs_checks import check_visual_studio_requirements, get_vs_diagnostic
-from .llm_env_checks import check_model_directory_requirements, get_llm_env_diagnostic
 from .llama_cpp_checks import check_llama_cpp_requirements, get_llama_cpp_diagnostic
-
-
+from .llm_env_checks import check_model_directory_requirements, get_llm_env_diagnostic
+from .mysql_checks import check_mysql_requirements, get_mysql_diagnostic
+from .nodejs_checks import check_nodejs_requirements, get_nodejs_diagnostic
+from .vs_checks import check_visual_studio_requirements, get_vs_diagnostic
 
 # Component-level checks registry for orchestration
 COMPONENT_CHECKS = {
@@ -38,7 +36,7 @@ COMPONENT_DIAGNOSTICS = {
 
 def run_all_checks():
     """Run all component checks and return results"""
-    
+
     print("Please wait for all checks to complete")
     print()
 
@@ -63,9 +61,9 @@ def run_component_diagnostic(component_name):
 
     # Extract just the boolean results for the status table
     status_only = {name: result[0] for name, result in diagnostic_info.items()}
-    
+
     show_component_status_table(component_name, status_only)
-    
+
 
 def run_all_full_diagnostics():
     """
@@ -76,18 +74,18 @@ def run_all_full_diagnostics():
     print("Running comprehensive system diagnostic...")
     print("This will check all components and their sub-requirements.")
     print()
-    
+
     # Run diagnostics for each component
     for component_name, diagnostic_func in COMPONENT_DIAGNOSTICS:
         print(f"🔍 Diagnosing {component_name}...")
-        
+
         # Get diagnostic info with overall check
         diagnostic_info = diagnostic_func(include_overall=True)
-        
+
         display_check_results(component_name, diagnostic_info)
-        
+
         print()
-    
+
     print("Diagnostic complete!")
     print("Use the individual component setup flows to fix any issues.")
     print()

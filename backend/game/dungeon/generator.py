@@ -2,16 +2,17 @@
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming completely
 
-from typing import Dict, Any, List
 import random
-from backend.game.utils import build_and_generate, build_and_stream, clamp_context
-from backend.game.state.manager import get_party_summary, get_party_details
+from typing import Any
+
 from backend.game.dungeon.events import (
+    PATH_OVERGENERATE_COUNT,
     assign_random_event,
-    roll_path_count,
     roll_include_exit,
-    PATH_OVERGENERATE_COUNT
+    roll_path_count,
 )
+from backend.game.state.manager import get_party_summary
+from backend.game.utils import build_and_generate, build_and_stream, clamp_context
 
 # ===== CONTEXT BUILDERS =====
 # All monster-to-text conversion lives in game/monster/context_builder.py;
@@ -20,20 +21,20 @@ from backend.game.dungeon.events import (
 def build_monster_dungeon_details(monster) -> str:
     """One monster as tiered LLM context for dungeon encounters - if it
     has met the party before, its freshest memories ride along"""
-    from backend.game.monster.context_builder import build_monster_block
     from backend.game.memory.manager import compact_memory_lines
+    from backend.game.monster.context_builder import build_monster_block
     return build_monster_block(monster, memory_lines=compact_memory_lines(monster.id))
 
-def build_monsters_details(monsters: List[Any]) -> str:
+def build_monsters_details(monsters: list[Any]) -> str:
     """Several monsters as one clamped, tier-binned LLM context block"""
     lines = [build_monster_dungeon_details(m) for m in monsters if m]
     return clamp_context('monster_details', "\n".join(lines)) if lines else "None"
 
-def build_speaking_monsters_details(monsters: List[Any]) -> str:
+def build_speaking_monsters_details(monsters: list[Any]) -> str:
     """Monsters that are about to SPEAK (dialogue encounters): always the
     FULL block including the guarded secret, regardless of the tier bin"""
-    from backend.game.monster.context_builder import build_speaker_block
     from backend.game.memory.manager import compact_memory_lines
+    from backend.game.monster.context_builder import build_speaker_block
     lines = [build_speaker_block(m, memory_lines=compact_memory_lines(m.id)) for m in monsters if m]
     return clamp_context('monster_details', "\n".join(lines)) if lines else "None"
 
@@ -43,10 +44,10 @@ def build_party_dungeon_details() -> str:
     member's current run condition - so encounter monsters can react to who
     these adventurers truly are (party details are never truncated)
     """
-    from backend.game.state.manager import get_party_monster_ids
     from backend.game.dungeon.manager import get_party_conditions, get_party_resources
-    from backend.game.monster.context_builder import build_monster_block
     from backend.game.memory.manager import party_memory_lines
+    from backend.game.monster.context_builder import build_monster_block
+    from backend.game.state.manager import get_party_monster_ids
     from backend.models.monster import Monster
 
     conditions = get_party_conditions()
@@ -70,43 +71,43 @@ def build_party_dungeon_details() -> str:
 def _dungeon_log_text() -> str:
     from backend.game.dungeon.manager import get_dungeon_log_text
     return get_dungeon_log_text()
-    
-def generate_entry_text(workflow_name) -> Dict[str, Any]:
+
+def generate_entry_text(workflow_name) -> dict[str, Any]:
     """Generate entry text - assumes valid party_summary"""
-    
+
     party_summary = get_party_summary()
     variables = {'party_summary': party_summary}
     entry_text_generation_id = build_and_stream('entry_atmosphere', workflow_name, variables)
-    
+
     return entry_text_generation_id
 
-def generate_random_location(workflow_name) -> Dict[str, Any]:
+def generate_random_location(workflow_name) -> dict[str, Any]:
     """Generate location - no validation, fallback on any error"""
-    
+
     try:
         location = build_and_generate('random_location', workflow_name)
     except Exception:
         location = _get_fallback_location()
-        
+
     return location
 
-def generate_location_event_text(location_name: str, workflow_name) -> Dict[str, Any]:
+def generate_location_event_text(location_name: str, workflow_name) -> dict[str, Any]:
     """Generate event text - assumes valid location_name"""
-    
+
     variables = {'location_name': location_name}
     location_event_text = build_and_generate('location_event', workflow_name, variables)
-    
+
     return location_event_text
 
-def generate_exit_text(party_summary: str, workflow_name) -> Dict[str, Any]:
+def generate_exit_text(party_summary: str, workflow_name) -> dict[str, Any]:
     """Generate exit text - assumes valid party_summary"""
-    
+
     variables = {'party_summary': party_summary}
     dungeon_exit_text = build_and_generate('exit_narrative', workflow_name, variables)
-    
+
     return dungeon_exit_text
 
-def generate_paths(location: Dict[str, Any], workflow_name: str) -> Dict[str, Dict[str, Any]]:
+def generate_paths(location: dict[str, Any], workflow_name: str) -> dict[str, dict[str, Any]]:
     """
     Generate the paths leading onward from a location
     One batch LLM call over-generates paths (later entries are more
@@ -185,7 +186,7 @@ def generate_paths(location: Dict[str, Any], workflow_name: str) -> Dict[str, Di
 
     return paths
 
-def generate_arrival_location(previous_location: Dict[str, Any], path: Dict[str, Any], workflow_name: str) -> Dict[str, Any]:
+def generate_arrival_location(previous_location: dict[str, Any], path: dict[str, Any], workflow_name: str) -> dict[str, Any]:
     """Generate the location a chosen path leads to, based on where the party came from"""
 
     variables = {
@@ -202,7 +203,7 @@ def generate_arrival_location(previous_location: Dict[str, Any], path: Dict[str,
 
     return location
 
-def generate_encounter_vanity_text(location: Dict[str, Any], workflow_name: str) -> int:
+def generate_encounter_vanity_text(location: dict[str, Any], workflow_name: str) -> int:
     """Queue streamed vanity text for arriving where a monster waits - returns generation_id"""
 
     variables = {
@@ -217,7 +218,7 @@ def generate_encounter_vanity_text(location: Dict[str, Any], workflow_name: str)
 
 # ===== EXPLORE EVENT GENERATION =====
 
-def generate_look_around_text(location: Dict[str, Any], monsters_present: bool, workflow_name: str) -> int:
+def generate_look_around_text(location: dict[str, Any], monsters_present: bool, workflow_name: str) -> int:
     """Queue streamed arrival/look-around text for an explore location - returns generation_id"""
 
     monsters_hint = (
@@ -236,7 +237,7 @@ def generate_look_around_text(location: Dict[str, Any], monsters_present: bool, 
     }
     return build_and_stream('look_around', workflow_name, variables)
 
-def generate_camp_scene(location: Dict[str, Any], workflow_name: str) -> int:
+def generate_camp_scene(location: dict[str, Any], workflow_name: str) -> int:
     """Queue streamed camp vanity dialogue between the party's monsters - returns generation_id"""
 
     variables = {
@@ -247,7 +248,7 @@ def generate_camp_scene(location: Dict[str, Any], workflow_name: str) -> int:
     }
     return build_and_stream('camp_scene', workflow_name, variables)
 
-def generate_reunion_scene(location: Dict[str, Any], monster, disposition: str, workflow_name: str) -> int:
+def generate_reunion_scene(location: dict[str, Any], monster, disposition: str, workflow_name: str) -> int:
     """Queue the streamed reunion narration - the party recognizes a
     monster they have met before. Returns generation_id."""
     from backend.game.memory.manager import get_memory_lines
@@ -263,7 +264,7 @@ def generate_reunion_scene(location: Dict[str, Any], monster, disposition: str, 
         'disposition': disposition
     })
 
-def generate_camp_restore(location: Dict[str, Any], workflow_name: str) -> Dict[int, Dict[str, str]]:
+def generate_camp_restore(location: dict[str, Any], workflow_name: str) -> dict[int, dict[str, str]]:
     """
     THE CAMP REFEREE: how much rest restores each party monster's pools.
     Returns {monster_id: {'stamina': restore_word, 'mana': restore_word}}.
@@ -271,7 +272,6 @@ def generate_camp_restore(location: Dict[str, Any], workflow_name: str) -> Dict[
     restore_major to both pools for everyone.
     """
     from backend.game.state.manager import get_party_monster_ids
-    from backend.game.battle.constants import RESOURCE_DELTAS
     from backend.models.monster import Monster
 
     party_ids = get_party_monster_ids()
@@ -313,7 +313,7 @@ def generate_camp_restore(location: Dict[str, Any], workflow_name: str) -> Dict[
     except Exception:
         return full_rest
 
-def judge_sneak_attempt(location: Dict[str, Any], monster_details: str, workflow_name: str) -> Dict[str, Any]:
+def judge_sneak_attempt(location: dict[str, Any], monster_details: str, workflow_name: str) -> dict[str, Any]:
     """
     THE REFEREE for sneaking past the monsters in an explore location
     Returns {'narration': str, 'success': bool} - always
@@ -338,7 +338,7 @@ def judge_sneak_attempt(location: Dict[str, Any], monster_details: str, workflow
             'success': False
         }
 
-def generate_ambush_intro(location: Dict[str, Any], monster_details: str, workflow_name: str) -> str:
+def generate_ambush_intro(location: dict[str, Any], monster_details: str, workflow_name: str) -> str:
     """Narration for the party springing a surprise attack - always returns text"""
 
     try:
@@ -352,14 +352,14 @@ def generate_ambush_intro(location: Dict[str, Any], monster_details: str, workfl
         return "The party strikes without warning - the startled creatures whirl to defend themselves!"
 
 def resolve_dungeon_ability(
-    location: Dict[str, Any],
+    location: dict[str, Any],
     actor_details: str,
     ability_name: str,
     ability_description: str,
     target_description: str,
     secret_knowledge: str,
     workflow_name: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     THE DUNGEON REFEREE for out-of-battle ability use on anything
     Returns {'narration': str, 'effect': validated str} - always
@@ -405,12 +405,12 @@ def resolve_dungeon_ability(
         }
 
 def resolve_dungeon_item(
-    location: Dict[str, Any],
+    location: dict[str, Any],
     item,
     target_description: str,
     secret_knowledge: str,
     workflow_name: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     THE DUNGEON REFEREE for out-of-battle ITEM use on anything
     Returns {'narration': str, 'effect': validated str} - always
@@ -448,7 +448,7 @@ def resolve_dungeon_item(
 
 # ===== DIALOGUE ENCOUNTER GENERATION =====
 
-def generate_monster_question(location: Dict[str, Any], monster, workflow_name: str) -> Dict[str, Any]:
+def generate_monster_question(location: dict[str, Any], monster, workflow_name: str) -> dict[str, Any]:
     """
     The encounter monster greets the party and asks its question
     Returns {'greeting': str, 'question': str} - always
@@ -473,7 +473,7 @@ def generate_monster_question(location: Dict[str, Any], monster, workflow_name: 
             'question': "Why have you come to my domain, and what do you seek here?"
         }
 
-def generate_dialogue_turn(location: Dict[str, Any], monster_details: str, dialogue_history: str, workflow_name: str) -> Dict[str, Any]:
+def generate_dialogue_turn(location: dict[str, Any], monster_details: str, dialogue_history: str, workflow_name: str) -> dict[str, Any]:
     """
     The monster responds to the party's words and decides the outcome
     Returns {'response': str, 'outcome': validated outcome} - always
@@ -501,7 +501,7 @@ def generate_dialogue_turn(location: Dict[str, Any], monster_details: str, dialo
             'outcome': 'continue_dialogue'
         }
 
-def build_door_choices(loc1: Dict[str, Any], loc2: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
+def build_door_choices(loc1: dict[str, Any], loc2: dict[str, Any]) -> dict[str, dict[str, str]]:
     door_choices = {
         "door_1": {
             "type": "location",
@@ -523,7 +523,7 @@ def build_door_choices(loc1: Dict[str, Any], loc2: Dict[str, Any]) -> Dict[str, 
     return door_choices
 
 
-def _get_fallback_path() -> Dict[str, str]:
+def _get_fallback_path() -> dict[str, str]:
     """Get fallback path - always works"""
 
     fallback_paths = [
@@ -547,30 +547,30 @@ def _get_fallback_path() -> Dict[str, str]:
 
     return random.choice(fallback_paths)
 
-def _get_fallback_location() -> Dict[str, str]:
+def _get_fallback_location() -> dict[str, str]:
     """Get fallback location - always works"""
-    
+
     fallback_locations = [
         {
-            "name": "Echoing Cavern", 
+            "name": "Echoing Cavern",
             "description": "Ancient stone walls glisten with moisture as your footsteps echo endlessly into the darkness ahead."
         },
         {
-            "name": "Crystal Grove", 
+            "name": "Crystal Grove",
             "description": "Luminescent crystals cast dancing shadows across twisted root formations that seem to pulse with inner life."
         },
         {
-            "name": "Forgotten Sanctum", 
+            "name": "Forgotten Sanctum",
             "description": "Weathered statues stand sentinel in this abandoned temple, their eyes seeming to follow your every movement."
         },
         {
-            "name": "Whispering Chamber", 
+            "name": "Whispering Chamber",
             "description": "Strange murmurs drift through the air in this circular room, though no source can be seen."
         },
         {
-            "name": "Moonlit Corridor", 
+            "name": "Moonlit Corridor",
             "description": "Pale light filters down through cracks in the ceiling, illuminating dust motes that dance like tiny spirits."
         }
     ]
-    
+
     return random.choice(fallback_locations)

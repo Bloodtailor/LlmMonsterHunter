@@ -2,15 +2,17 @@
 # Enhanced with abilities relationship, methods, and card art storage
 # Focuses only on data storage and retrieval - NO game logic
 
-from .core import db
-from .base import BaseModel
-from sqlalchemy import Column, Integer, String, Text, JSON
+from sqlalchemy import JSON, Column, Integer, String, Text
 from sqlalchemy.orm import relationship
+
+from .base import BaseModel
+from .core import db
+
 
 class Monster(BaseModel):
     """
     Monster model for storing AI-generated creatures
-    
+
     Stores all monster data including:
     - Basic info (name, species, description)
     - Stats for future battle system
@@ -19,10 +21,10 @@ class Monster(BaseModel):
     - Card art path (relative to outputs folder)
     - Relationship to abilities (one-to-many)
     """
-    
+
     # Table name in database
     __tablename__ = 'monsters'
-    
+
     # Basic Monster Information
     name = Column(String(100), nullable=False)
     species = Column(String(100), nullable=False)  # Mirrors taxonomy['species']
@@ -42,23 +44,23 @@ class Monster(BaseModel):
     ecology = Column(JSON, nullable=True)         # habitat, diet, social, sapience, elements, size, lifecycle
     persona = Column(JSON, nullable=True)         # wish, fears, secret, voice, social hooks, etc.
     appearance = Column(JSON, nullable=True)      # structured visuals feeding card art prompts
-    
+
     # Basic Stats (for future battle system)
     max_health = Column(Integer, default=100)
     current_health = Column(Integer, default=100)
     attack = Column(Integer, default=20)
     defense = Column(Integer, default=15)
     speed = Column(Integer, default=10)
-    
+
     # Personality traits (JSON for flexibility)
     personality_traits = Column(JSON, nullable=True)  # List of personality traits
-    
+
     # NEW: Card art path (relative to outputs folder, e.g., "monster_card_art/00000001.png")
     card_art_path = Column(String(500), nullable=True)
-    
+
     # Relationship to abilities (one monster -> many abilities)
     abilities = relationship('Ability', backref='monster', lazy=True, cascade='all, delete-orphan')
-    
+
     def to_dict(self):
         """
         Convert monster to dictionary for JSON API responses
@@ -66,7 +68,7 @@ class Monster(BaseModel):
         """
         # Get base fields from BaseModel
         result = super().to_dict()
-        
+
         # Add monster-specific formatting
         result.update({
             'name': self.name,
@@ -93,13 +95,13 @@ class Monster(BaseModel):
             'ability_count': len(self.abilities),
             'card_art': self.get_card_art_info()  # NEW: Card art information
         })
-        
+
         return result
-    
+
     def get_card_art_info(self):
         """
         Get card art information including path and existence check
-        
+
         Returns:
             dict: Card art information for frontend
         """
@@ -110,7 +112,7 @@ class Monster(BaseModel):
                 'full_path': None,
                 'exists': False
             }
-        
+
         # Build full path for existence check
         try:
             from pathlib import Path
@@ -119,7 +121,7 @@ class Monster(BaseModel):
             exists = full_path.exists()
         except Exception:
             exists = False
-        
+
         return {
             'has_card_art': True,
             'relative_path': self.card_art_path,
@@ -127,14 +129,14 @@ class Monster(BaseModel):
             'exists': exists,
             'url': f'/api/images/{self.card_art_path}' if exists else None  # For future API endpoint
         }
-    
+
     def set_card_art(self, relative_path: str) -> bool:
         """
         Set the card art path for this monster
-        
+
         Args:
             relative_path (str): Relative path from outputs folder (e.g., "monster_card_art/00000001.png")
-            
+
         Returns:
             bool: True if set successfully
         """
@@ -144,12 +146,12 @@ class Monster(BaseModel):
         except Exception as e:
             print(f"❌ Error setting card art for monster {self.id}: {e}")
             return False
-    
+
     @classmethod
     def get_all_monsters(cls):
         """
         Get all monsters from database with their abilities loaded
-        
+
         Returns:
             list: List of all Monster instances with abilities
         """
@@ -158,15 +160,15 @@ class Monster(BaseModel):
         except Exception as e:
             print(f"❌ Error fetching monsters: {e}")
             return []
-    
+
     @classmethod
     def get_monster_by_id(cls, monster_id):
         """
         Get specific monster by ID with abilities loaded
-        
+
         Args:
             monster_id (int): Monster ID
-            
+
         Returns:
             Monster: Monster instance or None if not found
         """
@@ -175,7 +177,7 @@ class Monster(BaseModel):
         except Exception as e:
             print(f"❌ Error fetching monster {monster_id}: {e}")
             return None
-    
+
     def __repr__(self):
         """String representation for debugging"""
         return f"<Monster(id={self.id}, name='{self.name}', species='{self.species}', abilities={len(self.abilities)}, has_art={bool(self.card_art_path)})>"

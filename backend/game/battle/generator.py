@@ -4,11 +4,11 @@
 # Every call has a deterministic fallback - a bad LLM response
 # can never crash a battle.
 
-import random
-from typing import Dict, Any, List, Optional
-from backend.game.utils import build_and_generate, build_and_stream, clamp_context
+from typing import Any, Optional
+
+from backend.game.battle.constants import IMPACT_STEPS, RESOURCE_DELTAS
 from backend.game.state.manager import get_party_summary
-from backend.game.battle.constants import IMPACT_STEPS, INCAPACITATED, RESOURCE_DELTAS
+from backend.game.utils import build_and_generate, build_and_stream, clamp_context
 
 # ===== CONTEXT BUILDERS =====
 
@@ -19,7 +19,7 @@ SIDE_LABELS = {
     'enemies': "HOSTILE ENEMY"
 }
 
-def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = None) -> str:
+def build_monster_battle_details(monster, entry: dict[str, Any], side: str = None) -> str:
     """One monster as tiered LLM context with battle decorations: SIDE,
     condition, defending state, and reserve levels (block itself is never
     truncated). The secret never enters battle prompts - the narrator
@@ -47,7 +47,7 @@ def build_monster_battle_details(monster, entry: Dict[str, Any], side: str = Non
         memory_lines=memory_lines
     )
 
-def build_side_details(monsters: Dict[str, Any], entries: Dict[str, Dict[str, Any]], side: str = None) -> str:
+def build_side_details(monsters: dict[str, Any], entries: dict[str, dict[str, Any]], side: str = None) -> str:
     """A whole side as LLM context - monsters is {id(str): Monster}"""
 
     lines = []
@@ -57,7 +57,7 @@ def build_side_details(monsters: Dict[str, Any], entries: Dict[str, Dict[str, An
             lines.append(build_monster_battle_details(monster, entry, side))
     return "\n".join(lines) if lines else "None"
 
-def build_battle_situation(state: Dict[str, Any]) -> str:
+def build_battle_situation(state: dict[str, Any]) -> str:
     """Compact condition summary of both sides"""
 
     def member_line(m):
@@ -76,7 +76,7 @@ def build_battle_situation(state: Dict[str, Any]) -> str:
         side_line("The hostile enemies", state.get('enemies', {}))
     )
 
-def build_recent_log(state: Dict[str, Any]) -> str:
+def build_recent_log(state: dict[str, Any]) -> str:
     """The battle so far: condensed old turns + recent turns verbatim"""
     from backend.game.utils.rolling_summary import compose_history, covered_count
     summaries = state.get('log_summaries', [])
@@ -96,7 +96,7 @@ def _validated_resource_delta(raw) -> Optional[str]:
 
 # ===== LLM CALLS =====
 
-def generate_battle_arrival_text(location: Dict[str, Any], workflow_name: str) -> int:
+def generate_battle_arrival_text(location: dict[str, Any], workflow_name: str) -> int:
     """Queue streamed hostile arrival text - returns generation_id"""
 
     variables = {
@@ -106,7 +106,7 @@ def generate_battle_arrival_text(location: Dict[str, Any], workflow_name: str) -
     }
     return build_and_stream('battle_arrival', workflow_name, variables)
 
-def generate_battle_intro(location: Dict[str, Any], enemy_details: str, party_details: str, workflow_name: str) -> str:
+def generate_battle_intro(location: dict[str, Any], enemy_details: str, party_details: str, workflow_name: str) -> str:
     """The enemy group's in-character challenge"""
 
     from backend.game.dungeon.manager import get_dungeon_log_text
@@ -121,7 +121,7 @@ def generate_battle_intro(location: Dict[str, Any], enemy_details: str, party_de
     except Exception:
         return "The creatures block your path, and their intent is unmistakable: there will be a fight."
 
-def build_combatant_summary(monsters: Dict[str, Any], state: Dict[str, Any]) -> str:
+def build_combatant_summary(monsters: dict[str, Any], state: dict[str, Any]) -> str:
     """
     Compact summary of everyone still in the fight for the turn director:
     side, speed, condition, and HOW LONG each has waited since acting
@@ -147,7 +147,7 @@ def build_combatant_summary(monsters: Dict[str, Any], state: Dict[str, Any]) -> 
             )
     return "\n".join(lines) if lines else "None"
 
-def build_turn_history(state: Dict[str, Any]) -> str:
+def build_turn_history(state: dict[str, Any]) -> str:
     history = state.get('turn_history', [])
     if not history:
         return "No turns have been taken yet."
@@ -158,7 +158,7 @@ def build_turn_history(state: Dict[str, Any]) -> str:
         lines.append(f"- {turn_tag}{t.get('actor')}{side_tag}: {t.get('action')}")
     return clamp_context('turn_history', "\n".join(lines))
 
-def generate_next_turn(combatant_details: str, state: Dict[str, Any], workflow_name: str) -> Optional[str]:
+def generate_next_turn(combatant_details: str, state: dict[str, Any], workflow_name: str) -> Optional[str]:
     """
     The turn director: pure LLM choice of who acts next
     Returns the raw chosen name (validation happens in the workflow)
@@ -174,7 +174,7 @@ def generate_next_turn(combatant_details: str, state: Dict[str, Any], workflow_n
     except Exception:
         return None
 
-def generate_enemy_turn(actor_details: str, ally_details: str, enemy_details: str, state: Dict[str, Any], workflow_name: str) -> Dict[str, Any]:
+def generate_enemy_turn(actor_details: str, ally_details: str, enemy_details: str, state: dict[str, Any], workflow_name: str) -> dict[str, Any]:
     """
     One enemy chooses its action (attack/ability/defend/talk/flee)
     Returns the RAW LLM entry (validation happens in the workflow)
@@ -192,14 +192,14 @@ def generate_enemy_turn(actor_details: str, ally_details: str, enemy_details: st
         return {}
 
 def resolve_freeform_action(
-    location: Dict[str, Any],
+    location: dict[str, Any],
     actor_details: str,
     player_action_text: str,
     player_target: str,
     player_info: str,
-    state: Dict[str, Any],
+    state: dict[str, Any],
     workflow_name: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     THE REFEREE for player-typed custom actions
     Returns {'possible', 'narration', 'impact', 'impact_target'} - always
@@ -243,13 +243,13 @@ def resolve_freeform_action(
 VALID_TALK_DECISIONS = ('continue', 'enemies_join', 'enemies_yield', 'enemies_flee', 'party_spared')
 
 def generate_battle_talk(
-    location: Dict[str, Any],
+    location: dict[str, Any],
     enemy_details: str,
     ally_details: str,
     exchange: str,
-    state: Dict[str, Any],
+    state: dict[str, Any],
     workflow_name: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     The negotiation adjudicator - the enemies speak and the LLM decides
     whether the exchange changes the battle
@@ -282,14 +282,14 @@ def generate_battle_talk(
         }
 
 def resolve_action(
-    location: Dict[str, Any],
+    location: dict[str, Any],
     actor_details: str,
     action_description: str,
     target_details: str,
-    state: Dict[str, Any],
+    state: dict[str, Any],
     workflow_name: str,
     fallback_narration: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     THE REFEREE: narrate one action and judge its impact
     Returns {'narration': str, 'impact': valid impact key} - always
@@ -322,7 +322,7 @@ def resolve_action(
         return {'narration': fallback_narration, 'impact': 'light',
                 'stamina_delta': None, 'mana_delta': None}
 
-def generate_turn_vanity_text(actor_details: str, location: Dict[str, Any], state: Dict[str, Any], workflow_name: str) -> int:
+def generate_turn_vanity_text(actor_details: str, location: dict[str, Any], state: dict[str, Any], workflow_name: str) -> int:
     """
     Queue streamed inner-monologue vanity text for the party monster whose
     turn it is - what it feels, thinks, and wants to do (the player still
@@ -338,11 +338,11 @@ def generate_turn_vanity_text(actor_details: str, location: Dict[str, Any], stat
 def generate_battle_summary(
     outcome: str,
     resolution: str,
-    joined_names: List[str],
-    location: Dict[str, Any],
+    joined_names: list[str],
+    location: dict[str, Any],
     party_details: str,
     enemy_details: str,
-    state: Dict[str, Any],
+    state: dict[str, Any],
     workflow_name: str
 ) -> Optional[str]:
     """
@@ -368,10 +368,10 @@ def generate_battle_summary(
 def generate_battle_outcome_text(
     outcome: str,
     resolution: str,
-    location: Dict[str, Any],
+    location: dict[str, Any],
     party_details: str,
     enemy_details: str,
-    state: Dict[str, Any],
+    state: dict[str, Any],
     workflow_name: str
 ) -> str:
     """Victory or defeat narration, shaped by how the battle actually ended"""

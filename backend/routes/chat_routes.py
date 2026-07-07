@@ -3,6 +3,7 @@
 # Routes only handle: HTTP parsing → Service call → HTTP response formatting
 
 from flask import Blueprint, jsonify, request
+
 from backend.services import chat_service
 
 chat_bp = Blueprint('chat', __name__, url_prefix='/api/chat')

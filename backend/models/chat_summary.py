@@ -6,8 +6,10 @@
 # recent" instead of the whole conversation.
 # Data storage only - when/how to condense lives in backend/game/chat.
 
+from sqlalchemy import Column, ForeignKey, Integer, Text
+
 from .base import BaseModel
-from sqlalchemy import Column, Integer, Text, ForeignKey
+
 
 class ChatSummary(BaseModel):
     """

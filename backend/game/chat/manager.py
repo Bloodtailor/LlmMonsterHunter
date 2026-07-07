@@ -4,7 +4,7 @@
 # context blocks for prompts. The LLM calls themselves live in
 # generator.py; the workflow lives in registered_workflows.py.
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Developer knobs for the chat loop
 CHAT_SETTINGS = {
@@ -26,9 +26,9 @@ def chat_eligibility_error(monster_id: int) -> Optional[str]:
     """
     try:
         from backend.game.dungeon import manager as dungeon
-        from backend.models.monster import Monster
-        from backend.models.following_monsters import FollowingMonster
         from backend.models.active_party import ActiveParty
+        from backend.models.following_monsters import FollowingMonster
+        from backend.models.monster import Monster
 
         if dungeon.is_in_dungeon():
             return "The party is in the dungeon - conversations wait for home base"
@@ -60,7 +60,7 @@ def record_monster_message(monster_id: int, text: str):
     from backend.models.chat_message import ChatMessage
     return ChatMessage.add(monster_id, 'monster', text)
 
-def get_history_page(monster_id: int, limit: int = None, before_id: int = None) -> Dict[str, Any]:
+def get_history_page(monster_id: int, limit: int = None, before_id: int = None) -> dict[str, Any]:
     """One display page of the thread (oldest first) plus paging info"""
     from backend.models.chat_message import ChatMessage
 
@@ -88,9 +88,9 @@ def build_chat_history_block(monster_id: int, monster_name: str) -> str:
     + recent lines verbatim (rolling summaries keep this affordable no
     matter how long the chats run).
     """
+    from backend.game.utils.rolling_summary import compose_history
     from backend.models.chat_message import ChatMessage
     from backend.models.chat_summary import ChatSummary
-    from backend.game.utils.rolling_summary import compose_history
 
     summaries = [
         {'through': s.through_message_id, 'text': s.text}
@@ -161,9 +161,9 @@ def extraction_due(monster_id: int) -> bool:
 
 def summary_batch_due(monster_id: int) -> bool:
     """Enough old un-condensed lines for a rolling-summary batch?"""
+    from backend.game.utils.rolling_summary import plan_batch
     from backend.models.chat_message import ChatMessage
     from backend.models.chat_summary import ChatSummary
-    from backend.game.utils.rolling_summary import plan_batch
 
     covered = ChatMessage.count_through_id(
         monster_id, ChatSummary.last_through_id(monster_id)

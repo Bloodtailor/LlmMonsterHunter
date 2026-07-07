@@ -3,8 +3,9 @@
 # every workflow that grants or spends possessions broadcasts them
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from typing import Dict, Any
-from .event_registry import register_events, _emit_from_schema
+from typing import Any
+
+from .event_registry import _emit_from_schema, register_events
 
 # ===== INVENTORY EVENT DEFINITIONS =====
 
@@ -45,11 +46,11 @@ register_events(INVENTORY_EVENTS)
 
 # ===== INVENTORY EVENT FUNCTIONS =====
 
-def emit_inventory_item_added(item: Dict[str, Any]) -> bool:
+def emit_inventory_item_added(item: dict[str, Any]) -> bool:
     """Emit when a new item lands in the party's inventory"""
     return _emit_from_schema('inventory.item_added', item=item)
 
-def emit_inventory_item_updated(item: Dict[str, Any]) -> bool:
+def emit_inventory_item_updated(item: dict[str, Any]) -> bool:
     """Emit when an item changes (a use spent, but uses remain)"""
     return _emit_from_schema('inventory.item_updated', item=item)
 
@@ -57,6 +58,6 @@ def emit_inventory_item_consumed(item_id: int, name: str) -> bool:
     """Emit when an item's last use is spent and it is gone"""
     return _emit_from_schema('inventory.item_consumed', item_id=item_id, name=name)
 
-def emit_inventory_cocatok_added(cocatok: Dict[str, Any]) -> bool:
+def emit_inventory_cocatok_added(cocatok: dict[str, Any]) -> bool:
     """Emit when a victory mints a new CoCaTok keepsake"""
     return _emit_from_schema('inventory.cocatok_added', cocatok=cocatok)

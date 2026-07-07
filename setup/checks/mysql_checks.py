@@ -6,9 +6,10 @@ Returns data instead of printing for clean UX flow
 """
 
 import subprocess
-import sys
 from pathlib import Path
-from setup.constants import MYSQL_SERVICE_NAMES, MYSQL_LOCATIONS
+
+from setup.constants import MYSQL_LOCATIONS, MYSQL_SERVICE_NAMES
+
 
 def check_mysql_server():
     """
@@ -18,27 +19,27 @@ def check_mysql_server():
     try:
         # Try to connect - we expect auth failure, which means server is working
         result = subprocess.run([
-            "mysql", "-h", "localhost", "-P", "3306", 
+            "mysql", "-h", "localhost", "-P", "3306",
             "-u", "nonexistentuser", "-e", "SELECT 1;"
         ], capture_output=True, text=True, timeout=5)
-        
+
         # If it succeeds somehow, great!
         if result.returncode == 0:
             return True, "MySQL server connection successful"
-        
+
         # If it fails with auth error, server is definitely working
         if "Access denied" in result.stderr:
             return True, "MySQL server responding (authentication required)"
-        
+
         # Other connection errors indicate server problems
         if any(error in result.stderr for error in [
             "Can't connect", "Connection refused", "Unknown MySQL server host",
             "Lost connection", "No connection could be made"
         ]):
             return False, "Cannot connect to MySQL server"
-        
+
         return False, "MySQL server connection unclear"
-        
+
     except FileNotFoundError:
         return False, "Cannot test connection (mysql command not available)"
     except subprocess.TimeoutExpired:
@@ -49,7 +50,7 @@ def check_mysql_server():
 def check_mysql_cli():
     """Check if MySQL command line client is available."""
     try:
-        result = subprocess.run(["mysql", "--version"], 
+        result = subprocess.run(["mysql", "--version"],
                               capture_output=True, text=True, check=True)
         version_info = result.stdout.strip()
         return True, f"MySQL CLI: {version_info}"
@@ -64,10 +65,10 @@ def check_mysql_service():
     Returns service name if found, useful for starting/stopping
     """
     service_names = MYSQL_SERVICE_NAMES
-    
+
     for service in service_names:
         try:
-            result = subprocess.run(["sc", "query", service], 
+            result = subprocess.run(["sc", "query", service],
                                   capture_output=True, text=True, check=True)
             if "RUNNING" in result.stdout:
                 return True, f"MySQL service '{service}' is running"
@@ -75,7 +76,7 @@ def check_mysql_service():
                 return False, f"MySQL service '{service}' is stopped"
         except subprocess.CalledProcessError:
             continue
-    
+
     return False, "No MySQL service found"
 
 def check_mysql_installations():
@@ -84,9 +85,9 @@ def check_mysql_installations():
     Used for diagnostic purposes to distinguish "not installed" vs "installed but broken"
     """
     possible_locations = MYSQL_LOCATIONS
-    
+
     installations = []
-    
+
     for location in possible_locations:
         location_path = Path(location)
         if location_path.exists():
@@ -95,7 +96,7 @@ def check_mysql_installations():
                 mysql_exe = bin_dir / "mysql.exe"
                 if mysql_exe.exists():
                     installations.append(str(bin_dir))
-    
+
     # Also check if mysql is in PATH
     try:
         result = subprocess.run(["where", "mysql"], capture_output=True, text=True, check=True)
@@ -104,7 +105,7 @@ def check_mysql_installations():
             installations.append(str(Path(path_location).parent))
     except subprocess.CalledProcessError:
         pass
-    
+
     if installations:
         # Show first installation found
         return True, f"MySQL installation found at: {installations[0]}"
@@ -117,16 +118,16 @@ def check_mysql_service_exists():
     Used for diagnostic purposes to detect installed but non-running MySQL
     """
     service_names = MYSQL_SERVICE_NAMES
-    
+
     for service in service_names:
         try:
-            result = subprocess.run(["sc", "query", service], 
+            subprocess.run(["sc", "query", service],
                                   capture_output=True, text=True, check=True)
             # If we can query it, the service exists
             return True, f"MySQL service '{service}' exists"
         except subprocess.CalledProcessError:
             continue
-    
+
     return False, "No MySQL service detected"
 
 def get_mysql_installations_list():
@@ -135,9 +136,9 @@ def get_mysql_installations_list():
     Returns list of paths for PATH troubleshooting
     """
     possible_locations = MYSQL_LOCATIONS
-    
+
     installations = []
-    
+
     for location in possible_locations:
         location_path = Path(location)
         if location_path.exists():
@@ -145,7 +146,7 @@ def get_mysql_installations_list():
                 mysql_exe = bin_dir / "mysql.exe"
                 if mysql_exe.exists():
                     installations.append(str(bin_dir))
-    
+
     return installations
 
 def get_mysql_service_name():
@@ -154,33 +155,33 @@ def get_mysql_service_name():
     Returns service name string or None
     """
     service_names = MYSQL_SERVICE_NAMES
-    
+
     for service in service_names:
         try:
-            subprocess.run(["sc", "query", service], 
+            subprocess.run(["sc", "query", service],
                           capture_output=True, text=True, check=True)
             return service
         except subprocess.CalledProcessError:
             continue
-    
+
     return None
 
 def check_mysql_requirements():
     """Check all MySQL related requirements (for orchestration)."""
-    
+
     server_ok, _ = check_mysql_server()
     cli_ok, _ = check_mysql_cli()
-    
+
     return server_ok and cli_ok
 
 def get_mysql_diagnostic(include_overall=False):
     """
     Get comprehensive MySQL diagnostic information.
     Used by flows to understand what specifically needs to be addressed.
-    
+
     Args:
         include_overall (bool): Whether to include overall requirement check
-    
+
     Returns:
         dict: All MySQL check results for detailed analysis
     """
@@ -189,7 +190,7 @@ def get_mysql_diagnostic(include_overall=False):
     service_ok, service_msg = check_mysql_service()
     installations_ok, installations_msg = check_mysql_installations()
     service_exists_ok, service_exists_msg = check_mysql_service_exists()
-    
+
     result = {
         'mysql_server': (server_ok, server_msg),
         'mysql_cli': (cli_ok, cli_msg),
@@ -197,9 +198,9 @@ def get_mysql_diagnostic(include_overall=False):
         'mysql_installations': (installations_ok, installations_msg),
         'mysql_service_exists': (service_exists_ok, service_exists_msg),
     }
-    
+
     if include_overall:
         overall_ok = check_mysql_requirements()
         result['overall'] = (overall_ok, "All MySQL requirements met" if overall_ok else "Some MySQL requirements missing")
-    
+
     return result

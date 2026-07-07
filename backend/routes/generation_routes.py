@@ -11,8 +11,8 @@ generation_bp = Blueprint('generation', __name__, url_prefix='/api/generation')
 def get_logs():
     """Get generation logs - supports filtering by type, status, limit, offset, and sorting"""
     try:
+
         from backend.models.generation_log import GenerationLog
-        from sqlalchemy import func
 
         # Parse query parameters
         limit_arg = request.args.get('limit')
@@ -22,7 +22,7 @@ def get_logs():
         prompt_type = request.args.get('prompt_type')
         prompt_name = request.args.get('prompt_name')
         priority = request.args.get('priority')
-        sort_by = request.args.get('sort_by', 'id')  # Default to 'id' 
+        sort_by = request.args.get('sort_by', 'id')  # Default to 'id'
         sort_order = request.args.get('sort_order', 'desc')  # Default to 'desc'
 
         # Convert to ints if present
@@ -98,7 +98,7 @@ def get_logs():
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-    
+
 @generation_bp.route('/log-options', methods=['GET'])
 def get_log_options():
     """Get available filter and sort options for generation logs, dynamically querying the database for prompt_type and prompt_name"""
@@ -112,6 +112,7 @@ def get_log_options():
 
         # Query the database for unique prompt_type and prompt_name
         from sqlalchemy import distinct
+
         from backend.models.generation_log import GenerationLog
         prompt_types = GenerationLog.query.with_entities(distinct(GenerationLog.prompt_type)).all()
         prompt_names = GenerationLog.query.with_entities(distinct(GenerationLog.prompt_name)).all()
@@ -125,7 +126,7 @@ def get_log_options():
             'fields': [
                 'id',                # ADDED: Sort by ID
                 'generation_type',
-                'prompt_type', 
+                'prompt_type',
                 'prompt_name',
                 'status',           # ADDED: Sort by status
                 'priority',

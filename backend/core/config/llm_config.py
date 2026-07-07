@@ -140,7 +140,7 @@ def get_all_inference_defaults():
     """
     Get all inference parameters as a dictionary
     Perfect for passing to inference functions
-    
+
     Returns:
         dict: All inference parameters with current defaults
     """
@@ -153,19 +153,19 @@ def get_all_inference_defaults():
         'repeat_penalty': get_repeat_penalty(),
         'frequency_penalty': get_frequency_penalty(),
         'presence_penalty': get_presence_penalty(),
-        
+
         # Advanced sampling
         'tfs_z': get_tfs_z(),
         'typical_p': get_typical_p(),
         'mirostat_mode': get_mirostat_mode(),
         'mirostat_tau': get_mirostat_tau(),
         'mirostat_eta': get_mirostat_eta(),
-        
+
         # Control
         'seed': get_seed(),
         'stop': get_stop_sequences(),
         'echo': get_echo(),
-        
+
         # Metadata
         'prompt_type': get_prompt_type(),
         'prompt_name': get_prompt_name(),

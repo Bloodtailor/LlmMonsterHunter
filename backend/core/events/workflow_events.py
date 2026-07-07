@@ -2,14 +2,15 @@
 # Contains all workflow events and their emission helper functions
 # Separated from core event registry for better organization
 
-from typing import Dict, Any, List
-from .event_registry import register_events, _emit_from_schema
+from typing import Any
+
+from .event_registry import _emit_from_schema, register_events
 
 # ===== WORKFLOW EVENT DEFINITIONS =====
 
 WORKFLOW_EVENTS = {
     # === Workflow Lifecycle Events (Frontend) ===
-    
+
     'workflow.started': {
         'data_fields': {
             'item': 'Complete workflow item data (from item.to_dict())',
@@ -17,7 +18,7 @@ WORKFLOW_EVENTS = {
         },
         'send_to_frontend': True
     },
-    
+
     'workflow.completed': {
         'data_fields': {
             'item': 'Complete workflow item data (from item.to_dict())',
@@ -26,7 +27,7 @@ WORKFLOW_EVENTS = {
         },
         'send_to_frontend': True
     },
-    
+
     'workflow.failed': {
         'data_fields': {
             'item': 'Complete workflow item data (from item.to_dict())',
@@ -35,9 +36,9 @@ WORKFLOW_EVENTS = {
         },
         'send_to_frontend': True
     },
-    
+
     # === Workflow Progress Events (Frontend) ===
-    
+
     'workflow.update': {
         'data_fields': {
             'workflow_id': 'Database workflow ID',
@@ -47,9 +48,9 @@ WORKFLOW_EVENTS = {
         },
         'send_to_frontend': True
     },
-    
+
     # === Workflow Queue Events (Frontend) ===
-    
+
     'workflow.queue.update': {
         'data_fields': {
             'all_items': 'List of all active workflow items [item1.to_dict(), item2.to_dict(), ...]',
@@ -64,14 +65,14 @@ register_events(WORKFLOW_EVENTS)
 
 # ===== WORKFLOW LIFECYCLE EVENT FUNCTIONS =====
 
-def emit_workflow_started(item: Dict[str, Any], workflow_id: int) -> bool:
+def emit_workflow_started(item: dict[str, Any], workflow_id: int) -> bool:
     """Emit when workflow processing starts"""
     return _emit_from_schema('workflow.started',
         item=item,
         workflow_id=workflow_id
     )
 
-def emit_workflow_completed(item: Dict[str, Any], workflow_id: int, result: Dict[str, Any]) -> bool:
+def emit_workflow_completed(item: dict[str, Any], workflow_id: int, result: dict[str, Any]) -> bool:
     """Emit when workflow completes successfully"""
     return _emit_from_schema('workflow.completed',
         item=item,
@@ -79,7 +80,7 @@ def emit_workflow_completed(item: Dict[str, Any], workflow_id: int, result: Dict
         result=result
     )
 
-def emit_workflow_failed(item: Dict[str, Any], workflow_id: int, error: str) -> bool:
+def emit_workflow_failed(item: dict[str, Any], workflow_id: int, error: str) -> bool:
     """Emit when workflow fails"""
     return _emit_from_schema('workflow.failed',
         item=item,
@@ -89,7 +90,7 @@ def emit_workflow_failed(item: Dict[str, Any], workflow_id: int, error: str) -> 
 
 # ===== WORKFLOW PROGRESS EVENT FUNCTIONS =====
 
-def emit_workflow_update(workflow_id: int, workflow_type: str, step: str, data: Dict[str, Any]) -> bool:
+def emit_workflow_update(workflow_id: int, workflow_type: str, step: str, data: dict[str, Any]) -> bool:
     """Emit workflow progress update during processing"""
     return _emit_from_schema('workflow.update',
         workflow_id=workflow_id,
@@ -100,7 +101,7 @@ def emit_workflow_update(workflow_id: int, workflow_type: str, step: str, data: 
 
 # ===== WORKFLOW QUEUE EVENT FUNCTIONS =====
 
-def emit_workflow_queue_update(all_items: List[Dict[str, Any]], trigger: str) -> bool:
+def emit_workflow_queue_update(all_items: list[dict[str, Any]], trigger: str) -> bool:
     """Emit complete workflow queue state update"""
     return _emit_from_schema('workflow.queue.update',
         all_items=all_items,

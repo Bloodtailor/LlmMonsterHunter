@@ -13,6 +13,7 @@
 
 from backend.game.utils import resolve_detail_tier
 
+
 def build_monster_block(monster, tier: str = None, condition: str = None,
                         defending: bool = False, side_label: str = None,
                         include_secret: bool = False, resources: dict = None,

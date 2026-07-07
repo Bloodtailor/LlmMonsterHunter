@@ -4,14 +4,13 @@ Interactive setup orchestration for all system components
 """
 
 from .basic_backend_flow import run_basic_backend_interactive_setup
-from .nodejs_flow import run_nodejs_interactive_setup
-from .mysql_flow import run_mysql_interactive_setup
 from .database_flow import run_database_interactive_setup
 from .gpu_cuda_flow import run_gpu_cuda_interactive_setup
-from .vs_flow import run_visual_studio_interactive_setup
-from .llm_env_flow import run_llm_env_interactive_setup
 from .llama_cpp_flow import run_llama_cpp_interactive_setup
-
+from .llm_env_flow import run_llm_env_interactive_setup
+from .mysql_flow import run_mysql_interactive_setup
+from .nodejs_flow import run_nodejs_interactive_setup
+from .vs_flow import run_visual_studio_interactive_setup
 
 # Interactive flow registry for orchestration
 COMPONENT_FLOWS = {

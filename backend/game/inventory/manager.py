@@ -2,12 +2,14 @@
 # Paged listing of the party's items and CoCaTok keepsakes
 # Assumes valid parameters (the service layer is the trust boundary)
 
-from typing import Dict, Any
-from backend.models.item import Item
-from backend.models.cocatok import CoCaTok
-from backend.core.utils import success_response
+from typing import Any
 
-def get_inventory(kind: str, limit: int, offset: int) -> Dict[str, Any]:
+from backend.core.utils import success_response
+from backend.models.cocatok import CoCaTok
+from backend.models.item import Item
+
+
+def get_inventory(kind: str, limit: int, offset: int) -> dict[str, Any]:
     """One paged inventory kind ('items' or 'cocatoks'), newest first,
     in the same pagination shape as the monster list"""
 
@@ -36,7 +38,7 @@ def get_inventory(kind: str, limit: int, offset: int) -> Dict[str, Any]:
         }
     })
 
-def get_inventory_counts() -> Dict[str, Any]:
+def get_inventory_counts() -> dict[str, Any]:
     """How many of each the party holds (for tab badges)"""
 
     return success_response({
@@ -44,16 +46,13 @@ def get_inventory_counts() -> Dict[str, Any]:
         'cocatok_count': CoCaTok.query.count()
     })
 
-def spend_item_use(item: Item) -> Dict[str, Any]:
+def spend_item_use(item: Item) -> dict[str, Any]:
     """
     Spend one use of an item; the item is DELETED when its last use goes.
     Emits inventory.item_updated or inventory.item_consumed accordingly.
     Returns {'consumed': bool, 'item_id': int, 'name': str}
     """
-    from backend.core.events import (
-        emit_inventory_item_updated,
-        emit_inventory_item_consumed
-    )
+    from backend.core.events import emit_inventory_item_consumed, emit_inventory_item_updated
 
     item.uses_remaining = max(0, (item.uses_remaining or 1) - 1)
 

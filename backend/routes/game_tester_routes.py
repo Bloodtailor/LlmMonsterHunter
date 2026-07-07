@@ -1,13 +1,14 @@
 
-from flask import Blueprint, jsonify, request
-from backend.services.game_tester_service import run_test_file, get_test_files
+from flask import Blueprint
+
+from backend.services.game_tester_service import get_test_files, run_test_file
 
 game_tester_bp = Blueprint('game_tester', __name__, url_prefix='/api/game_tester')
 
 @game_tester_bp.route('/run/<test_name>', methods=['GET'])
 def run_test(test_name):
     """Run a test file and capture its output"""
-    
+
     result = run_test_file(test_name)
     return result
 

@@ -5,14 +5,15 @@
 # Extraction output is strictly validated - the LLM proposes, code decides.
 
 import time
-from typing import Any, Dict, List, Optional
-from backend.game.utils import build_and_generate, build_and_stream
+from typing import Any, Optional
+
 from backend.game.chat.manager import (
     CHAT_SETTINGS,
     build_chat_history_block,
     build_last_run_block,
-    build_last_run_status
+    build_last_run_status,
 )
+from backend.game.utils import build_and_generate, build_and_stream
 
 # Memory kinds an extraction pass may produce (anything else is dropped)
 CHAT_MEMORY_KINDS = ('confided', 'grew_closer', 'shared_lore', 'learned_fact', 'voiced_wish')
@@ -75,16 +76,16 @@ def wait_for_streamed_text(generation_id: int, timeout: int = REPLY_TIMEOUT_SECO
 
     raise TimeoutError(f"Chat reply timed out after {timeout} seconds")
 
-def extract_chat_memories(monster, segment_messages: List[Any], workflow_name: str) -> Optional[List[Dict[str, str]]]:
+def extract_chat_memories(monster, segment_messages: list[Any], workflow_name: str) -> Optional[list[dict[str, str]]]:
     """
     Run one memory-extraction pass over a stretch of conversation.
     Returns a validated list of {'kind', 'content'} (often EMPTY - most
     talk deserves no memory), or None when the LLM call itself failed
     (the caller must NOT advance the watermark then).
     """
-    from backend.game.monster.context_builder import build_monster_block
-    from backend.game.memory.manager import get_memory_lines
     from backend.game.chat.manager import speaker_display_name
+    from backend.game.memory.manager import get_memory_lines
+    from backend.game.monster.context_builder import build_monster_block
 
     try:
         segment_lines = "\n".join(

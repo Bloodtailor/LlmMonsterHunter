@@ -3,12 +3,12 @@
 # Registers files named "registered_workflows.py" as callable workflows
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from typing import Callable, Dict, Any, Optional
 import inspect
 import threading
+from typing import Callable, Optional
 
 # Global registry of workflow_name -> callable
-_WORKFLOW_REGISTRY: Dict[str, Callable[[dict, Callable], dict]] = {}
+_WORKFLOW_REGISTRY: dict[str, Callable[[dict, Callable], dict]] = {}
 _REGISTRY_LOCK = threading.Lock()  # thread-safe if registering dynamically
 
 class WorkflowRegistrationError(Exception):
@@ -33,7 +33,7 @@ def register_workflow(name: Optional[str] = None):
             raise WorkflowRegistrationError(
                 f"{fn.__name__} must take exactly two arguments: context and on_update."
             )
-        
+
         # Enforce parameter names for clarity
         if params[0].name != "context":
             raise WorkflowRegistrationError(

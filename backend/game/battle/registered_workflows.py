@@ -1,12 +1,14 @@
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
 import random
+from typing import Any, Callable
+
+from backend.core.utils.responses import error_response, success_response
 from backend.core.workflow_registry import register_workflow
-from backend.core.utils.responses import success_response, error_response
-from typing import Callable, Dict, Any, Optional
+
 
 @register_workflow()
-def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def battle_turn(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     Process battle turns, one monster at a time. Resolves the player's
     input (an ally's turn or a reply to enemy talk), then advances -
@@ -23,30 +25,30 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
     try:
         from backend.game.battle import manager as battle
         from backend.game.battle.constants import (
+            ABILITY_POOL_BY_TYPE,
             MAX_CONSECUTIVE_ENEMY_TURNS,
             OVERDUE_WAIT_MULTIPLIER,
             RESOURCE_DELTAS,
-            ABILITY_POOL_BY_TYPE
         )
         from backend.game.battle.generator import (
+            build_combatant_summary,
             build_monster_battle_details,
             build_side_details,
-            build_combatant_summary,
-            generate_next_turn,
-            generate_enemy_turn,
-            resolve_action,
-            resolve_freeform_action,
-            generate_battle_talk,
             generate_battle_outcome_text,
             generate_battle_summary,
-            generate_turn_vanity_text
+            generate_battle_talk,
+            generate_enemy_turn,
+            generate_next_turn,
+            generate_turn_vanity_text,
+            resolve_action,
+            resolve_freeform_action,
         )
         from backend.game.dungeon import manager as dungeon
-        from backend.game.state.manager import get_party_details
         from backend.game.memory import journal
         from backend.game.memory import manager as memory
-        from backend.models.monster import Monster
+        from backend.game.state.manager import get_party_details
         from backend.models.following_monsters import FollowingMonster
+        from backend.models.monster import Monster
 
         step = "validate_context"
         on_update(step, progress_data)
@@ -96,7 +98,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 return build_monster_battle_details(monster, state[side][str(monster_id)], side)
             return entry_name(side, monster_id)
 
-        def emit_turn(entry: Dict[str, Any]):
+        def emit_turn(entry: dict[str, Any]):
             """One resolved turn for the frontend's click-through log"""
             entry['battle_snapshot'] = battle.get_battle_snapshot(state)
             on_update("action_resolved", {"action_result": entry})
@@ -358,8 +360,8 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 })
 
             elif action_type == 'item':
-                from backend.models.item import Item
                 from backend.game.inventory.manager import spend_item_use
+                from backend.models.item import Item
 
                 item = Item.get_item_by_id(int(player_action.get('item_id')))
                 if not item or item.uses_remaining < 1:
@@ -781,7 +783,7 @@ def battle_turn(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         })
 
 @register_workflow()
-def condense_battle_log(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def condense_battle_log(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     Housekeeping: condense ONE batch of the oldest un-summarized battle
     log turns into a rolling summary. Queued by battle_turn when enough
@@ -796,9 +798,7 @@ def condense_battle_log(context: dict, on_update: Callable[[str, Dict[str, Any]]
 
     try:
         from backend.game.battle import manager as battle
-        from backend.game.utils.rolling_summary import (
-            plan_batch, covered_count, summarize_lines
-        )
+        from backend.game.utils.rolling_summary import covered_count, plan_batch, summarize_lines
 
         step = "plan_batch"
         on_update(step, progress_data)

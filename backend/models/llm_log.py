@@ -2,24 +2,26 @@
 # Contains only LLM inference parameters, responses, and parsing data
 # Linked to GenerationLog parent table
 
-from .core import db
-from .base import BaseModel
-from sqlalchemy import Column, Integer, String, Text, JSON, Float, Boolean, ForeignKey
+from typing import Any, Optional
+
+from sqlalchemy import JSON, Boolean, Column, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-from typing import Dict, Any, Optional
+
+from .base import BaseModel
+
 
 class LLMLog(BaseModel):
     """
     LLM-specific generation data - child table of GenerationLog
     Contains all inference parameters, parsing config, and LLM responses
     """
-    
+
     __tablename__ = 'llm_logs'
-    
+
     # === Foreign Key to Parent ===
     generation_id = Column(Integer, ForeignKey('generation_logs.id'), nullable=False, unique=True)
     generation_log = relationship("GenerationLog", back_populates="llm_log")
-    
+
     # === LLM Inference Parameters ===
     max_tokens = Column(Integer, nullable=False)
     temperature = Column(Float, nullable=False)
@@ -36,25 +38,25 @@ class LLMLog(BaseModel):
     seed = Column(Integer, nullable=False)
     stop_sequences = Column(JSON, nullable=False)      # List of stop sequences
     echo = Column(Boolean, nullable=False)
-    
+
     # === Model Information ===
     model_name = Column(String(200), nullable=True)    # Model file name
-    
+
     # === LLM Response Data ===
     response_text = Column(Text, nullable=True)        # Raw model response (latest attempt)
     response_tokens = Column(Integer, nullable=True)   # Tokens generated (latest attempt)
     tokens_per_second = Column(Float, nullable=True)   # Generation speed
-    
+
     # === Parsing Configuration and Results ===
     parser_config = Column(JSON, nullable=True)        # Parser configuration used
     parse_success = Column(Boolean, default=False)     # Did parsing succeed?
     parsed_data = Column(JSON, nullable=True)          # Successfully parsed JSON
     parse_error = Column(Text, nullable=True)          # Parsing error message
-    
+
     def to_dict(self):
         """Convert to dictionary for API responses"""
         result = super().to_dict()
-        
+
         # Add computed fields
         result.update({
             'generation_id': self.generation_id,
@@ -66,9 +68,9 @@ class LLMLog(BaseModel):
             'has_response': bool(self.response_text),
             'has_parsed_data': bool(self.parsed_data)
         })
-        
+
         return result
-    
+
     def get_inference_params(self):
         """
         Get all inference parameters as a dictionary
@@ -91,40 +93,40 @@ class LLMLog(BaseModel):
             'stop': self.stop_sequences,
             'echo': self.echo
         }
-    
+
     def mark_response_completed(self, response_text: str, response_tokens: int = None, tokens_per_second: float = None):
         """Mark LLM response as completed"""
         self.response_text = response_text
         self.response_tokens = response_tokens
         self.tokens_per_second = tokens_per_second
-    
+
     def mark_parsed(self, parsed_data: Any):
         """Mark parsing as successful"""
         self.parse_success = True
         self.parsed_data = parsed_data
         self.parse_error = None
-    
+
     def mark_parse_failed(self, error_message: str):
         """Mark parsing as failed"""
         self.parse_success = False
         self.parse_error = error_message
         # Keep parsed_data as None
-    
+
     def reset_parse_status(self):
         """Reset parsing status for retry"""
         self.parse_success = False
         self.parse_error = None
         self.parsed_data = None
-    
+
     @classmethod
-    def create_from_params(cls, inference_params: Dict[str, Any], parser_config: Optional[Dict[str, Any]] = None):
+    def create_from_params(cls, inference_params: dict[str, Any], parser_config: Optional[dict[str, Any]] = None):
         """
         Create LLM log from inference parameters
-        
+
         Args:
             inference_params (dict): All inference parameters
             parser_config (dict): Parser configuration
-            
+
         Returns:
             LLMLog: New LLM log instance (not yet saved)
         """
@@ -145,21 +147,21 @@ class LLMLog(BaseModel):
             seed=inference_params['seed'],
             stop_sequences=inference_params['stop'],
             echo=inference_params['echo'],
-            
+
             # Store parser configuration
             parser_config=parser_config,
-            
+
             # Initialize parsing state
             parse_success=False,
             parsed_data=None,
             parse_error=None
         )
-    
+
     @classmethod
     def get_by_generation_id(cls, generation_id: int):
         """Get LLM log by generation ID"""
         return cls.query.filter_by(generation_id=generation_id).first()
-    
+
     def __repr__(self):
         """String representation for debugging"""
         return f"<LLMLog(id={self.id}, generation_id={self.generation_id}, tokens={self.response_tokens}, parsed={self.parse_success})>"

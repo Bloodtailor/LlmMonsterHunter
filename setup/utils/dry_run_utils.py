@@ -84,7 +84,7 @@ DRY_RUN_SCENARIOS = {
     # For nodejs_flow.py
     'check_nodejs': [
         (True, "Node.js v18.17.0"),
-        (True, "Node.js v16.14.2"), 
+        (True, "Node.js v16.14.2"),
         (False, "Node.js not found"),
     ],
     'check_npm': [
@@ -129,13 +129,13 @@ def set_dry_run(check_name):
 
     fallback_choices = [(True, "Dry run error message not configured"), (False, "Dry run error message not configured")]
     scenarios = DRY_RUN_SCENARIOS.get(check_name, fallback_choices)
-    
+
     print_dry_run(f"\nDry run options for: {check_name}")
     for i, (success, message) in enumerate(scenarios, 1):
         message += " (simulated)"
         status = "✅" if success else "❌"
         print_dry_run(f"{i}. {status} {message}")
-    
+
     while True:
         choice = input("Please enter your choice: ").strip()
         try:

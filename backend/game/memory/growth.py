@@ -5,7 +5,7 @@
 # match how it was truly used (similar length, never longer), and a
 # permanent memory. The LLM chooses words; CODE owns every number.
 
-from typing import Dict, Any, List, Optional
+from typing import Any, Optional
 
 # The LLM's tier words -> percent growth. Numbers are code-owned.
 GROWTH_STAT_TIERS = {
@@ -33,12 +33,12 @@ MODE_NOTES = {
              "WHOLE journey - this is the moment lessons settle into strength.")
 }
 
-def run_growth_reflection(monster, mode: str, workflow_name: str) -> Optional[Dict[str, Any]]:
+def run_growth_reflection(monster, mode: str, workflow_name: str) -> Optional[dict[str, Any]]:
     """One LLM call: how this run changed this monster. None on failure."""
-    from backend.game.utils import build_and_generate
-    from backend.game.monster.context_builder import build_speaker_block
     from backend.game.memory.journal import build_journal_block
     from backend.game.memory.manager import build_memory_block
+    from backend.game.monster.context_builder import build_speaker_block
+    from backend.game.utils import build_and_generate
 
     try:
         return build_and_generate('growth_reflection', workflow_name, {
@@ -51,14 +51,14 @@ def run_growth_reflection(monster, mode: str, workflow_name: str) -> Optional[Di
         print(f"❌ Growth reflection failed for {monster.name}: {e}")
         return None
 
-def apply_growth(monster, reflection: Dict[str, Any]) -> Dict[str, Any]:
+def apply_growth(monster, reflection: dict[str, Any]) -> dict[str, Any]:
     """
     Apply a reflection with every clamp enforced in code. Returns a
     summary dict for the workflow response (and the frontend).
     """
-    from backend.models.monster_memory import MonsterMemory
-    from backend.game.memory.manager import write_memory
     from backend.core.events.monster_events import emit_monster_updated
+    from backend.game.memory.manager import write_memory
+    from backend.models.monster_memory import MonsterMemory
 
     applied = {
         'monster_id': monster.id,
@@ -91,8 +91,8 @@ def apply_growth(monster, reflection: Dict[str, Any]) -> Dict[str, Any]:
     theme = str(reflection.get('ability_theme') or '').strip()
     if wants_ability and theme and len(monster.abilities or []) < MAX_ABILITIES:
         try:
-            from backend.game.monster.generator import generate_ability
             from backend.game.memory.journal import get_journal_lines
+            from backend.game.monster.generator import generate_ability
             recent = '; '.join(get_journal_lines(monster.id)[-3:])
             ability = generate_ability(
                 monster,
@@ -132,13 +132,13 @@ def apply_growth(monster, reflection: Dict[str, Any]) -> Dict[str, Any]:
     emit_monster_updated(monster.to_dict())
     return applied
 
-def pick_spotlight(party_monsters: List[Any], workflow_name: str) -> List[Any]:
+def pick_spotlight(party_monsters: list[Any], workflow_name: str) -> list[Any]:
     """
     The 1-2 party monsters whose story mattered most this run (LLM pick,
     validated; fallback: whoever has the fullest journal).
     """
-    from backend.game.utils import build_and_generate
     from backend.game.memory.journal import get_journal_lines
+    from backend.game.utils import build_and_generate
 
     if not party_monsters:
         return []
@@ -166,18 +166,18 @@ def pick_spotlight(party_monsters: List[Any], workflow_name: str) -> List[Any]:
         print(f"❌ Spotlight pick failed - fullest journal steps forward: {e}")
         return fallback
 
-def run_defeat_reflection(party_monsters: List[Any], battle_state: Dict[str, Any],
+def run_defeat_reflection(party_monsters: list[Any], battle_state: dict[str, Any],
                           workflow_name: str) -> Optional[str]:
     """
     ONE collective call after a defeat: the lesson the party takes out of
     the dungeon. Writes a shared 'lesson' memory to every member. Returns
     the reflection text (None if even the fallback has nothing to say).
     """
-    from backend.game.utils import build_and_generate
     from backend.game.battle.generator import build_recent_log
-    from backend.game.state.manager import get_party_details
-    from backend.game.memory.manager import write_memory
     from backend.game.memory.journal import get_journal_lines
+    from backend.game.memory.manager import write_memory
+    from backend.game.state.manager import get_party_details
+    from backend.game.utils import build_and_generate
 
     if not party_monsters:
         return None

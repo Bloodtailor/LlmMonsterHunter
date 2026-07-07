@@ -2,16 +2,17 @@
 # Validates all inputs and delegates to game logic / workflows
 # Single source of truth for battle business rules
 
-from typing import Dict, Any, Optional
+from typing import Any, Optional
+
+from backend.core.utils import error_response, success_response
 from backend.game.battle import manager
 from backend.game.battle.constants import INCAPACITATED, PLAYER_TEXT_MAX_CHARS
-from backend.core.utils import error_response, success_response
-from backend.workflow.workflow_gateway import request_workflow
 from backend.models.monster import Monster
+from backend.workflow.workflow_gateway import request_workflow
 
 VALID_ACTION_TYPES = ('attack', 'ability', 'defend', 'custom', 'talk', 'item')
 
-def take_turn(action: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def take_turn(action: Optional[dict[str, Any]]) -> dict[str, Any]:
     """
     Take a battle turn with validation
     Phase 'ready': no action needed (opening initiative)
@@ -93,7 +94,7 @@ def take_turn(action: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     else:
         return error_response("Failed to queue battle turn workflow")
 
-def respond_to_talk(response: str) -> Dict[str, Any]:
+def respond_to_talk(response: str) -> dict[str, Any]:
     """
     Reply to an enemy's battlefield talk with validation
     Phase must be 'awaiting_player_response'
@@ -123,6 +124,6 @@ def respond_to_talk(response: str) -> Dict[str, Any]:
     else:
         return error_response("Failed to queue battle turn workflow")
 
-def get_battle_state() -> Dict[str, Any]:
+def get_battle_state() -> dict[str, Any]:
     """Public battle snapshot - nothing hidden in battles"""
     return success_response({'battle': manager.get_battle_snapshot()})

@@ -5,22 +5,19 @@ Orchestrates the complete LLM environment configuration experience with clean UX
 """
 COMPONENT_NAME = "LLM Model Configuration"
 
-from setup.utils.ux_utils import *
-from setup.checks.llm_env_checks import (
-    check_env_model_path,
-    validate_model_file,
-    get_model_info
-)
+from setup.checks.llm_env_checks import check_env_model_path, get_model_info, validate_model_file
 from setup.installation.llm_env_installation import update_env_model_path
+from setup.utils.ux_utils import *
+
 
 def run_llm_env_interactive_setup(current=None, total=None, dry_run=False):
     """
     Interactive setup flow for LLM environment configuration
-    
+
     Returns:
         bool: True if setup completed successfully, False otherwise
     """
-    
+
     # ================================================================
     # SECTION 1: INITIAL STATUS CHECK AND DISPLAY
     # ================================================================
@@ -34,14 +31,14 @@ def run_llm_env_interactive_setup(current=None, total=None, dry_run=False):
     )
 
     print("Checking current status...")
-    
+
     # Run individual checks
     model_path_ok, model_path_message = check_env_model_path()
 
     # Dry run mode - set check results to custom values
     if dry_run:
         print_dry_run_header()
-        
+
         from setup.utils.dry_run_utils import set_dry_run
         model_path_ok, model_path_message = set_dry_run('check_env_model_path')
 
@@ -63,14 +60,14 @@ def run_llm_env_interactive_setup(current=None, total=None, dry_run=False):
         print("🤖 Ready for AI language model inference")
         print()
         return True
-    
+
     # Show requirement explanation
     show_message('llm_model_requirement_explanation')
-    
+
     # Handle the configuration issue
     if not model_path_ok:
         return handle_model_path_configuration(model_path_message)
-    
+
     # ================================================================
     # SECTION 3: FINAL CHECKS AND DISPLAY
     # ================================================================
@@ -80,17 +77,17 @@ def run_llm_env_interactive_setup(current=None, total=None, dry_run=False):
 def handle_model_path_configuration(current_message):
     """Handle model path configuration issues"""
 
-    if not "placeholder" in current_message.lower():
+    if "placeholder" not in current_message.lower():
         input("Press Enter to continue...")
         print("LLM model path needs to be configured.")
         print_error(current_message)
         print()
 
         if "not found" in current_message.lower():
-            show_message('llm_model_file_missing')  
+            show_message('llm_model_file_missing')
         else:
             show_message('llm_model_path_invalid')
-    
+
     options = [
         ("M", "Configure model path now"),
         ("H", "Get help finding and dowloading a language model")
@@ -103,16 +100,13 @@ def handle_model_path_configuration(current_message):
     elif choice == "H":
         show_message('llm_model_download_guidance')
         return handle_model_path_configuration(current_message)
-    elif choice == "CONTINUE":
-        return True
-    else:
-        return False
+    return choice == "CONTINUE"
 
 def handle_model_path_input():
     """Handle interactive model path input and validation"""
-    
+
     show_message('llm_model_path_placeholder')
-    
+
     while True:
         model_path = input("Enter full path to your model file: ").strip()
 
@@ -133,10 +127,10 @@ def handle_model_path_input():
         if is_valid:
             # Update .env file
             success, update_message = update_env_model_path(model_path)
-            
+
             if success:
                 print_success(update_message)
-                
+
                 # Show model info
                 model_info = get_model_info(model_path)
                 if model_info:
@@ -161,21 +155,21 @@ def handle_model_path_input():
 
 def verify_llm_env_setup():
     """Final verification that LLM environment is configured properly"""
-    
+
     print("Verifying LLM environment configuration...")
     print()
-    
+
     # Re-check everything
     model_path_ok, model_path_message = check_env_model_path()
-    
+
     # Package results for display
     check_results = {
         "Model Path Configuration": (model_path_ok, model_path_message)
     }
-    
+
     # Show final results
     overall_ok = display_check_results("LLM MODEL CONFIG FINAL", check_results)
-    
+
     if overall_ok:
         print_success("LLM model configuration completed successfully!")
         print("🤖 Ready for AI language model inference")

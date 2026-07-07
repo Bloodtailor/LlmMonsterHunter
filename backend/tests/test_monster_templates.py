@@ -184,10 +184,9 @@ def sample_monster(i):
 def test_roster_fits_budget():
     print('\n3. Full battle roster (4 party + 3 enemies) fits the prompt budget per bin')
     import os
+
     from backend.game.monster.context_builder import build_monster_block
-    from backend.game.utils.context_limits import (
-        resolve_detail_tier, get_prompt_char_budget
-    )
+    from backend.game.utils.context_limits import get_prompt_char_budget, resolve_detail_tier
 
     roster = [sample_monster(i) for i in range(7)]
     original = os.environ.get('LLM_CONTEXT_SIZE')

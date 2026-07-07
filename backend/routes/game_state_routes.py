@@ -3,6 +3,7 @@
 # Routes only handle: HTTP parsing → Service call → HTTP response formatting
 
 from flask import Blueprint, jsonify, request
+
 from backend.services import game_state_service
 
 game_state_bp = Blueprint('game_state', __name__, url_prefix='/api/game-state')
@@ -25,22 +26,22 @@ def reset_game_state():
 def add_following_monster():
     """Add monster to following list - thin HTTP wrapper"""
     data = request.get_json() or {}
-    
+
     result = game_state_service.add_following_monster(
         monster_id=data.get('monster_id')
     )
-    
+
     return jsonify(result), 200 if result['success'] else 400
 
 @game_state_bp.route('/following/remove', methods=['POST'])
 def remove_following_monster():
     """Remove monster from following list - thin HTTP wrapper"""
     data = request.get_json() or {}
-    
+
     result = game_state_service.remove_following_monster(
         monster_id=data.get('monster_id')
     )
-    
+
     return jsonify(result), 200 if result['success'] else 400
 
 @game_state_bp.route('/following', methods=['GET'])
@@ -55,11 +56,11 @@ def get_following_monsters():
 def set_active_party():
     """Set active party from following monsters - thin HTTP wrapper"""
     data = request.get_json() or {}
-    
+
     result = game_state_service.set_active_party(
         monster_ids=data.get('monster_ids', [])
     )
-    
+
     return jsonify(result), 200 if result['success'] else 400
 
 @game_state_bp.route('/party', methods=['GET'])

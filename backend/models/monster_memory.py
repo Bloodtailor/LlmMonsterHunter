@@ -4,9 +4,13 @@
 # per remembered moment, written by the game layer (backend/game/memory).
 # Data storage only - what gets remembered and how it is used lives there.
 
+import contextlib
+
+from sqlalchemy import JSON, Column, ForeignKey, Integer, String, Text
+
 from .base import BaseModel
 from .core import db
-from sqlalchemy import Column, Integer, String, Text, JSON, ForeignKey
+
 
 class MonsterMemory(BaseModel):
     """
@@ -105,10 +109,8 @@ class MonsterMemory(BaseModel):
             ).all():
                 details = memory.details or {}
                 if details.get('stat') == stat:
-                    try:
+                    with contextlib.suppress(TypeError, ValueError):
                         total += float(details.get('amount_pct') or 0)
-                    except (TypeError, ValueError):
-                        pass
             return total
         except Exception as e:
             print(f"❌ Error summing growth for monster {monster_id}: {e}")

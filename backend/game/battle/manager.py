@@ -4,20 +4,21 @@
 # turn phases, and outcomes. The LLM narrates, judges impacts,
 # directs turn order, and adjudicates negotiations.
 
-from typing import Dict, Any, Optional, List
-from backend.models.global_variables import GlobalVariable
+from typing import Any, Optional
+
 from backend.game.battle.constants import (
+    BRIMMING,
     CONDITION_LADDER,
-    INCAPACITATED,
     FRESH,
     IMPACT_STEPS,
+    INCAPACITATED,
     RECENT_LOG_SIZE,
-    TURN_HISTORY_SIZE,
-    RESOURCE_LADDER,
-    RESOURCE_KEYS,
     RESOURCE_DELTAS,
-    BRIMMING
+    RESOURCE_KEYS,
+    RESOURCE_LADDER,
+    TURN_HISTORY_SIZE,
 )
+from backend.models.global_variables import GlobalVariable
 
 BATTLE_STATE_KEY = 'battle_state'
 
@@ -39,10 +40,10 @@ _EMPTY_STATE = {
 
 # ===== CORE STATE ACCESS =====
 
-def get_battle_state() -> Dict[str, Any]:
+def get_battle_state() -> dict[str, Any]:
     return GlobalVariable.get(BATTLE_STATE_KEY, dict(_EMPTY_STATE))
 
-def save_battle_state(state: Dict[str, Any]) -> None:
+def save_battle_state(state: dict[str, Any]) -> None:
     GlobalVariable.set(BATTLE_STATE_KEY, state)
 
 def is_in_battle() -> bool:
@@ -50,7 +51,7 @@ def is_in_battle() -> bool:
 
 # ===== BATTLE LIFECYCLE =====
 
-def start_battle(ally_conditions: Dict[str, Dict[str, Any]], enemy_entries: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+def start_battle(ally_conditions: dict[str, dict[str, Any]], enemy_entries: dict[str, dict[str, Any]]) -> dict[str, Any]:
     """
     Begin a battle in the 'ready' phase - the first battle_turn call
     (with no player action) runs the opening initiative
@@ -99,20 +100,20 @@ def end_battle() -> None:
 
 # ===== PARTICIPANT STATUS =====
 
-def is_incapacitated(state: Dict[str, Any], side: str, monster_id: str) -> bool:
+def is_incapacitated(state: dict[str, Any], side: str, monster_id: str) -> bool:
     monster = state.get(side, {}).get(str(monster_id))
     return not monster or monster.get('condition') == INCAPACITATED
 
-def is_out(state: Dict[str, Any], side: str, monster_id: str) -> bool:
+def is_out(state: dict[str, Any], side: str, monster_id: str) -> bool:
     """Out of the fight: incapacitated or fled"""
     monster = state.get(side, {}).get(str(monster_id))
     return not monster or monster.get('condition') == INCAPACITATED or monster.get('fled')
 
-def active_ids(state: Dict[str, Any], side: str) -> List[str]:
+def active_ids(state: dict[str, Any], side: str) -> list[str]:
     """Everyone on a side still in the fight"""
     return [mid for mid in state.get(side, {}) if not is_out(state, side, mid)]
 
-def mark_fled(state: Dict[str, Any], monster_id: str) -> None:
+def mark_fled(state: dict[str, Any], monster_id: str) -> None:
     """An enemy escapes the battle (in place)"""
     monster = state.get('enemies', {}).get(str(monster_id))
     if monster:
@@ -120,7 +121,7 @@ def mark_fled(state: Dict[str, Any], monster_id: str) -> None:
 
 # ===== THE CONDITION LADDER =====
 
-def apply_impact(state: Dict[str, Any], side: str, monster_id: str, impact: str) -> Optional[str]:
+def apply_impact(state: dict[str, Any], side: str, monster_id: str, impact: str) -> Optional[str]:
     """
     Apply a referee impact judgment to a monster's condition (in place)
     Defending downgrades harmful impacts one step. Clamped at ladder ends.
@@ -144,7 +145,7 @@ def apply_impact(state: Dict[str, Any], side: str, monster_id: str, impact: str)
 
 # ===== THE RESOURCE LADDERS (stamina and mana) =====
 
-def apply_resource(state: Dict[str, Any], side: str, monster_id: str, resource: str, delta_word: str) -> Optional[str]:
+def apply_resource(state: dict[str, Any], side: str, monster_id: str, resource: str, delta_word: str) -> Optional[str]:
     """
     Apply a referee cost/restore judgment to one of a monster's pools
     (in place). Same shape as apply_impact: word -> steps -> clamped
@@ -166,20 +167,20 @@ def apply_resource(state: Dict[str, Any], side: str, monster_id: str, resource: 
 
 # ===== DEFENDING (lasts until the monster's next turn) =====
 
-def clear_defending(state: Dict[str, Any], side: str, monster_id: str) -> None:
+def clear_defending(state: dict[str, Any], side: str, monster_id: str) -> None:
     """A monster's defending stance ends when its next turn begins (in place)"""
     monster = state.get(side, {}).get(str(monster_id))
     if monster:
         monster['defending'] = False
 
-def set_defending(state: Dict[str, Any], side: str, monster_id: str) -> None:
+def set_defending(state: dict[str, Any], side: str, monster_id: str) -> None:
     monster = state.get(side, {}).get(str(monster_id))
     if monster:
         monster['defending'] = True
 
 # ===== TURN TRACKING =====
 
-def record_turn(state: Dict[str, Any], actor_name: str, action: str, actor_id: Any = None, side: str = None) -> None:
+def record_turn(state: dict[str, Any], actor_name: str, action: str, actor_id: Any = None, side: str = None) -> None:
     """
     Track who acted (in place): the rolling history for the turn-order
     LLM's context, and per-monster last-acted turns for fairness
@@ -199,13 +200,13 @@ def record_turn(state: Dict[str, Any], actor_name: str, action: str, actor_id: A
         last_acted[str(actor_id)] = state['turn_count']
         state['last_acted'] = last_acted
 
-def turns_waiting(state: Dict[str, Any], monster_id: Any) -> int:
+def turns_waiting(state: dict[str, Any], monster_id: Any) -> int:
     """How many turns since this monster last acted (whole battle if never)"""
     return state.get('turn_count', 0) - state.get('last_acted', {}).get(str(monster_id), 0)
 
 # ===== ROLLING LOG =====
 
-def append_log(state: Dict[str, Any], narration: str) -> None:
+def append_log(state: dict[str, Any], narration: str) -> None:
     """
     Keep every narration this battle as context for the referee (in
     place), each stamped with its turn number. append_log is always
@@ -244,7 +245,7 @@ def queue_log_condense_if_due() -> None:
     after the player already has their result. Never raises.
     """
     try:
-        from backend.game.utils.rolling_summary import plan_batch, covered_count
+        from backend.game.utils.rolling_summary import covered_count, plan_batch
         state = get_battle_state()
         if not state.get('in_battle'):
             return
@@ -262,7 +263,7 @@ def queue_log_condense_if_due() -> None:
 
 # ===== OUTCOME =====
 
-def derive_outcome(state: Dict[str, Any]) -> str:
+def derive_outcome(state: dict[str, Any]) -> str:
     """
     Python decides the battle outcome:
     victory when every enemy is incapacitated or fled,
@@ -281,7 +282,7 @@ def derive_outcome(state: Dict[str, Any]) -> str:
 
 # ===== SNAPSHOT =====
 
-def get_battle_snapshot(state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def get_battle_snapshot(state: Optional[dict[str, Any]] = None) -> dict[str, Any]:
     """Public battle snapshot for the frontend (nothing hidden in battles)"""
     if state is None:
         state = get_battle_state()

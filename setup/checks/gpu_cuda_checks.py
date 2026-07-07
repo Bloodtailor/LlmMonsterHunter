@@ -5,21 +5,20 @@ Pure detection logic for NVIDIA GPU, drivers, and CUDA toolkit
 Returns data instead of printing for clean UX flow
 """
 
-import subprocess
-import sys
-import re
 import os
-from pathlib import Path
+import re
+import subprocess
+
 
 def check_nvidia_gpu():
     """Check for NVIDIA GPU and drivers using nvidia-smi."""
     try:
         result = subprocess.run(["nvidia-smi"], capture_output=True, text=True, check=True)
-        
+
         # Parse GPU info from nvidia-smi output
         gpu_info = "GPU detected"
         vram_info = ""
-        
+
         lines = result.stdout.split('\n')
         for line in lines:
             # Look for GPU info line (contains GPU name)
@@ -28,7 +27,7 @@ def check_nvidia_gpu():
                 if len(parts) > 1:
                     gpu_info = parts[1].strip()
                 break
-        
+
         # Parse VRAM info
         for line in lines:
             if 'MiB' in line and '/' in line:
@@ -39,13 +38,13 @@ def check_nvidia_gpu():
                         vram_info = part.strip()
                         break
                 break
-        
+
         message = f"NVIDIA GPU: {gpu_info}"
         if vram_info:
             message += f", Memory: {vram_info}"
-            
+
         return True, message
-        
+
     except FileNotFoundError:
         return False, "nvidia-smi not found (NVIDIA drivers not installed)"
     except subprocess.CalledProcessError:
@@ -55,7 +54,7 @@ def check_nvidia_driver_version():
     """Check NVIDIA driver version for CUDA compatibility."""
     try:
         result = subprocess.run(["nvidia-smi"], capture_output=True, text=True, check=True)
-        
+
         # Parse driver version from nvidia-smi output
         # Look for line like "Driver Version: 545.84"
         driver_version = None
@@ -66,7 +65,7 @@ def check_nvidia_driver_version():
                 if match:
                     driver_version = match.group(1)
                     break
-        
+
         if driver_version:
             # Check if driver is modern enough for CUDA 12.x
             try:
@@ -81,7 +80,7 @@ def check_nvidia_driver_version():
                 return True, f"NVIDIA driver {driver_version} (version check uncertain)"
         else:
             return False, "Could not parse NVIDIA driver version"
-            
+
     except FileNotFoundError:
         return False, "nvidia-smi not found (cannot check driver version)"
     except subprocess.CalledProcessError:
@@ -93,11 +92,11 @@ def check_cuda_directories():
         "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA",
         "C:\\Program Files (x86)\\NVIDIA GPU Computing Toolkit\\CUDA"
     ]
-    
+
     found_cuda = False
     latest_version = None
     cuda_dir = None
-    
+
     for base_path in common_paths:
         if os.path.exists(base_path):
             # Look for version directories
@@ -110,7 +109,7 @@ def check_cuda_directories():
                     break
             except OSError:
                 continue
-    
+
     if found_cuda:
         return True, f"CUDA Toolkit found: {cuda_dir}"
     else:
@@ -120,7 +119,7 @@ def check_nvcc_compiler():
     """Check for CUDA compiler (nvcc)."""
     try:
         result = subprocess.run(["nvcc", "--version"], capture_output=True, text=True, check=True)
-        
+
         # Extract CUDA version
         cuda_version = None
         for line in result.stdout.split('\n'):
@@ -130,12 +129,12 @@ def check_nvcc_compiler():
                 if match:
                     cuda_version = match.group(1)
                     break
-        
+
         if cuda_version:
             return True, f"CUDA compiler (nvcc) available, version {cuda_version}"
         else:
             return True, "CUDA compiler (nvcc) available"
-        
+
     except FileNotFoundError:
         return False, "CUDA compiler (nvcc) not found in PATH"
     except subprocess.CalledProcessError:
@@ -152,15 +151,15 @@ def check_cuda_path_env():
 def check_gpu_compute_capability():
     """Check GPU compute capability for modern AI workloads."""
     try:
-        result = subprocess.run(["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader,nounits"], 
+        result = subprocess.run(["nvidia-smi", "--query-gpu=compute_cap", "--format=csv,noheader,nounits"],
                               capture_output=True, text=True, check=True)
-        
+
         compute_caps = result.stdout.strip().split('\n')
         if compute_caps and compute_caps[0]:
             try:
                 # Parse compute capability (e.g., "8.9" -> 8.9)
                 compute_cap = float(compute_caps[0].strip())
-                
+
                 if compute_cap >= 8.0:
                     return True, f"GPU compute capability {compute_cap} (excellent for AI)"
                 elif compute_cap >= 6.0:
@@ -173,7 +172,7 @@ def check_gpu_compute_capability():
                 return True, f"GPU compute capability: {compute_caps[0]} (could not parse)"
         else:
             return False, "Could not determine GPU compute capability"
-            
+
     except FileNotFoundError:
         return False, "nvidia-smi not found (cannot check compute capability)"
     except subprocess.CalledProcessError:
@@ -185,25 +184,25 @@ def get_detailed_gpu_info():
     Returns dict with all available GPU/CUDA info.
     """
     info = {}
-    
+
     gpu_ok, gpu_msg = check_nvidia_gpu()
     info['gpu'] = (gpu_ok, gpu_msg)
-    
+
     driver_ok, driver_msg = check_nvidia_driver_version()
     info['driver'] = (driver_ok, driver_msg)
-    
+
     dirs_ok, dirs_msg = check_cuda_directories()
     info['cuda_installation'] = (dirs_ok, dirs_msg)
-    
+
     nvcc_ok, nvcc_msg = check_nvcc_compiler()
     info['cuda_compiler'] = (nvcc_ok, nvcc_msg)
-    
+
     path_ok, path_msg = check_cuda_path_env()
     info['cuda_environment'] = (path_ok, path_msg)
-    
+
     compute_ok, compute_msg = check_gpu_compute_capability()
     info['compute_capability'] = (compute_ok, compute_msg)
-    
+
     return info
 
 def check_gpu_cuda_requirements():
@@ -212,33 +211,33 @@ def check_gpu_cuda_requirements():
     # Core requirements for GPU acceleration
     gpu_ok, _ = check_nvidia_gpu()
     driver_ok, _ = check_nvidia_driver_version()
-    
+
     # CUDA development tools (needed for llama-cpp-python compilation)
     cuda_dirs_ok, _ = check_cuda_directories()
     nvcc_ok, _ = check_nvcc_compiler()
-    
+
     # Environment configuration (helpful but not strictly required)
     cuda_path_ok, _ = check_cuda_path_env()
-    
+
     # AI capability check (informational)
     compute_ok, _ = check_gpu_compute_capability()
-    
+
     # Logic: Need GPU + reasonable driver + CUDA toolkit + (compiler OR environment)
     # This catches most working configurations while allowing for edge cases
     has_gpu_and_driver = gpu_ok and driver_ok
     has_cuda_toolkit = cuda_dirs_ok
     has_development_access = nvcc_ok or cuda_path_ok
-    
+
     return has_gpu_and_driver and has_cuda_toolkit and has_development_access
 
 def get_gpu_cuda_diagnostic(include_overall=False):
     """
     Get comprehensive GPU CUDA diagnostic information.
     Used by flows to understand what specifically needs to be addressed.
-    
+
     Args:
         include_overall (bool): Whether to include overall requirement check
-    
+
     Returns:
         dict: All GPU CUDA check results for detailed analysis
     """
@@ -248,7 +247,7 @@ def get_gpu_cuda_diagnostic(include_overall=False):
     nvcc_ok, nvcc_msg = check_nvcc_compiler()
     cuda_path_ok, cuda_path_msg = check_cuda_path_env()
     compute_ok, compute_msg = check_gpu_compute_capability()
-    
+
     result = {
         'nvidia_gpu': (gpu_ok, gpu_msg),
         'nvidia_driver': (driver_ok, driver_msg),
@@ -257,9 +256,9 @@ def get_gpu_cuda_diagnostic(include_overall=False):
         'cuda_environment': (cuda_path_ok, cuda_path_msg),
         'gpu_compute_capability': (compute_ok, compute_msg),
     }
-    
+
     if include_overall:
         overall_ok = check_gpu_cuda_requirements()
         result['overall'] = (overall_ok, "All GPU CUDA requirements met" if overall_ok else "Some GPU CUDA requirements missing")
-    
+
     return result

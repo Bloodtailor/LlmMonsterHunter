@@ -21,8 +21,13 @@ def check(name: str, condition: bool, detail: str = ''):
 def main():
     from backend.game.battle import manager as battle
     from backend.game.battle.constants import (
-        RESOURCE_LADDER, RESOURCE_KEYS, RESOURCE_DELTAS,
-        ABILITY_POOL_BY_TYPE, BRIMMING, SPENT, full_resources
+        ABILITY_POOL_BY_TYPE,
+        BRIMMING,
+        RESOURCE_DELTAS,
+        RESOURCE_KEYS,
+        RESOURCE_LADDER,
+        SPENT,
+        full_resources,
     )
     from backend.game.battle.generator import _validated_resource_delta
 
@@ -82,7 +87,8 @@ def main():
 
     # ===== Ability-type pool defaults =====
     print('\n-- ability pool defaults --')
-    import json, pathlib
+    import json
+    import pathlib
     ability_json = json.loads(
         pathlib.Path('backend/ai/llm/prompts/ability_generation.json').read_text(encoding='utf-8')
     )

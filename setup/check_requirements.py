@@ -6,20 +6,22 @@ Returns 0 if all requirements met, 1 if some are missing
 """
 
 import sys
+
 from setup.checks import run_all_checks
-from setup.utils.ux_utils import show_status_table, print_header
+from setup.utils.ux_utils import print_header, show_status_table
+
 
 def check_requirements():
     """Check all requirements and report status."""
-    
+
     print_header("System Requirements Check")
     print("Checking all requirements for Monster Hunter Game...")
     print()
-    
+
     # Run all checks - they return clean data now
     results = run_all_checks()
     ready_components, total_components = show_status_table(results)
-    
+
     # Determine overall status and show appropriate message
     if ready_components == total_components:
         print("🎉 All requirements met! Ready to run the game.")

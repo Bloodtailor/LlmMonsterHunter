@@ -2,6 +2,7 @@
 # Routes only handle: HTTP parsing -> Service call -> HTTP response formatting
 
 from flask import Blueprint, jsonify, request
+
 from backend.services import inventory_service
 
 inventory_bp = Blueprint('inventory', __name__, url_prefix='/api/inventory')

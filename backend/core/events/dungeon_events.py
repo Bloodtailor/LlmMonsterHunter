@@ -4,8 +4,9 @@
 # monsters) - e.g. a remembered monster stepping back into the story.
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from typing import Dict, Any
-from .event_registry import register_events, _emit_from_schema
+from typing import Any
+
+from .event_registry import _emit_from_schema, register_events
 
 # ===== DUNGEON EVENT DEFINITIONS =====
 
@@ -24,7 +25,7 @@ register_events(DUNGEON_EVENTS)
 
 # ===== DUNGEON EVENT FUNCTIONS =====
 
-def emit_dungeon_monster_revealed(monster: Dict[str, Any]) -> bool:
+def emit_dungeon_monster_revealed(monster: dict[str, Any]) -> bool:
     """Emit when an existing monster is staged into the active encounter"""
     return _emit_from_schema('dungeon.monster_revealed',
         monster=monster

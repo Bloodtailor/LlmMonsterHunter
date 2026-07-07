@@ -3,14 +3,11 @@
 # a generic possession, never a failed workflow (treasure and victories
 # must always pay out).
 
-from typing import List
-from backend.models.item import Item
-from backend.models.cocatok import CoCaTok
+
+from backend.core.events import emit_inventory_cocatok_added, emit_inventory_item_added
 from backend.game.utils import build_and_generate, build_and_stream
-from backend.core.events import (
-    emit_inventory_item_added,
-    emit_inventory_cocatok_added
-)
+from backend.models.cocatok import CoCaTok
+from backend.models.item import Item
 
 # Curated CoCaTok colors - every name exists in the frontend color system
 # (frontend/src/shared/styles/theme.css --base-color-*) and uses a hue
@@ -69,8 +66,8 @@ def generate_treasure_discovery_text(location: dict, item: Item, workflow_name: 
     """Queue streamed narration of finding the (already generated) item
     - returns generation_id"""
 
-    from backend.game.state.manager import get_party_summary
     from backend.game.dungeon.manager import get_dungeon_log_text
+    from backend.game.state.manager import get_party_summary
 
     return build_and_stream('treasure_discovery', workflow_name, {
         'location_name': location.get('name', 'Unknown Location'),
@@ -108,7 +105,7 @@ def _build_item(data: dict, source_note: str) -> Item:
 
 # ===== COCATOKS =====
 
-def generate_victory_cocatok(location: dict, battle_summary: str, defeated_names: List[str]) -> CoCaTok:
+def generate_victory_cocatok(location: dict, battle_summary: str, defeated_names: list[str]) -> CoCaTok:
     """Mint the unique keepsake commemorating a battle victory"""
 
     location_name = location.get('name', 'a forgotten battlefield')

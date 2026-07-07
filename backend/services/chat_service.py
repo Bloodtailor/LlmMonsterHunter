@@ -2,13 +2,15 @@
 # Validates chat requests (eligible monster, sane message, not mid-run)
 # before queueing the chat workflow; history reads are synchronous.
 
-from typing import Dict, Any
-from backend.core.utils.responses import success_response, error_response
-from backend.workflow.workflow_gateway import request_workflow
+from typing import Any
+
+from backend.core.utils.responses import error_response, success_response
 from backend.game.chat import manager
 from backend.game.chat.manager import CHAT_SETTINGS
+from backend.workflow.workflow_gateway import request_workflow
 
-def send_message(monster_id, message) -> Dict[str, Any]:
+
+def send_message(monster_id, message) -> dict[str, Any]:
     """
     Speak to a following monster at home base. Queues the
     chat_with_monster workflow; the reply streams over SSE.
@@ -40,7 +42,7 @@ def send_message(monster_id, message) -> Dict[str, Any]:
         return success_response({'workflow_id': workflow_id})
     return error_response("Failed to queue chat workflow")
 
-def get_history(monster_id, limit=None, before_id=None) -> Dict[str, Any]:
+def get_history(monster_id, limit=None, before_id=None) -> dict[str, Any]:
     """
     One page of a monster's chat thread (synchronous). Walks backward
     from the newest message; pass before_id to load older pages.

@@ -3,7 +3,8 @@
 # turning those memories into LLM prompt context. Writing NEVER raises -
 # a lost memory must never break the moment that created it.
 
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 from backend.game.utils.context_limits import clamp_context
 
 # Every kind of moment a monster can remember (monster's perspective)
@@ -35,14 +36,14 @@ MEMORY_KINDS = (
     'voiced_wish',       # a want or goal it spoke aloud (growth reads these)
 )
 
-def write_memory(monster_id: int, kind: str, content: str, details: Dict[str, Any] = None) -> None:
+def write_memory(monster_id: int, kind: str, content: str, details: dict[str, Any] = None) -> None:
     """
     Record one memory for a monster, stamped with the current run.
     Never raises - failures print and the game moves on.
     """
     try:
-        from backend.models.monster_memory import MonsterMemory
         from backend.game.dungeon import manager as dungeon
+        from backend.models.monster_memory import MonsterMemory
 
         if kind not in MEMORY_KINDS:
             print(f"⚠️ Unknown memory kind '{kind}' - writing anyway")
@@ -88,7 +89,7 @@ def _format_memory_line(memory) -> str:
         prefix = "[before this journey] "
     return f"{prefix}{memory.kind}: {memory.content}"
 
-def get_memory_lines(monster_id: int, cap: int = 12) -> List[str]:
+def get_memory_lines(monster_id: int, cap: int = 12) -> list[str]:
     """The most recent memories as prompt lines, oldest first"""
     try:
         from backend.models.monster_memory import MonsterMemory
@@ -105,7 +106,7 @@ def build_memory_block(monster_id: int) -> str:
         return "It has no history with the party - they have never met."
     return clamp_context('monster_memories', "\n".join(f"- {line}" for line in lines))
 
-def compact_memory_lines(monster_id: int, max_lines: int = 3) -> List[str]:
+def compact_memory_lines(monster_id: int, max_lines: int = 3) -> list[str]:
     """
     The few most recent memories, for inline injection into blocks that
     hold several monsters (battle sides, encounter details).
@@ -113,7 +114,7 @@ def compact_memory_lines(monster_id: int, max_lines: int = 3) -> List[str]:
     lines = get_memory_lines(monster_id, cap=max_lines)
     return [line[:220] for line in lines]
 
-def party_memory_lines(monster_id: int) -> List[str]:
+def party_memory_lines(monster_id: int) -> list[str]:
     """
     A PARTY member's freshest memories for multi-monster blocks (party
     details, ally battle blocks) - how what it lived and what was said
@@ -129,18 +130,18 @@ def party_memory_lines(monster_id: int) -> List[str]:
 
 # ===== RETURNING-MONSTER ELIGIBILITY =====
 
-def eligible_returning_ids() -> List[int]:
+def eligible_returning_ids() -> list[int]:
     """
     Monsters that could come back this run: they have at least one
     memory, are fully generated, and are NOT following the party, in
     the active party, or already staged this run.
     """
     try:
-        from backend.models.monster_memory import MonsterMemory
-        from backend.models.monster import Monster
-        from backend.models.following_monsters import FollowingMonster
-        from backend.models.active_party import ActiveParty
         from backend.game.dungeon import manager as dungeon
+        from backend.models.active_party import ActiveParty
+        from backend.models.following_monsters import FollowingMonster
+        from backend.models.monster import Monster
+        from backend.models.monster_memory import MonsterMemory
 
         exclude = set(FollowingMonster.get_following_monster_ids())
         exclude.update(ActiveParty.get_party_monster_ids())
@@ -157,7 +158,7 @@ def eligible_returning_ids() -> List[int]:
         print(f"❌ Failed to compute returning-monster pool: {e}")
         return []
 
-def mark_seen(monster_ids: List[int]) -> None:
+def mark_seen(monster_ids: list[int]) -> None:
     """Exclude these monsters from this run's returning/blend-in pools"""
     try:
         from backend.game.dungeon import manager as dungeon

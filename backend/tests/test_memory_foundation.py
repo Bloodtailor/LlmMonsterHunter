@@ -24,15 +24,15 @@ def main():
     app = build_test_app()
 
     with app.app_context():
-        from backend.models.core import db, create_tables
-        from backend.models.dungeon_run import DungeonRun
-        from backend.models.monster_memory import MonsterMemory
-        from backend.models.monster import Monster
-        from backend.models.following_monsters import FollowingMonster
+        from backend.game.battle.constants import BRIMMING, RESOURCE_KEYS, full_resources
         from backend.game.dungeon import manager as dungeon
-        from backend.game.memory import manager as memory
         from backend.game.memory import journal
-        from backend.game.battle.constants import full_resources, RESOURCE_KEYS, BRIMMING
+        from backend.game.memory import manager as memory
+        from backend.models.core import create_tables, db
+        from backend.models.dungeon_run import DungeonRun
+        from backend.models.following_monsters import FollowingMonster
+        from backend.models.monster import Monster
+        from backend.models.monster_memory import MonsterMemory
 
         print('🧪 MEMORY FOUNDATION TESTS')
         print('=' * 50)

@@ -1,13 +1,15 @@
 # Registers as a callable function for the game orchestration queue to use
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from backend.core.workflow_registry import register_workflow
-from backend.core.utils.responses import success_response, error_response
+from typing import Any, Callable
+
+from backend.core.utils.responses import error_response, success_response
 from backend.core.utils.validation import require_keys
-from typing import Callable, Dict, Any
+from backend.core.workflow_registry import register_workflow
+
 
 @register_workflow()
-def generate_detailed_monster(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def generate_detailed_monster(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """Generate detailed monster using AI with progress updates"""
 
     step = "initializing"
@@ -15,11 +17,11 @@ def generate_detailed_monster(context: dict, on_update: Callable[[str, Dict[str,
 
     try:
         from backend.game.monster.generator import (
+            generate_ability,
+            generate_card_art,
             generate_monster_blueprint,
             generate_monster_persona,
             generate_monster_story,
-            generate_ability,
-            generate_card_art
         )
 
         # Step 1 - lineage, ecology, and stats (monster saved + announced here)
@@ -59,18 +61,18 @@ def generate_detailed_monster(context: dict, on_update: Callable[[str, Dict[str,
         progress_data.update({ "card_art_path": image_path})
 
         return success_response(progress_data)
-        
+
     except Exception as e:
-        
+
         return error_response({
             'failed_at': step,
             'completed_work': progress_data,
             'error': str(e)
         })
-    
+
 
 @register_workflow()
-def evolve_monster(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     The home-base evolution ceremony: design the evolved form (the ONLY
     abort point), transform the monster in place (same id - memories,
@@ -88,8 +90,8 @@ def evolve_monster(context: dict, on_update: Callable[[str, Dict[str, Any]], Non
     progress_data = {}
 
     try:
-        from backend.game.monster import evolution
         from backend.game.chat.generator import wait_for_streamed_text
+        from backend.game.monster import evolution
         from backend.game.utils import IMAGE_GENERATION_ENABLED
         from backend.models.monster import Monster
 
@@ -229,7 +231,7 @@ def evolve_monster(context: dict, on_update: Callable[[str, Dict[str, Any]], Non
 
 
 @register_workflow()
-def generate_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def generate_ability(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """Generate detailed monster using AI with progress updates"""
 
     # "context" should have the following keys:
@@ -254,9 +256,9 @@ def generate_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], N
         progress_data.update({ "ability": ability.to_dict()})
 
         return success_response(progress_data)
-        
+
     except Exception as e:
-        
+
         return error_response({
             'failed_at': step,
             'completed_work': progress_data,

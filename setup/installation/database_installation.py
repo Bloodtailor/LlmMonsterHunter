@@ -5,8 +5,10 @@ Pure installation logic for database creation and configuration
 """
 
 import subprocess
+
 from setup.checks.database_checks import get_database_config
 from setup.utils.env_utils import update_env_config
+
 
 def create_database():
     """
@@ -16,21 +18,21 @@ def create_database():
     config = get_database_config()
     if not config:
         return False, "Invalid or missing database configuration in .env file"
-    
+
     try:
         # Build MySQL command to create database
         cmd = [
-            "mysql", 
-            f"-h{config['host']}", 
-            f"-P{config['port']}", 
-            f"-u{config['user']}", 
-            f"-p{config['password']}", 
+            "mysql",
+            f"-h{config['host']}",
+            f"-P{config['port']}",
+            f"-u{config['user']}",
+            f"-p{config['password']}",
             "-e", f"CREATE DATABASE IF NOT EXISTS {config['name']};"
         ]
-        
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30)
+
+        subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30)
         return True, f"Database '{config['name']}' created successfully"
-        
+
     except subprocess.TimeoutExpired:
         return False, "Database creation timed out"
     except subprocess.CalledProcessError as e:
@@ -50,11 +52,11 @@ def update_database_password(new_password):
     """
     Update the database password in .env file.
     Returns (success, message) tuple for clean UX handling.
-    
+
     Args:
         new_password (str): New password to set
     """
     if not new_password:
         return False, "Password cannot be empty"
-    
+
     return update_env_config(DB_PASSWORD=new_password)

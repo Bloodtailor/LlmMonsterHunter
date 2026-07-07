@@ -159,7 +159,7 @@ MESSAGES = {
         "",
         "1. Find your MySQL installation:",
         "   - Check: C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin",
-        "   - Check: C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin", 
+        "   - Check: C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin",
         "   - Check: C:\\xampp\\mysql\\bin",
         "   - Check: C:\\wamp64\\bin\\mysql\\mysql8.x.x\\bin",
         "",
@@ -207,7 +207,7 @@ MESSAGES = {
         "Method 2 - Command Line:",
         "1. Open Command Prompt as Administrator",
         "2. Try: net start MySQL80",
-        "3. Or try: net start MySQL84", 
+        "3. Or try: net start MySQL84",
         "4. Or try: net start MySQL",
         "5. You should see: 'The MySQL service was started successfully'",
         "",
@@ -301,7 +301,7 @@ MESSAGES = {
         "   hardware is not accessible. This typically indicates a driver problem.",
         "",
         "   Possible causes:",
-        "      • NVIDIA drivers are missing, outdated, or corrupted", 
+        "      • NVIDIA drivers are missing, outdated, or corrupted",
         "      • Driver installation was incomplete",
         "      • Windows Update overwrote NVIDIA drivers with generic ones",
         "      • GPU hardware is present but drivers can't communicate with it",
@@ -316,7 +316,7 @@ MESSAGES = {
         "",
         "   Possible causes:",
         "      • This computer does not have an NVIDIA GPU",
-        "      • NVIDIA GPU is disabled in BIOS/UEFI settings", 
+        "      • NVIDIA GPU is disabled in BIOS/UEFI settings",
         "      • GPU hardware is not properly connected",
         "      • No NVIDIA software has ever been installed",
         "",
@@ -385,7 +385,7 @@ MESSAGES = {
         "   Step 2 - Physical Hardware Check:",
         "      1. Power off computer completely",
         "      2. Check GPU is fully seated in PCIe slot",
-        "      3. Check all GPU power connectors (6-pin, 8-pin) are firmly connected", 
+        "      3. Check all GPU power connectors (6-pin, 8-pin) are firmly connected",
         "      4. Check PSU has enough wattage for your GPU",
         "      5. Try reseating the GPU in the PCIe slot",
         "",
@@ -412,7 +412,7 @@ MESSAGES = {
         "",
         "⚠️  If you don't have an NVIDIA GPU, this game requires one for good performance"
     ],
-    
+
     'gpu_hardware_capable': [
         "",
         "✅ GPU HARDWARE CONFIRMED",
@@ -421,7 +421,7 @@ MESSAGES = {
         "Expected minimum performance with your hardware:",
         "",
         "⚡  LLM inference: 20+ tokens per second",
-        "🖼️  Image generation: 30 seconds or faster per image (if ComfyUI enabled)", 
+        "🖼️  Image generation: 30 seconds or faster per image (if ComfyUI enabled)",
         "🤖  The recommended AI models should work without any manual configuration.",
         "",
         "Any remaining setup issues are likely with software configuration rather than hardware limitations.",
@@ -431,7 +431,7 @@ MESSAGES = {
     'gpu_hardware_not_capable': [
         "",
         "⚠️  GPU CAPABILITY CONCERN",
-        "", 
+        "",
         "Your NVIDIA GPU was detected but may struggle with this AI game's requirements.",
         "",
         "   What this means:",
@@ -509,7 +509,7 @@ MESSAGES = {
         "",
         "",
     ],
-    
+
     'cuda_toolkit_missing': [
         "",
         "",
@@ -745,7 +745,7 @@ MESSAGES = {
         "   in the expected locations. This is likely a false negative.",
         "",
         "   What you have:",
-        "      ✅ Visual Studio installation", 
+        "      ✅ Visual Studio installation",
         "      ✅ C++ build tools (MSVC compiler)",
         "      ❌ Windows SDK (may be bundled with Visual Studio)",
         "",
@@ -1109,10 +1109,10 @@ MESSAGES = {
 def get_message(key):
     """
     Get user messages by key
-    
+
     Args:
         key (str): Message key from MESSAGES dict
-        
+
     Returns:
         list: List of message lines, or empty list if key not found
     """
@@ -1121,7 +1121,7 @@ def get_message(key):
 def get_available_messages():
     """
     Get list of all available messages keys
-    
+
     Returns:
         list: All message keys
     """

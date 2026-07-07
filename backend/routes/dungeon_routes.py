@@ -3,6 +3,7 @@
 # Routes only handle: HTTP parsing → Service call → HTTP response formatting
 
 from flask import Blueprint, jsonify, request
+
 from backend.services import dungeon_service
 
 dungeon_bp = Blueprint('dungeon', __name__, url_prefix='/api/dungeon')

@@ -18,7 +18,7 @@ DEFAULT_DENOISE = 1.0
 
 # === Image Dimensions ===
 DEFAULT_WIDTH = 896
-DEFAULT_HEIGHT = 1254 
+DEFAULT_HEIGHT = 1254
 DEFAULT_BATCH_SIZE = 1
 
 # === Negative Prompt (Universal) ===
@@ -96,7 +96,7 @@ def get_all_generation_defaults():
     """
     Get all generation parameters as a dictionary
     Perfect for passing to workflow modification functions
-    
+
     Returns:
         dict: All generation parameters with current defaults
     """

@@ -1,16 +1,17 @@
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from backend.core.workflow_registry import register_workflow
-from backend.core.utils.responses import success_response, error_response
+from typing import Any, Callable
+
+from backend.core.utils.responses import error_response, success_response
 from backend.core.utils.validation import require_keys
-from typing import Callable, Dict, Any, List
+from backend.core.workflow_registry import register_workflow
 
 # ===== SHARED BATTLE STARTER =====
 # Dialogue outcomes, failed sneaks, and surprise attacks all start battles
 # against monsters that ALREADY exist (unlike the monster_battle event,
 # which generates its enemies on arrival)
 
-def _start_encounter_battle(monsters: List[Any], opening_note: str = None) -> Dict[str, Any]:
+def _start_encounter_battle(monsters: list[Any], opening_note: str = None) -> dict[str, Any]:
     """Start a battle against existing monsters; returns the battle snapshot"""
     from backend.game.battle import manager as battle_manager
     from backend.game.dungeon import manager
@@ -44,7 +45,7 @@ def _start_encounter_battle(monsters: List[Any], opening_note: str = None) -> Di
     return battle_manager.get_battle_snapshot(battle_state)
 
 @register_workflow()
-def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def enter_dungeon(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """Enter the dungeon: entry text, starting location, and first paths"""
 
     workflow_name = 'enter_dungeon'
@@ -56,9 +57,13 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
     progress_data = {}
 
     try:
-        from backend.game.dungeon.generator import generate_random_location, generate_paths, generate_entry_text
-        from backend.game.dungeon import manager
         from backend.game.battle import manager as battle_manager
+        from backend.game.dungeon import manager
+        from backend.game.dungeon.generator import (
+            generate_entry_text,
+            generate_paths,
+            generate_random_location,
+        )
         from backend.game.state.manager import get_party_monster_ids, get_party_summary
 
         # Step 0 - validate required keys
@@ -141,7 +146,7 @@ def enter_dungeon(context: dict, on_update: Callable[[str, Dict[str, Any]], None
         })
 
 @register_workflow()
-def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def choose_path(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     Take a chosen path: generate the arrival location, then play out the
     path's hidden event (or exit the dungeon)
@@ -156,16 +161,20 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
     progress_data = {}
 
     try:
+        from backend.game.dungeon import manager
+        from backend.game.dungeon.events import roll_explore_monster_count, roll_monsters_present
         from backend.game.dungeon.generator import (
             generate_arrival_location,
             generate_encounter_vanity_text,
-            generate_look_around_text,
             generate_exit_text,
-            generate_monster_question
+            generate_look_around_text,
+            generate_monster_question,
         )
-        from backend.game.dungeon import manager
-        from backend.game.dungeon.events import roll_monsters_present, roll_explore_monster_count
-        from backend.game.monster.generator import generate_contextual_monster, generate_ability, generate_card_art
+        from backend.game.monster.generator import (
+            generate_ability,
+            generate_card_art,
+            generate_contextual_monster,
+        )
         from backend.game.state.manager import get_party_summary
 
         # Step 0 - validate required keys
@@ -407,8 +416,8 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
                 'camped': False
             })
 
-            from backend.game.memory.manager import mark_seen
             from backend.game.memory.journal import append_party_journal
+            from backend.game.memory.manager import mark_seen
             mark_seen([monster.id for monster in monsters])
 
             if monsters_present:
@@ -432,8 +441,8 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         # === EVENT: TREASURE (a hidden item waits to be discovered) ===
         if event == 'treasure':
             from backend.game.inventory.generator import (
+                generate_treasure_discovery_text,
                 generate_treasure_item,
-                generate_treasure_discovery_text
             )
 
             # Step 3 - the item itself (emits inventory.item_added)
@@ -554,15 +563,15 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
 
         # === EVENT: MONSTER BATTLE ===
         if event == 'monster_battle':
-            from backend.game.battle import manager as battle_manager
+            import random as _random
+
+            from backend.game.battle.constants import ENEMY_COUNT_RANGE
             from backend.game.battle.generator import (
+                build_side_details,
                 generate_battle_arrival_text,
                 generate_battle_intro,
-                build_side_details
             )
-            from backend.game.battle.constants import ENEMY_COUNT_RANGE
             from backend.game.state.manager import get_party_details
-            import random as _random
 
             # Step 3 - queue streamed hostile arrival text
             step = "queue_encounter_text"
@@ -641,7 +650,7 @@ def choose_path(context: dict, on_update: Callable[[str, Dict[str, Any]], None])
         })
 
 @register_workflow()
-def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def respond_to_monster(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     The party speaks to the encounter monster(s). The LLM responds in the
     monster's voice and DECIDES the outcome: keep talking, battle, let the
@@ -659,7 +668,10 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
 
     try:
         from backend.game.dungeon import manager
-        from backend.game.dungeon.generator import build_speaking_monsters_details, generate_dialogue_turn
+        from backend.game.dungeon.generator import (
+            build_speaking_monsters_details,
+            generate_dialogue_turn,
+        )
         from backend.game.dungeon.outcomes import apply_dialogue_outcome
         from backend.models.monster import Monster
 
@@ -776,7 +788,7 @@ def respond_to_monster(context: dict, on_update: Callable[[str, Dict[str, Any]],
         })
 
 @register_workflow()
-def sneak_past(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def sneak_past(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     Try to slip past the monsters spotted while exploring.
     The LLM judges success; failure means the monsters notice - battle.
@@ -827,8 +839,8 @@ def sneak_past(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
 
             # The avoided monsters keep only a vague impression - enough
             # for them to resurface in another group someday
-            from backend.game.memory.manager import write_memory
             from backend.game.memory.journal import append_party_journal
+            from backend.game.memory.manager import write_memory
             location_name = location.get('name', 'the dungeon')
             for avoided in monsters:
                 write_memory(
@@ -871,7 +883,7 @@ def sneak_past(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
         })
 
 @register_workflow()
-def surprise_attack(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def surprise_attack(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """Strike first at the monsters spotted while exploring - battle on the party's terms"""
 
     workflow_name = 'surprise_attack'
@@ -934,7 +946,7 @@ def surprise_attack(context: dict, on_update: Callable[[str, Dict[str, Any]], No
         })
 
 @register_workflow()
-def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def setup_camp(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     Set up camp in a monster-free location: streamed vanity dialogue
     between the party's monsters as they rest
@@ -996,10 +1008,13 @@ def setup_camp(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) 
         # judges how much for each monster; failures mean a full rest)
         step = "restore_resources"
         on_update(step, progress_data)
-        from backend.game.dungeon.generator import generate_camp_restore
         from backend.game.battle.constants import (
-            RESOURCE_LADDER, RESOURCE_DELTAS, BRIMMING, full_resources
+            BRIMMING,
+            RESOURCE_DELTAS,
+            RESOURCE_LADDER,
+            full_resources,
         )
+        from backend.game.dungeon.generator import generate_camp_restore
 
         restores = generate_camp_restore(location, workflow_name)
         party_resources = manager.get_party_resources()
@@ -1148,7 +1163,11 @@ def _apply_dungeon_resource_deltas(manager, actor, ability, stamina_delta, mana_
     target (else the actor). Pools live in dungeon party_resources.
     """
     from backend.game.battle.constants import (
-        RESOURCE_LADDER, RESOURCE_DELTAS, ABILITY_POOL_BY_TYPE, BRIMMING, full_resources
+        ABILITY_POOL_BY_TYPE,
+        BRIMMING,
+        RESOURCE_DELTAS,
+        RESOURCE_LADDER,
+        full_resources,
     )
     from backend.game.state.manager import get_party_monster_ids
 
@@ -1183,7 +1202,7 @@ def _apply_dungeon_resource_deltas(manager, actor, ability, stamina_delta, mana_
     manager.set_party_resources(resources)
 
 @register_workflow()
-def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def use_dungeon_ability(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     A party monster uses an ability on ANYTHING outside battle - a path,
     a monster, the location, or something the player describes. The LLM
@@ -1276,7 +1295,7 @@ def use_dungeon_ability(context: dict, on_update: Callable[[str, Dict[str, Any]]
         })
 
 @register_workflow()
-def use_dungeon_item(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def use_dungeon_item(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     The party uses an inventory ITEM on anything outside battle. The LLM
     referee reads the item's description and decides what actually happens.
@@ -1358,7 +1377,7 @@ def use_dungeon_item(context: dict, on_update: Callable[[str, Dict[str, Any]], N
         })
 
 @register_workflow()
-def continue_exploring(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def continue_exploring(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """Generate fresh paths onward from the current location"""
 
     workflow_name = 'continue_exploring'
@@ -1370,9 +1389,9 @@ def continue_exploring(context: dict, on_update: Callable[[str, Dict[str, Any]],
     progress_data = {}
 
     try:
-        from backend.game.dungeon.generator import generate_paths
-        from backend.game.dungeon import manager
         from backend.game.battle import manager as battle_manager
+        from backend.game.dungeon import manager
+        from backend.game.dungeon.generator import generate_paths
 
         # Step 0 - validate required keys
         step = "validate_context"
@@ -1417,7 +1436,7 @@ def continue_exploring(context: dict, on_update: Callable[[str, Dict[str, Any]],
         })
 
 @register_workflow()
-def condense_dungeon_log(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def condense_dungeon_log(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     Housekeeping: condense ONE batch of the oldest un-summarized dungeon
     log entries into a rolling summary. Queued by the heavier dungeon
@@ -1433,9 +1452,7 @@ def condense_dungeon_log(context: dict, on_update: Callable[[str, Dict[str, Any]
 
     try:
         from backend.game.dungeon import manager
-        from backend.game.utils.rolling_summary import (
-            plan_batch, covered_count, summarize_lines
-        )
+        from backend.game.utils.rolling_summary import covered_count, plan_batch, summarize_lines
 
         step = "plan_batch"
         on_update(step, progress_data)

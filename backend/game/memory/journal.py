@@ -5,7 +5,7 @@
 # state and vanishes when the run ends; reflections turn it into
 # permanent memories before that.
 
-from typing import List
+
 from backend.game.utils.context_limits import clamp_context
 
 JOURNAL_MAX_LINES = 30    # per monster, oldest dropped first
@@ -46,7 +46,7 @@ def append_party_journal(line: str) -> None:
     except Exception as e:
         print(f"❌ Failed to append party journal: {e}")
 
-def get_journal_lines(monster_id) -> List[str]:
+def get_journal_lines(monster_id) -> list[str]:
     """One monster's journal lines, oldest first"""
     try:
         from backend.game.dungeon import manager as dungeon

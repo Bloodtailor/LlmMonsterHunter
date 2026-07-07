@@ -6,17 +6,18 @@
 # Normalization here guards LLM output, not our own code.
 
 import random
-from backend.models.monster import Monster
-from backend.models.ability import Ability
-from backend.game.utils import build_and_generate
-from backend.game.monster import cmdts_data
+
 from backend.ai import gateway
 from backend.core.events import (
+    emit_monster_ability_added,
+    emit_monster_art_ready,
     emit_monster_created,
     emit_monster_updated,
-    emit_monster_ability_added,
-    emit_monster_art_ready
 )
+from backend.game.monster import cmdts_data
+from backend.game.utils import build_and_generate
+from backend.models.ability import Ability
+from backend.models.monster import Monster
 
 WILDS_LOCATION_CONTEXT = "The untamed wilds of the realm, far from any charted place"
 

@@ -4,8 +4,9 @@
 # workflow that creates monsters/abilities/art broadcasts these automatically
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from typing import Dict, Any
-from .event_registry import register_events, _emit_from_schema
+from typing import Any
+
+from .event_registry import _emit_from_schema, register_events
 
 # ===== MONSTER EVENT DEFINITIONS =====
 
@@ -63,19 +64,19 @@ register_events(MONSTER_EVENTS)
 
 # ===== MONSTER EVENT FUNCTIONS =====
 
-def emit_monster_created(monster: Dict[str, Any]) -> bool:
+def emit_monster_created(monster: dict[str, Any]) -> bool:
     """Emit when a new monster is saved to the database"""
     return _emit_from_schema('monster.created',
         monster=monster
     )
 
-def emit_monster_updated(monster: Dict[str, Any]) -> bool:
+def emit_monster_updated(monster: dict[str, Any]) -> bool:
     """Emit when staged generation fills in more of an existing monster"""
     return _emit_from_schema('monster.updated',
         monster=monster
     )
 
-def emit_monster_ability_added(monster_id: int, ability: Dict[str, Any]) -> bool:
+def emit_monster_ability_added(monster_id: int, ability: dict[str, Any]) -> bool:
     """Emit when a new ability is saved for a monster"""
     return _emit_from_schema('monster.ability_added',
         monster_id=monster_id,
@@ -89,14 +90,14 @@ def emit_monster_art_ready(monster_id: int, image_path: str) -> bool:
         image_path=image_path
     )
 
-def emit_monster_memory_added(monster_id: int, memory: Dict[str, Any]) -> bool:
+def emit_monster_memory_added(monster_id: int, memory: dict[str, Any]) -> bool:
     """Emit when a monster records a new memory of the party"""
     return _emit_from_schema('monster.memory_added',
         monster_id=monster_id,
         memory=memory
     )
 
-def emit_monster_evolved(monster: Dict[str, Any], evolution: Dict[str, Any]) -> bool:
+def emit_monster_evolved(monster: dict[str, Any], evolution: dict[str, Any]) -> bool:
     """Emit the moment an evolution ceremony transforms a monster in place"""
     return _emit_from_schema('monster.evolved',
         monster=monster,

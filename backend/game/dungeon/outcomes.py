@@ -4,7 +4,7 @@
 # for future outcome mechanics (items, blessings, curses, lasting
 # conditions...) - each handler below grows without touching the LLM flow.
 
-from typing import Dict, Any, List
+from typing import Any
 
 # Every outcome a dialogue turn can produce. The LLM must pick one.
 DIALOGUE_OUTCOMES = (
@@ -24,7 +24,7 @@ def validate_outcome(outcome: str) -> str:
     cleaned = str(outcome or '').strip().lower()
     return cleaned if cleaned in DIALOGUE_OUTCOMES else 'continue_dialogue'
 
-def apply_dialogue_outcome(outcome: str, monster_ids: List[int], location: Dict[str, Any] = None) -> Dict[str, Any]:
+def apply_dialogue_outcome(outcome: str, monster_ids: list[int], location: dict[str, Any] = None) -> dict[str, Any]:
     """
     Apply the mechanical consequences of a resolved dialogue outcome.
     Returns {'joined_names': [...], 'log_note': str, 'item': dict|None} for
@@ -52,8 +52,8 @@ def apply_dialogue_outcome(outcome: str, monster_ids: List[int], location: Dict[
     elif outcome == 'reward':
         # The monster grants a real item, themed on the giver and the
         # conversation that earned it (emits inventory.item_added)
-        from backend.game.inventory.generator import generate_reward_item
         from backend.game.dungeon.manager import get_encounter_dialogue_text
+        from backend.game.inventory.generator import generate_reward_item
 
         giver = next(
             (m for m in (Monster.get_monster_by_id(int(mid)) for mid in monster_ids) if m),
@@ -93,15 +93,15 @@ _OUTCOME_MEMORY = {
                "Was crossed by the party at {location} and made them pay a price, short of blood.")
 }
 
-def _write_outcome_memories(outcome: str, monster_ids: List[int], location: Dict[str, Any], item_data):
+def _write_outcome_memories(outcome: str, monster_ids: list[int], location: dict[str, Any], item_data):
     """
     Permanent memories for a resolved dialogue: what the monster decided,
     plus the conversation excerpt that led there. Never raises.
     """
     try:
-        from backend.game.memory.manager import write_memory
-        from backend.game.memory.journal import append_party_journal
         from backend.game.dungeon.manager import get_encounter_dialogue_text
+        from backend.game.memory.journal import append_party_journal
+        from backend.game.memory.manager import write_memory
 
         if outcome not in _OUTCOME_MEMORY:
             return

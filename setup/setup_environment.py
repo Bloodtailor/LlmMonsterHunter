@@ -5,18 +5,23 @@ Walks user through setting up missing requirements
 """
 
 import sys
+
 from setup.check_requirements import check_requirements
 from setup.checks import COMPONENT_CHECKS, run_component_diagnostic
 from setup.flows import COMPONENT_FLOWS
 from setup.utils.ux_utils import (
-    print_header, show_status_table, print_success, print_error, print_warning, 
-    print_info, print_continue, prompt_user_confirmation
+    print_continue,
+    print_error,
+    print_header,
+    print_success,
+    prompt_user_confirmation,
 )
+
 
 def auto_setup_basic_backend():
     """Perform automatic installation of basic requirements that do not require user attention"""
 
-    from setup.flows.basic_backend_flow import auto_setup_basic_backend 
+    from setup.flows.basic_backend_flow import auto_setup_basic_backend
     auto_setup_basic_backend()
 
 def main_interactive_setup(dry_run=False):
@@ -25,13 +30,13 @@ def main_interactive_setup(dry_run=False):
     print("This will help you set up missing requirements for Monster Hunter Game.")
     print("You'll be asked before each setup step.")
     print()
-    
+
     # Get the list of components in setup order
     component_names = list(COMPONENT_FLOWS.keys())
     total_components = len(component_names)
-    
+
     for current, component_name in enumerate(component_names, 1):
-        
+
         # Check if already working
         check_function = COMPONENT_CHECKS[component_name]
         try:
@@ -40,7 +45,7 @@ def main_interactive_setup(dry_run=False):
                 continue
         except Exception as e:
             print_error(f"\nError checking {component_name}: {e}\n")
-        
+
         # Ask user if they want to set this up
         print(f"\n{component_name} needs to be set up. (component {current} of {total_components})\n")
         run_component_diagnostic(component_name)
@@ -49,11 +54,11 @@ def main_interactive_setup(dry_run=False):
             try:
                 print()
                 print(f"\nSetting up {component_name}...")
-                
+
                 # Run the interactive setup flow
                 setup_function = COMPONENT_FLOWS[component_name]
                 result = setup_function(current=current, total=total_components, dry_run=dry_run)
-                
+
                 if result:
                     print_success(f"{component_name} setup completed successfully.")
                 else:
@@ -61,7 +66,7 @@ def main_interactive_setup(dry_run=False):
             except Exception as e:
                 print()
                 print_error(f"Error during {component_name} setup: {e}")
-                
+
             print()
             print_header(f"{component_name} setup complete!")
             print()
@@ -69,13 +74,13 @@ def main_interactive_setup(dry_run=False):
         else:
             print()
             print_continue(f"Skipping {component_name} setup.")
- 
-    
-    # Final summary  
+
+
+    # Final summary
     print()
     print_header("Interactive Environment Setup: FINISHED")
     print()
-    if prompt_user_confirmation(f"Would you like to recheck requirments before exiting? [Y/n]: "):
+    if prompt_user_confirmation("Would you like to recheck requirments before exiting? [Y/n]: "):
         check_requirements()
 
 if __name__ == "__main__":

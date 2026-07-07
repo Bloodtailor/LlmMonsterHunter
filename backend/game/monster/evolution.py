@@ -15,7 +15,7 @@
 #   finalize_evolution                        (memory + narrative)
 # Invariant: a MonsterEvolution row exists <=> the transform happened.
 
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
 # Stat boost per evolution stage: the leap shrinks as stages stack.
 # All four stats climb together; numbers are code-owned.
@@ -49,9 +49,9 @@ def evolution_eligibility_error(monster_id: int) -> Optional[str]:
     """
     try:
         from backend.game.dungeon import manager as dungeon
-        from backend.models.monster import Monster
-        from backend.models.following_monsters import FollowingMonster
         from backend.models.active_party import ActiveParty
+        from backend.models.following_monsters import FollowingMonster
+        from backend.models.monster import Monster
 
         if dungeon.is_in_dungeon():
             return "The party is in the dungeon - evolution waits for home base"
@@ -125,14 +125,14 @@ def build_transformation_facts(evolution) -> str:
 
 # ===== STAGE 1: FORM DESIGN (the only abort point) =====
 
-def run_form_design(monster, guidance: str, stage: int, workflow_name: str) -> Dict[str, Any]:
+def run_form_design(monster, guidance: str, stage: int, workflow_name: str) -> dict[str, Any]:
     """
     The one call allowed to fail the whole evolution - nothing has been
     mutated yet, so a parse failure here simply aborts. Raises on failure.
     """
-    from backend.game.utils import build_and_generate
-    from backend.game.monster.context_builder import build_speaker_block
     from backend.game.memory.manager import build_memory_block
+    from backend.game.monster.context_builder import build_speaker_block
+    from backend.game.utils import build_and_generate
 
     taxonomy = monster.taxonomy or {}
     locked = f"{taxonomy.get('domain') or 'Unknown'} > {taxonomy.get('kingdom') or 'Unknown'}"
@@ -150,7 +150,7 @@ def run_form_design(monster, guidance: str, stage: int, workflow_name: str) -> D
         'player_guidance': guidance or NO_GUIDANCE_NOTE
     })
 
-def apply_evolution_form(monster, form: Dict[str, Any], guidance: str, stage: int):
+def apply_evolution_form(monster, form: dict[str, Any], guidance: str, stage: int):
     """
     Snapshot -> lineage row -> identity + taxonomy + stats + rarity +
     heal, every number clamped in code. Emits monster.updated and
@@ -158,9 +158,9 @@ def apply_evolution_form(monster, form: Dict[str, Any], guidance: str, stage: in
     Raises if the lineage row cannot be written (nothing mutated then -
     the row IS the record that a transform happened).
     """
-    from backend.models.monster_evolution import MonsterEvolution
+    from backend.core.events.monster_events import emit_monster_evolved, emit_monster_updated
     from backend.game.monster.cmdts_data import SIZE_CLASSES, normalize_choice
-    from backend.core.events.monster_events import emit_monster_updated, emit_monster_evolved
+    from backend.models.monster_evolution import MonsterEvolution
 
     new_species = str(form.get('species') or '').strip()[:100] or f"Evolved {monster.species}"[:100]
     new_name = keep_name_root(monster.name, form.get('evolved_name'))
@@ -230,9 +230,9 @@ def queue_evolution_narration(monster, evolution, guidance: str, workflow_name: 
     its new form; the facts block carries what it left behind).
     Returns the generation id the frontend streams from.
     """
-    from backend.game.utils import build_and_stream
-    from backend.game.monster.context_builder import build_speaker_block
     from backend.game.memory.manager import build_memory_block
+    from backend.game.monster.context_builder import build_speaker_block
+    from backend.game.utils import build_and_stream
 
     return build_and_stream('evolution_narration', workflow_name, {
         'monster_details': build_speaker_block(monster),
@@ -243,10 +243,10 @@ def queue_evolution_narration(monster, evolution, guidance: str, workflow_name: 
 
 # ===== STAGE 3: PERSONA SHIFT =====
 
-def run_persona_shift(monster, evolution, guidance: str, workflow_name: str) -> Optional[Dict[str, Any]]:
+def run_persona_shift(monster, evolution, guidance: str, workflow_name: str) -> Optional[dict[str, Any]]:
     """One LLM call: how the inner life shifts with the body. None on failure."""
-    from backend.game.utils import build_and_generate
     from backend.game.monster.context_builder import build_speaker_block
+    from backend.game.utils import build_and_generate
 
     try:
         return build_and_generate('evolution_persona', workflow_name, {
@@ -258,7 +258,7 @@ def run_persona_shift(monster, evolution, guidance: str, workflow_name: str) -> 
         print(f"❌ Evolution persona shift failed for {monster.name} - inner life keeps its old shape: {e}")
         return None
 
-def apply_persona_shift(monster, shift: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def apply_persona_shift(monster, shift: Optional[dict[str, Any]]) -> dict[str, Any]:
     """
     Apply the shift with every rule enforced in code. Only
     EVOLVABLE_PERSONA_FIELDS are ever written - core_wish, secret,
@@ -306,7 +306,7 @@ def apply_persona_shift(monster, shift: Optional[Dict[str, Any]]) -> Dict[str, A
         emit_monster_updated(monster.to_dict())
     return applied
 
-def build_persona_shift_facts(applied_shift: Dict[str, Any]) -> str:
+def build_persona_shift_facts(applied_shift: dict[str, Any]) -> str:
     """The persona changes as compact lines for the prose stage"""
     labels = {
         'battle_line': 'New battle cry',
@@ -323,10 +323,10 @@ def build_persona_shift_facts(applied_shift: Dict[str, Any]) -> str:
 # ===== STAGE 4: PROSE + APPEARANCE =====
 
 def run_prose_rewrite(monster, evolution, persona_shift_facts: str, guidance: str,
-                      workflow_name: str) -> Optional[Dict[str, Any]]:
+                      workflow_name: str) -> Optional[dict[str, Any]]:
     """One LLM call: new description, a backstory chapter, the new look. None on failure."""
-    from backend.game.utils import build_and_generate
     from backend.game.monster.context_builder import build_speaker_block
+    from backend.game.utils import build_and_generate
 
     old_visual = str((monster.appearance or {}).get('visual_description') or '').strip() \
         or monster.description
@@ -342,7 +342,7 @@ def run_prose_rewrite(monster, evolution, persona_shift_facts: str, guidance: st
         print(f"❌ Evolution prose failed for {monster.name} - old words stand, art stays: {e}")
         return None
 
-def apply_prose(monster, prose: Optional[Dict[str, Any]]) -> bool:
+def apply_prose(monster, prose: Optional[dict[str, Any]]) -> bool:
     """
     Description is replaced, the backstory gains a chapter (never
     rewritten), the appearance block is rebuilt for the card artist.
@@ -389,10 +389,10 @@ def apply_prose(monster, prose: Optional[Dict[str, Any]]) -> bool:
 
 # ===== STAGE 5: ABILITY EVOLUTION =====
 
-def run_ability_evolution(monster, evolution, guidance: str, workflow_name: str) -> Optional[Dict[str, Any]]:
+def run_ability_evolution(monster, evolution, guidance: str, workflow_name: str) -> Optional[dict[str, Any]]:
     """One LLM call: which abilities evolve with the body. None on failure."""
-    from backend.game.utils import build_and_generate
     from backend.game.monster.context_builder import build_speaker_block
+    from backend.game.utils import build_and_generate
 
     abilities_text = "\n".join(
         f"{index + 1}. {ability.name}: {ability.description}"
@@ -409,7 +409,7 @@ def run_ability_evolution(monster, evolution, guidance: str, workflow_name: str)
         print(f"❌ Evolution ability pass failed for {monster.name} - abilities keep their old words: {e}")
         return None
 
-def apply_ability_evolution(monster, decisions: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def apply_ability_evolution(monster, decisions: Optional[dict[str, Any]]) -> dict[str, Any]:
     """
     Up to ABILITY_REWORD_CAP existing abilities may be renamed and
     reworded (same power, evolved expression, length-capped). Whether a
@@ -453,7 +453,7 @@ def apply_ability_evolution(monster, decisions: Optional[Dict[str, Any]]) -> Dic
 # ===== FINALE: THE EVOLUTION BECOMES A MEMORY =====
 
 def finalize_evolution(monster, evolution, narrative: str, memory_note: str,
-                       applied: Dict[str, Any]) -> None:
+                       applied: dict[str, Any]) -> None:
     """
     Save the ceremony text to the lineage row and make the evolution a
     permanent memory. The memory's details deliberately carry NO 'stat'

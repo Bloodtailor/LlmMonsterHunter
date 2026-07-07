@@ -4,8 +4,10 @@
 # the referee needs to judge what the item does when used.
 # Data storage only - consumption logic lives in the game layer.
 
-from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text
+
+from .base import BaseModel
+
 
 class Item(BaseModel):
     """

@@ -5,8 +5,9 @@
 # stretches get condensed into chat_summaries rows instead.
 # Data storage only - conversation logic lives in backend/game/chat.
 
+from sqlalchemy import Column, ForeignKey, Integer, String, Text
+
 from .base import BaseModel
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
 
 # Who spoke a message
 CHAT_ROLES = ('player', 'monster')

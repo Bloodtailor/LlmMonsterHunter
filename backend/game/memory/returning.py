@@ -6,7 +6,7 @@
 # appears in a normal encounter, memories riding its prompt context.
 
 import random
-from typing import Dict, Any, Optional, List
+from typing import Any
 
 # How often things return
 RETURNING_EVENT_WEIGHT = 0.12   # path event weight, only when the pool is nonempty
@@ -70,19 +70,19 @@ def _fallback_disposition(monster_id: int) -> str:
         return 'friendly'
     return 'wary'
 
-def transform_returning_monster(monster, workflow_name: str) -> Dict[str, Any]:
+def transform_returning_monster(monster, workflow_name: str) -> dict[str, Any]:
     """
     The reunion transform: ONE LLM call decides how this monster returns
     (disposition, greeting, how hard it trained, whether it forged an
     answer to its defeat) - then CODE applies every number, clamped.
     Always returns {'disposition', 'greeting', 'monster'}.
     """
-    from backend.game.utils import build_and_generate
-    from backend.game.memory.manager import build_memory_block, write_memory
-    from backend.game.state.manager import get_party_summary
-    from backend.game.monster.context_builder import build_speaker_block
-    from backend.models.monster_memory import MonsterMemory
     from backend.core.events.monster_events import emit_monster_updated
+    from backend.game.memory.manager import build_memory_block, write_memory
+    from backend.game.monster.context_builder import build_speaker_block
+    from backend.game.state.manager import get_party_summary
+    from backend.game.utils import build_and_generate
+    from backend.models.monster_memory import MonsterMemory
 
     return_count = MonsterMemory.count_kind(monster.id, 'returned')
 

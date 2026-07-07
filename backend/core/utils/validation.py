@@ -1,4 +1,5 @@
-from typing import Iterable
+from collections.abc import Iterable
+
 
 def require_keys(ctx: dict, keys: Iterable[str]) -> None:
   missing = [k for k in keys if k not in ctx]

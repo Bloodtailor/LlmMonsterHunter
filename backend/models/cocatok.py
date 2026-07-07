@@ -3,8 +3,10 @@
 # by the CoCaTok component from color + emoji (no AI art). Keepsakes are
 # permanent - there is deliberately no delete path.
 
-from .base import BaseModel
 from sqlalchemy import Column, String, Text
+
+from .base import BaseModel
+
 
 class CoCaTok(BaseModel):
     """

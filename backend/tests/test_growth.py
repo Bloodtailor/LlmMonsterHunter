@@ -23,16 +23,15 @@ def main():
     app = build_test_app()
 
     with app.app_context():
-        from backend.models.core import db, create_tables
-        from backend.models.monster import Monster
-        from backend.models.ability import Ability
-        from backend.models.monster_memory import MonsterMemory
-        from backend.game.memory import growth
-        from backend.game.memory import manager as memory
-        from backend.game.memory import journal
-        from backend.game.dungeon import manager as dungeon
-        import backend.game.utils as game_utils
         import backend.game.monster.generator as monster_generator
+        import backend.game.utils as game_utils
+        from backend.game.dungeon import manager as dungeon
+        from backend.game.memory import growth, journal
+        from backend.game.memory import manager as memory
+        from backend.models.ability import Ability
+        from backend.models.core import create_tables, db
+        from backend.models.monster import Monster
+        from backend.models.monster_memory import MonsterMemory
 
         print('🧪 GROWTH TESTS')
         print('=' * 50)

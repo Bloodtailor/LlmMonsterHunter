@@ -5,16 +5,17 @@ Diagnostic flow for fundamental environment problems
 """
 COMPONENT_NAME = "Basic Backend"
 
-from setup.utils.ux_utils import *
 from setup.checks.basic_backend_checks import (
-    check_python_version,
-    check_pip,
-    check_network_access,
-    check_virtual_environment,
+    check_basic_backend_requirements_silent,
     check_basic_dependencies,
     check_env_file,
-    check_basic_backend_requirements_silent
+    check_network_access,
+    check_pip,
+    check_python_version,
+    check_virtual_environment,
 )
+from setup.utils.ux_utils import *
+
 
 def auto_setup_basic_backend():
     """Automatically set up basic backend requirements, only showing output when installing."""
@@ -22,16 +23,17 @@ def auto_setup_basic_backend():
     # End early if backend already set up
     backend_ok = check_basic_backend_requirements_silent()
     if backend_ok:
-        return True 
-    
+        return True
+
     print("Setting up basic backend requirements...")
 
     import subprocess
     from pathlib import Path
+
     from setup.installation.basic_backend_installation import (
-        create_virtual_environment, 
-        install_basic_dependencies, 
-        create_env_file
+        create_env_file,
+        create_virtual_environment,
+        install_basic_dependencies,
     )
 
     # Create virtual environment if needed
@@ -44,12 +46,12 @@ def auto_setup_basic_backend():
         else:
             print(f"❌ {message}")
             return False
-    
+
     # Install basic dependencies if needed
     pip_path = Path("venv/Scripts/pip.exe")
     if pip_path.exists():
         try:
-            result = subprocess.run([str(pip_path), "show", "Flask"], 
+            result = subprocess.run([str(pip_path), "show", "Flask"],
                                   capture_output=True, text=True, check=True)
             if "Version:" not in result.stdout:
                 raise subprocess.CalledProcessError(1, "Flask not found")
@@ -61,7 +63,7 @@ def auto_setup_basic_backend():
     else:
         print("❌ Virtual environment pip not found")
         return False
-    
+
     # Create .env file if needed
     from setup.utils.env_utils import env_file_exists
     if not env_file_exists():
@@ -69,18 +71,18 @@ def auto_setup_basic_backend():
         if not success:
             print(f"❌ {message}")
             return False
-    
+
     print("✅ Basic backend setup completed")
     return True
 
 def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False):
     """
     Interactive setup flow for basic backend components
-    
+
     Returns:
         bool: True if user wants to continue, False to exit
     """
-    
+
     # ================================================================
     # SECTION 1: INITIAL STATUS CHECK AND DISPLAY
     # ================================================================
@@ -94,7 +96,7 @@ def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False)
     )
 
     print("Checking current status...")
-    
+
     # Run individual checks
     python_ok, python_message = check_python_version()
     pip_ok, pip_message = check_pip()
@@ -137,10 +139,10 @@ def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False)
         print("This interactive setup shouldn't have been needed.")
         print()
         return True
-    
+
     # Show diagnostic message
     show_message('basic_backend_diagnostic')
-    
+
     # Ask user if they want to continue despite problems
     if not prompt_user_confirmation("Do you want to continue setup anyway? [y/N]: "):
         print()
@@ -149,13 +151,13 @@ def run_basic_backend_interactive_setup(current=None, total=None, dry_run=False)
         print()
         import sys
         sys.exit(0)
-    
+
     # User chose to continue despite problems
     print()
     print_continue("Continuing with basic backend issues...")
     print("You brave, brave soul.")
     print()
-    
+
     return True
 
 if __name__ == "__main__":

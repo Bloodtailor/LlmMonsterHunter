@@ -1,12 +1,14 @@
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from typing import Callable, Dict, Any
-from backend.core.workflow_registry import register_workflow
-from backend.core.utils.responses import success_response, error_response
+from typing import Any, Callable
+
+from backend.core.utils.responses import error_response, success_response
 from backend.core.utils.validation import require_keys
+from backend.core.workflow_registry import register_workflow
+
 
 @register_workflow()
-def chat_with_monster(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def chat_with_monster(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     One exchange in the home-base chat: store the adventurer's line,
     stream the monster's in-character reply (the frontend follows
@@ -88,7 +90,7 @@ def chat_with_monster(context: dict, on_update: Callable[[str, Dict[str, Any]], 
         })
 
 @register_workflow()
-def chat_housekeeping(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+def chat_housekeeping(context: dict, on_update: Callable[[str, dict[str, Any]], None]) -> dict:
     """
     Behind-the-scenes pass over one monster's thread, queued by
     chat_with_monster when thresholds are hit:

@@ -2,16 +2,19 @@
 # Pure business logic - assumes all inputs are valid
 # Eliminates defensive programming completely
 
-from typing import Dict, Any
+from typing import Any
+
 from sqlalchemy import func
-from backend.models.monster import Monster
+
+from backend.core.utils import error_response, success_response
 from backend.models.ability import Ability
 from backend.models.core import db
-from backend.core.utils import success_response, error_response
-    
-def get_all_monsters(limit: int, offset: int, filter_type: str, sort_by: str) -> Dict[str, Any]:
+from backend.models.monster import Monster
+
+
+def get_all_monsters(limit: int, offset: int, filter_type: str, sort_by: str) -> dict[str, Any]:
     """Get monsters - assumes valid parameters"""
-    
+
     query = Monster.query
 
     if filter_type == 'with_art':
@@ -33,7 +36,7 @@ def get_all_monsters(limit: int, offset: int, filter_type: str, sort_by: str) ->
     query = query.options(db.joinedload(Monster.abilities)).offset(offset)
     if limit is not None:
         query = query.limit(limit)
-    
+
     monsters = query.all()
 
     return success_response({
@@ -51,21 +54,21 @@ def get_all_monsters(limit: int, offset: int, filter_type: str, sort_by: str) ->
     })
 
 
-def get_monster_stats(filter_type: str) -> Dict[str, Any]:
+def get_monster_stats(filter_type: str) -> dict[str, Any]:
     """Get stats - assumes valid filter_type"""
-    
+
     # Base query
     monster_query = Monster.query
-    
+
     # Apply filtering
     if filter_type == 'with_art':
         monster_query = monster_query.filter(Monster.card_art_path.isnot(None))
     elif filter_type == 'without_art':
         monster_query = monster_query.filter(Monster.card_art_path.is_(None))
-    
+
     # Get counts
     total_monsters = monster_query.count()
-    
+
     if total_monsters == 0:
         return success_response({
             'filter_applied': filter_type,
@@ -82,24 +85,24 @@ def get_monster_stats(filter_type: str) -> Dict[str, Any]:
                 'oldest_monster': None
             }
         })
-    
+
     # Get stats
     monster_ids = [monster.id for monster in monster_query.with_entities(Monster.id).all()]
     total_abilities = Ability.query.filter(Ability.monster_id.in_(monster_ids)).count()
-    
+
     # Card art stats
     all_monsters_count = Monster.query.count()
     with_card_art = Monster.query.filter(Monster.card_art_path.isnot(None)).count()
-    
+
     # Species breakdown
     species_data = db.session.query(
         Monster.species, func.count(Monster.id).label('count')
     ).filter(Monster.id.in_(monster_ids)).group_by(Monster.species).all()
-    
+
     # Get newest/oldest
     newest_monster = monster_query.order_by(Monster.created_at.desc()).first()
     oldest_monster = monster_query.order_by(Monster.created_at.asc()).first()
-    
+
     return success_response({
         'filter_applied': filter_type,
         'stats': {
@@ -116,12 +119,12 @@ def get_monster_stats(filter_type: str) -> Dict[str, Any]:
         }
     })
 
-def get_monster_by_id( monster_id: int) -> Dict[str, Any]:
+def get_monster_by_id( monster_id: int) -> dict[str, Any]:
     """Get monster by ID - assumes valid ID"""
-    
+
     monster = Monster.query.get(monster_id)
-    
+
     if not monster:
         return error_response('Monster not found', monster=None)
-    
+
     return success_response({'monster': monster.to_dict()})

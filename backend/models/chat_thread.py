@@ -5,8 +5,10 @@
 # or not it saved anything).
 # Data storage only - extraction cadence lives in backend/game/chat.
 
+from sqlalchemy import Column, ForeignKey, Integer, UniqueConstraint
+
 from .base import BaseModel
-from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint
+
 
 class ChatThread(BaseModel):
     """

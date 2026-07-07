@@ -1,17 +1,19 @@
 
+import importlib.util
 import io
 import sys
 import traceback
-import importlib.util
-from flask import jsonify
 from pathlib import Path
+
+from flask import jsonify
+
 
 class TeeStdout:
     """A stream that writes to both sys.stdout and a string buffer"""
     def __init__(self, original_stdout):
         self.original_stdout = original_stdout
         self.buffer = io.StringIO()
-    
+
     def write(self, data):
         self.original_stdout.write(data)  # write to terminal
         self.buffer.write(data)           # write to memory

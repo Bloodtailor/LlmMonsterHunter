@@ -2,16 +2,18 @@
 # Validates all inputs and delegates to game logic / workflows
 # Single source of truth for dungeon business rules
 
-from typing import Dict, Any, Optional
-from backend.game.dungeon import manager
+from typing import Any, Optional
+
+from backend.core.utils import error_response, success_response, validate_and_continue
 from backend.game.battle import manager as battle_manager
 from backend.game.battle.constants import PLAYER_TEXT_MAX_CHARS
-from backend.services.validators import validate_party_ready_for_dungeon
-from backend.core.utils import error_response, success_response, validate_and_continue
-from backend.workflow.workflow_gateway import request_workflow
+from backend.game.dungeon import manager
 from backend.models.monster import Monster
+from backend.services.validators import validate_party_ready_for_dungeon
+from backend.workflow.workflow_gateway import request_workflow
 
-def _encounter_blocks_travel(encounter: Optional[Dict[str, Any]]) -> bool:
+
+def _encounter_blocks_travel(encounter: Optional[dict[str, Any]]) -> bool:
     """
     Does the active encounter demand resolution before the party moves on?
     A conversation in progress or unhandled monsters block travel; an
@@ -25,7 +27,7 @@ def _encounter_blocks_travel(encounter: Optional[Dict[str, Any]]) -> bool:
         return bool(encounter.get('monster_ids'))
     return True
 
-def enter_dungeon() -> Dict[str, Any]:
+def enter_dungeon() -> dict[str, Any]:
     """
     Enter dungeon with validation
     Trust boundary: validates party readiness, then queues the workflow
@@ -44,7 +46,7 @@ def enter_dungeon() -> Dict[str, Any]:
     else:
         return error_response("Failed to queue enter dungeon workflow")
 
-def choose_path(path_id: str) -> Dict[str, Any]:
+def choose_path(path_id: str) -> dict[str, Any]:
     """
     Choose a path with validation
     Trust boundary: validates dungeon state and path id, then queues the workflow
@@ -70,7 +72,7 @@ def choose_path(path_id: str) -> Dict[str, Any]:
     else:
         return error_response("Failed to queue choose path workflow")
 
-def respond_to_monster(message: str) -> Dict[str, Any]:
+def respond_to_monster(message: str) -> dict[str, Any]:
     """
     Speak to the encounter monsters (answer their question, keep a
     conversation going, or open talks with monsters found while exploring)
@@ -103,7 +105,7 @@ def respond_to_monster(message: str) -> Dict[str, Any]:
     else:
         return error_response("Failed to queue respond to monster workflow")
 
-def sneak_past() -> Dict[str, Any]:
+def sneak_past() -> dict[str, Any]:
     """
     Attempt to sneak past the monsters spotted while exploring
     Trust boundary: validates an explore encounter with monsters present
@@ -123,7 +125,7 @@ def sneak_past() -> Dict[str, Any]:
     else:
         return error_response("Failed to queue sneak past workflow")
 
-def surprise_attack() -> Dict[str, Any]:
+def surprise_attack() -> dict[str, Any]:
     """
     Spring a surprise attack on the monsters spotted while exploring
     Trust boundary: validates an explore encounter with monsters present
@@ -143,7 +145,7 @@ def surprise_attack() -> Dict[str, Any]:
     else:
         return error_response("Failed to queue surprise attack workflow")
 
-def setup_camp() -> Dict[str, Any]:
+def setup_camp() -> dict[str, Any]:
     """
     Set up camp in a monster-free explore location
     Trust boundary: validates the location is safe and not already camped
@@ -167,7 +169,7 @@ def setup_camp() -> Dict[str, Any]:
     else:
         return error_response("Failed to queue setup camp workflow")
 
-def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, target_id: Any = None, target_text: str = None) -> Dict[str, Any]:
+def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, target_id: Any = None, target_text: str = None) -> dict[str, Any]:
     """
     A party monster uses an ability on anything, outside battle
     Trust boundary: validates ownership, party membership, and the target
@@ -214,7 +216,7 @@ def use_ability(monster_id: Any, ability_id: Any, target_type: str = None, targe
     else:
         return error_response("Failed to queue use ability workflow")
 
-def use_item(item_id: Any, target_type: str = None, target_id: Any = None, target_text: str = None) -> Dict[str, Any]:
+def use_item(item_id: Any, target_type: str = None, target_id: Any = None, target_text: str = None) -> dict[str, Any]:
     """
     The party uses an inventory item on anything, outside battle
     Trust boundary: validates the item and the target
@@ -283,7 +285,7 @@ def _validate_dungeon_target(target_type: str, target_id: Any, target_text: str)
 
     return None, target_type, target_id
 
-def continue_exploring() -> Dict[str, Any]:
+def continue_exploring() -> dict[str, Any]:
     """
     Generate fresh paths from the current location
     Trust boundary: validates dungeon state, then queues the workflow
@@ -302,20 +304,20 @@ def continue_exploring() -> Dict[str, Any]:
     else:
         return error_response("Failed to queue continue exploring workflow")
 
-def get_debug_context() -> Dict[str, Any]:
+def get_debug_context() -> dict[str, Any]:
     """
     DEVELOPER X-RAY: everything the dungeon/battle LLM prompts are built
     from, produced by the SAME builder functions the generators use - so
     the debug panel shows exactly what the LLM sees. Includes hidden
     information (path events, destinations); never use for game UI.
     """
-    from backend.game.dungeon.generator import build_monsters_details, build_party_dungeon_details
     from backend.game.battle.generator import (
         build_battle_situation,
         build_combatant_summary,
+        build_recent_log,
         build_turn_history,
-        build_recent_log
     )
+    from backend.game.dungeon.generator import build_monsters_details, build_party_dungeon_details
     from backend.game.state.manager import get_party_summary
     from backend.models.monster import Monster
 
@@ -386,7 +388,7 @@ def get_debug_context() -> Dict[str, Any]:
         } if battle_state.get('in_battle') else {'in_battle': False}
     })
 
-def get_dungeon_state() -> Dict[str, Any]:
+def get_dungeon_state() -> dict[str, Any]:
     """
     Get the PUBLIC dungeon state (no hidden path events or destinations)
     Safe for the frontend - used for state restoration
@@ -410,7 +412,7 @@ def get_dungeon_state() -> Dict[str, Any]:
         } if encounter else None
     })
 
-def abandon_run() -> Dict[str, Any]:
+def abandon_run() -> dict[str, Any]:
     """
     Call the party home mid-run: the active run closes as 'abandoned'
     (its log is snapshotted first so home-base chats can still look back
