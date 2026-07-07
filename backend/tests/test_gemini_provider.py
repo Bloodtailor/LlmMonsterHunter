@@ -357,6 +357,49 @@ def main():
             finally:
                 stamped_log.delete()  # cascade removes the image_log child
 
+            # ===== the settings service (panel trust boundary) =====
+            print('\n-- the settings service --')
+            from backend.services import settings_service
+
+            GameSetting.delete_key(SETTINGS_KEY)
+
+            result = settings_service.update_image_settings(
+                {'enabled': True, 'model': 'gemini-3.1-flash-image'}
+            )
+            check('turning painting on without a key is refused', result['success'] is False)
+
+            result = settings_service.update_image_settings(
+                {'enabled': False, 'api_key': TEST_API_KEY}
+            )
+            check('the key may be stored while the switch stays off', result['success'] is True)
+
+            result = settings_service.update_image_settings({'enabled': True})
+            check(
+                'the stored key satisfies a later switch-on',
+                result.get('success') is True and result.get('enabled') is True,
+                str(result),
+            )
+
+            read = settings_service.get_image_settings()
+            check(
+                'reads are masked to last-4 and never leak the key',
+                read['has_api_key'] is True
+                and read['api_key_last4'] == TEST_API_KEY[-4:]
+                and TEST_API_KEY not in str(read),
+            )
+
+            gemini.requests = FakeRequests(
+                get_response=FakeResponse(
+                    json_data={'models': [{'name': 'models/gemini-3.1-flash-image'}]}
+                )
+            )
+            result = settings_service.fetch_gemini_models({})
+            check('the stored key backs an empty fetch request', result['success'] is True)
+
+            GameSetting.delete_key(SETTINGS_KEY)
+            result = settings_service.fetch_gemini_models({})
+            check('no key anywhere refuses the fetch', result['success'] is False)
+
             # ===== file numbering + legacy migration =====
             print('\n-- outputs tree --')
             temp_root = Path(tempfile.mkdtemp())

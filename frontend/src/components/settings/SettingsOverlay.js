@@ -2,17 +2,19 @@
 // A fixed overlay (like StreamingDisplay) rather than a game screen:
 // opening it must never unmount a live dungeon or battle screen, and it
 // works identically on the title screen and the Developer view.
-// Sectioned by design - v1 ships one section (Text Generation); future
-// sections (image generation, gameplay knobs) join SETTINGS_SECTIONS.
+// Sectioned by design - Text Generation and Images ship; future
+// sections (gameplay knobs, ...) join SETTINGS_SECTIONS.
 
 import React, { useState } from 'react';
 import { Button, Card, CardSection } from '../../shared/ui/index.js';
+import ImageSettingsSection from './ImageSettingsSection.js';
 import LlmSettingsSection from './LlmSettingsSection.js';
 import './settings.css';
 
 const SETTINGS_SECTIONS = [
   { id: 'text-generation', label: '🗣️ Text Generation', Section: LlmSettingsSection },
-  // Future sections slot in here: image generation, gameplay knobs, ...
+  { id: 'image-generation', label: '🎨 Images', Section: ImageSettingsSection },
+  // Future sections slot in here: gameplay knobs, ...
 ];
 
 function SettingsOverlay({ isOpen, onClose }) {

@@ -221,6 +221,7 @@ def _wait_for_completion(
                     'success': result.get('success', None),
                     'error': result.get('error', None),
                     'image_path': result.get('image_path', ''),
+                    'model_name': result.get('model_name'),
                 }
 
         if status['status'] == 'failed':

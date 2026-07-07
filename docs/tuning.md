@@ -39,6 +39,8 @@ local/env as the floor.
 | DeepSeek model | — | Picked from the live `GET /models` list or typed by hand. The model id is stamped into every `llm_logs` row it answers |
 | DeepSeek context window | auto from `DEEPSEEK_KNOWN_CONTEXT_WINDOWS` | Sets the 70% prompt ceiling while DeepSeek is active. Auto-fills for known models (v4 family: 1M), always editable; minimum `MIN_CONTEXT_WINDOW` (1,000,000 — the hard floor). The token bill is governed by the absolute block caps below, not the window |
 | DeepSeek API key | — | Stored in the row, masked to last-4 on every read, write-only through the API |
+| Image generation | off | Images section: on/off switch + Gemini API key + model, in the `image_provider` row. Turning ON requires a key; an empty model means the code default (`gemini-3.1-flash-image`, "Nano Banana 2"). Resolved per paint — no restart, no env switch |
+| Gemini API key | — | Same write-only, masked-to-last-4 rules as the DeepSeek key |
 
 `DEEPSEEK_KNOWN_CONTEXT_WINDOWS` and `MIN_CONTEXT_WINDOW` live in
 `backend/ai/llm/provider_settings.py` — update the map when DeepSeek

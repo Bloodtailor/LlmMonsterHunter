@@ -1,4 +1,9 @@
-import { transformLlmSettings, transformProviderTest } from '../settings.js';
+import {
+  transformImageSettings,
+  transformImageTest,
+  transformLlmSettings,
+  transformProviderTest,
+} from '../settings.js';
 
 const RAW_SETTINGS = {
   success: true,
@@ -76,6 +81,57 @@ describe('transformProviderTest', () => {
   it('returns null (with a warning) for invalid input', () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     expect(transformProviderTest(undefined)).toBeNull();
+    warn.mockRestore();
+  });
+});
+
+describe('transformImageSettings', () => {
+  it('maps snake_case fields to camelCase', () => {
+    const settings = transformImageSettings({
+      success: true,
+      enabled: true,
+      has_api_key: true,
+      api_key_last4: '5678',
+      model: 'gemini-3.1-flash-image',
+      default_model: 'gemini-3.1-flash-image',
+      message: 'Settings saved',
+    });
+    expect(settings.enabled).toBe(true);
+    expect(settings.hasApiKey).toBe(true);
+    expect(settings.apiKeyLast4).toBe('5678');
+    expect(settings.model).toBe('gemini-3.1-flash-image');
+    expect(settings.defaultModel).toBe('gemini-3.1-flash-image');
+    expect(settings.message).toBe('Settings saved');
+  });
+
+  it('fills safe defaults for a bare response', () => {
+    const settings = transformImageSettings({ success: true });
+    expect(settings.enabled).toBe(false);
+    expect(settings.hasApiKey).toBe(false);
+    expect(settings.model).toBeNull();
+  });
+
+  it('returns null (with a warning) for invalid input', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(transformImageSettings(null)).toBeNull();
+    warn.mockRestore();
+  });
+});
+
+describe('transformImageTest', () => {
+  it('maps the test paint result', () => {
+    const result = transformImageTest({
+      success: true,
+      image_path: 'settings/00000001.png',
+      model_name: 'gemini-3.1-flash-image',
+    });
+    expect(result.imagePath).toBe('settings/00000001.png');
+    expect(result.modelName).toBe('gemini-3.1-flash-image');
+  });
+
+  it('returns null (with a warning) for invalid input', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(transformImageTest('nope')).toBeNull();
     warn.mockRestore();
   });
 });

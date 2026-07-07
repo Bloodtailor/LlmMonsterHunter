@@ -1,15 +1,18 @@
 # Settings API
 
-The in-game settings panel's backend (`/api/settings`). v1 covers text
-generation only: which provider speaks (the local GGUF model or the
-DeepSeek API), stored in the `game_settings` table — the one game table
-that **survives the New Game wipe** (player setup is not world state;
-locked decision, [docs/plans/game-settings.md](../plans/game-settings.md)).
+The in-game settings panel's backend (`/api/settings`). Two sections:
+**text generation** (which provider speaks — the local GGUF model or the
+DeepSeek API) and **images** (the Gemini painter,
+[docs/plans/cloud-generation.md](../plans/cloud-generation.md)). Both
+live in the `game_settings` table — the one game table that **survives
+the New Game wipe** (player setup is not world state; locked decision,
+[docs/plans/game-settings.md](../plans/game-settings.md)).
 
 Settings are resolved **per generation request**, so a save takes effect
-on the next generation — no restart. A missing or half-configured row
-always resolves to the local model exactly as the game behaved before
-the panel existed.
+on the next generation — no restart. A missing or half-configured LLM
+row always resolves to the local model exactly as the game behaved
+before the panel existed; a missing image row means painting is off
+(art is a bonus, never a blocker).
 
 ## LLM settings (`/api/settings/llm`)
 
@@ -63,7 +66,7 @@ Save from the panel. Rules:
   "deepseek": {
     "api_key": "sk-...",        // optional once stored
     "model": "deepseek-v4-flash",
-    "context_window": 65536     // optional for known models
+    "context_window": 2000000   // optional for known models; min 1,000,000
   }
 }
 ```
@@ -111,3 +114,62 @@ Synchronous: the response waits for the generation.
 **Error:** `400` with the provider's message (e.g. the 401 mapping) —
 exactly what the panel should show. No silent fallback to the other
 provider (locked decision).
+
+## Image settings (`/api/settings/image`)
+
+Painting is OFF until this section is configured — there is no env
+switch anymore. The Gemini API key is **write-only**, same rules as the
+DeepSeek key.
+
+### GET /settings/image
+
+**Success:**
+```json
+{
+  "success": true,
+  "enabled": boolean,
+  "has_api_key": boolean,
+  "api_key_last4": string|null,
+  "model": string|null,        // saved pick; null = the default below
+  "default_model": "gemini-3.1-flash-image"
+}
+```
+
+### PUT /settings/image
+Save from the panel. Rules:
+- A blank/absent `api_key` keeps the stored key.
+- Fields may be saved while `enabled` stays `false` (paste the key now,
+  switch on later).
+- `enabled: true` requires a key (stored or provided).
+- A missing `model` falls back to `default_model` at paint time.
+
+**Request:** `{ "enabled": true, "api_key": "AIza...", "model": "gemini-3.1-flash-image" }`
+**Success:** the GET shape plus `"message": "Settings saved"`.
+**Error:** `400` with `{ "success": false, "error": string }`.
+
+### POST /settings/image/fetch-models
+Live image-capable model list (ids containing `image` — the Nano Banana
+family), proxied so the key never round-trips the panel. A successful
+fetch **is** key validation.
+
+**Request:** `{ "api_key": "AIza..." }` — optional; the stored key backs
+an empty request.
+**Success:** `{ "success": true, "models": ["gemini-3.1-flash-image", ...], "key_valid": true }`
+**Error:** `400` with the mapped Gemini message (401/403 bad key /
+429 rate limit / 5xx server / network unreachable).
+
+### POST /settings/image/test
+Fires one tiny real paint through the normal gateway — it queues, lands
+in the developer log with its model, and files a real image under
+`outputs/settings/`. Synchronous: the response waits for the paint.
+
+**Success:**
+```json
+{
+  "success": true,
+  "image_path": "settings/00000001.png",  // serve via /api/monsters/card-art/<path>
+  "model_name": "gemini-3.1-flash-image"
+}
+```
+**Error:** `400` with the provider's message — exactly what the panel
+should show.
