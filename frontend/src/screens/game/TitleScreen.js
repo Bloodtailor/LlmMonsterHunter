@@ -40,7 +40,7 @@ function TitleScreen() {
         setIsErasing(false);
         return;
       }
-      navigateToGameScreen('first-run-opening');
+      navigateToGameScreen('character-creation');
     } catch (error) {
       setEraseError(error.message || 'The world would not let go - try again.');
       setIsErasing(false);

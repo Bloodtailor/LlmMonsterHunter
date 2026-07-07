@@ -13,6 +13,15 @@
       "runtimeExecutable": "./venv/Scripts/python.exe",
       "runtimeArgs": ["-X", "utf8", "-m", "backend.run"],
       "port": 5000
+    },
+    {
+      "name": "backend-testdb",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "set DB_NAME=monster_hunter_game_test&& venv\\Scripts\\python.exe -X utf8 -m backend.run"
+      ],
+      "port": 5000
     }
   ]
 }

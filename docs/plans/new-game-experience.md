@@ -1,6 +1,6 @@
 # New Game Experience — Wipe + Player Character — Plan
 
-**Status:** IN PROGRESS (July 2026) — M1-M3 landed; M4 (creation screen) next.
+**Status:** IN PROGRESS (July 2026) — M1-M4 landed; M5 (chat-as-player + docs) next.
 **Branch:** `feature/new-game-experience` — one milestone commit per milestone, prefix `Ngx-M#`.
 
 Today "New Game" wipes nothing (game-loop-v1 locked decision #1: the
@@ -79,7 +79,7 @@ GET `/api/player`, POST `options`/`create`/`portrait/generate`
 saved to `outputs/player_uploads/`, auto-selected). Existing card-art
 route serves everything under outputs.
 
-### M4 — Character development screen — PLANNED
+### M4 — Character development screen — IMPLEMENTED
 `screens/game/CharacterCreationScreen.js` + `components/player/` wizard:
 per-field option cards + always-editable free text; portrait stage with
 candidate gallery, paint-another, upload, and skip (art never blocks);
@@ -131,3 +131,8 @@ with the player fighting as a commanded ally.
   file on purpose); painted candidates still require an explicit
   select. Player sapience is pinned to sapient/speech so chat gating
   can never bite the player's own voice.
+- **M4:** a `backend-testdb` launch config (cmd sets DB_NAME to the
+  test database) was added so the full creation flow can be soaked
+  end-to-end on the real model + ComfyUI without touching the dev
+  world. The whole wizard was verified live this way (options → forge
+  → paint → upload guardrails → select → opening).
