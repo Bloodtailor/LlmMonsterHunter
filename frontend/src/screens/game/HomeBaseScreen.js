@@ -31,13 +31,22 @@ function HomeBaseScreen() {
                             Enter the dungeon
                         </Button>
                         
-                        <Button 
-                            size="xl" 
+                        <Button
+                            size="xl"
                             icon="🏛️"
                             variant="secondary"
                             onClick={() => navigateToGameScreen('sanctuary')}
                         >
                             Monster Sanctuary
+                        </Button>
+
+                        <Button
+                            size="xl"
+                            icon="🔥"
+                            variant="secondary"
+                            onClick={() => navigateToGameScreen('monster-chat')}
+                        >
+                            Campfire Chat
                         </Button>
                     </div>
                 </CardSection>
