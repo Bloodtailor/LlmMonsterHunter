@@ -34,6 +34,14 @@ const CONDITION_VARIANTS = {
   incapacitated: 'error',
 };
 
+// Affinity colors along the trust ladder (wary monsters act on their own)
+const AFFINITY_VARIANTS = {
+  wary: 'warning',
+  familiar: 'info',
+  trusting: 'primary',
+  devoted: 'success',
+};
+
 const narrationStyles = {
   fontSize: 'var(--font-size-md)',
   lineHeight: 'var(--line-height-relaxed)',
@@ -226,9 +234,18 @@ function DungeonPartyPanel() {
                       showPartyToggle={false}
                       hideFlipHint={true}
                     />
-                    <Badge variant={CONDITION_VARIANTS[condition] || 'info'} size="sm" pill>
-                      {condition}
-                    </Badge>
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      <Badge variant={CONDITION_VARIANTS[condition] || 'info'} size="sm" pill>
+                        {condition}
+                      </Badge>
+                      <Badge
+                        variant={AFFINITY_VARIANTS[monster.affinity] || 'warning'}
+                        size="sm"
+                        pill
+                      >
+                        🤝 {monster.affinity || 'wary'}
+                      </Badge>
+                    </div>
                     <ResourceBadges stamina={pools.stamina} mana={pools.mana} />
                   </div>
                 );

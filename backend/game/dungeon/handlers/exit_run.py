@@ -43,6 +43,10 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
                 "Walked out of the dungeon alive with the party, carrying "
                 "everything the run had made of it.",
             )
+            # Surviving a run together deepens the bond one step
+            from backend.game.monster.affinity import step_affinity
+
+            step_affinity(monster.id, 'survived_run_together')
     except Exception as ceremony_error:
         print(f"❌ Exit ceremony failed (the exit itself stands): {ceremony_error}")
     step.data.update({"growth": growth_results})

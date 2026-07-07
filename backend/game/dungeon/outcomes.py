@@ -52,6 +52,14 @@ def apply_dialogue_outcome(
                 # followers are at stake)
                 if FollowingMonster.add_follower(int(monster_id)):
                     record_run_recruit(int(monster_id))
+
+                    # Choosing the party AGAIN - with memories of them -
+                    # is a reunion; the renewed bond starts a step warmer
+                    from backend.game.monster.affinity import step_affinity
+                    from backend.models.monster_memory import MonsterMemory
+
+                    if MonsterMemory.query.filter_by(monster_id=int(monster_id)).count() > 0:
+                        step_affinity(int(monster_id), 'rejoined_after_memories')
                 joined_names.append(monster.name)
         log_note = f"{', '.join(joined_names) or 'The monster'} joined the party as a follower."
 

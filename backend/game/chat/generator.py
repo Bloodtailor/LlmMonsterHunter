@@ -25,10 +25,12 @@ REPLY_TIMEOUT_SECONDS = 540
 
 def build_chat_speaker_block(monster) -> str:
     """The monster as FULL context - a speaking monster always gets its
-    whole persona, secret included (never shown to the player)"""
-    from backend.game.monster.context_builder import build_speaker_block
+    whole persona, secret included (never shown to the player), plus its
+    affinity line (home chats are where the bond deepens - it should
+    speak from wherever it currently stands with the party)"""
+    from backend.game.monster.affinity import speaker_block_with_affinity
 
-    return build_speaker_block(monster)
+    return speaker_block_with_affinity(monster)
 
 
 def build_chat_memories_block(monster_id: int) -> str:

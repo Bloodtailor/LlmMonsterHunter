@@ -45,6 +45,13 @@ function BattleLogBox() {
       <CardSection type="content" alignment="center">
         {currentNarration ? (
           <>
+            {currentNarration.autonomous && (
+              <div style={{ marginBottom: '8px' }}>
+                <Badge variant="warning" size="sm" pill>
+                  🐾 {currentNarration.actor_name} acts on its own terms
+                </Badge>
+              </div>
+            )}
             {isTalk && (
               <p
                 style={{

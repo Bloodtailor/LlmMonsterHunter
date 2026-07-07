@@ -22,9 +22,8 @@ def advance_until_player_or_end(ctx: TurnContext, outcome, resolution):
         MAX_CONSECUTIVE_ENEMY_TURNS,
         OVERDUE_WAIT_MULTIPLIER,
     )
+    from backend.game.battle.context_blocks import build_combatant_summary, build_side_details
     from backend.game.battle.generator import (
-        build_combatant_summary,
-        build_side_details,
         generate_enemy_turn,
         generate_next_turn,
         generate_turn_vanity_text,
@@ -77,6 +76,21 @@ def advance_until_player_or_end(ctx: TurnContext, outcome, resolution):
             _, _, side, actor_id = candidates[0]
 
         if side == 'allies':
+            # A WARY ally never waits for orders - it acts on its own
+            # terms and the loop moves on (the player watches)
+            from backend.game.monster.affinity import is_autonomous
+
+            monster = ctx.monsters.get(str(actor_id))
+            if monster and is_autonomous(monster):
+                from . import autonomy
+
+                autonomy.resolve_autonomous_ally_turn(ctx, actor_id)
+                consecutive_enemy_turns = 0  # an ally still acted
+                outcome = battle.derive_outcome(ctx.state)
+                if outcome != 'unresolved':
+                    resolution = 'combat'
+                continue
+
             # The player's monster - hand control back
             ctx.state['pending_actor'] = actor_id
             ctx.state['phase'] = 'awaiting_player_turn'

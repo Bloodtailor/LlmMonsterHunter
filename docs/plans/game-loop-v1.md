@@ -71,7 +71,7 @@ rewards, victory keepsakes). Defeat and abandonment release the
 provisional recruits (each gets a parting memory — the memories REMAIN)
 and delete the run's items. Victory exit keeps everything.
 
-### M5 — Affinity v1 — PLANNED
+### M5 — Affinity v1 — IMPLEMENTED
 `Monster.affinity` column + `backend/tests/add_affinity_column.py`
 (idempotent ALTER; backfills followers to `trusting`). New
 `game/monster/affinity.py`: ladder, `step_affinity` (+1, capped, writes
@@ -130,3 +130,10 @@ recruit acting on its own, then earning `familiar` and taking commands.
   gathered and are taken back on defeat/abandonment (new
   `inventory.cocatok_removed` event). Keepsakes carried out alive remain
   permanent; the model comment was updated in the same commit.
+- **M5 (file-size ceiling):** battle/generator.py crossed 500, so the
+  state-to-text builders moved to `game/battle/context_blocks.py` (pure
+  composition; generator keeps the LLM calls). The evolution ceremony's
+  affinity step lives in the workflow orchestrator, not evolution.py
+  (grandfathered file may only shrink). The test harness now REBUILDS the
+  disposable test DB when its schema drifts behind the models
+  (`_SCHEMA_MARKERS` in tests/harness.py) — create_all never ALTERs.

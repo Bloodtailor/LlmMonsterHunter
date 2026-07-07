@@ -13,7 +13,7 @@ from backend.game.dungeon import manager
 
 def get_debug_context() -> dict[str, Any]:
     """The full LLM-context X-ray for the Developer screen"""
-    from backend.game.battle.generator import (
+    from backend.game.battle.context_blocks import (
         build_battle_situation,
         build_combatant_summary,
         build_recent_log,

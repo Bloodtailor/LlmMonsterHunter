@@ -38,6 +38,7 @@ _EMPTY_STATE = {
     'run_recruits': [],  # monster ids recruited this run
     'run_item_ids': [],  # item ids found/granted this run
     'run_cocatok_ids': [],  # victory keepsakes minted this run
+    'affinity_steps': {},  # monster_id: steps gained this run (affinity.py valve)
 }
 
 # ===== CORE STATE ACCESS =====

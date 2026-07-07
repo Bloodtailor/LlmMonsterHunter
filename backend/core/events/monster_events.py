@@ -49,6 +49,14 @@ MONSTER_EVENTS = {
         },
         'send_to_frontend': True,
     },
+    'monster.affinity_changed': {
+        'data_fields': {
+            'monster_id': 'Database ID of the monster whose trust changed',
+            'affinity': "The new tier: 'wary'|'familiar'|'trusting'|'devoted'",
+            'reason': 'The code-visible event that moved it (e.g. camp_rest)',
+        },
+        'send_to_frontend': True,
+    },
 }
 
 # Register monster events with the core registry
@@ -65,6 +73,13 @@ def emit_monster_created(monster: dict[str, Any]) -> bool:
 def emit_monster_updated(monster: dict[str, Any]) -> bool:
     """Emit when staged generation fills in more of an existing monster"""
     return _emit_from_schema('monster.updated', monster=monster)
+
+
+def emit_monster_affinity_changed(monster_id: int, affinity: str, reason: str) -> bool:
+    """Emit when a monster's trust in the party climbs a tier"""
+    return _emit_from_schema(
+        'monster.affinity_changed', monster_id=monster_id, affinity=affinity, reason=reason
+    )
 
 
 def emit_monster_ability_added(monster_id: int, ability: dict[str, Any]) -> bool:

@@ -12,8 +12,8 @@ from .context import TurnContext
 def finish_battle(ctx: TurnContext, outcome, resolution, joined_names) -> dict[str, Any]:
     """Everything after the last blow: narrate, persist, remember, mint"""
     from backend.game.battle import manager as battle
+    from backend.game.battle.context_blocks import build_side_details
     from backend.game.battle.generator import (
-        build_side_details,
         generate_battle_outcome_text,
         generate_battle_summary,
     )

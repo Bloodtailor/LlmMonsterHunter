@@ -14,8 +14,8 @@ def run_monster_battle(step: WorkflowStep, location: dict, workflow_name: str) -
     import random as _random
 
     from backend.game.battle.constants import ENEMY_COUNT_RANGE
+    from backend.game.battle.context_blocks import build_side_details
     from backend.game.battle.generator import (
-        build_side_details,
         generate_battle_arrival_text,
         generate_battle_intro,
     )

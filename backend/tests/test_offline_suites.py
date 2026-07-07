@@ -19,6 +19,7 @@ SUITES = [
     'test_chat_and_summaries',
     'test_expedition',
     'test_stakes',
+    'test_affinity',
 ]
 
 

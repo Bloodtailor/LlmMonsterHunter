@@ -40,7 +40,8 @@ def resolve_talk_exchange(
 ):
     """Run the negotiation adjudicator and apply its decision"""
     from backend.game.battle import manager as battle
-    from backend.game.battle.generator import build_side_details, generate_battle_talk
+    from backend.game.battle.context_blocks import build_side_details
+    from backend.game.battle.generator import generate_battle_talk
     from backend.game.memory import journal
 
     talk = generate_battle_talk(

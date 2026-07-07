@@ -163,6 +163,8 @@ GENERATOR_VARIABLES = {
     'goal_check': {'goal_text', 'recent_events', 'progress_so_far'},
     'goal_reward_item': {'goal_text', 'progress_notes'},
     'enemy_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
+    # A wary ally acting on its own terms (battle/turn/autonomy.py)
+    'ally_autonomous_turn': {'actor_details', 'ally_details', 'enemy_details', 'recent_log'},
     # Dungeon ability referee (dungeon/generator.py resolve_dungeon_ability)
     'dungeon_ability_use': {
         'location_name',

@@ -112,6 +112,26 @@ code-owned `notable` growth step per member. Defeat forfeits the reward.
 | `GOAL_ANSWERS` | no / progress / complete | The referee's word ladder (anything else counts as `no`) |
 | reward growth tier | `notable` (exit_run.py) | The bonus growth step each member gets for a fulfilled goal (caps still apply) |
 
+## Affinity — `backend/game/monster/affinity.py`
+
+How deeply a monster trusts the party. Moved ONE step at a time by
+code-visible events; the LLM only ever reads the word. The headline
+effect: a **wary monster acts on its own in battle**
+(`battle/turn/autonomy.py`) — its turn auto-resolves like an enemy turn
+and the player watches. Devoted monsters get a friendlier referee line;
+the affinity line also rides chat and evolution-narration context.
+
+| Knob | Default | Effect |
+|---|---|---|
+| `AFFINITY_LADDER` | wary → familiar → trusting → devoted | The trust word ladder (stored on `monsters.affinity`; NULL reads wary) |
+| `DEFAULT_AFFINITY` | `wary` | Where new recruits start — your newest companion fights beside you, not FOR you |
+| `MAX_AFFINITY_STEPS_PER_RUN` | `2` | THE VALVE: in-run events can deepen each bond at most this much per run |
+| autonomy tier | `wary` only (`is_autonomous`) | Which tier ignores commands in battle |
+| step events | first-heals by an ally, camp rest, rejoining with memories, surviving a run (exit), a memory-producing home chat, evolution | Each moves affinity +1 (in-run ones under the valve; home ones unbudgeted) |
+
+Existing followers were backfilled to `trusting` by
+`backend/tests/add_affinity_column.py` (idempotent dev-DB script).
+
 ## Growth — `backend/game/memory/growth.py`
 
 In-run growth: small, journal-earned nudges (evolution is the big leap).

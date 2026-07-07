@@ -5,9 +5,19 @@ from .context import TurnContext
 
 
 def resolve_combat_turn(
-    ctx: TurnContext, side, actor_id, action, ability, target_side, target_id, item=None
+    ctx: TurnContext,
+    side,
+    actor_id,
+    action,
+    ability,
+    target_side,
+    target_id,
+    item=None,
+    autonomous=False,
 ):
-    """Resolve one attack/ability/defend/item turn via the referee"""
+    """Resolve one attack/ability/defend/item turn via the referee.
+    autonomous marks a wary ally acting on its own (turn/autonomy.py) so
+    the frontend can label the turn."""
     from backend.game.battle import manager as battle
     from backend.game.battle.generator import resolve_action
     from backend.game.memory import journal
@@ -79,10 +89,23 @@ def resolve_combat_turn(
     # Party monsters journal what they did (feeds growth reflections)
     if side == 'allies':
         used = ability.name if ability else (item.name if item else 'a basic attack')
+        prefix = 'Acting on its own terms, used' if autonomous else 'Used'
         journal.append_journal(
             actor_id,
-            f"Used {used} on {target_name} ({impact}): {resolution['narration'][:110]}",
+            f"{prefix} {used} on {target_name} ({impact}): {resolution['narration'][:110]}",
         )
+
+    # A companion's healing deepens trust (first heals each run - the
+    # per-run valve in affinity.py keeps this honest)
+    if (
+        side == 'allies'
+        and target_side == 'allies'
+        and str(actor_id) != str(target_id)
+        and str(impact).startswith('heal')
+    ):
+        from backend.game.monster.affinity import step_affinity
+
+        step_affinity(int(target_id), 'healed_by_ally')
 
     battle.append_log(ctx.state, resolution['narration'])
     battle.record_turn(ctx.state, actor_name, action, actor_id=actor_id, side=side)
@@ -99,5 +122,6 @@ def resolve_combat_turn(
             'impact': impact,
             'target_condition': new_condition,
             'dialogue': None,
+            'autonomous': autonomous,
         }
     )

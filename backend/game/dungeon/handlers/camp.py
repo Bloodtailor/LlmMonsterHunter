@@ -80,6 +80,14 @@ def run_setup_camp(context: dict, step: WorkflowStep) -> dict[str, Any]:
     manager.set_party_resources(party_resources)
     step.data.update({"party_resources": party_resources})
 
+    # A night around the fire together deepens every bond one step
+    # (the per-run valve in affinity.py keeps runs honest)
+    from backend.game.monster.affinity import step_affinity
+    from backend.game.state.manager import get_party_monster_ids
+
+    for monster_id in get_party_monster_ids():
+        step_affinity(monster_id, 'camp_rest')
+
     # Step 5 - growth: the fire spotlights the 1-2 members whose story
     # mattered most this run; the rest keep the memory of the evening.
     # A failure here never breaks the camp itself.

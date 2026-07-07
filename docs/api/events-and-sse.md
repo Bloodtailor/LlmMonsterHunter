@@ -68,6 +68,10 @@ and Sanctuary auto-refresh):
   old name/species/stats and `old_card_art_path` so the ceremony UI can show
   the before-form without a fetch. Later ceremony stages keep arriving as
   ordinary `monster.updated` patches.
+- `monster.affinity_changed` — `{ monster_id, affinity, reason }`: the
+  monster's trust in the party climbed a tier
+  (`wary → familiar → trusting → devoted`); `reason` names the
+  code-visible event that moved it (e.g. `camp_rest`, `healed_by_ally`).
 
 ### Dungeon domain events
 - `dungeon.monster_revealed` — `{ monster }` (full `MonsterObject`): a

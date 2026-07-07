@@ -37,6 +37,10 @@ class Monster(BaseModel):
         String(50), nullable=True
     )  # tank|striker|skirmisher|support|controller|trickster
 
+    # How deeply it trusts the party: wary|familiar|trusting|devoted
+    # (NULL reads as wary; ladder + effects live in game/monster/affinity.py)
+    affinity = Column(String(20), nullable=True)
+
     # Staged generation progress: blueprint -> persona -> complete
     generation_stage = Column(String(20), nullable=True, default='complete')
 
@@ -92,6 +96,7 @@ class Monster(BaseModel):
                 'personality_traits': self.personality_traits or [],
                 'rarity': self.rarity,
                 'party_role': self.party_role,
+                'affinity': self.affinity or 'wary',
                 'generation_stage': self.generation_stage or 'complete',
                 'taxonomy': self.taxonomy or {},
                 'class_taxonomy': self.class_taxonomy or [],

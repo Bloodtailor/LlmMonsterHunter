@@ -325,9 +325,14 @@ Public battle snapshot. Synchronous.
 ### Battle results over SSE
 Each resolved turn is a `workflow.update` step `action_resolved` with
 `data.action_result` (narration, actor/target, impact, an optional
-`dialogue` for talk turns, and a `battle_snapshot`). The frontend queues
-these for click-through. The `battle_turn` `workflow.completed` result is
-one of:
+`dialogue` for talk turns, `autonomous: boolean`, and a
+`battle_snapshot`). The frontend queues these for click-through.
+**Wary allies act on their own:** when the turn director picks a party
+monster whose affinity is `wary`, control never reaches the player — the
+LLM chooses its action (attack/ability/defend, never against the party),
+the turn resolves with `autonomous: true`, and the loop continues. Its
+one-sentence thought still streams first. The `battle_turn`
+`workflow.completed` result is one of:
 - `{ pending: "player_turn", pending_actor, pending_actor_name, battle_snapshot }`
 - `{ pending: "player_response", pending_talk: { speaker_name, dialogue }, battle_snapshot }`
 - `{ outcome: "victory"|"defeat", resolution, joined_names: string[], outcome_text, cocatok, defeat_reflection: string|null, spoils_lost: { released_names, lost_item_names } | null, battle_snapshot }`
