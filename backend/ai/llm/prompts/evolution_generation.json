@@ -1,0 +1,64 @@
+{
+  "evolution_form": {
+    "description": "Design a following monster's evolved form from its lived history and optional player guidance: new species, root-keeping name, updated invented lineage",
+    "max_tokens": 300,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["species", "evolved_name", "family", "genus", "race_label", "size_class", "form_theme"],
+      "required_fields": ["species", "evolved_name"]
+    },
+    "prompt_template": "A monster that follows the adventuring party is about to EVOLVE at the home-base sanctuary - the big, earned leap its whole journey has been building toward. You design the form it becomes.\n\n========== CONTEXT ==========\n\n--- The monster as it is now ---\n{monster_details}\n\n--- What it has lived through ---\n{monster_memories}\n\n--- Its fixed lineage (never changes) ---\n{locked_lineage}\n\n--- The moment ---\n{stage_note}\n\n--- The player's guidance ---\n{player_guidance}\n\n========== YOUR TASK ==========\nDesign the evolved form. It must be a clear DESCENDANT of what it is - grown from its history, wishes, and scars (and the player's guidance, when given) - never a different creature:\n1. species - the new species name (1-3 words), evolved from the current one (e.g. Pebble Golem -> Basalt Colossus).\n2. evolved_name - its personal name, evolved but still recognizable: it MUST contain part of the current name (e.g. Rokk -> Rokkarath). Keep the current name unchanged if it already fits the new form.\n3. family - an updated invented family within its fixed lineage; null to keep the current one.\n4. genus - an updated invented genus; null to keep.\n5. race_label - a short display label for the new form (e.g. 'Colossus'); null to keep.\n6. size_class - ONLY if the new body truly changes size: exactly one of \"tiny\", \"small\", \"medium\", \"large\", \"huge\", \"colossal\"; else null.\n7. form_theme - one short phrase for the essence of this change (e.g. 'patience hardened into living stone').\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"species\": \"Basalt Colossus\", \"evolved_name\": \"Rokkarath\", \"family\": null, \"genus\": null, \"race_label\": \"Colossus\", \"size_class\": null, \"form_theme\": \"One short phrase.\"}}\n\nJSON:"
+  },
+
+  "evolution_narration": {
+    "description": "Streamed narration of an evolution ceremony at the home-base sanctuary",
+    "max_tokens": 450,
+    "temperature": 0.9,
+    "parser": {
+      "type": "text",
+      "parser_name": "none"
+    },
+    "prompt_template": "You are the narrator of a fantasy adventure. At the home-base sanctuary, one of the party's monsters is EVOLVING - its whole journey condensing into a single transformation.\n\n========== CONTEXT ==========\n\n--- The monster (already shown in its NEW form) ---\n{monster_details}\n\n--- What it has lived through ---\n{monster_memories}\n\n--- The transformation ---\n{transformation_facts}\n\n--- The player's guidance ---\n{player_guidance}\n\n========== YOUR TASK ==========\nWrite 4-6 sentences narrating the transformation itself: the old form wreathed in gathering light or force, its history surfacing (echo one or two remembered moments WITHOUT listing them), the body remaking itself, and the NEW form standing before the party at the end. Stay in the moment - no dialogue from the party, no events beyond the ceremony.\n\nResponse:"
+  },
+
+  "evolution_persona": {
+    "description": "How a monster's inner life shifts with its evolved body - voice, battle cry, goals; the soul itself is untouchable",
+    "max_tokens": 350,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["battle_line", "speech_style", "goals", "motivations", "memory_note"],
+      "required_fields": ["memory_note"]
+    },
+    "prompt_template": "A monster has just EVOLVED at the party's home base. Same soul, new body. You decide how its inner life settles into the new form.\n\n========== CONTEXT ==========\n\n--- The monster (in its new form) ---\n{monster_details}\n\n--- The transformation it just went through ---\n{transformation_facts}\n\n--- The player's guidance ---\n{player_guidance}\n\n========== YOUR TASK ==========\nIts core wish, its secret, and its bonds DO NOT change - evolution remakes the body, not the soul. Decide only what the new form reshapes:\n1. battle_line - its battle cry reworded for the new form (similar length to the old one); null to keep it.\n2. speech_style - its voice after the change, one line (deeper, calmer, wilder...); null if unchanged.\n3. goals - 1-3 updated goals as a list, grown from the old ones; null to keep them.\n4. motivations - one line: what drives it now; null to keep.\n5. memory_note - one past-tense sentence it will remember forever about the moment it evolved.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"battle_line\": \"One line or null.\", \"speech_style\": \"One line or null.\", \"goals\": [\"first goal\", \"second goal\"], \"motivations\": \"One line or null.\", \"memory_note\": \"One past-tense sentence.\"}}\n\nJSON:"
+  },
+
+  "evolution_prose": {
+    "description": "The evolved monster's new description, a fresh backstory chapter, and the appearance block that drives its new card art",
+    "max_tokens": 600,
+    "temperature": 0.85,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["description", "backstory_addendum", "visual_description", "primary_colors", "distinguishing_features"],
+      "required_fields": ["description", "visual_description"]
+    },
+    "prompt_template": "A monster has just EVOLVED at the party's home base. You write the words (and the artist's brief) for its new form.\n\n========== CONTEXT ==========\n\n--- The monster (identity and stats already updated) ---\n{monster_details}\n\n--- The transformation ---\n{transformation_facts}\n\n--- How its inner life shifted ---\n{persona_shift_facts}\n\n--- How it USED to look ---\n{old_visual_description}\n\n--- The player's guidance ---\n{player_guidance}\n\n========== YOUR TASK ==========\n1. description - 2-3 sentences: the evolved creature as it now is (present tense).\n2. backstory_addendum - 2-4 sentences: the NEW chapter of its story - the evolution and what it means. Do NOT retell its old backstory; this is appended to it.\n3. visual_description - 2-3 sentences for the card artist: the new body, clearly DESCENDED from how it used to look (keep what makes it recognizable, evolve the rest).\n4. primary_colors - 2-4 colors of the new form.\n5. distinguishing_features - 2-4 short visual features.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"description\": \"2-3 sentences.\", \"backstory_addendum\": \"2-4 sentences.\", \"visual_description\": \"2-3 sentences.\", \"primary_colors\": [\"obsidian black\", \"ember orange\"], \"distinguishing_features\": [\"molten seams across its shell\", \"a crown of basalt spikes\"]}}\n\nJSON:"
+  },
+
+  "evolution_abilities": {
+    "description": "Which abilities evolve with the body: up to two rewords (same power, evolved expression) and whether the new form earned one signature ability",
+    "max_tokens": 400,
+    "temperature": 0.8,
+    "parser": {
+      "type": "json",
+      "parser_name": "basic_parser",
+      "expected_fields": ["reword_1", "reword_1_new_name", "reword_1_description", "reword_2", "reword_2_new_name", "reword_2_description", "new_ability", "ability_theme"],
+      "required_fields": ["new_ability"]
+    },
+    "prompt_template": "A monster has just EVOLVED at the party's home base. Its abilities are part of who it is - they come along, but the new body may express them differently.\n\n========== CONTEXT ==========\n\n--- The monster (in its new form) ---\n{monster_details}\n\n--- The transformation ---\n{transformation_facts}\n\n--- Its current abilities (exact names) ---\n{existing_abilities_text}\n\n--- The player's guidance ---\n{player_guidance}\n\n========== YOUR TASK ==========\n1. reword_1 - the EXACT name of ONE existing ability whose expression evolves with the body; or \"none\".\n2. reword_1_new_name - its evolved name (e.g. 'Stone Wall' -> 'Basalt Rampart'); null to keep the name.\n3. reword_1_description - its new description: SIMILAR LENGTH to the old one, never longer, SAME power - only the expression evolves.\n4. reword_2 / reword_2_new_name / reword_2_description - optionally a second ability, same rules; reword_2 \"none\" if not.\n5. new_ability - \"yes\" ONLY if the new form demands one signature trick that NONE of its current abilities can express; else \"no\".\n6. ability_theme - if new_ability is yes: one short phrase for what that signature ability must do; else null.\n\n========== RESPONSE FORMAT ==========\nRespond with ONLY valid JSON in exactly this format:\n{{\"reword_1\": \"Stone Wall\", \"reword_1_new_name\": \"Basalt Rampart\", \"reword_1_description\": \"Similar-length description.\", \"reword_2\": \"none\", \"reword_2_new_name\": null, \"reword_2_description\": null, \"new_ability\": \"no\", \"ability_theme\": null}}\n\nJSON:"
+  }
+}

@@ -63,6 +63,7 @@ def create_tables():
     from .game_workflow import GameWorkflow
     from .dungeon_run import DungeonRun       # Dungeon run history
     from .monster_memory import MonsterMemory # What monsters remember
+    from .monster_evolution import MonsterEvolution # Evolution lineage records
     from .chat_message import ChatMessage     # Home-base chat lines
     from .chat_summary import ChatSummary     # Condensed old chat stretches
     from .chat_thread import ChatThread       # Per-thread housekeeping state
