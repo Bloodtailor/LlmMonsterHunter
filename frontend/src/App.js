@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 
 // Import NavButtons component from shared UI library
 import NavButtons from './shared/ui/Button/NavButtons.js';
+import Button from './shared/ui/Button/Button.js';
 
 // Providers
 import AppProvider from './app/AppProvider.js';
@@ -19,10 +20,16 @@ import DeveloperScreen from './screens/developer/DeveloperScreen.js';
 // Global overlays
 import StreamingDisplay from './components/streaming/StreamingDisplay.js';
 import DungeonContextPanel from './components/debug/DungeonContextPanel.js';
+import SettingsOverlay from './components/settings/SettingsOverlay.js';
 
 function App() {
   // Top-level navigation state - separates game from developer screens
   const [currentScreen, setCurrentScreen] = useState('game');
+
+  // Settings live in a header overlay, never a screen: opening them must
+  // not unmount a live dungeon/battle, and the gear works on the title
+  // screen and Developer view alike
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const navigationButtons = [
     {
@@ -52,11 +59,19 @@ function App() {
             alignment="left"
           />
 
+          {/* Settings gear - available everywhere */}
+          <Button size="sm" variant="ghost" onClick={() => setIsSettingsOpen(true)}>
+            ⚙️ Settings
+          </Button>
+
           {/* Global Streaming Display (right side) */}
           <StreamingDisplay />
 
           {/* Global LLM-context debug panel (left side) */}
           <DungeonContextPanel />
+
+          {/* Settings overlay (opened by the gear) */}
+          <SettingsOverlay isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         </header>
 
         {/* Main Content Area */}

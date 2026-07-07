@@ -56,9 +56,22 @@ def initialize_ai_systems(app):
         app: Flask application instance
     """
 
-    # Load LLM Model
+    # Load LLM Model - unless the settings panel picked a cloud provider
+    # (read inside app context; initialize_database already ran, so the
+    # game_settings table exists). Switching back to local mid-session
+    # still works: inference self-loads on first use.
     print_section('Initializing LLM Systems...')
-    if _load_llm_model():
+    with app.app_context():
+        from backend.ai.llm.provider_settings import PROVIDER_LOCAL, resolve_llm_settings
+
+        llm_settings = resolve_llm_settings()
+
+    if llm_settings['provider'] != PROVIDER_LOCAL:
+        print_info(
+            f"Text provider is '{llm_settings['provider']}' "
+            f"({llm_settings['model_name']}) - skipping local model load"
+        )
+    elif _load_llm_model():
         print("LLM model loaded and ready")
     else:
         print_error("LLM model failed to load - text generation disabled")

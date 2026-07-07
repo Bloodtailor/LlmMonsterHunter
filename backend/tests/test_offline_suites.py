@@ -24,6 +24,8 @@ SUITES = [
     'test_player_character',
     'test_player_creation',
     'test_new_game',
+    'test_game_settings',
+    'test_deepseek_provider',
 ]
 
 

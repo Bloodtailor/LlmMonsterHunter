@@ -325,7 +325,9 @@ One row per journey into the dungeon (table `dungeon_runs`).
   "max_attempts": number,
   "is_completed": boolean,
   "is_failed": boolean,
-  "llm_data": object|null,    // includes parsed_data / response_text for llm
+  "llm_data": object|null,    // includes parsed_data / response_text, plus
+                              // provider, model_name, prompt_tokens (exact
+                              // tokens in; null on pre-seam rows) for llm
   "image_data": object|null
 }
 ```

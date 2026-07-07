@@ -40,10 +40,12 @@ class LLMLog(BaseModel):
     echo = Column(Boolean, nullable=False)
 
     # === Model Information ===
-    model_name = Column(String(200), nullable=True)  # Model file name
+    model_name = Column(String(200), nullable=True)  # GGUF filename or API model id
+    provider = Column(String(20), nullable=True)  # 'local' | 'deepseek' (NULL = pre-seam row)
 
     # === LLM Response Data ===
     response_text = Column(Text, nullable=True)  # Raw model response (latest attempt)
+    prompt_tokens = Column(Integer, nullable=True)  # Exact tokens IN (tokenizer or API usage)
     response_tokens = Column(Integer, nullable=True)  # Tokens generated (latest attempt)
     tokens_per_second = Column(Float, nullable=True)  # Generation speed
 
@@ -62,6 +64,8 @@ class LLMLog(BaseModel):
             {
                 'generation_id': self.generation_id,
                 'model_name': self.model_name,
+                'provider': self.provider,
+                'prompt_tokens': self.prompt_tokens,
                 'response_tokens': self.response_tokens,
                 'tokens_per_second': self.tokens_per_second,
                 'parse_success': self.parse_success,
@@ -97,12 +101,17 @@ class LLMLog(BaseModel):
         }
 
     def mark_response_completed(
-        self, response_text: str, response_tokens: int = None, tokens_per_second: float = None
+        self,
+        response_text: str,
+        response_tokens: int = None,
+        tokens_per_second: float = None,
+        prompt_tokens: int = None,
     ):
         """Mark LLM response as completed"""
         self.response_text = response_text
         self.response_tokens = response_tokens
         self.tokens_per_second = tokens_per_second
+        self.prompt_tokens = prompt_tokens
 
     def mark_parsed(self, parsed_data: Any):
         """Mark parsing as successful"""
@@ -124,7 +133,11 @@ class LLMLog(BaseModel):
 
     @classmethod
     def create_from_params(
-        cls, inference_params: dict[str, Any], parser_config: Optional[dict[str, Any]] = None
+        cls,
+        inference_params: dict[str, Any],
+        parser_config: Optional[dict[str, Any]] = None,
+        provider: str = 'local',
+        model_name: Optional[str] = None,
     ):
         """
         Create LLM log from inference parameters
@@ -132,11 +145,17 @@ class LLMLog(BaseModel):
         Args:
             inference_params (dict): All inference parameters
             parser_config (dict): Parser configuration
+            provider (str): Which engine speaks - stamped at request time
+            model_name (str): The model that will answer (GGUF filename or API model id)
 
         Returns:
             LLMLog: New LLM log instance (not yet saved)
         """
         return cls(
+            # Stamp the engine NOW - a queued request keeps its provider
+            # even if settings change before it processes
+            provider=provider,
+            model_name=model_name,
             # Store all inference parameters
             max_tokens=inference_params['max_tokens'],
             temperature=inference_params['temperature'],

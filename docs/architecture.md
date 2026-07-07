@@ -49,6 +49,16 @@ Layer rules (enforced by review, soon by habit):
 4. **All AI generation goes through `ai/gateway.py`.** No exceptions.
    Every request becomes a `generation_log` row — the Developer screen's
    AI log table shows every prompt byte-exactly as the model received it.
+5. **Below the gateway sits the provider seam** (`ai/llm/providers/`):
+   the gateway resolves the player's settings (`game_settings` table over
+   env — `ai/llm/provider_settings.py`) and STAMPS provider + model onto
+   the log at request time; the processor dispatches on that stamp to
+   `local.py` (llama-cpp-python) or `deepseek.py` (cloud API). Queued
+   work always finishes on the provider it was requested under, and every
+   provider reports the same contract back (text, exact prompt/response
+   token counts, model name — the streaming panel and dev log show them).
+   Settings are read per request: a panel save applies to the next
+   generation, no restart.
 
 ## The async workflow model
 
@@ -147,7 +157,7 @@ backend/
   routes/       thin HTTP wrappers (one file per domain)
   services/     validation + business rules (the trust boundary)
   game/         monster/ dungeon/ battle/ chat/ inventory/ memory/ player/ state/ utils/
-  ai/           gateway.py, queue.py, llm/ (core, prompts, parser), comfyui/
+  ai/           gateway.py, queue.py, llm/ (core, prompts, parser, provider_settings, providers/), comfyui/
   workflow/     the workflow queue + gateway
   core/         events/, config/, utils/, workflow_registry.py
   models/       SQLAlchemy models (one file per table)

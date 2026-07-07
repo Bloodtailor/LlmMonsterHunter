@@ -131,6 +131,8 @@ class GenerationLog(BaseModel):
         prompt_text: str,
         inference_params: dict[str, Any],
         parser_config: Optional[dict[str, Any]] = None,
+        provider: str = 'local',
+        model_name: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -142,6 +144,8 @@ class GenerationLog(BaseModel):
             prompt_text (str): Full prompt text
             inference_params (dict): All inference parameters
             parser_config (dict): Parser configuration
+            provider (str): Which engine speaks - stamped at request time
+            model_name (str): The model that will answer
             **kwargs: Additional fields
 
         Returns:
@@ -162,7 +166,9 @@ class GenerationLog(BaseModel):
         # Create child LLM log (will be saved when parent is saved due to cascade)
         from backend.models.llm_log import LLMLog
 
-        llm_data = LLMLog.create_from_params(inference_params, parser_config)
+        llm_data = LLMLog.create_from_params(
+            inference_params, parser_config, provider=provider, model_name=model_name
+        )
         generation_log.llm_log = llm_data
 
         return generation_log

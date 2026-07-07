@@ -36,7 +36,13 @@ function LlmLogDetails({ log }) {
             <strong>Model:</strong> {llmLog.modelName || 'Unknown'}
           </div>
           <div>
-            <strong>Tokens:</strong> {llmLog.responseTokens || 0}
+            <strong>Provider:</strong> {llmLog.provider || 'Unknown'}
+          </div>
+          <div>
+            <strong>Prompt Tokens:</strong> {llmLog.promptTokens ?? 'Unknown'}
+          </div>
+          <div>
+            <strong>Response Tokens:</strong> {llmLog.responseTokens || 0}
           </div>
           <div>
             <strong>Speed:</strong> {llmLog.tokensPerSecond || 0} t/s

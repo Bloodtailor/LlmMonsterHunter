@@ -7,7 +7,8 @@
  * Backend item structure from QueueItem.to_dict():
  * {
  *   generation_id, generation_type, prompt_type, prompt_name,
- *   priority, created_at, status, result, error, started_at, completed_at
+ *   priority, created_at, status, result, error, started_at, completed_at,
+ *   model_name
  * }
  *
  * @param {Object|null} aiQueueItem - Queue item from backend event
@@ -31,6 +32,7 @@ export function transformAiQueueItem(aiQueueItem) {
     error: aiQueueItem.error || null,
     startedAt: aiQueueItem.started_at || null,
     completedAt: aiQueueItem.completed_at || null,
+    modelName: aiQueueItem.model_name || null,
   };
 }
 
