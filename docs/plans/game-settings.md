@@ -1,7 +1,7 @@
 # Game Settings — In-Game Settings Panel + DeepSeek Provider — Plan
 
-**Status:** IN PROGRESS (July 2026) — M1–M2 landed (settings storage/API,
-provider seam + observability); M3 DeepSeek provider and M4 panel UI remain.
+**Status:** IN PROGRESS (July 2026) — M1–M3 landed (settings storage/API,
+provider seam + observability, DeepSeek provider); M4 panel UI remains.
 **Branch:** `feature/game-settings` — one milestone commit per milestone, prefix `Set-M#`.
 
 Today the game speaks to exactly one text engine: the local
@@ -109,7 +109,7 @@ no event renames. Frontend: transformers pass `modelName` /
 `LlmLogDetails` shows Provider + Prompt Tokens. Docs:
 `docs/api/data-models.md`.
 
-### M3 — DeepSeek provider — PLANNED
+### M3 — DeepSeek provider — IMPLEMENTED
 `ai/llm/providers/deepseek.py`: `generate_streaming` (streaming chat
 completion via `requests` — no new dependency; single user message;
 param translation per locked decision 7; skips `reasoning_content`;

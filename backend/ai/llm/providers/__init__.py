@@ -8,7 +8,6 @@
 # under (locked decision, docs/plans/game-settings.md).
 
 from backend.ai.llm.provider_settings import PROVIDER_DEEPSEEK
-from backend.core.utils import print_warning
 
 
 def get_provider(provider_name):
@@ -20,14 +19,9 @@ def get_provider(provider_name):
     never strand the queue.
     """
     if provider_name == PROVIDER_DEEPSEEK:
-        try:
-            from backend.ai.llm.providers import deepseek
+        from backend.ai.llm.providers import deepseek
 
-            return deepseek
-        except ImportError:
-            # The DeepSeek module lands in Set-M3; a deepseek-stamped row
-            # before then falls back rather than failing the generation
-            print_warning('DeepSeek provider unavailable - falling back to local')
+        return deepseek
 
     from backend.ai.llm.providers import local
 

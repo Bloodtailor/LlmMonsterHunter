@@ -135,6 +135,83 @@ def update_llm_settings(payload: dict[str, Any]) -> dict[str, Any]:
         return error_response(str(e))
 
 
+def fetch_deepseek_models(payload: dict[str, Any]) -> dict[str, Any]:
+    """
+    Live model list from DeepSeek, proxied so the key never round-trips
+    the panel: the provided key wins, the stored key backs it up. The
+    /models endpoint needs auth, so a successful fetch IS key validation.
+    """
+    payload = payload or {}
+
+    try:
+        from backend.ai.llm.provider_settings import (
+            DEEPSEEK_KNOWN_CONTEXT_WINDOWS,
+            get_saved_settings,
+        )
+        from backend.ai.llm.providers import deepseek
+
+        stored = (get_saved_settings() or {}).get('deepseek') or {}
+        api_key = _clean_text(payload.get('api_key')) or stored.get('api_key')
+        if not api_key:
+            return error_response('Paste a DeepSeek API key first')
+
+        result = deepseek.list_models(api_key)
+        if not result['success']:
+            return error_response(result['error'])
+
+        return success_response(
+            {
+                'models': result['models'],
+                'known_models': DEEPSEEK_KNOWN_CONTEXT_WINDOWS,
+                'key_valid': True,
+            }
+        )
+
+    except Exception as e:
+        return error_response(str(e))
+
+
+def test_llm_generation() -> dict[str, Any]:
+    """
+    One tiny real generation through the normal gateway: it queues, it
+    streams in the panel (with the model name in the title), and it lands
+    in the developer log with prompt tokens. The whole path IS the test.
+    """
+    try:
+        from backend.ai import gateway
+        from backend.models.generation_log import GenerationLog
+
+        result = gateway.text_generation_request(
+            prompt=(
+                'You are the storyteller of a monster-taming adventure. '
+                'In one short, characterful sentence, announce that you are '
+                'ready to referee.'
+            ),
+            prompt_type='settings',
+            prompt_name='provider_test',
+            max_tokens=48,
+        )
+
+        # Name the engine that answered from the log - the source of truth
+        log = GenerationLog.query.get(result['generation_id'])
+        llm_log = log.llm_log if log else None
+
+        return success_response(
+            {
+                'text': result.get('text'),
+                'provider': llm_log.provider if llm_log else None,
+                'model_name': llm_log.model_name if llm_log else None,
+                'prompt_tokens': llm_log.prompt_tokens if llm_log else None,
+            }
+        )
+
+    except Exception as e:
+        # Gateway raises on failed generations - the provider's mapped
+        # message (401 bad key, 402 balance, ...) is exactly what the
+        # panel should show
+        return error_response(str(e))
+
+
 def _clean_text(value: Any) -> Optional[str]:
     """Trimmed non-empty string, else None"""
     if isinstance(value, str) and value.strip():

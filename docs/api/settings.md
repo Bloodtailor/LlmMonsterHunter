@@ -71,8 +71,43 @@ Save from the panel. Rules:
 **Success:** the GET shape plus `"message": "Settings saved"`.
 **Error:** `400` with `{ "success": false, "error": string }`.
 
-## Coming in later milestones (plan M3)
-- `POST /settings/llm/fetch-models` — proxies DeepSeek `GET /models` with
-  the provided-or-stored key (doubles as key validation).
-- `POST /settings/llm/test` — fires a tiny generation through the normal
-  gateway so the streaming panel and logs show the active model.
+### POST /settings/llm/fetch-models
+Live model list, proxied through the backend so the key never
+round-trips the panel. DeepSeek's `/models` endpoint requires auth, so a
+successful fetch **is** key validation. New DeepSeek models appear here
+the day they ship — nothing hardcoded.
+
+**Request:** `{ "api_key": "sk-..." }` — optional; the stored key backs
+an empty request.
+
+**Success:**
+```json
+{
+  "success": true,
+  "models": ["deepseek-v4-flash", "deepseek-v4-pro"],
+  "known_models": { "deepseek-v4-flash": 1000000, ... },
+  "key_valid": true
+}
+```
+**Error:** `400` with the mapped DeepSeek message (401 bad key /
+402 balance / 429 rate limit / 5xx server / network unreachable).
+
+### POST /settings/llm/test
+Fires one tiny real generation through the normal gateway — it queues,
+streams in the streaming panel (titled with the model name), and lands
+in the developer log with prompt tokens. The whole path is the test.
+Synchronous: the response waits for the generation.
+
+**Success:**
+```json
+{
+  "success": true,
+  "text": string,            // the model's one-sentence answer
+  "provider": "local"|"deepseek",
+  "model_name": string,
+  "prompt_tokens": number|null
+}
+```
+**Error:** `400` with the provider's message (e.g. the 401 mapping) —
+exactly what the panel should show. No silent fallback to the other
+provider (locked decision).

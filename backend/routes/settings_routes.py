@@ -24,3 +24,20 @@ def update_llm_settings():
     result = settings_service.update_llm_settings(payload=data)
 
     return jsonify(result), 200 if result['success'] else 400
+
+
+@settings_bp.route('/llm/fetch-models', methods=['POST'])
+def fetch_deepseek_models():
+    """Live DeepSeek model list (doubles as key validation) - thin HTTP wrapper"""
+    data = request.get_json() or {}
+
+    result = settings_service.fetch_deepseek_models(payload=data)
+
+    return jsonify(result), 200 if result['success'] else 400
+
+
+@settings_bp.route('/llm/test', methods=['POST'])
+def test_llm_generation():
+    """Fire a tiny generation through the normal gateway - thin HTTP wrapper"""
+    result = settings_service.test_llm_generation()
+    return jsonify(result), 200 if result['success'] else 400

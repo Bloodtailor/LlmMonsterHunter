@@ -13,9 +13,15 @@ from backend.ai.llm import inference
 
 
 def generate_streaming(
-    prompt: str, callback: Optional[Callable[[str], None]] = None, **params
+    prompt: str,
+    callback: Optional[Callable[[str], None]] = None,
+    model_name: Optional[str] = None,
+    **params,
 ) -> dict[str, Any]:
-    """The provider contract, spoken by the local model"""
+    """The provider contract, spoken by the local model. model_name is
+    part of the seam signature (the processor passes the stamped value)
+    but the local engine has exactly one model - the loaded GGUF - so the
+    stamp is ignored and must never reach llama-cpp's params."""
     result = inference.generate_streaming(prompt=prompt, callback=callback, **params)
 
     result['model_name'] = model_file_name()

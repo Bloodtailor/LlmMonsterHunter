@@ -66,9 +66,13 @@ def process_llm_request(
             current_attempt = generation_log.generation_attempt
             print_success(f"LLM Generation attempt {current_attempt}/{generation_log.max_attempts}")
 
-            # Generate text
+            # Generate text - the stamped model rides along (DeepSeek uses
+            # it as the model id; the local provider ignores it)
             generation_result = provider.generate_streaming(
-                prompt=prompt_text, callback=callback, **inference_params
+                prompt=prompt_text,
+                callback=callback,
+                model_name=llm_log.model_name,
+                **inference_params,
             )
 
             if not generation_result['success']:

@@ -27,9 +27,30 @@ Copy `.env.example` to `.env` and adjust. Restart the backend after changes.
 | `DB_NAME` / `DB_NAME_TEST` | `monster_hunter_game` / `monster_hunter_game_test` | Game database / offline-suite database (test DB auto-created) |
 | `FLASK_DEBUG` | `True` | Debug mode; also gates the in-app test-runner routes |
 
+## In-game settings — `game_settings` table (the settings panel)
+
+The one set of knobs that lives in the DATABASE, not code or `.env`,
+because the player turns them from inside the game (gear icon → Settings).
+They survive New Game and apply on the **next generation** — no restart.
+Resolution: `backend/ai/llm/provider_settings.py`, DB row over env,
+local/env as the floor.
+
+| Knob | Default | Effect |
+|---|---|---|
+| Text provider | `local` | `local` (the GGUF in `.env`) or `deepseek` (cloud API). Explicit switch — no auto-fallback on errors (locked decision) |
+| DeepSeek model | — | Picked from the live `GET /models` list or typed by hand. The model id is stamped into every `llm_logs` row it answers |
+| DeepSeek context window | auto from `DEEPSEEK_KNOWN_CONTEXT_WINDOWS` | Drives every prompt budget below while DeepSeek is active. Auto-fills for known models (v4 family: 1M), always editable; minimum `MIN_CONTEXT_WINDOW` (2048). Bigger window = prompts never trim = more billed tokens — `LLM_CONTEXT_FILL_PERCENT` still applies |
+| DeepSeek API key | — | Stored in the row, masked to last-4 on every read, write-only through the API |
+
+`DEEPSEEK_KNOWN_CONTEXT_WINDOWS` and `MIN_CONTEXT_WINDOW` live in
+`backend/ai/llm/provider_settings.py` — update the map when DeepSeek
+ships models (entries are a convenience; unknown models just ask for a
+manual window).
+
 ## Prompt context budgets — `backend/game/utils/context_limits.py`
 
-Token-aware budgets that scale with `LLM_CONTEXT_SIZE`.
+Token-aware budgets that scale with the ACTIVE provider's context window
+(`LLM_CONTEXT_SIZE` for local; the panel's saved window for DeepSeek).
 
 | Knob | Default | Effect |
 |---|---|---|

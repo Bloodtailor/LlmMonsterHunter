@@ -1,7 +1,9 @@
 # Context Limits - Token-Aware Budgets for LLM Prompt Blocks
-# Budgets scale with the loaded model's context window (LLM_CONTEXT_SIZE in
-# .env): a 4096-token model gets lean prompts, an 8192-token model gets
-# richer ones, a 1M-token model is effectively unclamped.
+# Budgets scale with the ACTIVE provider's context window - the settings
+# resolver answers (DeepSeek: the per-model window saved in the panel;
+# local: LLM_CONTEXT_SIZE in .env, the same key core.py loads with):
+# a 4096-token model gets lean prompts, an 8192-token model gets richer
+# ones, a 1M-token model is effectively unclamped.
 #
 # Two kinds of blocks:
 #   REQUIRED  - identity data the LLM must have whole (party and monster
@@ -61,7 +63,16 @@ TRUNCATION_MARKER = '(...earlier events trimmed...)'
 
 
 def get_context_size_tokens() -> int:
-    """The loaded model's context window, from .env (same key core.py uses)"""
+    """The ACTIVE provider's context window - the resolver merges the
+    settings row over .env, and its floor IS the old env read, so a
+    missing row changes nothing"""
+    try:
+        from backend.ai.llm.provider_settings import resolve_llm_settings
+
+        return int(resolve_llm_settings()['context_size'])
+    except Exception:
+        pass
+
     try:
         return int(os.getenv('LLM_CONTEXT_SIZE', '4096'))
     except (TypeError, ValueError):
