@@ -26,7 +26,7 @@ function ContinueToDoorsButton() {
   const buttonContainerStyles = {
     display: 'flex',
     justifyContent: 'center',
-    padding: '24px'
+    padding: '24px',
   };
 
   return (

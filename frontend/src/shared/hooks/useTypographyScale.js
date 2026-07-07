@@ -10,71 +10,71 @@ const DEFAULT_TEXT_SCALING = {
     [CARD_SIZES.SM]: 'title-sm',
     [CARD_SIZES.MD]: 'title-md',
     [CARD_SIZES.LG]: 'title-lg',
-    [CARD_SIZES.XL]: 'title-xl'
+    [CARD_SIZES.XL]: 'title-xl',
   },
 
   header: {
     [CARD_SIZES.SM]: 'header-sm',
     [CARD_SIZES.MD]: 'header-md',
     [CARD_SIZES.LG]: 'header-lg',
-    [CARD_SIZES.XL]: 'header-xl'
+    [CARD_SIZES.XL]: 'header-xl',
   },
-  
+
   subtitle: {
     [CARD_SIZES.SM]: 'subtitle-sm',
     [CARD_SIZES.MD]: 'subtitle-md',
     [CARD_SIZES.LG]: 'subtitle-lg',
-    [CARD_SIZES.XL]: 'subtitle-xl'
+    [CARD_SIZES.XL]: 'subtitle-xl',
   },
-  
+
   body: {
     [CARD_SIZES.SM]: 'body-sm',
     [CARD_SIZES.MD]: 'body-md',
     [CARD_SIZES.LG]: 'body-lg',
-    [CARD_SIZES.XL]: 'body-xl'
+    [CARD_SIZES.XL]: 'body-xl',
   },
-  
+
   caption: {
     [CARD_SIZES.SM]: 'caption-sm',
     [CARD_SIZES.MD]: 'caption-md',
     [CARD_SIZES.LG]: 'caption-lg',
-    [CARD_SIZES.XL]: 'caption-xl'
+    [CARD_SIZES.XL]: 'caption-xl',
   },
-  
+
   overlay: {
     [CARD_SIZES.SM]: 'overlay-sm',
     [CARD_SIZES.MD]: 'overlay-md',
     [CARD_SIZES.LG]: 'overlay-lg',
-    [CARD_SIZES.XL]: 'overlay-xl'
-  }
+    [CARD_SIZES.XL]: 'overlay-xl',
+  },
 };
 
 // Custom scaling strategies for different card types
 const CARD_TYPE_SCALING = {
   // Monster cards - default scaling
   monster: DEFAULT_TEXT_SCALING,
-  
+
   // Spell cards - maybe titles should be more prominent
   spell: {
     ...DEFAULT_TEXT_SCALING,
     title: {
-      [CARD_SIZES.SM]: 'title-md',    // Bigger titles for spells
+      [CARD_SIZES.SM]: 'title-md', // Bigger titles for spells
       [CARD_SIZES.MD]: 'title-lg',
-      [CARD_SIZES.LG]: 'title-xl', 
-      [CARD_SIZES.XL]: 'title-xl'     // Max out at xl
-    }
+      [CARD_SIZES.LG]: 'title-xl',
+      [CARD_SIZES.XL]: 'title-xl', // Max out at xl
+    },
   },
-  
+
   // Item cards - maybe more conservative scaling
   item: {
     ...DEFAULT_TEXT_SCALING,
     title: {
-      [CARD_SIZES.SM]: 'title-sm',    // Keep titles smaller for items
+      [CARD_SIZES.SM]: 'title-sm', // Keep titles smaller for items
       [CARD_SIZES.MD]: 'title-sm',
       [CARD_SIZES.LG]: 'title-md',
-      [CARD_SIZES.XL]: 'title-lg'
-    }
-  }
+      [CARD_SIZES.XL]: 'title-lg',
+    },
+  },
 };
 
 /**
@@ -84,10 +84,9 @@ const CARD_TYPE_SCALING = {
  * @returns {Function} getTextSize function
  */
 export function useTypographyScale(scale = 'md', classType = 'monster') {
-  
   // Get the scaling strategy for this card type
   const scalingStrategy = CARD_TYPE_SCALING[classType] || DEFAULT_TEXT_SCALING;
-  
+
   /**
    * Get the appropriate text size class for this card size and text type
    * @param {string} textType - Type of text (title, header, subtitle, body, caption, overlay)
@@ -96,19 +95,22 @@ export function useTypographyScale(scale = 'md', classType = 'monster') {
   const getTextSize = (textType) => {
     const typeScaling = scalingStrategy[textType];
     if (!typeScaling) {
-      console.warn(`Unknown text type: ${textType}. Available types:`, Object.keys(scalingStrategy));
+      console.warn(
+        `Unknown text type: ${textType}. Available types:`,
+        Object.keys(scalingStrategy),
+      );
       return 'body-md'; // fallback
     }
-    
+
     const sizeClass = typeScaling[scale];
     if (!sizeClass) {
       console.warn(`Unknown card size: ${scale}. Available sizes:`, Object.keys(typeScaling));
       return 'body-md'; // fallback
     }
-    
+
     return sizeClass;
   };
-  
+
   return { getTextSize };
 }
 
@@ -116,7 +118,7 @@ export function useTypographyScale(scale = 'md', classType = 'monster') {
 export function getTextSize(scale, textType, classType = 'monster') {
   const scalingStrategy = CARD_TYPE_SCALING[classType] || DEFAULT_TEXT_SCALING;
   const typeScaling = scalingStrategy[textType];
-  
+
   if (!typeScaling) return 'body-md';
   return typeScaling[scale] || 'body-md';
 }

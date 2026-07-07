@@ -9,13 +9,13 @@ import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
  * Custom hook for auto-entering dungeon when component mounts
  * Handles the ref logic and prevents multiple entries
  * Follows healthy pattern for context consumers
- * 
+ *
  * @returns {object} Hook state and utilities
  */
 function useAutoEnterDungeon() {
   // Ref to track if we've already called enterDungeon
   const hasEnteredRef = useRef(false);
-  
+
   // Only consume what we need - enterDungeon action and resetDungeon
   const { enterDungeon, resetDungeon } = useDungeon();
 
@@ -36,7 +36,7 @@ function useAutoEnterDungeon() {
 
   return {
     hasEntered: hasEnteredRef.current,
-    resetAutoEnter
+    resetAutoEnter,
   };
 }
 

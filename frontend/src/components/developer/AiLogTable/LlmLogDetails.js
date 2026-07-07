@@ -14,69 +14,103 @@ import { StatusBadge, Card, CardSection } from '../../../shared/ui/index.js';
  */
 function LlmLogDetails({ log }) {
   const llmLog = log.llmLogId;
-  
+
   if (!llmLog) {
     return (
-      <div style={{ padding: '16px', color: 'var(--text-dim)' }}>
-        No LLM log details available.
-      </div>
+      <div style={{ padding: '16px', color: 'var(--text-dim)' }}>No LLM log details available.</div>
     );
   }
 
   return (
-    <Card size='sm' variant='flat' background='dark'>
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: '16px'
-      }}>
+    <Card size="sm" variant="flat" background="dark">
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+        }}
+      >
         {/* Model Info */}
-        <CardSection size='sm' title='Model Info'>
-            <div><strong>Model:</strong> {llmLog.modelName || 'Unknown'}</div>
-            <div><strong>Tokens:</strong> {llmLog.responseTokens || 0}</div>
-            <div><strong>Speed:</strong> {llmLog.tokensPerSecond || 0} t/s</div>
+        <CardSection size="sm" title="Model Info">
+          <div>
+            <strong>Model:</strong> {llmLog.modelName || 'Unknown'}
+          </div>
+          <div>
+            <strong>Tokens:</strong> {llmLog.responseTokens || 0}
+          </div>
+          <div>
+            <strong>Speed:</strong> {llmLog.tokensPerSecond || 0} t/s
+          </div>
         </CardSection>
 
         {/* Parameters */}
-        <CardSection size='sm' title='Parameters'>
-            <div><strong>max Tokens:</strong> {llmLog.maxTokens}</div>
-            <div><strong>temperature:</strong> {llmLog.temperature}</div>
-            <div><strong>top P:</strong> {llmLog.topP}</div>
-            <div><strong>top K:</strong> {llmLog.topK}</div>
-            <div><strong>repeat Penalty:</strong> {llmLog.repeatPenalty}</div>
-            <div><strong>presence Penalty:</strong> {llmLog.presencePenalty}</div>
+        <CardSection size="sm" title="Parameters">
+          <div>
+            <strong>max Tokens:</strong> {llmLog.maxTokens}
+          </div>
+          <div>
+            <strong>temperature:</strong> {llmLog.temperature}
+          </div>
+          <div>
+            <strong>top P:</strong> {llmLog.topP}
+          </div>
+          <div>
+            <strong>top K:</strong> {llmLog.topK}
+          </div>
+          <div>
+            <strong>repeat Penalty:</strong> {llmLog.repeatPenalty}
+          </div>
+          <div>
+            <strong>presence Penalty:</strong> {llmLog.presencePenalty}
+          </div>
         </CardSection>
 
         {/* Parameters */}
-        <CardSection size='sm' title='Parameters Cont.'>
-            <div><strong>tfs Z:</strong> {llmLog.tfsZ}</div>
-            <div><strong>typical P:</strong> {llmLog.typicalP}</div>
-            <div><strong>mirostat Mode:</strong> {llmLog.mirostatMode}</div>
-            <div><strong>mirostat Tau:</strong> {llmLog.mirostatTau}</div>
-            <div><strong>mirostat Eta:</strong> {llmLog.mirostatEta}</div>
-            <div><strong>seed:</strong> {llmLog.seed}</div>
-            <div><strong>stop Sequences:</strong> {llmLog.stopSequences}</div>
+        <CardSection size="sm" title="Parameters Cont.">
+          <div>
+            <strong>tfs Z:</strong> {llmLog.tfsZ}
+          </div>
+          <div>
+            <strong>typical P:</strong> {llmLog.typicalP}
+          </div>
+          <div>
+            <strong>mirostat Mode:</strong> {llmLog.mirostatMode}
+          </div>
+          <div>
+            <strong>mirostat Tau:</strong> {llmLog.mirostatTau}
+          </div>
+          <div>
+            <strong>mirostat Eta:</strong> {llmLog.mirostatEta}
+          </div>
+          <div>
+            <strong>seed:</strong> {llmLog.seed}
+          </div>
+          <div>
+            <strong>stop Sequences:</strong> {llmLog.stopSequences}
+          </div>
         </CardSection>
 
         {/* Parsing */}
-        <CardSection size='sm' title='Parsing'>
-            <div>
-              <strong>Success: </strong> {llmLog.parseSuccess ? 'Yes' : 'No'}
-            </div>
+        <CardSection size="sm" title="Parsing">
+          <div>
+            <strong>Success: </strong> {llmLog.parseSuccess ? 'Yes' : 'No'}
+          </div>
         </CardSection>
       </div>
-      
+
       {/* The exact prompt the model received (includes the no-think
           prefill when enabled - stored byte-exact at request time) */}
       {log.promptText && (
-        <CardSection title='Prompt Sent to LLM'>
+        <CardSection title="Prompt Sent to LLM">
           <Card>
-            <div style={{
-              overflow: 'auto',
-              maxHeight: '300px',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace'
-            }}>
+            <div
+              style={{
+                overflow: 'auto',
+                maxHeight: '300px',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+              }}
+            >
               {log.promptText}
             </div>
           </Card>
@@ -85,14 +119,16 @@ function LlmLogDetails({ log }) {
 
       {/* Response Text */}
       {llmLog.responseText && (
-        <CardSection title='Response'>
-          <Card >
-            <div style={{
-              overflow: 'auto',
-              maxHeight: '300px',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace'
-            }}>
+        <CardSection title="Response">
+          <Card>
+            <div
+              style={{
+                overflow: 'auto',
+                maxHeight: '300px',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+              }}
+            >
               {llmLog.responseText}
             </div>
           </Card>
@@ -103,11 +139,13 @@ function LlmLogDetails({ log }) {
       {llmLog.parsedData && (
         <CardSection title="Parsed Data">
           <Card>
-            <div style={{
-              overflow: 'auto',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace'
-            }}>
+            <div
+              style={{
+                overflow: 'auto',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+              }}
+            >
               {JSON.stringify(llmLog.parsedData, null, 2)}
             </div>
           </Card>
@@ -118,11 +156,13 @@ function LlmLogDetails({ log }) {
       {llmLog.parserConfig && (
         <CardSection title="Parser Config">
           <Card>
-            <div style={{
-              overflow: 'auto',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace'
-            }}>
+            <div
+              style={{
+                overflow: 'auto',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+              }}
+            >
               {JSON.stringify(llmLog.parserConfig, null, 2)}
             </div>
           </Card>
@@ -133,11 +173,13 @@ function LlmLogDetails({ log }) {
       {llmLog.parseError && (
         <CardSection title="Parser Error">
           <Card>
-            <div style={{
-              overflow: 'auto',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace'
-            }}>
+            <div
+              style={{
+                overflow: 'auto',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'monospace',
+              }}
+            >
               {JSON.stringify(llmLog.parseError, null, 2)}
             </div>
           </Card>

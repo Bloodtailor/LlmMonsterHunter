@@ -12,7 +12,6 @@ import { NavigationContext } from './NavigationContext.js';
  * @param {React.ReactNode} props.children - Child components
  */
 function NavigationProvider({ children }) {
-  
   // Game screen navigation state - starts at homebase
   const [currentGameScreen, setCurrentGameScreen] = useState('homebase');
 
@@ -27,14 +26,10 @@ function NavigationProvider({ children }) {
   // Create context value
   const contextValue = {
     currentGameScreen,
-    navigateToGameScreen
+    navigateToGameScreen,
   };
 
-  return (
-    <NavigationContext.Provider value={contextValue}>
-      {children}
-    </NavigationContext.Provider>
-  );
+  return <NavigationContext.Provider value={contextValue}>{children}</NavigationContext.Provider>;
 }
 
 export default NavigationProvider;

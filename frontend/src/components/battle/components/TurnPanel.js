@@ -15,7 +15,7 @@ const MODE_OPTIONS = [
   { value: 'ability', label: '⚡ Use Ability' },
   { value: 'item', label: '🎒 Use Item' },
   { value: 'custom', label: '✍️ Custom Action' },
-  { value: 'talk', label: '💬 Talk' }
+  { value: 'talk', label: '💬 Talk' },
 ];
 
 function TurnPanel() {
@@ -28,7 +28,7 @@ function TurnPanel() {
     isProcessing,
     outcome,
     updateSelection,
-    executeTurn
+    executeTurn,
   } = useBattleContext();
   const { partyMonsters } = useParty();
   const { items: usableItems } = useUsableItems();
@@ -39,7 +39,8 @@ function TurnPanel() {
   const enemies = displayedBattle?.enemies || {};
   const actorName = pendingActorName || allies[pendingActorId]?.name || 'Your monster';
 
-  const actorMonster = (partyMonsters || []).find(m => String(m.id) === String(pendingActorId)) || null;
+  const actorMonster =
+    (partyMonsters || []).find((m) => String(m.id) === String(pendingActorId)) || null;
 
   const livingEnemyOptions = Object.entries(enemies)
     .filter(([, entry]) => entry.condition !== 'incapacitated' && !entry.fled)
@@ -49,18 +50,18 @@ function TurnPanel() {
     ...livingEnemyOptions,
     ...Object.entries(allies).map(([monsterId, entry]) => ({
       value: monsterId,
-      label: `🛡️ ${entry.name}${entry.condition === 'incapacitated' ? ' (down)' : ''}`
-    }))
+      label: `🛡️ ${entry.name}${entry.condition === 'incapacitated' ? ' (down)' : ''}`,
+    })),
   ];
 
-  const abilityOptions = (actorMonster?.abilities || []).map(ability => ({
+  const abilityOptions = (actorMonster?.abilities || []).map((ability) => ({
     value: String(ability.id),
-    label: `⚡ ${ability.name}`
+    label: `⚡ ${ability.name}`,
   }));
 
-  const itemOptions = usableItems.map(item => ({
+  const itemOptions = usableItems.map((item) => ({
     value: String(item.id),
-    label: `${item.emoji} ${item.name} (×${item.usesRemaining})`
+    label: `${item.emoji} ${item.name} (×${item.usesRemaining})`,
   }));
 
   const mode = currentSelection.type || '';
@@ -68,42 +69,63 @@ function TurnPanel() {
   // Is the selection complete enough to execute?
   const isComplete = (() => {
     switch (mode) {
-      case 'attack': return !!currentSelection.targetId;
-      case 'defend': return true;
-      case 'ability': return !!currentSelection.abilityId && !!currentSelection.targetId;
-      case 'item': return !!currentSelection.itemId; // target optional - no target = itself
-      case 'custom': return !!(currentSelection.text || '').trim();
-      case 'talk': return !!(currentSelection.text || '').trim();
-      default: return false;
+      case 'attack':
+        return !!currentSelection.targetId;
+      case 'defend':
+        return true;
+      case 'ability':
+        return !!currentSelection.abilityId && !!currentSelection.targetId;
+      case 'item':
+        return !!currentSelection.itemId; // target optional - no target = itself
+      case 'custom':
+        return !!(currentSelection.text || '').trim();
+      case 'talk':
+        return !!(currentSelection.text || '').trim();
+      default:
+        return false;
     }
   })();
 
   return (
     <Card size="xl" background="light">
-      <CardSection type="header" size="md" title={`✨ It's ${actorName}'s turn!`} alignment="center" />
+      <CardSection
+        type="header"
+        size="md"
+        title={`✨ It's ${actorName}'s turn!`}
+        alignment="center"
+      />
 
       {/* The monster's streamed inner monologue - what it feels, thinks,
           and wants right now (the player still decides the action) */}
       {turnVanityText && (
         <CardSection type="content" alignment="center">
-          <p style={{
-            fontSize: 'var(--font-size-md)',
-            lineHeight: 'var(--line-height-relaxed)',
-            color: 'var(--color-text-secondary)',
-            fontFamily: 'var(--font-family-serif)',
-            fontStyle: 'italic',
-            whiteSpace: 'pre-wrap',
-            maxWidth: '640px',
-            margin: '0 auto'
-          }}>
+          <p
+            style={{
+              fontSize: 'var(--font-size-md)',
+              lineHeight: 'var(--line-height-relaxed)',
+              color: 'var(--color-text-secondary)',
+              fontFamily: 'var(--font-family-serif)',
+              fontStyle: 'italic',
+              whiteSpace: 'pre-wrap',
+              maxWidth: '640px',
+              margin: '0 auto',
+            }}
+          >
             {turnVanityText}
           </p>
         </CardSection>
       )}
 
       <CardSection type="content">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '640px', margin: '0 auto' }}>
-
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            maxWidth: '640px',
+            margin: '0 auto',
+          }}
+        >
           {/* What kind of action? */}
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ minWidth: '90px', fontWeight: 'bold' }}>Action:</span>
@@ -112,7 +134,16 @@ function TurnPanel() {
                 options={MODE_OPTIONS}
                 value={mode}
                 placeholder="Choose an action..."
-                onChange={(e) => updateSelection({ type: e.target.value, abilityId: null, itemId: null, targetId: null, text: '', info: '' })}
+                onChange={(e) =>
+                  updateSelection({
+                    type: e.target.value,
+                    abilityId: null,
+                    itemId: null,
+                    targetId: null,
+                    text: '',
+                    info: '',
+                  })
+                }
               />
             </div>
           </div>
@@ -156,8 +187,10 @@ function TurnPanel() {
                   options={mode === 'attack' ? livingEnemyOptions : allTargetOptions}
                   value={currentSelection.targetId || ''}
                   placeholder={
-                    mode === 'custom' ? 'Optional target...'
-                      : mode === 'item' ? `Optional target... (none = ${actorName})`
+                    mode === 'custom'
+                      ? 'Optional target...'
+                      : mode === 'item'
+                        ? `Optional target... (none = ${actorName})`
                         : 'Choose target...'
                   }
                   onChange={(e) => updateSelection({ targetId: e.target.value })}
@@ -196,13 +229,7 @@ function TurnPanel() {
       </CardSection>
 
       <CardSection type="content" alignment="center">
-        <Button
-          size="xl"
-          icon="▶"
-          variant="primary"
-          disabled={!isComplete}
-          onClick={executeTurn}
-        >
+        <Button size="xl" icon="▶" variant="primary" disabled={!isComplete} onClick={executeTurn}>
           Take Turn
         </Button>
       </CardSection>

@@ -5,11 +5,13 @@
 # stretches get condensed into chat_summaries rows instead.
 # Data storage only - conversation logic lives in backend/game/chat.
 
+from sqlalchemy import Column, ForeignKey, Integer, String, Text
+
 from .base import BaseModel
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
 
 # Who spoke a message
 CHAT_ROLES = ('player', 'monster')
+
 
 class ChatMessage(BaseModel):
     """
@@ -28,11 +30,7 @@ class ChatMessage(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'monster_id': self.monster_id,
-            'role': self.role,
-            'text': self.text
-        })
+        result.update({'monster_id': self.monster_id, 'role': self.role, 'text': self.text})
         return result
 
     @classmethod
@@ -41,11 +39,7 @@ class ChatMessage(BaseModel):
         try:
             if role not in CHAT_ROLES:
                 print(f"⚠️ Unknown chat role '{role}' - storing anyway")
-            message = cls(
-                monster_id=int(monster_id),
-                role=role,
-                text=str(text).strip()
-            )
+            message = cls(monster_id=int(monster_id), role=role, text=str(text).strip())
             return message if message.save() else None
         except Exception as e:
             print(f"❌ Error adding chat message for monster {monster_id}: {e}")
@@ -82,9 +76,11 @@ class ChatMessage(BaseModel):
     def after_id(cls, monster_id: int, after_id: int, limit: int = None):
         """Messages with id > after_id, oldest first (extraction segments)"""
         try:
-            query = (cls.query.filter_by(monster_id=monster_id)
-                     .filter(cls.id > int(after_id or 0))
-                     .order_by(cls.id))
+            query = (
+                cls.query.filter_by(monster_id=monster_id)
+                .filter(cls.id > int(after_id or 0))
+                .order_by(cls.id)
+            )
             if limit:
                 query = query.limit(int(limit))
             return query.all()
@@ -98,8 +94,9 @@ class ChatMessage(BaseModel):
         try:
             if not through_id:
                 return 0
-            return (cls.query.filter_by(monster_id=monster_id)
-                    .filter(cls.id <= int(through_id)).count())
+            return (
+                cls.query.filter_by(monster_id=monster_id).filter(cls.id <= int(through_id)).count()
+            )
         except Exception as e:
             print(f"❌ Error counting covered chat messages for monster {monster_id}: {e}")
             return 0
@@ -108,9 +105,13 @@ class ChatMessage(BaseModel):
     def slice_for_monster(cls, monster_id: int, offset: int, count: int):
         """entries[offset:offset+count] of the thread, oldest first"""
         try:
-            return (cls.query.filter_by(monster_id=monster_id)
-                    .order_by(cls.id)
-                    .offset(int(offset)).limit(int(count)).all())
+            return (
+                cls.query.filter_by(monster_id=monster_id)
+                .order_by(cls.id)
+                .offset(int(offset))
+                .limit(int(count))
+                .all()
+            )
         except Exception as e:
             print(f"❌ Error slicing chat messages for monster {monster_id}: {e}")
             return []

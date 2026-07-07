@@ -3,30 +3,34 @@
 # Routes only handle: HTTP parsing → Service call → HTTP response formatting
 
 from flask import Blueprint, jsonify, request
+
 from backend.services import monster_service
 
 monster_bp = Blueprint('monsters', __name__, url_prefix='/api/monsters')
 
+
 @monster_bp.route('/generate', methods=['GET'])
 def generate_monster():
     """Generate monster using workflow system - thin HTTP wrapper"""
-    
+
     result = monster_service.generate_monster()
-    
+
     return jsonify(result), 200 if result['success'] else 500
+
 
 @monster_bp.route('', methods=['GET'])
 def get_monsters():
     """Get all monsters - thin HTTP wrapper with parameter extraction"""
-    
+
     result = monster_service.get_all_monsters(
         limit=request.args.get('limit', type=int),
         offset=request.args.get('offset', 0, type=int),
         filter_type=request.args.get('filter', 'all'),
-        sort_by=request.args.get('sort', 'newest')
+        sort_by=request.args.get('sort', 'newest'),
     )
-    
+
     return jsonify(result), 200 if result['success'] else 400
+
 
 @monster_bp.route('/<int:monster_id>')
 def get_monster(monster_id):
@@ -34,19 +38,20 @@ def get_monster(monster_id):
     result = monster_service.get_monster_by_id(monster_id)
     return jsonify(result), 200 if result['success'] else 404
 
+
 @monster_bp.route('/<int:monster_id>/memories')
 def get_monster_memories(monster_id):
     """Get one monster's permanent memories - thin HTTP wrapper"""
     result = monster_service.get_monster_memories(monster_id)
     return jsonify(result), 200 if result['success'] else 404
 
+
 @monster_bp.route('/stats')
 def get_stats():
     """Get monster statistics - thin HTTP wrapper"""
-    result = monster_service.get_monster_stats(
-        filter_type=request.args.get('filter', 'all')
-    )
+    result = monster_service.get_monster_stats(filter_type=request.args.get('filter', 'all'))
     return jsonify(result), 200 if result['success'] else 400
+
 
 # Evolution endpoints - thin HTTP wrappers
 @monster_bp.route('/<int:monster_id>/evolve', methods=['POST'])
@@ -56,11 +61,13 @@ def evolve_monster(monster_id):
     result = monster_service.evolve_monster(monster_id, guidance=payload.get('guidance'))
     return jsonify(result), 200 if result['success'] else 400
 
+
 @monster_bp.route('/<int:monster_id>/evolutions')
 def get_monster_evolutions(monster_id):
     """Get one monster's evolution lineage - thin HTTP wrapper"""
     result = monster_service.get_monster_evolutions(monster_id)
     return jsonify(result), 200 if result['success'] else 404
+
 
 # Ability endpoints - thin HTTP wrappers
 @monster_bp.route('/<int:monster_id>/abilities', methods=['POST'])
@@ -69,21 +76,23 @@ def generate_ability_for_monster(monster_id):
     result = monster_service.generate_ability(monster_id=monster_id)
     return jsonify(result), 200 if result['success'] else 500
 
+
 @monster_bp.route('/card-art/<path:image_path>')
 def serve_card_art(image_path):
     """Serve card art images - direct file serving"""
     try:
-        from flask import send_from_directory
         from pathlib import Path
-        
+
+        from flask import send_from_directory
+
         # Simple security check
         if '..' in image_path or image_path.startswith('/'):
             return jsonify({'success': False, 'error': 'Invalid image path'}), 400
-        
+
         # Build path and serve
         outputs_dir = Path(__file__).parent.parent / 'ai' / 'comfyui' / 'outputs'
         return send_from_directory(outputs_dir, image_path)
-        
+
     except FileNotFoundError:
         return jsonify({'success': False, 'error': 'Image not found'}), 404
     except Exception as e:

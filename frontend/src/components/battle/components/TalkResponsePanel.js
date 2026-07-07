@@ -18,7 +18,7 @@ function TalkResponsePanel() {
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-family-serif)',
     fontStyle: 'italic',
-    whiteSpace: 'pre-wrap'
+    whiteSpace: 'pre-wrap',
   };
 
   const handleRespond = () => {
@@ -29,14 +29,27 @@ function TalkResponsePanel() {
 
   return (
     <Card size="xl" background="light">
-      <CardSection type="header" size="md" title={`💬 ${pendingTalk.speakerName} speaks to you...`} alignment="center" />
+      <CardSection
+        type="header"
+        size="md"
+        title={`💬 ${pendingTalk.speakerName} speaks to you...`}
+        alignment="center"
+      />
 
       <CardSection type="content" alignment="center">
         <p style={speechStyles}>"{pendingTalk.dialogue}"</p>
       </CardSection>
 
       <CardSection type="content">
-        <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div
+          style={{
+            maxWidth: '640px',
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
           <Textarea
             value={reply}
             onChange={(e) => setReply(e.target.value)}

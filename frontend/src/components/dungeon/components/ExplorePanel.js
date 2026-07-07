@@ -30,7 +30,7 @@ function ExplorePanel() {
     surpriseAttack,
     setupCamp,
     continueExploring,
-    exitText
+    exitText,
   } = useDungeon();
   const { displayedBattle } = useBattleContext();
   const { navigateToGameScreen } = useNavigation();
@@ -40,8 +40,8 @@ function ExplorePanel() {
 
   // Only for explore events, and only until another system takes over
   if (exitText || monstersPresent === null) return null;
-  if (dialogue && dialogue.length > 0) return null;              // conversation started
-  if (displayedBattle?.in_battle) return null;                   // battle started
+  if (dialogue && dialogue.length > 0) return null; // conversation started
+  if (displayedBattle?.in_battle) return null; // battle started
 
   const isActing = isSneaking || isAmbushing || isMonsterResponding;
 
@@ -65,18 +65,22 @@ function ExplorePanel() {
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-family-serif)',
     fontStyle: 'italic',
-    whiteSpace: 'pre-wrap'
+    whiteSpace: 'pre-wrap',
   };
 
   // === MONSTERS IN THE AREA ===
   if (monstersPresent) {
-
     // The sneak has been judged - success shows here (failure becomes a battle)
     if (sneakResult) {
       if (!sneakResult.success) return null; // BattleIntroBox owns the moment
       return (
         <Card size="xl" background="light">
-          <CardSection type="header" size="lg" title="🤫 Slipped past unnoticed" alignment="center" />
+          <CardSection
+            type="header"
+            size="lg"
+            title="🤫 Slipped past unnoticed"
+            alignment="center"
+          />
           <CardSection type="content" alignment="center">
             <p style={narrationStyles}>{sneakResult.narration}</p>
           </CardSection>
@@ -91,7 +95,12 @@ function ExplorePanel() {
 
     return (
       <Card size="xl" background="light">
-        <CardSection type="header" size="lg" title="👀 They haven't noticed you yet..." alignment="center" />
+        <CardSection
+          type="header"
+          size="lg"
+          title="👀 They haven't noticed you yet..."
+          alignment="center"
+        />
 
         <CardSection type="content" alignment="center">
           <p style={{ color: 'var(--color-text-secondary)' }}>
@@ -102,7 +111,16 @@ function ExplorePanel() {
         {/* Approach and talk */}
         {isTalking ? (
           <CardSection type="content" alignment="center">
-            <form onSubmit={handleTalkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '640px', margin: '0 auto' }}>
+            <form
+              onSubmit={handleTalkSubmit}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                maxWidth: '640px',
+                margin: '0 auto',
+              }}
+            >
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -110,10 +128,20 @@ function ExplorePanel() {
                 rows={3}
               />
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <Button size="md" variant="primary" type="submit" disabled={!message.trim() || isActing}>
+                <Button
+                  size="md"
+                  variant="primary"
+                  type="submit"
+                  disabled={!message.trim() || isActing}
+                >
                   {isMonsterResponding ? 'Approaching...' : '💬 Approach & Speak'}
                 </Button>
-                <Button size="md" variant="secondary" onClick={() => setIsTalking(false)} disabled={isActing}>
+                <Button
+                  size="md"
+                  variant="secondary"
+                  onClick={() => setIsTalking(false)}
+                  disabled={isActing}
+                >
                   Back
                 </Button>
               </div>
@@ -121,14 +149,34 @@ function ExplorePanel() {
           </CardSection>
         ) : (
           <CardSection type="content" alignment="center">
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Button size="lg" icon="💬" variant="primary" onClick={() => setIsTalking(true)} disabled={isActing}>
+            <div
+              style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}
+            >
+              <Button
+                size="lg"
+                icon="💬"
+                variant="primary"
+                onClick={() => setIsTalking(true)}
+                disabled={isActing}
+              >
                 Talk to Them
               </Button>
-              <Button size="lg" icon="⚔️" variant="danger" onClick={surpriseAttack} disabled={isActing}>
+              <Button
+                size="lg"
+                icon="⚔️"
+                variant="danger"
+                onClick={surpriseAttack}
+                disabled={isActing}
+              >
                 {isAmbushing ? 'Striking...' : 'Surprise Attack'}
               </Button>
-              <Button size="lg" icon="🤫" variant="secondary" onClick={sneakPast} disabled={isActing}>
+              <Button
+                size="lg"
+                icon="🤫"
+                variant="secondary"
+                onClick={sneakPast}
+                disabled={isActing}
+              >
                 {isSneaking ? 'Sneaking...' : 'Sneak Past'}
               </Button>
             </div>

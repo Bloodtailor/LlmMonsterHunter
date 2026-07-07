@@ -10,7 +10,7 @@ let workflowState = {
     status: 'idle',
     currentStep: null,
     currentData: null,
-    isWorkflowActive: false
+    isWorkflowActive: false,
   },
 
   // Workflow queue status
@@ -21,19 +21,19 @@ let workflowState = {
     completed: 0,
     failed: 0,
     items: [],
-    trigger: null
-  }
+    trigger: null,
+  },
 };
 
 // ===== SUBSCRIPTION MANAGEMENT =====
 const listeners = {
   workflowStatus: new Set(),
-  workflowQueueStatus: new Set()
+  workflowQueueStatus: new Set(),
 };
 
 // Notify all subscribers of a specific state slice
 const notifyListeners = (stateKey) => {
-  listeners[stateKey].forEach(listener => listener());
+  listeners[stateKey].forEach((listener) => listener());
 };
 
 // ===== PUBLIC SUBSCRIPTION INTERFACE =====
@@ -50,7 +50,7 @@ export const workflowStateStore = {
   subscribeToWorkflowQueueStatus: (listener) => {
     listeners.workflowQueueStatus.add(listener);
     return () => listeners.workflowQueueStatus.delete(listener);
-  }
+  },
 };
 
 // ===== INTERNAL STATE UPDATE FUNCTIONS =====
@@ -78,7 +78,7 @@ const updateWorkflowQueueStatus = (newQueueData) => {
     completed: statusCounts.completed || 0,
     failed: statusCounts.failed || 0,
     items,
-    trigger: newQueueData.trigger
+    trigger: newQueueData.trigger,
   };
 
   notifyListeners('workflowQueueStatus');
@@ -93,7 +93,7 @@ export const workflowStatusRouter = (eventName, eventData) => {
         status: 'running',
         currentStep: null,
         currentData: null,
-        isWorkflowActive: true
+        isWorkflowActive: true,
       });
       break;
 
@@ -101,21 +101,21 @@ export const workflowStatusRouter = (eventName, eventData) => {
       updateWorkflowStatus({
         currentStep: eventData.step,
         currentData: eventData.data,
-        status: 'processing...'
+        status: 'processing...',
       });
       break;
 
     case 'workflowCompleted':
       updateWorkflowStatus({
         status: 'completed',
-        isWorkflowActive: false
+        isWorkflowActive: false,
       });
       break;
 
     case 'workflowFailed':
       updateWorkflowStatus({
         status: 'failed',
-        isWorkflowActive: false
+        isWorkflowActive: false,
       });
       break;
 

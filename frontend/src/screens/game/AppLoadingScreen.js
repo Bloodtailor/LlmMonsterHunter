@@ -3,12 +3,7 @@
 // Uses existing shared UI components for consistent styling
 
 import React from 'react';
-import { 
-  LoadingSpinner, 
-  Alert, 
-  Card, 
-  CardSection 
-} from '../../shared/ui/index.js';
+import { LoadingSpinner, Alert, Card, CardSection } from '../../shared/ui/index.js';
 
 /**
  * Full-screen loading screen for app initialization and other loading scenarios
@@ -23,16 +18,15 @@ import {
 function AppLoadingScreen({
   loadingStates = [],
   errorStates = [],
-  title = "Loading Application",
+  title = 'Loading Application',
   successMessage = null,
-  successButton = null
+  successButton = null,
 }) {
-
   // Find first error state that is active
-  const activeError = errorStates.find(errorState => errorState.hasError);
+  const activeError = errorStates.find((errorState) => errorState.hasError);
 
-  // Find first loading state that is active  
-  const activeLoading = loadingStates.find(loadingState => loadingState.isLoading);
+  // Find first loading state that is active
+  const activeLoading = loadingStates.find((loadingState) => loadingState.isLoading);
 
   // Determine if we're in success state (no errors, no loading)
   const isSuccess = !activeError && !activeLoading;
@@ -49,14 +43,14 @@ function AppLoadingScreen({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 9999,
-    backdropFilter: 'blur(4px)'
+    backdropFilter: 'blur(4px)',
   };
 
   // Container styles for the card
   const containerStyles = {
     maxWidth: '500px',
     width: '90%',
-    margin: '0 auto'
+    margin: '0 auto',
   };
 
   // Render loading content
@@ -66,12 +60,14 @@ function AppLoadingScreen({
     return (
       <div style={{ textAlign: 'center' }}>
         <LoadingSpinner size="screen" />
-        <div style={{ 
-          marginTop: '1.5rem', 
-          fontSize: 'var(--font-size-lg)', 
-          color: 'var(--warning-color)',
-          fontWeight: 'var(--font-weight-medium)'
-        }}>
+        <div
+          style={{
+            marginTop: '1.5rem',
+            fontSize: 'var(--font-size-lg)',
+            color: 'var(--warning-color)',
+            fontWeight: 'var(--font-weight-medium)',
+          }}
+        >
           {activeLoading.message}
         </div>
       </div>
@@ -83,11 +79,7 @@ function AppLoadingScreen({
     if (!activeError) return null;
 
     return (
-      <Alert 
-        type="error"
-        title={activeError.message}
-        size="lg"
-      >
+      <Alert type="error" title={activeError.message} size="lg">
         {activeError?.error}
       </Alert>
     );
@@ -98,21 +90,19 @@ function AppLoadingScreen({
     if (!isSuccess) return null;
 
     return (
-      <div >
+      <div>
         {successMessage && (
-          <div style={{ 
-            fontSize: 'var(--font-size-2xl)', 
-            color: 'var(--success-color)', 
-            fontWeight: 'var(--font-weight-bold)'
-          }}>
+          <div
+            style={{
+              fontSize: 'var(--font-size-2xl)',
+              color: 'var(--success-color)',
+              fontWeight: 'var(--font-weight-bold)',
+            }}
+          >
             {successMessage}
           </div>
         )}
-        {successButton && (
-          <div style={{ marginTop: '1rem' }}>
-            {successButton}
-          </div>
-        )}
+        {successButton && <div style={{ marginTop: '1rem' }}>{successButton}</div>}
       </div>
     );
   };
@@ -123,7 +113,7 @@ function AppLoadingScreen({
     if (activeError) return renderErrorContent();
     if (activeLoading) return renderLoadingContent();
     if (isSuccess) return renderSuccessContent();
-    
+
     // Fallback (shouldn't happen)
     return <div>Ready</div>;
   };
@@ -132,19 +122,12 @@ function AppLoadingScreen({
     <div style={overlayStyles}>
       <div style={containerStyles}>
         <Card size="xl" background="default">
-
-          <CardSection 
-            size="xl"  
-            type="header" 
-            alignment="center" 
-            title={title}
-          />
+          <CardSection size="xl" type="header" alignment="center" title={title} />
 
           <CardSection size="xl" alignment="center">
             {/* Dynamic content based on state */}
             {renderMainContent()}
           </CardSection>
-
         </Card>
       </div>
     </div>

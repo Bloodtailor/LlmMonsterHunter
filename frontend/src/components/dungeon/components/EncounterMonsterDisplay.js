@@ -19,12 +19,8 @@ function EncounterMonsterDisplay() {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
-      {encounterMonsters.map(monster => (
-        <MonsterCard
-          key={monster.id}
-          monster={monster}
-          size="lg"
-        />
+      {encounterMonsters.map((monster) => (
+        <MonsterCard key={monster.id} monster={monster} size="lg" />
       ))}
     </div>
   );

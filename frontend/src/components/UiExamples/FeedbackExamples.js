@@ -3,14 +3,14 @@
 // Perfect for development reference and testing different configurations
 
 import React, { useState } from 'react';
-import { 
-  Alert, 
+import {
+  Alert,
   EmptyState,
   ALERT_TYPES,
   ALERT_SIZES,
   EMPTY_STATE_SIZES,
   EMPTY_STATE_VARIANTS,
-  EMPTY_STATE_PRESETS
+  EMPTY_STATE_PRESETS,
 } from '../../shared/ui/Feedback/index.js';
 import { Card, CardSection } from '../../shared/ui/Card/index.js';
 import { Select, FormField } from '../../shared/ui/Form/index.js';
@@ -37,13 +37,13 @@ function FeedbackExamples() {
     emptyMessage: 'There are no items to display at this time.',
     preset: 'none',
     hasEmptyAction: false,
-    illustration: null
+    illustration: null,
   });
 
   const handleBuilderChange = (field, value) => {
-    setFeedbackBuilder(prev => ({
+    setFeedbackBuilder((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -58,9 +58,13 @@ function FeedbackExamples() {
           showIcon={feedbackBuilder.showIcon}
           title={feedbackBuilder.title}
           onClose={feedbackBuilder.closeable ? () => alert('Alert closed!') : undefined}
-          action={feedbackBuilder.hasAction ? (
-            <Button variant="primary" size="sm">Take Action</Button>
-          ) : undefined}
+          action={
+            feedbackBuilder.hasAction ? (
+              <Button variant="primary" size="sm">
+                Take Action
+              </Button>
+            ) : undefined
+          }
         >
           {feedbackBuilder.message}
         </Alert>
@@ -74,9 +78,11 @@ function FeedbackExamples() {
             {...presetConfig}
             size={feedbackBuilder.emptySize}
             variant={feedbackBuilder.emptyVariant}
-            action={feedbackBuilder.hasEmptyAction ? (
-              <Button variant="primary">Take Action</Button>
-            ) : undefined}
+            action={
+              feedbackBuilder.hasEmptyAction ? (
+                <Button variant="primary">Take Action</Button>
+              ) : undefined
+            }
           />
         );
       }
@@ -89,9 +95,11 @@ function FeedbackExamples() {
           size={feedbackBuilder.emptySize}
           variant={feedbackBuilder.emptyVariant}
           illustration={feedbackBuilder.illustration}
-          action={feedbackBuilder.hasEmptyAction ? (
-            <Button variant="primary">Take Action</Button>
-          ) : undefined}
+          action={
+            feedbackBuilder.hasEmptyAction ? (
+              <Button variant="primary">Take Action</Button>
+            ) : undefined
+          }
         />
       );
     }
@@ -100,17 +108,22 @@ function FeedbackExamples() {
   return (
     <Card size="lg" padding="lg" className="feedback-examples">
       <CardSection type="header" title="Feedback Components Showcase" />
-      
+
       {/* Alert Examples */}
       <CardSection type="content" title="Alert Components">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
           {/* Alert Types */}
           <div>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>Alert Types</h4>
+            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+              Alert Types
+            </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {Object.values(ALERT_TYPES).map(type => (
-                <Alert key={type} type={type} title={`${type.charAt(0).toUpperCase() + type.slice(1)} Alert`}>
+              {Object.values(ALERT_TYPES).map((type) => (
+                <Alert
+                  key={type}
+                  type={type}
+                  title={`${type.charAt(0).toUpperCase() + type.slice(1)} Alert`}
+                >
                   This is a {type} alert message providing feedback to the user.
                 </Alert>
               ))}
@@ -119,9 +132,11 @@ function FeedbackExamples() {
 
           {/* Alert Sizes */}
           <div>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>Alert Sizes</h4>
+            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+              Alert Sizes
+            </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {Object.values(ALERT_SIZES).map(size => (
+              {Object.values(ALERT_SIZES).map((size) => (
                 <Alert key={size} type="info" size={size} title={`${size.toUpperCase()} Alert`}>
                   This is a {size} sized alert message.
                 </Alert>
@@ -131,21 +146,32 @@ function FeedbackExamples() {
 
           {/* Alert Variations */}
           <div>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>Alert Variations</h4>
+            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+              Alert Variations
+            </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <Alert type="success" outlined title="Outlined Alert">
                 This alert uses the outlined style instead of filled background.
               </Alert>
-              <Alert type="warning" closeable title="Closeable Alert" onClose={() => alert('Closed!')}>
+              <Alert
+                type="warning"
+                closeable
+                title="Closeable Alert"
+                onClose={() => alert('Closed!')}
+              >
                 This alert can be closed by clicking the X button.
               </Alert>
               <Alert type="error" showIcon={false} title="No Icon Alert">
                 This alert has the icon hidden.
               </Alert>
-              <Alert 
-                type="info" 
+              <Alert
+                type="info"
                 title="Alert with Action"
-                action={<Button variant="primary" size="sm">Learn More</Button>}
+                action={
+                  <Button variant="primary" size="sm">
+                    Learn More
+                  </Button>
+                }
               >
                 This alert includes an action button for user interaction.
               </Alert>
@@ -160,12 +186,13 @@ function FeedbackExamples() {
       {/* EmptyState Examples */}
       <CardSection type="content" title="Empty State Components">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
           {/* EmptyState Sizes */}
           <div>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>Empty State Sizes</h4>
+            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+              Empty State Sizes
+            </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {Object.values(EMPTY_STATE_SIZES).map(size => (
+              {Object.values(EMPTY_STATE_SIZES).map((size) => (
                 <EmptyState
                   key={size}
                   icon="📦"
@@ -179,9 +206,11 @@ function FeedbackExamples() {
 
           {/* EmptyState Variants */}
           <div>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>Empty State Variants</h4>
+            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+              Empty State Variants
+            </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {Object.values(EMPTY_STATE_VARIANTS).map(variant => (
+              {Object.values(EMPTY_STATE_VARIANTS).map((variant) => (
                 <EmptyState
                   key={variant}
                   icon="🎯"
@@ -195,31 +224,48 @@ function FeedbackExamples() {
 
           {/* EmptyState Presets */}
           <div>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>Common Empty State Presets</h4>
+            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+              Common Empty State Presets
+            </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {Object.entries(EMPTY_STATE_PRESETS).slice(0, 6).map(([presetKey, preset]) => (
-                <EmptyState
-                  key={presetKey}
-                  {...preset}
-                  action={presetKey.includes('ERROR') ? (
-                    <Button variant="primary">Retry</Button>
-                  ) : presetKey.includes('NO_') ? (
-                    <Button variant="primary">Add {presetKey.includes('MONSTERS') ? 'Monster' : 'Item'}</Button>
-                  ) : undefined}
-                />
-              ))}
+              {Object.entries(EMPTY_STATE_PRESETS)
+                .slice(0, 6)
+                .map(([presetKey, preset]) => (
+                  <EmptyState
+                    key={presetKey}
+                    {...preset}
+                    action={
+                      presetKey.includes('ERROR') ? (
+                        <Button variant="primary">Retry</Button>
+                      ) : presetKey.includes('NO_') ? (
+                        <Button variant="primary">
+                          Add {presetKey.includes('MONSTERS') ? 'Monster' : 'Item'}
+                        </Button>
+                      ) : undefined
+                    }
+                  />
+                ))}
             </div>
           </div>
 
           {/* EmptyState with Action */}
           <div>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>Empty State with Actions</h4>
+            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+              Empty State with Actions
+            </h4>
             <EmptyState
               icon="⚡"
               title="Get Started"
               message="Start building your collection by adding your first item."
               action={
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '12px',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                  }}
+                >
                   <Button variant="primary">Add Item</Button>
                   <Button variant="secondary">Learn More</Button>
                 </div>
@@ -232,49 +278,65 @@ function FeedbackExamples() {
       {/* Interactive Builder */}
       <CardSection type="content" title="Interactive Feedback Builder">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
           {/* Builder Result */}
-          <div style={{ 
-            padding: '24px', 
-            background: 'var(--color-surface-secondary)', 
-            borderRadius: 'var(--radius-md)',
-            border: '2px dashed var(--color-text-muted)',
-            minHeight: '200px'
-          }}>
-            <h4 style={{ marginBottom: '16px', color: 'var(--color-text-primary)', textAlign: 'center' }}>
+          <div
+            style={{
+              padding: '24px',
+              background: 'var(--color-surface-secondary)',
+              borderRadius: 'var(--radius-md)',
+              border: '2px dashed var(--color-text-muted)',
+              minHeight: '200px',
+            }}
+          >
+            <h4
+              style={{
+                marginBottom: '16px',
+                color: 'var(--color-text-primary)',
+                textAlign: 'center',
+              }}
+            >
               Your {feedbackBuilder.type === 'alert' ? 'Alert' : 'Empty State'}
             </h4>
             {renderBuilderComponent()}
           </div>
 
           {/* Builder Controls */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-            gap: '16px' 
-          }}>
-            
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '16px',
+            }}
+          >
             <FormField label="Component Type">
               <Select
                 value={feedbackBuilder.type}
                 onChange={(e) => handleBuilderChange('type', e.target.value)}
                 options={[
                   { value: 'alert', label: 'Alert' },
-                  { value: 'emptyState', label: 'Empty State' }
+                  { value: 'emptyState', label: 'Empty State' },
                 ]}
               />
             </FormField>
 
             <FormField label="Size">
               <Select
-                value={feedbackBuilder.type === 'alert' ? feedbackBuilder.size : feedbackBuilder.emptySize}
-                onChange={(e) => handleBuilderChange(
-                  feedbackBuilder.type === 'alert' ? 'size' : 'emptySize', 
-                  e.target.value
-                )}
-                options={Object.values(feedbackBuilder.type === 'alert' ? ALERT_SIZES : EMPTY_STATE_SIZES).map(size => ({
+                value={
+                  feedbackBuilder.type === 'alert'
+                    ? feedbackBuilder.size
+                    : feedbackBuilder.emptySize
+                }
+                onChange={(e) =>
+                  handleBuilderChange(
+                    feedbackBuilder.type === 'alert' ? 'size' : 'emptySize',
+                    e.target.value,
+                  )
+                }
+                options={Object.values(
+                  feedbackBuilder.type === 'alert' ? ALERT_SIZES : EMPTY_STATE_SIZES,
+                ).map((size) => ({
                   value: size,
-                  label: size.toUpperCase()
+                  label: size.toUpperCase(),
                 }))}
               />
             </FormField>
@@ -286,9 +348,9 @@ function FeedbackExamples() {
                   <Select
                     value={feedbackBuilder.alertType}
                     onChange={(e) => handleBuilderChange('alertType', e.target.value)}
-                    options={Object.values(ALERT_TYPES).map(type => ({
+                    options={Object.values(ALERT_TYPES).map((type) => ({
                       value: type,
-                      label: type.charAt(0).toUpperCase() + type.slice(1)
+                      label: type.charAt(0).toUpperCase() + type.slice(1),
                     }))}
                   />
                 </FormField>
@@ -299,7 +361,7 @@ function FeedbackExamples() {
                     onChange={(e) => handleBuilderChange('outlined', e.target.value === 'outlined')}
                     options={[
                       { value: 'filled', label: 'Filled' },
-                      { value: 'outlined', label: 'Outlined' }
+                      { value: 'outlined', label: 'Outlined' },
                     ]}
                   />
                 </FormField>
@@ -310,7 +372,7 @@ function FeedbackExamples() {
                     onChange={(e) => handleBuilderChange('showIcon', e.target.value === 'true')}
                     options={[
                       { value: 'true', label: 'Yes' },
-                      { value: 'false', label: 'No' }
+                      { value: 'false', label: 'No' },
                     ]}
                   />
                 </FormField>
@@ -321,7 +383,7 @@ function FeedbackExamples() {
                     onChange={(e) => handleBuilderChange('closeable', e.target.value === 'true')}
                     options={[
                       { value: 'false', label: 'No' },
-                      { value: 'true', label: 'Yes' }
+                      { value: 'true', label: 'Yes' },
                     ]}
                   />
                 </FormField>
@@ -332,7 +394,7 @@ function FeedbackExamples() {
                     onChange={(e) => handleBuilderChange('hasAction', e.target.value === 'true')}
                     options={[
                       { value: 'false', label: 'No' },
-                      { value: 'true', label: 'Yes' }
+                      { value: 'true', label: 'Yes' },
                     ]}
                   />
                 </FormField>
@@ -348,10 +410,13 @@ function FeedbackExamples() {
                     onChange={(e) => handleBuilderChange('preset', e.target.value)}
                     options={[
                       { value: 'none', label: 'Custom' },
-                      ...Object.keys(EMPTY_STATE_PRESETS).map(preset => ({
+                      ...Object.keys(EMPTY_STATE_PRESETS).map((preset) => ({
                         value: preset,
-                        label: preset.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
-                      }))
+                        label: preset
+                          .replace(/_/g, ' ')
+                          .toLowerCase()
+                          .replace(/\b\w/g, (l) => l.toUpperCase()),
+                      })),
                     ]}
                   />
                 </FormField>
@@ -360,9 +425,9 @@ function FeedbackExamples() {
                   <Select
                     value={feedbackBuilder.emptyVariant}
                     onChange={(e) => handleBuilderChange('emptyVariant', e.target.value)}
-                    options={Object.values(EMPTY_STATE_VARIANTS).map(variant => ({
+                    options={Object.values(EMPTY_STATE_VARIANTS).map((variant) => ({
                       value: variant,
-                      label: variant.charAt(0).toUpperCase() + variant.slice(1)
+                      label: variant.charAt(0).toUpperCase() + variant.slice(1),
                     }))}
                   />
                 </FormField>
@@ -381,7 +446,7 @@ function FeedbackExamples() {
                         { value: '⚠️', label: '⚠️ Warning' },
                         { value: '🎯', label: '🎯 Target' },
                         { value: '📦', label: '📦 Package' },
-                        { value: '🚧', label: '🚧 Construction' }
+                        { value: '🚧', label: '🚧 Construction' },
                       ]}
                     />
                   </FormField>
@@ -390,10 +455,12 @@ function FeedbackExamples() {
                 <FormField label="Has Action">
                   <Select
                     value={feedbackBuilder.hasEmptyAction ? 'true' : 'false'}
-                    onChange={(e) => handleBuilderChange('hasEmptyAction', e.target.value === 'true')}
+                    onChange={(e) =>
+                      handleBuilderChange('hasEmptyAction', e.target.value === 'true')
+                    }
                     options={[
                       { value: 'false', label: 'No' },
-                      { value: 'true', label: 'Yes' }
+                      { value: 'true', label: 'Yes' },
                     ]}
                   />
                 </FormField>
@@ -402,22 +469,28 @@ function FeedbackExamples() {
           </div>
 
           {/* Code Example */}
-          <div style={{ 
-            background: 'var(--color-surface-primary)', 
-            padding: '16px', 
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-text-muted)'
-          }}>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)', fontSize: '14px' }}>
+          <div
+            style={{
+              background: 'var(--color-surface-primary)',
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-text-muted)',
+            }}
+          >
+            <h4
+              style={{ marginBottom: '12px', color: 'var(--color-text-primary)', fontSize: '14px' }}
+            >
               Code Example:
             </h4>
-            <code style={{ 
-              fontFamily: 'var(--font-family-mono)', 
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              display: 'block',
-              whiteSpace: 'pre-wrap'
-            }}>
+            <code
+              style={{
+                fontFamily: 'var(--font-family-mono)',
+                fontSize: '12px',
+                color: 'var(--color-text-secondary)',
+                display: 'block',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
               {(() => {
                 if (feedbackBuilder.type === 'alert') {
                   return `<Alert

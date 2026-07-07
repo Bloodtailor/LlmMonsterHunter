@@ -2,12 +2,14 @@
 // Tests our complete refactored architecture: useMonsterCollection + useMonsterGeneration + Full Pagination + MonsterCard + MonsterCardViewer
 // Added big generate monster button using useMonsterGeneration hook
 
-import React, { useState, useEffect, useCallback } from "react";
-import { usePagination } from "../../shared/ui/Pagination/usePagination.js";
-import { useLiveMonsterCollection, useMonsterGeneration } from "../../app/hooks/useMonsters.js";
-import { useEventSubscription } from "../../api/events/useEventSubscription.js";
-import FullPagination, { PAGINATION_LAYOUTS } from "../../shared/ui/Pagination/PaginationPresets.js";
-import { 
+import React, { useState, useEffect, useCallback } from 'react';
+import { usePagination } from '../../shared/ui/Pagination/usePagination.js';
+import { useLiveMonsterCollection, useMonsterGeneration } from '../../app/hooks/useMonsters.js';
+import { useEventSubscription } from '../../api/events/useEventSubscription.js';
+import FullPagination, {
+  PAGINATION_LAYOUTS,
+} from '../../shared/ui/Pagination/PaginationPresets.js';
+import {
   Select,
   Alert,
   EmptyState,
@@ -15,12 +17,12 @@ import {
   EMPTY_STATE_PRESETS,
   Card,
   CardSection,
-  LoadingSpinner
-} from "../../shared/ui/index.js";
+  LoadingSpinner,
+} from '../../shared/ui/index.js';
 
 // Import our new components
-import { useMonsterCardViewer } from "../../components/cards/useMonsterCardViewer.js";
-import { useNavigation } from "../../app/contexts/NavigationContext/index.js";
+import { useMonsterCardViewer } from '../../components/cards/useMonsterCardViewer.js';
+import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
 
 function MonsterSanctuaryScreen() {
   // UI state
@@ -28,31 +30,21 @@ function MonsterSanctuaryScreen() {
   const [sort, setSort] = useState('newest');
   const [limit, setLimit] = useState(12);
   const [cardSize, setCardSize] = useState('md');
-  const [itemsPerPageOptions, setItemsPerPageOptions ] = useState([6, 12, 24, 48]);
+  const [itemsPerPageOptions, setItemsPerPageOptions] = useState([6, 12, 24, 48]);
 
   const { MonsterCard, viewer } = useMonsterCardViewer();
 
   // Domain hook - clean monster data that stays live via monster domain events
   // (art and abilities patch individual cards in place, no refetch)
-  const {
-    monsters,
-    total,
-    isLoading,
-    isError,
-    error,
-    loadMonsters
-  } = useLiveMonsterCollection();
+  const { monsters, total, isLoading, isError, error, loadMonsters } = useLiveMonsterCollection();
 
   // Monster generation hook
-  const {
-    isLoading: isGenerating,
-    generate
-  } = useMonsterGeneration();
+  const { isLoading: isGenerating, generate } = useMonsterGeneration();
 
   // Pagination hook
-  const pagination = usePagination({ 
-    limit, 
-    total 
+  const pagination = usePagination({
+    limit,
+    total,
   });
 
   // Load monsters when filters or pagination changes
@@ -61,7 +53,7 @@ function MonsterSanctuaryScreen() {
       limit,
       offset: pagination.currentOffset,
       filter: filter !== 'all' ? filter : undefined,
-      sort
+      sort,
     });
   }, [filter, sort, limit, pagination.currentOffset, loadMonsters]);
 
@@ -84,32 +76,40 @@ function MonsterSanctuaryScreen() {
   }, [generate]);
 
   // Handle limit change (updates pagination)
-  const handleLimitChange = useCallback((newLimit) => {
-    setLimit(newLimit);
-    pagination.firstPage();
-  }, [pagination.firstPage]);
+  const handleLimitChange = useCallback(
+    (newLimit) => {
+      setLimit(newLimit);
+      pagination.firstPage();
+    },
+    [pagination.firstPage],
+  );
 
   // Handle filter/sort changes
-  const handleFilterChange = useCallback((newFilter) => {
-    setFilter(newFilter);
-    pagination.firstPage(); // Reset to first page when filter changes
-  }, [pagination.firstPage]);
+  const handleFilterChange = useCallback(
+    (newFilter) => {
+      setFilter(newFilter);
+      pagination.firstPage(); // Reset to first page when filter changes
+    },
+    [pagination.firstPage],
+  );
 
-  const handleSortChange = useCallback((newSort) => {
-    setSort(newSort);
-    pagination.firstPage(); // Reset to first page when sort changes
-  }, [pagination.firstPage]);
+  const handleSortChange = useCallback(
+    (newSort) => {
+      setSort(newSort);
+      pagination.firstPage(); // Reset to first page when sort changes
+    },
+    [pagination.firstPage],
+  );
 
   const handleCardSizeChange = useCallback((newCardSize) => {
     setCardSize(newCardSize);
-    
-    if (newCardSize === 'sm' ){
-        setItemsPerPageOptions([10, 20, 50, 100])
-        setLimit(10)
 
+    if (newCardSize === 'sm') {
+      setItemsPerPageOptions([10, 20, 50, 100]);
+      setLimit(10);
     } else {
-        setItemsPerPageOptions([6, 12, 24, 48])
-        setLimit(12)
+      setItemsPerPageOptions([6, 12, 24, 48]);
+      setLimit(12);
     }
   }, []);
 
@@ -117,20 +117,17 @@ function MonsterSanctuaryScreen() {
 
   return (
     <div>
-      
       {/* Header */}
       <Card size="xl" variant="elevated" background="light">
-        <CardSection 
-          title='🏛️ Monster Sanctuary'
-          type='header'
-          size='xl'
-          alignment='center'
-        >
-          <p>Welcome to your mystical sanctuary where legendary creatures await your discovery. Each monster is unique with its own personality, abilities, and backstory.</p>
+        <CardSection title="🏛️ Monster Sanctuary" type="header" size="xl" alignment="center">
+          <p>
+            Welcome to your mystical sanctuary where legendary creatures await your discovery. Each
+            monster is unique with its own personality, abilities, and backstory.
+          </p>
         </CardSection>
         <CardSection type="content" alignment="center" background="light">
-          <Button 
-            size="md" 
+          <Button
+            size="md"
             icon="🏠"
             variant="secondary"
             onClick={() => navigateToGameScreen('homebase')}
@@ -139,35 +136,39 @@ function MonsterSanctuaryScreen() {
           </Button>
         </CardSection>
         <CardSection type="content" alignment="center">
-            <Button 
-              variant="primary"
-              size="xl"
-              onClick={handleGenerateMonster}
-              disabled={isGenerating}
-              >
-              {isGenerating ? (
-                <>
-                  <span style={{ marginRight: '10px' }}><LoadingSpinner size='xl' type="spin" color="secondary"/></span>
-                  Summoning New Monster...
-                </>
-              ) : (
-                <>
-                  <span style={{ marginRight: '10px' }}>✨</span>
-                  Summon New Monster
-                </>
-              )}
-            </Button>
-          </CardSection>
+          <Button
+            variant="primary"
+            size="xl"
+            onClick={handleGenerateMonster}
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <>
+                <span style={{ marginRight: '10px' }}>
+                  <LoadingSpinner size="xl" type="spin" color="secondary" />
+                </span>
+                Summoning New Monster...
+              </>
+            ) : (
+              <>
+                <span style={{ marginRight: '10px' }}>✨</span>
+                Summon New Monster
+              </>
+            )}
+          </Button>
+        </CardSection>
       </Card>
 
       {/* Controls */}
-      <Card style={{
+      <Card
+        style={{
           marginTop: '16px',
           display: 'flex',
           flexDirection: 'row',
-          gap: '10px'
-        }}>
-        <label style={{width: '150px'}}>
+          gap: '10px',
+        }}
+      >
+        <label style={{ width: '150px' }}>
           Filter:
           <Select
             options={['all', 'with_art', 'without_art']}
@@ -175,8 +176,8 @@ function MonsterSanctuaryScreen() {
             onChange={(e) => handleFilterChange(e.target.value)}
           />
         </label>
-        
-        <label style={{width: '150px'}}>
+
+        <label style={{ width: '150px' }}>
           Sort:
           <Select
             options={['newest', 'oldest', 'name', 'species']}
@@ -185,7 +186,7 @@ function MonsterSanctuaryScreen() {
           />
         </label>
 
-        <label style={{width: '150px'}}>
+        <label style={{ width: '150px' }}>
           Size:
           <Select
             options={['sm', 'md', 'lg', 'xl']}
@@ -193,7 +194,6 @@ function MonsterSanctuaryScreen() {
             onChange={(e) => handleCardSizeChange(e.target.value)}
           />
         </label>
-
       </Card>
 
       {/* Full-Featured Pagination (Top) */}
@@ -211,7 +211,7 @@ function MonsterSanctuaryScreen() {
       )}
 
       {/* Monster Grid */}
-      { isError ? (
+      {isError ? (
         <Alert type="error" title="Loading Error" style={{ marginBottom: '20px' }}>
           {error?.message || 'Failed to load monsters'}
         </Alert>
@@ -219,21 +219,19 @@ function MonsterSanctuaryScreen() {
         // Spinner only when there is nothing to show yet - background refetches
         // keep the grid mounted so cards keep their flip state
         <div style={{ textAlign: 'center', padding: '40px' }}>
-          <LoadingSpinner size="section" type="cardFlip"/>
+          <LoadingSpinner size="section" type="cardFlip" />
         </div>
       ) : monsters.length === 0 ? (
-        <EmptyState
-          {...EMPTY_STATE_PRESETS.NO_MONSTERS}
-          size="lg"
-          style={{ margin: '40px 0' }}
-        />
+        <EmptyState {...EMPTY_STATE_PRESETS.NO_MONSTERS} size="lg" style={{ margin: '40px 0' }} />
       ) : (
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-evenly', 
-        }}>
-          {monsters.map(monster => (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-evenly',
+          }}
+        >
+          {monsters.map((monster) => (
             <MonsterCard
               key={monster.id}
               monster={monster} // ← Clean domain object!

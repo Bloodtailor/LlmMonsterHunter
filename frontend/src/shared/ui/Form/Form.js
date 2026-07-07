@@ -25,52 +25,39 @@ function Form({
   className = '',
   ...rest
 }) {
-  
   const formClasses = [
     'form',
     loading && 'form-loading',
     disabled && 'form-disabled',
     error && 'form-with-error',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Handle form submission
   const handleSubmit = (event) => {
     event.preventDefault();
-    
+
     if (loading || disabled) {
       return;
     }
-    
+
     if (onSubmit) {
       onSubmit(event);
     }
   };
 
   return (
-    <form
-      className={formClasses}
-      onSubmit={handleSubmit}
-      {...rest}
-    >
+    <form className={formClasses} onSubmit={handleSubmit} {...rest}>
       {/* Form-level error message */}
-      {error && (
-        <div className="form-error-message">
-          ❌ {error}
-        </div>
-      )}
-      
+      {error && <div className="form-error-message">❌ {error}</div>}
+
       {/* Form content */}
-      <div className="form-content">
-        {children}
-      </div>
-      
+      <div className="form-content">{children}</div>
+
       {/* Loading overlay (if needed) */}
-      {loading && (
-        <div className="form-loading-overlay">
-          🔄 Processing...
-        </div>
-      )}
+      {loading && <div className="form-loading-overlay">🔄 Processing...</div>}
     </form>
   );
 }

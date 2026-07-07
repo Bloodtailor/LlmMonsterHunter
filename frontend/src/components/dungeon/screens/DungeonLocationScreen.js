@@ -28,7 +28,6 @@ import DungeonErrorAlert from '../components/DungeonErrorAlert.js';
  * Children appear as their pieces of the encounter finish generating
  */
 function DungeonLocationScreen() {
-
   // Pure layout - never changes, never rerenders
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

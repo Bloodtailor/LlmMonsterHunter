@@ -14,7 +14,7 @@ const OUTCOME_HEADERS = {
   allow_passage: '🚶 The way is open',
   reward: '🎁 The monster grants a boon',
   punish: '⚡ The monster exacts a price',
-  join_party: '🎉 A new companion!'
+  join_party: '🎉 A new companion!',
 };
 
 /**
@@ -28,7 +28,7 @@ function MonsterDialogueBox() {
     dialogueOutcome,
     respondToMonster,
     continueExploring,
-    exitText
+    exitText,
   } = useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
@@ -61,7 +61,7 @@ function MonsterDialogueBox() {
     fontFamily: 'var(--font-family-serif)',
     fontStyle: 'italic',
     whiteSpace: 'pre-wrap',
-    margin: 0
+    margin: 0,
   };
 
   // The party's words look plainer - spoken, not performed
@@ -70,14 +70,14 @@ function MonsterDialogueBox() {
     lineHeight: 'var(--line-height-relaxed)',
     color: 'var(--color-text-secondary)',
     whiteSpace: 'pre-wrap',
-    margin: 0
+    margin: 0,
   };
 
   const speakerLabelStyles = {
     fontSize: 'var(--font-size-sm)',
     fontWeight: 'bold',
     color: 'var(--color-text-muted)',
-    marginBottom: '4px'
+    marginBottom: '4px',
   };
 
   // A battle outcome hands the moment to the BattleIntroBox below
@@ -89,19 +89,37 @@ function MonsterDialogueBox() {
 
       {/* The conversation so far */}
       <CardSection type="content">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '720px', margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            maxWidth: '720px',
+            margin: '0 auto',
+          }}
+        >
           {dialogue.map((line, index) => {
             const isParty = line.speaker === 'The party';
             return (
               <div key={index} style={{ textAlign: isParty ? 'right' : 'left' }}>
-                <div style={speakerLabelStyles}>{isParty ? '🛡️ The party' : `👹 ${line.speaker}`}</div>
+                <div style={speakerLabelStyles}>
+                  {isParty ? '🛡️ The party' : `👹 ${line.speaker}`}
+                </div>
                 <p style={isParty ? partySpeechStyles : monsterSpeechStyles}>"{line.text}"</p>
               </div>
             );
           })}
 
           {isMonsterResponding && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: 'var(--color-text-muted)',
+                fontStyle: 'italic',
+              }}
+            >
               <LoadingSpinner size="sm" type="spin" />
               The monster considers your words...
             </div>
@@ -112,7 +130,16 @@ function MonsterDialogueBox() {
       {/* The party speaks - until the monster has decided */}
       {!outcome && (
         <CardSection type="content" alignment="center">
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '640px', margin: '0 auto' }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              maxWidth: '640px',
+              margin: '0 auto',
+            }}
+          >
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -136,7 +163,12 @@ function MonsterDialogueBox() {
       {/* The monster has decided */}
       {outcome && (
         <>
-          <CardSection type="header" size="md" title={OUTCOME_HEADERS[outcome] || 'The encounter resolves'} alignment="center" />
+          <CardSection
+            type="header"
+            size="md"
+            title={OUTCOME_HEADERS[outcome] || 'The encounter resolves'}
+            alignment="center"
+          />
 
           {outcome === 'join_party' && joinedNames.length > 0 && (
             <CardSection type="content" alignment="center">
@@ -148,12 +180,7 @@ function MonsterDialogueBox() {
 
           {showContinueButton && (
             <CardSection type="content" alignment="center">
-              <Button
-                size="xl"
-                icon="🧭"
-                variant="primary"
-                onClick={handleContinue}
-              >
+              <Button size="xl" icon="🧭" variant="primary" onClick={handleContinue}>
                 Continue Exploring
               </Button>
             </CardSection>

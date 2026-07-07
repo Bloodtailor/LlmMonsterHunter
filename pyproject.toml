@@ -1,0 +1,36 @@
+# Project tooling configuration (lint, format, tests)
+# The app itself installs via requirements.txt - this file only configures tools.
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+include = ["backend/**/*.py", "setup/**/*.py", "tools/**/*.py"]
+
+[tool.ruff.lint]
+# E/W pycodestyle, F pyflakes, I import order, B bugbear traps,
+# UP outdated syntax, SIM needless complexity
+select = ["E", "W", "F", "I", "B", "UP", "SIM"]
+ignore = [
+    "E501",   # long lines - prose-heavy prompts and messages; format handles code
+    "E402",   # module-import-not-at-top - lazy imports are a deliberate pattern here
+    "SIM108", # ternary suggestions - explicit if/else reads better for this codebase
+    "B904",   # raise-from inside except - the game's error style keeps messages plain
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Suites re-import inside main() on purpose (models need the app context)
+"backend/tests/*" = ["F401"]
+# Re-export hubs: imports ARE the public surface
+"**/__init__.py" = ["F401"]
+# Setup flows deliberately star-import the whole message/UX vocabulary
+"setup/flows/*" = ["F403", "F405"]
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+[tool.pytest.ini_options]
+# Offline suites only: the bridge file runs each suite's main() against the
+# dedicated test database (see backend/tests/harness.py)
+testpaths = ["backend/tests"]
+python_files = ["test_offline_suites.py"]
+addopts = "-q"

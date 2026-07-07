@@ -33,7 +33,6 @@ function IconButton({
   className = '',
   ...rest
 }) {
-  
   // Validation
   if (!icon) {
     console.error('IconButton: icon prop is required');
@@ -46,8 +45,10 @@ function IconButton({
   // Add icon-specific CSS classes
   const iconButtonClasses = [
     'icon-button', // Specific icon button styling
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <Button

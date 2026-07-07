@@ -4,7 +4,7 @@
 
 /**
  * Get a color value from CSS custom properties
- * @param {string} colorName - Color name like 'red-intense' 
+ * @param {string} colorName - Color name like 'red-intense'
  * @returns {string} Hex color value
  */
 export const getColor = (colorName) => {
@@ -29,39 +29,39 @@ export const getColorVar = (colorName) => {
  */
 const generateColorFamilies = () => {
   const families = {};
-  
+
   try {
     // Get all stylesheets from the document
     const styleSheets = Array.from(document.styleSheets);
-    
-    styleSheets.forEach(styleSheet => {
+
+    styleSheets.forEach((styleSheet) => {
       try {
         // Get CSS rules from each stylesheet
         const rules = Array.from(styleSheet.cssRules || styleSheet.rules || []);
-        
-        rules.forEach(rule => {
+
+        rules.forEach((rule) => {
           // Look for :root rules (where CSS custom properties are defined)
           if (rule.selectorText === ':root' && rule.style) {
             // Iterate through all style properties
             for (let i = 0; i < rule.style.length; i++) {
               const propertyName = rule.style[i];
-              
+
               // Check if it's a color custom property
               if (propertyName.startsWith('--base-color-')) {
                 // Extract the color name (remove --color- prefix)
                 const colorName = propertyName.replace('--base-color-', '');
-                
+
                 // Split into hue and variant
                 const parts = colorName.split('-');
                 if (parts.length >= 2) {
                   const hue = parts[0];
                   const variant = parts.slice(1).join('-'); // Handle multi-part variants like 'bright-electric'
-                  
+
                   // Initialize hue array if needed
                   if (!families[hue]) {
                     families[hue] = [];
                   }
-                  
+
                   // Add variant if not already present
                   if (!families[hue].includes(variant)) {
                     families[hue].push(variant);
@@ -79,7 +79,7 @@ const generateColorFamilies = () => {
   } catch (e) {
     console.error('Error generating color families:', e);
   }
-  
+
   return families;
 };
 
@@ -91,29 +91,29 @@ const generateColorFamilies = () => {
 const generateColorFamiliesFromComputed = () => {
   const families = {};
   const computedStyles = getComputedStyle(document.documentElement);
-  
+
   // This approach tries to iterate through computed styles
   // Note: This may not capture all custom properties reliably
   for (const propertyName in computedStyles) {
     if (typeof propertyName === 'string' && propertyName.startsWith('--base-color-')) {
       const colorName = propertyName.replace('--base-color-', '');
       const parts = colorName.split('-');
-      
+
       if (parts.length >= 2) {
         const hue = parts[0];
         const variant = parts.slice(1).join('-');
-        
+
         if (!families[hue]) {
           families[hue] = [];
         }
-        
+
         if (!families[hue].includes(variant)) {
           families[hue].push(variant);
         }
       }
     }
   }
-  
+
   return families;
 };
 
@@ -125,17 +125,17 @@ const generateColorFamiliesFromComputed = () => {
 const getColorFamiliesFromCSS = () => {
   // Try the stylesheet approach first (most reliable)
   let families = generateColorFamilies();
-  
+
   // If no families found, try the computed style approach
   if (Object.keys(families).length === 0) {
     families = generateColorFamiliesFromComputed();
   }
-  
+
   // If still no families, return empty object (don't fall back to hardcoded)
   if (Object.keys(families).length === 0) {
     console.warn('No color families could be generated from CSS');
   }
-  
+
   return families;
 };
 
@@ -171,27 +171,27 @@ export const refreshColorFamilies = () => {
 export const getAllColors = () => {
   const colors = [];
   const colorFamilies = getColorFamilies();
-  
+
   Object.entries(colorFamilies).forEach(([hue, variants]) => {
-    variants.forEach(variant => {
+    variants.forEach((variant) => {
       const colorName = `${hue}-${variant}`;
       const displayName = `${capitalize(hue)} ${capitalize(variant)}`;
       const hex = getColor(colorName);
-      
+
       // Only add if CSS variable exists and has a value
       if (hex) {
         colors.push({
-          name: colorName,           // 'red-intense'
-          displayName: displayName,  // 'Red Intense'  
-          hex: hex,                  // '#ff2d2d'
-          hue: hue,                  // 'red'
-          variant: variant,          // 'intense'
-          cssVar: getColorVar(colorName) // 'var(--color-red-intense)'
+          name: colorName, // 'red-intense'
+          displayName: displayName, // 'Red Intense'
+          hex: hex, // '#ff2d2d'
+          hue: hue, // 'red'
+          variant: variant, // 'intense'
+          cssVar: getColorVar(colorName), // 'var(--color-red-intense)'
         });
       }
     });
   });
-  
+
   return colors;
 };
 
@@ -202,29 +202,33 @@ export const getAllColors = () => {
 export const getColorsByFamily = () => {
   const families = [];
   const colorFamilies = getColorFamilies();
-  
+
   Object.entries(colorFamilies).forEach(([hue, variants]) => {
-    const colors = variants.map(variant => {
-      const colorName = `${hue}-${variant}`;
-      const hex = getColor(colorName);
-      
-      return hex ? {
-        name: colorName,
-        displayName: capitalize(variant),
-        hex: hex,
-        cssVar: getColorVar(colorName)
-      } : null;
-    }).filter(Boolean); // Remove null values
-    
+    const colors = variants
+      .map((variant) => {
+        const colorName = `${hue}-${variant}`;
+        const hex = getColor(colorName);
+
+        return hex
+          ? {
+              name: colorName,
+              displayName: capitalize(variant),
+              hex: hex,
+              cssVar: getColorVar(colorName),
+            }
+          : null;
+      })
+      .filter(Boolean); // Remove null values
+
     if (colors.length > 0) {
       families.push({
         label: capitalize(hue),
         hue: hue,
-        colors: colors
+        colors: colors,
       });
     }
   });
-  
+
   return families;
 };
 
@@ -236,18 +240,22 @@ export const getColorsByFamily = () => {
 export const getColorsInFamily = (hue) => {
   const colorFamilies = getColorFamilies();
   const variants = colorFamilies[hue] || [];
-  
-  return variants.map(variant => {
-    const colorName = `${hue}-${variant}`;
-    const hex = getColor(colorName);
-    
-    return hex ? {
-      name: colorName,
-      displayName: capitalize(variant),
-      hex: hex,
-      cssVar: getColorVar(colorName)
-    } : null;
-  }).filter(Boolean);
+
+  return variants
+    .map((variant) => {
+      const colorName = `${hue}-${variant}`;
+      const hex = getColor(colorName);
+
+      return hex
+        ? {
+            name: colorName,
+            displayName: capitalize(variant),
+            hex: hex,
+            cssVar: getColorVar(colorName),
+          }
+        : null;
+    })
+    .filter(Boolean);
 };
 
 /**
@@ -314,6 +322,10 @@ export default {
   getColorFamilies,
   refreshColorFamilies,
   getHueNames,
-  get HUE_NAMES() { return getHueNames(); },
-  get COLOR_FAMILIES() { return getColorFamilies(); }
+  get HUE_NAMES() {
+    return getHueNames();
+  },
+  get COLOR_FAMILIES() {
+    return getColorFamilies();
+  },
 };

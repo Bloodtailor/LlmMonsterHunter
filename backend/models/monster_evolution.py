@@ -6,8 +6,10 @@
 # "it used to be..." possible. Data storage only - the transform logic
 # lives in backend/game/monster/evolution.py.
 
+from sqlalchemy import JSON, Column, Float, ForeignKey, Integer, String, Text
+
 from .base import BaseModel
-from sqlalchemy import Column, Integer, String, Text, JSON, Float, ForeignKey
+
 
 class MonsterEvolution(BaseModel):
     """
@@ -44,29 +46,43 @@ class MonsterEvolution(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'monster_id': self.monster_id,
-            'stage': self.stage,
-            'guidance': self.guidance,
-            'narrative': self.narrative,
-            'old_name': self.old_name,
-            'old_species': self.old_species,
-            'old_rarity': self.old_rarity,
-            'new_name': self.new_name,
-            'new_species': self.new_species,
-            'new_rarity': self.new_rarity,
-            'old_stats': self.old_stats or {},
-            'applied_boost_pct': self.applied_boost_pct,
-            'old_card_art_path': self.old_card_art_path,
-            'details': self.details or {}
-        })
+        result.update(
+            {
+                'monster_id': self.monster_id,
+                'stage': self.stage,
+                'guidance': self.guidance,
+                'narrative': self.narrative,
+                'old_name': self.old_name,
+                'old_species': self.old_species,
+                'old_rarity': self.old_rarity,
+                'new_name': self.new_name,
+                'new_species': self.new_species,
+                'new_rarity': self.new_rarity,
+                'old_stats': self.old_stats or {},
+                'applied_boost_pct': self.applied_boost_pct,
+                'old_card_art_path': self.old_card_art_path,
+                'details': self.details or {},
+            }
+        )
         return result
 
     @classmethod
-    def add(cls, monster_id: int, stage: int, old_name: str, old_species: str,
-            old_rarity, new_name: str, new_species: str, new_rarity: str,
-            old_stats: dict, applied_boost_pct: float,
-            old_card_art_path: str = None, guidance: str = None, details: dict = None):
+    def add(
+        cls,
+        monster_id: int,
+        stage: int,
+        old_name: str,
+        old_species: str,
+        old_rarity,
+        new_name: str,
+        new_species: str,
+        new_rarity: str,
+        old_stats: dict,
+        applied_boost_pct: float,
+        old_card_art_path: str = None,
+        guidance: str = None,
+        details: dict = None,
+    ):
         """Record one evolution. Returns the saved row or None on error."""
         try:
             evolution = cls(
@@ -82,7 +98,7 @@ class MonsterEvolution(BaseModel):
                 applied_boost_pct=float(applied_boost_pct),
                 old_card_art_path=old_card_art_path,
                 guidance=guidance,
-                details=details or None
+                details=details or None,
             )
             return evolution if evolution.save() else None
         except Exception as e:
@@ -108,5 +124,7 @@ class MonsterEvolution(BaseModel):
             return 0
 
     def __repr__(self):
-        return (f"<MonsterEvolution(id={self.id}, monster_id={self.monster_id}, "
-                f"stage={self.stage}, '{self.old_name}' -> '{self.new_name}')>")
+        return (
+            f"<MonsterEvolution(id={self.id}, monster_id={self.monster_id}, "
+            f"stage={self.stage}, '{self.old_name}' -> '{self.new_name}')>"
+        )

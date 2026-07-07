@@ -4,8 +4,10 @@
 # the referee needs to judge what the item does when used.
 # Data storage only - consumption logic lives in the game layer.
 
-from .base import BaseModel
 from sqlalchemy import Column, Integer, String, Text
+
+from .base import BaseModel
+
 
 class Item(BaseModel):
     """
@@ -27,13 +29,15 @@ class Item(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'name': self.name,
-            'description': self.description,
-            'emoji': self.emoji or '🎁',
-            'uses_remaining': self.uses_remaining,
-            'source_note': self.source_note
-        })
+        result.update(
+            {
+                'name': self.name,
+                'description': self.description,
+                'emoji': self.emoji or '🎁',
+                'uses_remaining': self.uses_remaining,
+                'source_note': self.source_note,
+            }
+        )
         return result
 
     @classmethod

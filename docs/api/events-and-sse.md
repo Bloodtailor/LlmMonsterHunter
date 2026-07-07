@@ -1,7 +1,7 @@
 # Events & SSE
 
 Because most action endpoints are async (see the
-[index](../backend-api-reference.md)), SSE is how the client learns what
+[index](README.md)), SSE is how the client learns what
 actually happened. This file catalogs the events and how the frontend
 consumes them.
 

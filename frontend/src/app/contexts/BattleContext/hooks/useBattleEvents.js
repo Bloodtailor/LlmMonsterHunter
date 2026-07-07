@@ -10,11 +10,7 @@ import { useStreamedGeneration } from '../../../../api/events/useStreamedGenerat
  * @param {object} stateHook - State hook from useBattleState
  */
 export function useBattleEvents(stateHook) {
-  const {
-    state,
-    setters,
-    resetState
-  } = stateHook;
+  const { state, setters, resetState } = stateHook;
 
   const {
     setDisplayedBattle,
@@ -27,13 +23,13 @@ export function useBattleEvents(stateHook) {
     setCurrentNarration,
     setTurnResult,
     setIsProcessing,
-    setBattleError
+    setBattleError,
   } = setters;
 
   // The acting monster's streamed inner monologue (announced by the
   // battle_turn workflow when it hands the player a turn)
   useStreamedGeneration('turn_vanity_generation_id', {
-    onText: (partialText) => setTurnVanityText(partialText)
+    onText: (partialText) => setTurnVanityText(partialText),
   });
 
   // A battle begins. Several dungeon moments can start one:
@@ -42,7 +38,12 @@ export function useBattleEvents(stateHook) {
   //   sneak_past         - the party was noticed
   //   surprise_attack    - the party struck first
   // They all return a battle_snapshot + battle_intro on completion.
-  const BATTLE_STARTING_WORKFLOWS = ['choose_path', 'respond_to_monster', 'sneak_past', 'surprise_attack'];
+  const BATTLE_STARTING_WORKFLOWS = [
+    'choose_path',
+    'respond_to_monster',
+    'sneak_past',
+    'surprise_attack',
+  ];
 
   useEventSubscription('workflowCompleted', (eventData) => {
     const workflowType = eventData?.workflowItem?.workflowType;
@@ -81,10 +82,10 @@ export function useBattleEvents(stateHook) {
     if (!state.currentNarration) {
       setCurrentNarration(actionResult);
       if (actionResult.battle_snapshot) {
-        setDisplayedBattle(prev => ({ ...prev, ...actionResult.battle_snapshot }));
+        setDisplayedBattle((prev) => ({ ...prev, ...actionResult.battle_snapshot }));
       }
     } else {
-      setPendingNarrations(prev => [...prev, actionResult]);
+      setPendingNarrations((prev) => [...prev, actionResult]);
     }
   });
 
@@ -97,7 +98,8 @@ export function useBattleEvents(stateHook) {
     setCurrentNarration(null);
     setPendingNarrations([]);
     setTurnResult(null);
-    const error = typeof eventData?.error === 'string' ? eventData.error : 'The battle turn failed - try again';
+    const error =
+      typeof eventData?.error === 'string' ? eventData.error : 'The battle turn failed - try again';
     setBattleError(error);
   });
 

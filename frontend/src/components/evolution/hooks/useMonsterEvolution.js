@@ -25,7 +25,7 @@ export const EVOLUTION_STEP_LABELS = {
   evolving_abilities: 'Its powers evolve',
   adding_signature_ability: 'A signature awakens',
   recording_memory: 'It will remember this',
-  regenerating_art: 'A new face emerges'
+  regenerating_art: 'A new face emerges',
 };
 
 /**
@@ -34,12 +34,12 @@ export const EVOLUTION_STEP_LABELS = {
  * @returns {object} Ceremony state and actions
  */
 export function useMonsterEvolution(monster) {
-  const [phase, setPhase] = useState('idle');   // idle | evolving | complete | failed
+  const [phase, setPhase] = useState('idle'); // idle | evolving | complete | failed
   const [currentStep, setCurrentStep] = useState(null);
   const [narration, setNarration] = useState('');
   const [beforeSnapshot, setBeforeSnapshot] = useState(null);
-  const [evolution, setEvolution] = useState(null);   // the lineage record, from monster.evolved
-  const [result, setResult] = useState(null);         // workflow.completed payload
+  const [evolution, setEvolution] = useState(null); // the lineage record, from monster.evolved
+  const [result, setResult] = useState(null); // workflow.completed payload
   const [artRevealed, setArtRevealed] = useState(false);
   const [error, setError] = useState(null);
 
@@ -65,29 +65,32 @@ export function useMonsterEvolution(monster) {
 
   // ===== BEGIN =====
 
-  const begin = useCallback(async (guidance) => {
-    if (!monsterIdRef.current || phaseRef.current === 'evolving') return;
+  const begin = useCallback(
+    async (guidance) => {
+      if (!monsterIdRef.current || phaseRef.current === 'evolving') return;
 
-    setError(null);
-    setCurrentStep(null);
-    setNarration('');
-    setEvolution(null);
-    setResult(null);
-    setArtRevealed(false);
-    // The before-form, frozen at the moment the player commits
-    setBeforeSnapshot(JSON.parse(JSON.stringify(monster)));
-    setPhase('evolving');
+      setError(null);
+      setCurrentStep(null);
+      setNarration('');
+      setEvolution(null);
+      setResult(null);
+      setArtRevealed(false);
+      // The before-form, frozen at the moment the player commits
+      setBeforeSnapshot(JSON.parse(JSON.stringify(monster)));
+      setPhase('evolving');
 
-    try {
-      const response = await requestEvolution(monsterIdRef.current, guidance);
-      workflowIdRef.current = response.workflowId;
-    } catch (beginError) {
-      // The backend refused (mid-run, not following...) - nothing happened
-      setPhase('failed');
-      setBeforeSnapshot(null);
-      setError(beginError?.message || 'The altar stays dark - evolution could not begin');
-    }
-  }, [monster]);
+      try {
+        const response = await requestEvolution(monsterIdRef.current, guidance);
+        workflowIdRef.current = response.workflowId;
+      } catch (beginError) {
+        // The backend refused (mid-run, not following...) - nothing happened
+        setPhase('failed');
+        setBeforeSnapshot(null);
+        setError(beginError?.message || 'The altar stays dark - evolution could not begin');
+      }
+    },
+    [monster],
+  );
 
   const reset = useCallback(() => {
     setPhase('idle');
@@ -110,7 +113,7 @@ export function useMonsterEvolution(monster) {
   });
 
   useStreamedGeneration('evolution_text_generation_id', {
-    onText: (partialText) => setNarration(partialText)
+    onText: (partialText) => setNarration(partialText),
   });
 
   // The transform moment - the lineage record carries the old form
@@ -128,14 +131,17 @@ export function useMonsterEvolution(monster) {
     }
   });
 
-  useEventSubscription('workflowCompleted', ({ workflowItem, workflowId, result: workflowResult }) => {
-    if (workflowItem?.workflowType !== 'evolve_monster') return;
-    if (workflowIdRef.current && workflowId !== workflowIdRef.current) return;
-    if (!workflowResult || workflowResult.monster_id !== monsterIdRef.current) return;
-    setResult(workflowResult);
-    setNarration(prev => workflowResult.narrative || prev);
-    setPhase('complete');
-  });
+  useEventSubscription(
+    'workflowCompleted',
+    ({ workflowItem, workflowId, result: workflowResult }) => {
+      if (workflowItem?.workflowType !== 'evolve_monster') return;
+      if (workflowIdRef.current && workflowId !== workflowIdRef.current) return;
+      if (!workflowResult || workflowResult.monster_id !== monsterIdRef.current) return;
+      setResult(workflowResult);
+      setNarration((prev) => workflowResult.narrative || prev);
+      setPhase('complete');
+    },
+  );
 
   useEventSubscription('workflowFailed', ({ workflowItem, workflowId, error: failure }) => {
     if (workflowItem?.workflowType !== 'evolve_monster') return;
@@ -155,6 +161,6 @@ export function useMonsterEvolution(monster) {
     artRevealed,
     error,
     begin,
-    reset
+    reset,
   };
 }

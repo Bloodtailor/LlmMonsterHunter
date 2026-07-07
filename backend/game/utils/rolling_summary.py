@@ -15,7 +15,8 @@
 # pass plain lists in. Summarization itself never raises - a failed
 # condense simply retries at the next trigger.
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
+
 from backend.game.utils.context_limits import clamp_context
 
 # Per-source developer knobs. 'covered' below always means "how many of
@@ -45,9 +46,10 @@ SUMMARY_SOURCES = {
     },
 }
 
+
 # Summaries stored next to their entries share this shape:
 #   {'through': int, 'text': str} - condenses entries[0:through]
-def covered_count(summaries: List[Dict[str, Any]]) -> int:
+def covered_count(summaries: list[dict[str, Any]]) -> int:
     """How many of the oldest entries the summaries already condense"""
     if not summaries:
         return 0
@@ -56,7 +58,8 @@ def covered_count(summaries: List[Dict[str, Any]]) -> int:
     except (TypeError, ValueError):
         return 0
 
-def plan_batch(source: str, total_entries: int, covered: int) -> Optional[Tuple[int, int]]:
+
+def plan_batch(source: str, total_entries: int, covered: int) -> Optional[tuple[int, int]]:
     """
     Decide whether a batch is due and which entries it covers.
 
@@ -73,8 +76,10 @@ def plan_batch(source: str, total_entries: int, covered: int) -> Optional[Tuple[
 
     return covered, covered + min(uncovered_old, settings['batch_max'])
 
-def summarize_lines(source: str, lines: List[str], workflow_name: str,
-                    prior_summary: str = None) -> Optional[str]:
+
+def summarize_lines(
+    source: str, lines: list[str], workflow_name: str, prior_summary: str = None
+) -> Optional[str]:
     """
     Condense one batch of lines with the LLM. Returns the summary text,
     or None on any failure (the caller must NOT advance coverage then -
@@ -86,20 +91,30 @@ def summarize_lines(source: str, lines: List[str], workflow_name: str,
 
     try:
         from backend.game.utils.prompt_helpers import build_and_generate
-        result = build_and_generate('condense_history', workflow_name, {
-            'source_label': settings['label'],
-            'prior_summary': (prior_summary or '').strip() or 'Nothing has been condensed yet.',
-            'batch_lines': "\n".join(f"- {line}" for line in lines)
-        })
+
+        result = build_and_generate(
+            'condense_history',
+            workflow_name,
+            {
+                'source_label': settings['label'],
+                'prior_summary': (prior_summary or '').strip() or 'Nothing has been condensed yet.',
+                'batch_lines': "\n".join(f"- {line}" for line in lines),
+            },
+        )
         text = str(result or '').strip()
         return text or None
     except Exception as e:
         print(f"❌ Failed to condense {source} batch: {e}")
         return None
 
-def compose_history(source: str, summaries: List[Dict[str, Any]],
-                    verbatim_lines: List[str], block_name: str,
-                    empty_text: str) -> str:
+
+def compose_history(
+    source: str,
+    summaries: list[dict[str, Any]],
+    verbatim_lines: list[str],
+    block_name: str,
+    empty_text: str,
+) -> str:
     """
     The full history as one clamped LLM context block: summaries of the
     old (oldest first), then the recent lines verbatim.

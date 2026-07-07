@@ -15,11 +15,7 @@ import './pagination.css';
  * @param {object} props.rest - Additional HTML div attributes
  * @returns {React.ReactElement} PageJumper component
  */
-function PageJumper({
-  pagination,
-  className = '',
-  ...rest
-}) {
+function PageJumper({ pagination, className = '', ...rest }) {
   const [inputValue, setInputValue] = useState('');
 
   // Don't render if no pagination data
@@ -29,10 +25,7 @@ function PageJumper({
 
   const { totalPages } = pagination;
 
-  const jumperClasses = [
-    'page-jumper',
-    className
-  ].filter(Boolean).join(' ');
+  const jumperClasses = ['page-jumper', className].filter(Boolean).join(' ');
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
@@ -40,7 +33,7 @@ function PageJumper({
 
   const handleJump = () => {
     const pageNumber = parseInt(inputValue);
-    
+
     // Basic validation (user said assume valid input)
     if (pageNumber && pageNumber >= 1 && pageNumber <= totalPages) {
       pagination.goToPage(pageNumber);
@@ -58,7 +51,7 @@ function PageJumper({
     <div className={jumperClasses} {...rest}>
       <div className="page-jumper-controls">
         <span className="page-jumper-label">Go to page:</span>
-        
+
         <Input
           type="number"
           value={inputValue}
@@ -69,7 +62,7 @@ function PageJumper({
           max={totalPages}
           className="page-jumper-input"
         />
-        
+
         <Button
           variant="primary"
           size="sm"
@@ -80,10 +73,8 @@ function PageJumper({
           Go
         </Button>
       </div>
-      
-      <span className="page-jumper-info">
-        of {totalPages}
-      </span>
+
+      <span className="page-jumper-info">of {totalPages}</span>
     </div>
   );
 }

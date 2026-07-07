@@ -12,7 +12,7 @@ const RESOURCE_VARIANTS = {
   steady: 'info',
   strained: 'warning',
   drained: 'warning',
-  spent: 'error'
+  spent: 'error',
 };
 
 /**

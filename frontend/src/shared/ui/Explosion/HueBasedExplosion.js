@@ -11,7 +11,7 @@ import './explosion.css';
  * @param {string} props.hue - Color hue family name (e.g., 'red', 'blue', 'purple')
  * @param {string} props.size - Size: 'sm', 'md', 'lg', 'xl', 'massive' (default: 'md')
  * @param {number} props.intensity - Intensity multiplier (0.5-3, default: 1)
- * @param {number} props.speed - Speed multiplier (0.5-3, default: 1) 
+ * @param {number} props.speed - Speed multiplier (0.5-3, default: 1)
  * @param {boolean} props.autoStart - Start immediately (default: true)
  * @param {Function} props.onComplete - Callback when finished
  * @param {string} props.className - Additional CSS classes
@@ -29,19 +29,18 @@ function HueBasedExplosion({
   style = {},
   ...rest
 }) {
-
   // Get all color variants for the specified hue
   const getHueColors = () => {
     const familyColors = getColorsInFamily(hue);
-    
+
     if (familyColors.length === 0) {
       console.warn(`No colors found for hue: ${hue}. Using random color.`);
       const randomColor = getRandomColor();
       return randomColor ? [randomColor.hex] : ['#ff6348']; // fallback
     }
-    
+
     // Extract hex values from the color objects
-    return familyColors.map(color => color.hex);
+    return familyColors.map((color) => color.hex);
   };
 
   const hueColors = getHueColors();

@@ -5,14 +5,15 @@
 # Extraction output is strictly validated - the LLM proposes, code decides.
 
 import time
-from typing import Any, Dict, List, Optional
-from backend.game.utils import build_and_generate, build_and_stream
+from typing import Any, Optional
+
 from backend.game.chat.manager import (
     CHAT_SETTINGS,
     build_chat_history_block,
     build_last_run_block,
-    build_last_run_status
+    build_last_run_status,
 )
+from backend.game.utils import build_and_generate, build_and_stream
 
 # Memory kinds an extraction pass may produce (anything else is dropped)
 CHAT_MEMORY_KINDS = ('confided', 'grew_closer', 'shared_lore', 'learned_fact', 'voiced_wish')
@@ -21,16 +22,21 @@ CHAT_MEMORY_KINDS = ('confided', 'grew_closer', 'shared_lore', 'learned_fact', '
 # has its own 600s guard; this stays under it)
 REPLY_TIMEOUT_SECONDS = 540
 
+
 def build_chat_speaker_block(monster) -> str:
     """The monster as FULL context - a speaking monster always gets its
     whole persona, secret included (never shown to the player)"""
     from backend.game.monster.context_builder import build_speaker_block
+
     return build_speaker_block(monster)
+
 
 def build_chat_memories_block(monster_id: int) -> str:
     """Everything the monster remembers, as its own clamped block"""
     from backend.game.memory.manager import build_memory_block
+
     return build_memory_block(monster_id)
+
 
 def queue_chat_reply(monster, player_message: str, workflow_name: str) -> int:
     """
@@ -38,14 +44,19 @@ def queue_chat_reply(monster, player_message: str, workflow_name: str) -> int:
     frontend follows for token streaming (and wait_for_streamed_text
     resolves into the final text).
     """
-    return build_and_stream('home_chat_reply', workflow_name, {
-        'monster_details': build_chat_speaker_block(monster),
-        'monster_memories': build_chat_memories_block(monster.id),
-        'last_run_status': build_last_run_status(),
-        'last_run_log': build_last_run_block(),
-        'chat_history': build_chat_history_block(monster.id, monster.name),
-        'player_message': player_message
-    })
+    return build_and_stream(
+        'home_chat_reply',
+        workflow_name,
+        {
+            'monster_details': build_chat_speaker_block(monster),
+            'monster_memories': build_chat_memories_block(monster.id),
+            'last_run_status': build_last_run_status(),
+            'last_run_log': build_last_run_block(),
+            'chat_history': build_chat_history_block(monster.id, monster.name),
+            'player_message': player_message,
+        },
+    )
+
 
 def wait_for_streamed_text(generation_id: int, timeout: int = REPLY_TIMEOUT_SECONDS) -> str:
     """
@@ -75,28 +86,34 @@ def wait_for_streamed_text(generation_id: int, timeout: int = REPLY_TIMEOUT_SECO
 
     raise TimeoutError(f"Chat reply timed out after {timeout} seconds")
 
-def extract_chat_memories(monster, segment_messages: List[Any], workflow_name: str) -> Optional[List[Dict[str, str]]]:
+
+def extract_chat_memories(
+    monster, segment_messages: list[Any], workflow_name: str
+) -> Optional[list[dict[str, str]]]:
     """
     Run one memory-extraction pass over a stretch of conversation.
     Returns a validated list of {'kind', 'content'} (often EMPTY - most
     talk deserves no memory), or None when the LLM call itself failed
     (the caller must NOT advance the watermark then).
     """
-    from backend.game.monster.context_builder import build_monster_block
-    from backend.game.memory.manager import get_memory_lines
     from backend.game.chat.manager import speaker_display_name
+    from backend.game.memory.manager import get_memory_lines
+    from backend.game.monster.context_builder import build_monster_block
 
     try:
         segment_lines = "\n".join(
-            f'{speaker_display_name(m.role, monster.name)}: "{m.text}"'
-            for m in segment_messages
+            f'{speaker_display_name(m.role, monster.name)}: "{m.text}"' for m in segment_messages
         )
         existing = get_memory_lines(monster.id, cap=8)
-        result = build_and_generate('chat_memory_extraction', workflow_name, {
-            'monster_details': build_monster_block(monster),
-            'existing_memories': "\n".join(f"- {line}" for line in existing) or "Nothing yet.",
-            'conversation_segment': segment_lines
-        })
+        result = build_and_generate(
+            'chat_memory_extraction',
+            workflow_name,
+            {
+                'monster_details': build_monster_block(monster),
+                'existing_memories': "\n".join(f"- {line}" for line in existing) or "Nothing yet.",
+                'conversation_segment': segment_lines,
+            },
+        )
     except Exception as e:
         print(f"❌ Chat memory extraction failed for monster {monster.id}: {e}")
         return None
@@ -104,7 +121,7 @@ def extract_chat_memories(monster, segment_messages: List[Any], workflow_name: s
     # The LLM proposes; code validates, then caps (garbage entries must
     # not consume one of the few slots)
     memories = []
-    for entry in (result.get('memories') or []):
+    for entry in result.get('memories') or []:
         if len(memories) >= CHAT_SETTINGS['max_memories_per_pass']:
             break
         if not isinstance(entry, dict):

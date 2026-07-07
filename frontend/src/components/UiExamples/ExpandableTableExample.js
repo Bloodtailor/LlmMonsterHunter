@@ -3,10 +3,7 @@
 // Perfect for development reference and testing different configurations
 
 import React, { useState } from 'react';
-import { 
-  ExpandableTable, 
-  useExpandableRows 
-} from '../../shared/ui/ExpandableTable/index.js';
+import { ExpandableTable, useExpandableRows } from '../../shared/ui/ExpandableTable/index.js';
 import { Card, CardSection } from '../../shared/ui/Card/index.js';
 import { Select, FormField } from '../../shared/ui/Form/index.js';
 import { Badge, StatusBadge } from '../../shared/ui/Badge/index.js';
@@ -27,8 +24,8 @@ function ExpandableTableExamples() {
         model: 'GPT-4',
         tokens: 1250,
         duration: '3.2s',
-        metadata: { temperature: 0.8, maxTokens: 2000 }
-      }
+        metadata: { temperature: 0.8, maxTokens: 2000 },
+      },
     },
     {
       id: 2,
@@ -41,8 +38,8 @@ function ExpandableTableExamples() {
         analysis: 'Evaluating optimal party composition for dungeon raid',
         metrics: ['damage_output', 'survivability', 'synergy'],
         progress: 0.65,
-        estimatedCompletion: '2 minutes'
-      }
+        estimatedCompletion: '2 minutes',
+      },
     },
     {
       id: 3,
@@ -56,8 +53,8 @@ function ExpandableTableExamples() {
         service: 'DALL-E',
         error: 'Content policy violation: magical effects too intense',
         retryCount: 2,
-        lastAttempt: '2024-01-15 14:22'
-      }
+        lastAttempt: '2024-01-15 14:22',
+      },
     },
     {
       id: 4,
@@ -71,8 +68,8 @@ function ExpandableTableExamples() {
         size: '50x50',
         difficulty: 'Hard',
         features: ['traps', 'secret_passages', 'boss_room'],
-        queuePosition: 3
-      }
+        queuePosition: 3,
+      },
     },
     {
       id: 5,
@@ -85,77 +82,76 @@ function ExpandableTableExamples() {
         category: 'Ancient Civilizations',
         wordCount: 850,
         references: ['Book of Dragons', 'Historia Magica'],
-        themes: ['mystery', 'ancient power', 'forgotten knowledge']
-      }
-    }
+        themes: ['mystery', 'ancient power', 'forgotten knowledge'],
+      },
+    },
   ];
 
   // Column definitions
   const columns = [
-    { 
-      key: 'name', 
-      header: 'Name', 
+    {
+      key: 'name',
+      header: 'Name',
       width: '35%',
-      render: (value) => (
-        <span style={{ fontWeight: 'var(--font-weight-medium)' }}>{value}</span>
-      )
+      render: (value) => <span style={{ fontWeight: 'var(--font-weight-medium)' }}>{value}</span>,
     },
-    { 
-      key: 'type', 
-      header: 'Type', 
+    {
+      key: 'type',
+      header: 'Type',
       width: '15%',
       render: (value) => (
-        <Badge variant="secondary" size="sm">{value}</Badge>
-      )
+        <Badge variant="secondary" size="sm">
+          {value}
+        </Badge>
+      ),
     },
-    { 
-      key: 'status', 
-      header: 'Status', 
+    {
+      key: 'status',
+      header: 'Status',
       width: '15%',
       render: (value) => {
         const statusMap = {
           completed: 'success',
           processing: 'info',
           failed: 'error',
-          queued: 'warning'
+          queued: 'warning',
         };
-        return <StatusBadge status={statusMap[value]} size="sm">{value}</StatusBadge>;
-      }
+        return (
+          <StatusBadge status={statusMap[value]} size="sm">
+            {value}
+          </StatusBadge>
+        );
+      },
     },
-    { 
-      key: 'priority', 
-      header: 'Priority', 
+    {
+      key: 'priority',
+      header: 'Priority',
       width: '10%',
       render: (value) => (
-        <Badge 
-          variant={value >= 4 ? 'error' : value >= 3 ? 'warning' : 'success'} 
-          size="sm"
-        >
+        <Badge variant={value >= 4 ? 'error' : value >= 3 ? 'warning' : 'success'} size="sm">
           {value}
         </Badge>
-      )
+      ),
     },
-    { 
-      key: 'created', 
-      header: 'Created', 
+    {
+      key: 'created',
+      header: 'Created',
       width: '25%',
       render: (value) => (
-        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-          {value}
-        </span>
-      )
-    }
+        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{value}</span>
+      ),
+    },
   ];
 
   // Expandable rows hooks for different examples
   const basicExpandableRows = useExpandableRows({
     allowMultiple: true,
-    defaultExpanded: []
+    defaultExpanded: [],
   });
 
   const singleExpandableRows = useExpandableRows({
     allowMultiple: false,
-    defaultExpanded: []
+    defaultExpanded: [],
   });
 
   // Interactive builder state
@@ -166,49 +162,58 @@ function ExpandableTableExamples() {
     hover: true,
     animateExpansion: true,
     allowMultiple: true,
-    expandIconColumn: 'name'
+    expandIconColumn: 'name',
   });
 
   const builderExpandableRows = useExpandableRows({
     allowMultiple: builderConfig.allowMultiple,
-    defaultExpanded: []
+    defaultExpanded: [],
   });
 
   const handleBuilderChange = (field, value) => {
-    setBuilderConfig(prev => ({
+    setBuilderConfig((prev) => ({
       ...prev,
-      [field]: value === 'true' ? true : value === 'false' ? false : value
+      [field]: value === 'true' ? true : value === 'false' ? false : value,
     }));
   };
 
   // Render expanded content function
   const renderExpandedContent = (row) => {
     const { details } = row;
-    
+
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        gap: '12px',
-        fontSize: '14px'
-      }}>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-          gap: '12px' 
-        }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          fontSize: '14px',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '12px',
+          }}
+        >
           {Object.entries(details).map(([key, value]) => (
-            <div key={key} style={{ 
-              background: 'var(--color-surface-secondary)', 
-              padding: '8px', 
-              borderRadius: 'var(--radius-sm)' 
-            }}>
-              <div style={{ 
-                fontWeight: 'var(--font-weight-medium)', 
-                color: 'var(--color-text-primary)',
-                marginBottom: '4px',
-                textTransform: 'capitalize'
-              }}>
+            <div
+              key={key}
+              style={{
+                background: 'var(--color-surface-secondary)',
+                padding: '8px',
+                borderRadius: 'var(--radius-sm)',
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 'var(--font-weight-medium)',
+                  color: 'var(--color-text-primary)',
+                  marginBottom: '4px',
+                  textTransform: 'capitalize',
+                }}
+              >
                 {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}
               </div>
               <div style={{ color: 'var(--color-text-secondary)' }}>
@@ -217,18 +222,26 @@ function ExpandableTableExamples() {
             </div>
           ))}
         </div>
-        
-        <div style={{ 
-          display: 'flex', 
-          gap: '8px', 
-          marginTop: '8px',
-          paddingTop: '8px',
-          borderTop: '1px solid var(--color-surface-secondary)'
-        }}>
-          <Button size="sm" variant="primary">View Details</Button>
-          <Button size="sm" variant="secondary">Edit</Button>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            marginTop: '8px',
+            paddingTop: '8px',
+            borderTop: '1px solid var(--color-surface-secondary)',
+          }}
+        >
+          <Button size="sm" variant="primary">
+            View Details
+          </Button>
+          <Button size="sm" variant="secondary">
+            Edit
+          </Button>
           {row.status === 'failed' && (
-            <Button size="sm" variant="warning">Retry</Button>
+            <Button size="sm" variant="warning">
+              Retry
+            </Button>
           )}
         </div>
       </div>
@@ -238,26 +251,23 @@ function ExpandableTableExamples() {
   return (
     <Card size="lg" padding="lg" className="expandable-table-examples">
       <CardSection type="header" title="ExpandableTable Components Showcase" />
-      
+
       {/* Basic Example */}
       <CardSection type="content" title="Basic Expandable Table">
         <div style={{ marginBottom: '16px' }}>
           <p style={{ color: 'var(--color-text-secondary)', margin: '0 0 12px 0' }}>
-            Click on any row to expand and see detailed information. Multiple rows can be expanded simultaneously.
+            Click on any row to expand and see detailed information. Multiple rows can be expanded
+            simultaneously.
           </p>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="secondary"
               onClick={() => basicExpandableRows.expandAll(sampleData)}
             >
               Expand All
             </Button>
-            <Button 
-              size="sm" 
-              variant="secondary"
-              onClick={basicExpandableRows.collapseAll}
-            >
+            <Button size="sm" variant="secondary" onClick={basicExpandableRows.collapseAll}>
               Collapse All
             </Button>
             <Badge size="sm" variant="info">
@@ -265,7 +275,7 @@ function ExpandableTableExamples() {
             </Badge>
           </div>
         </div>
-        
+
         <ExpandableTable
           columns={columns}
           data={sampleData}
@@ -283,7 +293,7 @@ function ExpandableTableExamples() {
             Only one row can be expanded at a time. Expanding a new row collapses the previous one.
           </p>
         </div>
-        
+
         <ExpandableTable
           columns={columns}
           data={sampleData.slice(0, 3)} // Fewer rows for this example
@@ -297,7 +307,6 @@ function ExpandableTableExamples() {
       {/* Styling Variations */}
       <CardSection type="content" title="Styling Variations">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
           {/* Small, Bordered */}
           <div>
             <h4 style={{ marginBottom: '8px', color: 'var(--color-text-primary)' }}>
@@ -336,17 +345,17 @@ function ExpandableTableExamples() {
       {/* Interactive Builder */}
       <CardSection type="content" title="Interactive Table Builder">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
           {/* Builder Controls */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-            gap: '16px',
-            padding: '16px',
-            background: 'var(--color-surface-secondary)',
-            borderRadius: 'var(--radius-md)'
-          }}>
-            
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '16px',
+              padding: '16px',
+              background: 'var(--color-surface-secondary)',
+              borderRadius: 'var(--radius-md)',
+            }}
+          >
             <FormField label="Table Size">
               <Select
                 value={builderConfig.size}
@@ -354,7 +363,7 @@ function ExpandableTableExamples() {
                 options={[
                   { value: 'sm', label: 'Small' },
                   { value: 'md', label: 'Medium' },
-                  { value: 'lg', label: 'Large' }
+                  { value: 'lg', label: 'Large' },
                 ]}
               />
             </FormField>
@@ -365,7 +374,7 @@ function ExpandableTableExamples() {
                 onChange={(e) => handleBuilderChange('striped', e.target.value)}
                 options={[
                   { value: 'false', label: 'No' },
-                  { value: 'true', label: 'Yes' }
+                  { value: 'true', label: 'Yes' },
                 ]}
               />
             </FormField>
@@ -376,7 +385,7 @@ function ExpandableTableExamples() {
                 onChange={(e) => handleBuilderChange('bordered', e.target.value)}
                 options={[
                   { value: 'false', label: 'No' },
-                  { value: 'true', label: 'Yes' }
+                  { value: 'true', label: 'Yes' },
                 ]}
               />
             </FormField>
@@ -387,7 +396,7 @@ function ExpandableTableExamples() {
                 onChange={(e) => handleBuilderChange('hover', e.target.value)}
                 options={[
                   { value: 'true', label: 'Yes' },
-                  { value: 'false', label: 'No' }
+                  { value: 'false', label: 'No' },
                 ]}
               />
             </FormField>
@@ -398,7 +407,7 @@ function ExpandableTableExamples() {
                 onChange={(e) => handleBuilderChange('animateExpansion', e.target.value)}
                 options={[
                   { value: 'true', label: 'Yes' },
-                  { value: 'false', label: 'No' }
+                  { value: 'false', label: 'No' },
                 ]}
               />
             </FormField>
@@ -409,7 +418,7 @@ function ExpandableTableExamples() {
                 onChange={(e) => handleBuilderChange('allowMultiple', e.target.value)}
                 options={[
                   { value: 'true', label: 'Allow Multiple' },
-                  { value: 'false', label: 'Single Only' }
+                  { value: 'false', label: 'Single Only' },
                 ]}
               />
             </FormField>
@@ -417,13 +426,15 @@ function ExpandableTableExamples() {
 
           {/* Builder Result */}
           <div>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
+            <div
+              style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}
+            >
               <h4 style={{ margin: 0, color: 'var(--color-text-primary)' }}>Your Table</h4>
               <Badge size="sm" variant="info">
                 {builderExpandableRows.expandedCount} expanded
               </Badge>
             </div>
-            
+
             <ExpandableTable
               columns={columns}
               data={sampleData.slice(0, 3)}
@@ -439,23 +450,29 @@ function ExpandableTableExamples() {
           </div>
 
           {/* Code Example */}
-          <div style={{ 
-            background: 'var(--color-surface-primary)', 
-            padding: '16px', 
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-text-muted)'
-          }}>
-            <h4 style={{ marginBottom: '12px', color: 'var(--color-text-primary)', fontSize: '14px' }}>
+          <div
+            style={{
+              background: 'var(--color-surface-primary)',
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-text-muted)',
+            }}
+          >
+            <h4
+              style={{ marginBottom: '12px', color: 'var(--color-text-primary)', fontSize: '14px' }}
+            >
               Code Example:
             </h4>
-            <code style={{ 
-              fontFamily: 'var(--font-family-mono)', 
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              display: 'block',
-              whiteSpace: 'pre-wrap'
-            }}>
-{`// Hook setup
+            <code
+              style={{
+                fontFamily: 'var(--font-family-mono)',
+                fontSize: '12px',
+                color: 'var(--color-text-secondary)',
+                display: 'block',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {`// Hook setup
 const expandableRows = useExpandableRows({
   allowMultiple: ${builderConfig.allowMultiple}
 });
@@ -481,22 +498,26 @@ const expandableRows = useExpandableRows({
       {/* Hook Examples */}
       <CardSection type="content" title="useExpandableRows Hook Examples">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ 
-            padding: '16px', 
-            background: 'var(--color-surface-secondary)', 
-            borderRadius: 'var(--radius-md)' 
-          }}>
+          <div
+            style={{
+              padding: '16px',
+              background: 'var(--color-surface-secondary)',
+              borderRadius: 'var(--radius-md)',
+            }}
+          >
             <h4 style={{ margin: '0 0 12px 0', color: 'var(--color-text-primary)' }}>
               Hook Configuration Options
             </h4>
-            <code style={{ 
-              fontFamily: 'var(--font-family-mono)', 
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              display: 'block',
-              whiteSpace: 'pre-wrap'
-            }}>
-{`// Basic usage
+            <code
+              style={{
+                fontFamily: 'var(--font-family-mono)',
+                fontSize: '12px',
+                color: 'var(--color-text-secondary)',
+                display: 'block',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {`// Basic usage
 const expandableRows = useExpandableRows();
 
 // Single row expansion only
@@ -518,28 +539,48 @@ const expandableRows = useExpandableRows({
             </code>
           </div>
 
-          <div style={{ 
-            padding: '16px', 
-            background: 'var(--color-surface-secondary)', 
-            borderRadius: 'var(--radius-md)' 
-          }}>
+          <div
+            style={{
+              padding: '16px',
+              background: 'var(--color-surface-secondary)',
+              borderRadius: 'var(--radius-md)',
+            }}
+          >
             <h4 style={{ margin: '0 0 12px 0', color: 'var(--color-text-primary)' }}>
               Available Hook Methods
             </h4>
-            <ul style={{ 
-              margin: 0, 
-              paddingLeft: '20px',
-              color: 'var(--color-text-secondary)',
-              fontSize: '14px'
-            }}>
-              <li><code>toggleRow(id)</code> - Toggle specific row</li>
-              <li><code>expandRow(id)</code> - Expand specific row</li>
-              <li><code>collapseRow(id)</code> - Collapse specific row</li>
-              <li><code>expandAll(data)</code> - Expand all rows</li>
-              <li><code>collapseAll()</code> - Collapse all rows</li>
-              <li><code>isRowExpanded(id)</code> - Check if row is expanded</li>
-              <li><code>expandedCount</code> - Number of expanded rows</li>
-              <li><code>hasExpandedRows</code> - Boolean if any rows expanded</li>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: '20px',
+                color: 'var(--color-text-secondary)',
+                fontSize: '14px',
+              }}
+            >
+              <li>
+                <code>toggleRow(id)</code> - Toggle specific row
+              </li>
+              <li>
+                <code>expandRow(id)</code> - Expand specific row
+              </li>
+              <li>
+                <code>collapseRow(id)</code> - Collapse specific row
+              </li>
+              <li>
+                <code>expandAll(data)</code> - Expand all rows
+              </li>
+              <li>
+                <code>collapseAll()</code> - Collapse all rows
+              </li>
+              <li>
+                <code>isRowExpanded(id)</code> - Check if row is expanded
+              </li>
+              <li>
+                <code>expandedCount</code> - Number of expanded rows
+              </li>
+              <li>
+                <code>hasExpandedRows</code> - Boolean if any rows expanded
+              </li>
             </ul>
           </div>
         </div>

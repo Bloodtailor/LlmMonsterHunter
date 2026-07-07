@@ -4,6 +4,4 @@
 # rolling summaries that keep indefinite chats affordable
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from . import manager
-from . import generator
-from . import registered_workflows
+from . import generator, manager, registered_workflows

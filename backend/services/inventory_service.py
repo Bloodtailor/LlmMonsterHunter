@@ -1,13 +1,15 @@
 # Inventory Service - TRUST BOUNDARY: Validation + Delegation
 # Validates list parameters and delegates to the inventory manager
 
-from typing import Dict, Any
+from typing import Any
+
 from backend.core.utils import error_response
 from backend.game import inventory
 
 VALID_KINDS = ('items', 'cocatoks')
 
-def get_inventory(kind: str = 'items', limit: int = None, offset: int = 0) -> Dict[str, Any]:
+
+def get_inventory(kind: str = 'items', limit: int = None, offset: int = 0) -> dict[str, Any]:
     """Paged inventory listing - validate parameters"""
 
     if kind not in VALID_KINDS:
@@ -21,6 +23,7 @@ def get_inventory(kind: str = 'items', limit: int = None, offset: int = 0) -> Di
 
     return inventory.manager.get_inventory(kind, limit, offset)
 
-def get_inventory_counts() -> Dict[str, Any]:
+
+def get_inventory_counts() -> dict[str, Any]:
     """Item and CoCaTok counts for tab badges"""
     return inventory.manager.get_inventory_counts()

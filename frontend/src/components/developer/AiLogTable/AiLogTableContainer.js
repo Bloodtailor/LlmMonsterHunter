@@ -15,40 +15,39 @@ import AiLogTableView from './AiLogTableView.js';
  * @returns {React.ReactElement} AiLogTableContainer component
  */
 function AiLogTableContainer({ className = '', style = {} }) {
-  
   // ✨ All state management now handled by enhanced hook!
   const {
     // Data
     logs,
     count,
-    
+
     // Options (ready for FilterSelectGroup)
     filterOptions,
     sortOptions,
-    
+
     // Current state
     filters,
     sortValues,
     limit,
-    
+
     // Pagination (from usePagination)
     pagination,
-    
+
     // State flags
     isLoading,
     isError,
     error,
     isLoadingOptions,
-    
+
     // Simple handlers (ready for components)
     handleFilterChange,
     handleSortChange,
     handleLimitChange,
     clearFilters,
-    refresh
+    refresh,
   } = useGenerationLogs({
     autoLoad: true,
-    defaultLimit: 20
+    defaultLimit: 20,
   });
 
   // Pass everything to the view component
@@ -57,32 +56,32 @@ function AiLogTableContainer({ className = '', style = {} }) {
       // Data
       logs={logs}
       count={count}
-      
+
       // Options (ready for FilterSelectGroup)
       filterOptions={filterOptions}
       sortOptions={sortOptions}
-      
+
       // Current state
       filters={filters}
       sortValues={sortValues}
       limit={limit}
-      
+
       // Pagination
       pagination={pagination}
-      
+
       // State flags
       isLoading={isLoading}
       isError={isError}
       error={error}
       isLoadingOptions={isLoadingOptions}
-      
+
       // Event handlers
       onFilterChange={handleFilterChange}
       onSortChange={handleSortChange}
       onLimitChange={handleLimitChange}
       onClearFilters={clearFilters}
       onRefresh={refresh}
-      
+
       // Style props
       className={className}
       style={style}

@@ -38,7 +38,7 @@ function CoCaTok({
     if (!colorName || typeof colorName !== 'string') {
       return 'purple'; // default fallback
     }
-    
+
     // Split on first dash and take the first part
     const parts = colorName.split('-');
     return parts[0] || 'purple';
@@ -55,7 +55,7 @@ function CoCaTok({
     // Wait for spin animation to complete (3 seconds)
     setTimeout(() => {
       setIsExploding(true);
-      
+
       // Wait for explode animation (1.5 seconds), then trigger callback but DON'T reset
       setTimeout(() => {
         onActivate(color, emoji); // Pass color and emoji to callback
@@ -71,19 +71,21 @@ function CoCaTok({
     isSpinning && 'cocatok-spinning',
     isExploding && 'cocatok-exploding',
     disabled && 'cocatok-disabled',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Get the color values for styling
   const primaryColor = getColor(color);
   const colorVar = getColorVar(color);
-  
+
   // Create dynamic styles based on color
   const dynamicStyle = {
     '--card-primary-color': primaryColor,
     '--card-border-color': primaryColor,
     '--card-shadow-color': primaryColor ? `${primaryColor}30` : 'rgba(0,0,0,0.3)', // 30% opacity
-    ...style
+    ...style,
   };
 
   // Apply color-based styling to the card faces
@@ -91,7 +93,7 @@ function CoCaTok({
     background: `linear-gradient(135deg, ${primaryColor}dd 0%, ${primaryColor}aa 100%)`,
     borderColor: primaryColor,
     color: primaryColor,
-    boxShadow: `0 4px 8px ${primaryColor ? `${primaryColor}30` : 'rgba(0,0,0,0.3)'}`
+    boxShadow: `0 4px 8px ${primaryColor ? `${primaryColor}30` : 'rgba(0,0,0,0.3)'}`,
   };
 
   return (
@@ -115,22 +117,15 @@ function CoCaTok({
           <div className="card-text-line"></div>
           <div className="card-text-line short"></div>
         </div>
-        
+
         {/* Back side - emoji display */}
         <div className="cocatok-back" style={cardFaceStyle}>
           <div className="cocatok-emoji">{emoji}</div>
         </div>
       </div>
-      
+
       {/* EPIC Explosion effect using HueBasedExplosion component! */}
-      {isExploding && (
-        <HueBasedExplosion 
-          hue={cardHue}
-          size="lg"
-          intensity={1.2}
-          speed={1.1}
-        />
-      )}
+      {isExploding && <HueBasedExplosion hue={cardHue} size="lg" intensity={1.2} speed={1.1} />}
     </div>
   );
 }
@@ -138,9 +133,9 @@ function CoCaTok({
 // Size constants
 export const COCATOK_SIZES = {
   SM: 'sm',
-  MD: 'md', 
+  MD: 'md',
   LG: 'lg',
-  XL: 'xl'
+  XL: 'xl',
 };
 
 export default CoCaTok;

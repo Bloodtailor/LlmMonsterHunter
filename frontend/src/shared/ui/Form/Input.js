@@ -27,13 +27,14 @@ function Input({
   className = '',
   ...rest
 }) {
-  
   const inputClasses = [
     'form-input',
     disabled && 'form-input-disabled',
     error && 'form-input-error',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="form-input-container">
@@ -46,12 +47,8 @@ function Input({
         className={inputClasses}
         {...rest}
       />
-      
-      {error && (
-        <div className="form-input-error-message">
-          {error}
-        </div>
-      )}
+
+      {error && <div className="form-input-error-message">{error}</div>}
     </div>
   );
 }

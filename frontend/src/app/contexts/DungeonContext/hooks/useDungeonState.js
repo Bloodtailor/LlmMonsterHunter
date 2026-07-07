@@ -12,7 +12,6 @@ import { useState, useCallback } from 'react';
  * @returns {object} State values, setters, and reset function
  */
 export function useDungeonState() {
-
   // Error state - for critical errors that "crash" the game
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState(null);
@@ -179,7 +178,7 @@ export function useDungeonState() {
       itemResult,
       treasureText,
       treasureItem,
-      exitText
+      exitText,
     },
 
     // Internal setters (for other hooks)
@@ -214,10 +213,10 @@ export function useDungeonState() {
       setTreasureText,
       setTreasureItem,
       setExitText,
-      clearEncounter
+      clearEncounter,
     },
 
     // Utilities
-    resetState
+    resetState,
   };
 }

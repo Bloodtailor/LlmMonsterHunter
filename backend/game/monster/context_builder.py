@@ -13,10 +13,17 @@
 
 from backend.game.utils import resolve_detail_tier
 
-def build_monster_block(monster, tier: str = None, condition: str = None,
-                        defending: bool = False, side_label: str = None,
-                        include_secret: bool = False, resources: dict = None,
-                        memory_lines: list = None) -> str:
+
+def build_monster_block(
+    monster,
+    tier: str = None,
+    condition: str = None,
+    defending: bool = False,
+    side_label: str = None,
+    include_secret: bool = False,
+    resources: dict = None,
+    memory_lines: list = None,
+) -> str:
     """One monster as an LLM context block at the given detail tier
     (tier=None resolves from the model's context window)"""
 
@@ -33,20 +40,26 @@ def build_monster_block(monster, tier: str = None, condition: str = None,
     # Reserve levels (stamina/mana), shown only when the caller tracks them
     reserves_line = None
     if resources and (resources.get('stamina') or resources.get('mana')):
-        reserves_line = (f"  Reserves: stamina {resources.get('stamina', 'unknown')}, "
-                         f"mana {resources.get('mana', 'unknown')}")
+        reserves_line = (
+            f"  Reserves: stamina {resources.get('stamina', 'unknown')}, "
+            f"mana {resources.get('mana', 'unknown')}"
+        )
 
     personality = ', '.join(monster.personality_traits or [])
-    abilities = "; ".join(
-        f"{a.name} ({a.description})" for a in (monster.abilities or [])
-    ) or "none"
+    abilities = (
+        "; ".join(f"{a.name} ({a.description})" for a in (monster.abilities or [])) or "none"
+    )
 
     # ----- compact: identity, stats, prose, traits, wish, abilities -----
-    identity_bits = [bit for bit in (
-        monster.rarity,
-        ecology.get('size_class'),
-        taxonomy.get('type_label') or monster.species
-    ) if bit]
+    identity_bits = [
+        bit
+        for bit in (
+            monster.rarity,
+            ecology.get('size_class'),
+            taxonomy.get('type_label') or monster.species,
+        )
+        if bit
+    ]
     race_label = taxonomy.get('race_label')
     identity_line = " ".join(identity_bits)
     if race_label and race_label != taxonomy.get('type_label'):
@@ -64,7 +77,7 @@ def build_monster_block(monster, tier: str = None, condition: str = None,
         f"  Backstory: {monster.backstory or 'Unknown'}",
         f"  Personality: {personality}" if personality else None,
         f"  Wish: {persona.get('core_wish')}" if persona.get('core_wish') else None,
-        f"  Abilities: {abilities}"
+        f"  Abilities: {abilities}",
     ]
 
     # What it remembers of the party (returning monsters and blend-ins)
@@ -79,14 +92,22 @@ def build_monster_block(monster, tier: str = None, condition: str = None,
             _way_of_life_line(ecology),
             _mind_line(ecology),
             f"  Voice: {persona.get('speech_style')}" if persona.get('speech_style') else None,
-            f"  Battle cry: \"{persona.get('battle_line')}\"" if persona.get('battle_line') else None,
+            f"  Battle cry: \"{persona.get('battle_line')}\""
+            if persona.get('battle_line')
+            else None,
             _pair_line('Likes', persona.get('likes'), 'Dislikes', persona.get('dislikes')),
-            _pair_line('Responds well to', persona.get('responds_well_to'),
-                       'poorly to', persona.get('responds_poorly_to')),
+            _pair_line(
+                'Responds well to',
+                persona.get('responds_well_to'),
+                'poorly to',
+                persona.get('responds_poorly_to'),
+            ),
             f"  Toward strangers: {persona.get('attitude_toward_strangers')}"
-            if persona.get('attitude_toward_strangers') else None,
+            if persona.get('attitude_toward_strangers')
+            else None,
             f"  Would join a party for: {persona.get('recruitment_lever')}"
-            if persona.get('recruitment_lever') else None
+            if persona.get('recruitment_lever')
+            else None,
         ]
 
     # ----- full: + inner life, bonds, class, origins -----
@@ -99,14 +120,16 @@ def build_monster_block(monster, tier: str = None, condition: str = None,
             _class_line(monster.class_taxonomy, persona.get('profession')),
             f"  Beliefs: {persona.get('beliefs')}" if persona.get('beliefs') else None,
             f"  Moral character: {persona.get('moral_character')}"
-            if persona.get('moral_character') else None,
+            if persona.get('moral_character')
+            else None,
             f"  Motivations: {persona.get('motivations')}" if persona.get('motivations') else None,
             f"  Goals: {goals}" if goals else None,
             f"  Fears: {fears}" if fears else None,
             f"  Hobbies: {hobbies}" if hobbies else None,
             f"  Drawn to {bonds.get('drawn_to')}; clashes with {bonds.get('clashes_with')}"
-            if bonds.get('drawn_to') or bonds.get('clashes_with') else None,
-            _origins_line(ecology)
+            if bonds.get('drawn_to') or bonds.get('clashes_with')
+            else None,
+            _origins_line(ecology),
         ]
 
     if include_secret and persona.get('secret'):
@@ -114,20 +137,28 @@ def build_monster_block(monster, tier: str = None, condition: str = None,
 
     return "\n".join(line for line in lines if line)
 
+
 def build_speaker_block(monster, condition: str = None, memory_lines: list = None) -> str:
     """The FULL block for a monster that is about to SPEAK in a dialogue
     prompt - always full tier, secret included, regardless of window bin"""
 
-    return build_monster_block(monster, tier='full', condition=condition,
-                               include_secret=True, memory_lines=memory_lines)
+    return build_monster_block(
+        monster, tier='full', condition=condition, include_secret=True, memory_lines=memory_lines
+    )
+
 
 # ===== LINE HELPERS =====
+
 
 def _lineage_line(taxonomy: dict):
     if not taxonomy.get('domain'):
         return None
-    return ("  Lineage: " + " > ".join(str(taxonomy.get(rank)) for rank in
-            ('domain', 'kingdom', 'family', 'genus', 'species') if taxonomy.get(rank)))
+    return "  Lineage: " + " > ".join(
+        str(taxonomy.get(rank))
+        for rank in ('domain', 'kingdom', 'family', 'genus', 'species')
+        if taxonomy.get(rank)
+    )
+
 
 def _way_of_life_line(ecology: dict):
     habitat = ecology.get('habitat') or {}
@@ -147,6 +178,7 @@ def _way_of_life_line(ecology: dict):
         bits.append(f"social: {social['primary']}")
     return "  Way of life: " + " | ".join(bits) if bits else None
 
+
 def _mind_line(ecology: dict):
     if not ecology.get('sapience'):
         return None
@@ -156,6 +188,7 @@ def _mind_line(ecology: dict):
     if elements:
         line += f" | Elements: {elements}"
     return line
+
 
 def _pair_line(label_a, values_a, label_b, values_b):
     a = ", ".join(values_a or [])
@@ -169,12 +202,16 @@ def _pair_line(label_a, values_a, label_b, values_b):
         parts.append(f"{label_b}: {b}")
     return "  " + " | ".join(parts)
 
+
 def _class_line(class_taxonomy, profession):
     bits = []
     if class_taxonomy:
         chains = "; ".join(
-            " > ".join(p for p in (entry.get('domain'), entry.get('discipline'),
-                                   entry.get('specialization')) if p)
+            " > ".join(
+                p
+                for p in (entry.get('domain'), entry.get('discipline'), entry.get('specialization'))
+                if p
+            )
             for entry in class_taxonomy
         )
         if chains:
@@ -183,10 +220,19 @@ def _class_line(class_taxonomy, profession):
         bits.append(f"sees itself as: {profession}")
     return "  " + " | ".join(bits) if bits else None
 
+
 def _origins_line(ecology: dict):
-    bits = [bit for bit in (
-        f"came to be: {ecology.get('creation_mechanism')}" if ecology.get('creation_mechanism') else None,
-        f"lifecycle: {ecology.get('lifecycle_stage')}" if ecology.get('lifecycle_stage') else None,
-        f"active: {ecology.get('activity_cycle')}" if ecology.get('activity_cycle') else None
-    ) if bit]
+    bits = [
+        bit
+        for bit in (
+            f"came to be: {ecology.get('creation_mechanism')}"
+            if ecology.get('creation_mechanism')
+            else None,
+            f"lifecycle: {ecology.get('lifecycle_stage')}"
+            if ecology.get('lifecycle_stage')
+            else None,
+            f"active: {ecology.get('activity_cycle')}" if ecology.get('activity_cycle') else None,
+        )
+        if bit
+    ]
     return "  Origins: " + " | ".join(bits) if bits else None

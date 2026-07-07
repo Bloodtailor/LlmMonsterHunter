@@ -5,20 +5,16 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { usePagination } from '../../shared/ui/Pagination/usePagination.js';
-import FullPagination, { PAGINATION_LAYOUTS } from '../../shared/ui/Pagination/PaginationPresets.js';
+import FullPagination, {
+  PAGINATION_LAYOUTS,
+} from '../../shared/ui/Pagination/PaginationPresets.js';
 import { useInventoryCollection } from '../../app/hooks/useInventory.js';
 import CoCaTok from '../../shared/ui/CoCaTok/CoCaTok.js';
-import {
-  Alert,
-  Badge,
-  Button,
-  EmptyState,
-  LoadingSpinner
-} from '../../shared/ui/index.js';
+import { Alert, Badge, Button, EmptyState, LoadingSpinner } from '../../shared/ui/index.js';
 
 const TABS = [
   { key: 'items', label: '🎒 Items' },
-  { key: 'cocatoks', label: '🏆 CoCaToks' }
+  { key: 'cocatoks', label: '🏆 CoCaToks' },
 ];
 
 function InventoryPanel({ pageSize = 8 }) {
@@ -71,14 +67,16 @@ function InventoryPanel({ pageSize = 8 }) {
         <EmptyState
           icon={tab === 'items' ? '🎒' : '🏆'}
           title={tab === 'items' ? 'No Items Yet' : 'No CoCaToks Yet'}
-          message={tab === 'items'
-            ? 'Treasures wait on hidden dungeon paths, and grateful monsters give gifts.'
-            : 'Win battles to mint unique keepsakes commemorating your victories.'}
+          message={
+            tab === 'items'
+              ? 'Treasures wait on hidden dungeon paths, and grateful monsters give gifts.'
+              : 'Win battles to mint unique keepsakes commemorating your victories.'
+          }
           size="md"
         />
       ) : tab === 'items' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {entries.map(item => (
+          {entries.map((item) => (
             <div
               key={item.id}
               style={{
@@ -87,31 +85,39 @@ function InventoryPanel({ pageSize = 8 }) {
                 alignItems: 'flex-start',
                 padding: '12px',
                 borderRadius: 'var(--radius-sm, 8px)',
-                background: 'var(--color-surface-secondary, rgba(0,0,0,0.15))'
+                background: 'var(--color-surface-secondary, rgba(0,0,0,0.15))',
               }}
             >
               <span style={{ fontSize: '1.8rem', lineHeight: 1 }}>{item.emoji}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontWeight: 'bold', color: 'var(--color-text-primary)' }}>{item.name}</span>
+                <div
+                  style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}
+                >
+                  <span style={{ fontWeight: 'bold', color: 'var(--color-text-primary)' }}>
+                    {item.name}
+                  </span>
                   <Badge variant="info" size="sm" pill>
                     {item.usesRemaining} use{item.usesRemaining === 1 ? '' : 's'} left
                   </Badge>
                 </div>
-                <p style={{
-                  margin: '4px 0 0',
-                  fontSize: 'var(--font-size-sm)',
-                  color: 'var(--color-text-secondary)'
-                }}>
+                <p
+                  style={{
+                    margin: '4px 0 0',
+                    fontSize: 'var(--font-size-sm)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
                   {item.description}
                 </p>
                 {item.sourceNote && (
-                  <p style={{
-                    margin: '4px 0 0',
-                    fontSize: 'var(--font-size-xs)',
-                    fontStyle: 'italic',
-                    color: 'var(--color-text-muted)'
-                  }}>
+                  <p
+                    style={{
+                      margin: '4px 0 0',
+                      fontSize: 'var(--font-size-xs)',
+                      fontStyle: 'italic',
+                      color: 'var(--color-text-muted)',
+                    }}
+                  >
                     {item.sourceNote}
                   </p>
                 )}
@@ -121,7 +127,7 @@ function InventoryPanel({ pageSize = 8 }) {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {entries.map(cocatok => (
+          {entries.map((cocatok) => (
             <div
               key={cocatok.id}
               style={{
@@ -130,34 +136,33 @@ function InventoryPanel({ pageSize = 8 }) {
                 alignItems: 'center',
                 padding: '12px',
                 borderRadius: 'var(--radius-sm, 8px)',
-                background: 'var(--color-surface-secondary, rgba(0,0,0,0.15))'
+                background: 'var(--color-surface-secondary, rgba(0,0,0,0.15))',
               }}
             >
               {/* A keepsake: it spins forever, and nothing can destroy it */}
-              <CoCaTok
-                color={cocatok.color}
-                emoji={cocatok.emoji}
-                size="sm"
-                disabled={true}
-              />
+              <CoCaTok color={cocatok.color} emoji={cocatok.emoji} size="sm" disabled={true} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 'bold', color: 'var(--color-text-primary)' }}>
                   {cocatok.emoji} {cocatok.title}
                 </div>
-                <p style={{
-                  margin: '4px 0 0',
-                  fontSize: 'var(--font-size-sm)',
-                  fontStyle: 'italic',
-                  fontFamily: 'var(--font-family-serif)',
-                  color: 'var(--color-text-secondary)'
-                }}>
+                <p
+                  style={{
+                    margin: '4px 0 0',
+                    fontSize: 'var(--font-size-sm)',
+                    fontStyle: 'italic',
+                    fontFamily: 'var(--font-family-serif)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
                   {cocatok.commemoration}
                 </p>
-                <p style={{
-                  margin: '4px 0 0',
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-muted)'
-                }}>
+                <p
+                  style={{
+                    margin: '4px 0 0',
+                    fontSize: 'var(--font-size-xs)',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
                   {cocatok.locationName ? `${cocatok.locationName} — ` : ''}
                   {cocatok.earnedAt ? cocatok.earnedAt.toLocaleDateString() : ''}
                 </p>

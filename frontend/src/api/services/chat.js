@@ -16,13 +16,12 @@ import { get, post } from '../core/client.js';
  * @returns {Promise<object>} Clean transformed response with workflowId
  */
 export async function sendChatMessage(monsterId, message) {
-
   const response = await post(`/api/chat/${monsterId}/message`, { message });
 
   return {
     success: response.success ?? sendChatMessage.defaults.success,
     workflowId: response.workflow_id ?? sendChatMessage.defaults.workflowId,
-    _raw: response
+    _raw: response,
   };
 }
 sendChatMessage.defaults = {
@@ -41,7 +40,6 @@ sendChatMessage.defaults = {
  * @returns {Promise<object>} Clean transformed response with messages
  */
 export async function getChatHistory(monsterId, { limit, beforeId } = {}) {
-
   const params = new URLSearchParams();
   if (limit) params.set('limit', limit);
   if (beforeId) params.set('before_id', beforeId);
@@ -53,15 +51,15 @@ export async function getChatHistory(monsterId, { limit, beforeId } = {}) {
     success: response.success ?? getChatHistory.defaults.success,
     monsterId: response.monster_id ?? getChatHistory.defaults.monsterId,
     monsterName: response.monster_name ?? getChatHistory.defaults.monsterName,
-    messages: (response.messages ?? getChatHistory.defaults.messages).map(message => ({
+    messages: (response.messages ?? getChatHistory.defaults.messages).map((message) => ({
       id: message.id,
       role: message.role,
       text: message.text,
-      createdAt: message.created_at ? new Date(message.created_at) : null
+      createdAt: message.created_at ? new Date(message.created_at) : null,
     })),
     hasMore: response.has_more ?? getChatHistory.defaults.hasMore,
     total: response.total ?? getChatHistory.defaults.total,
-    _raw: response
+    _raw: response,
   };
 }
 getChatHistory.defaults = {

@@ -6,7 +6,7 @@ handful you take into a dungeon).
 
 See [Data Models](data-models.md) for `MonsterObject`, `AbilityObject`, etc.
 Generation endpoints are async — see the workflow model in the
-[index](../backend-api-reference.md).
+[index](README.md).
 
 ## Monster Management (`/api/monsters`)
 

@@ -1,0 +1,4 @@
+# The local LLM engine. CUDA build is installed via setup (prebuilt wheel
+# from the abetlen cu124 index) - a plain `pip install` of this pin gives
+# a CPU-only build. See setup/installation/llama_cpp_installation.py.
+llama-cpp-python==0.3.33

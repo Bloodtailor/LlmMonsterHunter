@@ -30,15 +30,15 @@ REQUIRED_BLOCKS = ('party_details', 'monster_details')
 # Flexible blocks: the share of the prompt budget each may occupy.
 # Tune freely - one place to balance the prompt's composition.
 FLEXIBLE_BLOCK_SHARES = {
-    'dungeon_log': 0.25,        # the rolling story of the run
-    'battle_log': 0.20,         # turn-by-turn battle narrations
-    'chat_history': 0.20,       # the home-base conversation with one monster
-    'dialogue_history': 0.15,   # the active encounter conversation
-    'last_run_log': 0.10,       # what happened in the previous dungeon run
-    'turn_history': 0.08,       # who acted when, for the turn director
-    'monster_memories': 0.06,   # what a monster remembers of the party
-    'run_journal': 0.06,        # what a party monster did this run
-    'location_description': 0.05
+    'dungeon_log': 0.25,  # the rolling story of the run
+    'battle_log': 0.20,  # turn-by-turn battle narrations
+    'chat_history': 0.20,  # the home-base conversation with one monster
+    'dialogue_history': 0.15,  # the active encounter conversation
+    'last_run_log': 0.10,  # what happened in the previous dungeon run
+    'turn_history': 0.08,  # who acted when, for the turn director
+    'monster_memories': 0.06,  # what a monster remembers of the party
+    'run_journal': 0.06,  # what a party monster did this run
+    'location_description': 0.05,
 }
 
 # Even on tiny context windows, flexible blocks keep at least this much
@@ -46,10 +46,19 @@ MIN_FLEXIBLE_CHARS = 600
 
 # Blocks that grow over time keep their TAIL (the most recent events
 # matter); description blocks keep their HEAD (the opening lines matter)
-_TAIL_BLOCKS = ('dungeon_log', 'battle_log', 'dialogue_history', 'turn_history',
-                'monster_memories', 'run_journal', 'chat_history', 'last_run_log')
+_TAIL_BLOCKS = (
+    'dungeon_log',
+    'battle_log',
+    'dialogue_history',
+    'turn_history',
+    'monster_memories',
+    'run_journal',
+    'chat_history',
+    'last_run_log',
+)
 
 TRUNCATION_MARKER = '(...earlier events trimmed...)'
+
 
 def get_context_size_tokens() -> int:
     """The loaded model's context window, from .env (same key core.py uses)"""
@@ -58,15 +67,16 @@ def get_context_size_tokens() -> int:
     except (TypeError, ValueError):
         return 4096
 
+
 def get_context_fill_percent() -> float:
     """How much of the window prompts may fill (developer knob, .env)"""
     try:
-        fill = float(os.getenv('LLM_CONTEXT_FILL_PERCENT',
-                               str(DEFAULT_CONTEXT_FILL_PERCENT)))
+        fill = float(os.getenv('LLM_CONTEXT_FILL_PERCENT', str(DEFAULT_CONTEXT_FILL_PERCENT)))
     except (TypeError, ValueError):
         fill = DEFAULT_CONTEXT_FILL_PERCENT
     # Clamp to sanity - below 0.3 nothing useful fits, above 1.0 lies
     return min(max(fill, 0.3), 1.0)
+
 
 # Monster detail tiers: how much of a monster's persona/CMDTS enters prompt
 # blocks that hold SEVERAL monsters (party details, battle sides). Binned by
@@ -84,11 +94,13 @@ def resolve_detail_tier() -> str:
         return 'standard'
     return 'full'
 
+
 def get_prompt_char_budget() -> int:
     """Characters available for the whole prompt after reserving the response"""
     filled_window = int(get_context_size_tokens() * get_context_fill_percent())
     usable_tokens = max(filled_window - RESERVED_RESPONSE_TOKENS, 512)
     return usable_tokens * CHARS_PER_TOKEN
+
 
 def get_block_char_limit(block_name: str):
     """
@@ -101,6 +113,7 @@ def get_block_char_limit(block_name: str):
     if not share:
         return None
     return max(int(get_prompt_char_budget() * share), MIN_FLEXIBLE_CHARS)
+
 
 def clamp_context(block_name: str, text: str) -> str:
     """
@@ -119,7 +132,7 @@ def clamp_context(block_name: str, text: str) -> str:
         clipped = text[-limit:]
         newline_index = clipped.find('\n')
         if 0 <= newline_index < limit // 4:
-            clipped = clipped[newline_index + 1:]
+            clipped = clipped[newline_index + 1 :]
         return f"{TRUNCATION_MARKER}\n{clipped}"
 
     # Description blocks: keep the start

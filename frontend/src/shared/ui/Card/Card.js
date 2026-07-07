@@ -39,10 +39,9 @@ function Card({
   ariaLabel = null,
   ...rest
 }) {
-  
   // Auto-set padding based on card size if not specified
   const effectivePadding = padding || size;
-  
+
   // Build CSS classes based on props
   const cardClasses = [
     'card', // Base card class
@@ -53,8 +52,10 @@ function Card({
     (interactive || onClick) && 'card-interactive', // Interactive styling
     disabled && 'card-disabled', // Disabled styling
     fullWidth && 'card-full-width', // Full width styling
-    className // Additional classes
-  ].filter(Boolean).join(' ');
+    className, // Additional classes
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Handle click events
   const handleClick = (event) => {
@@ -62,7 +63,7 @@ function Card({
       event.preventDefault();
       return;
     }
-    
+
     if (onClick) {
       onClick(event);
     }
@@ -70,14 +71,14 @@ function Card({
 
   // Determine element type and props based on interactivity
   const isClickable = (interactive || onClick) && !disabled;
-  
+
   // Enhanced children to pass size prop to CardSections
   const enhancedChildren = React.Children.map(children, (child) => {
     // Pass size prop to CardSection components for typography scaling
     if (React.isValidElement(child) && child.type?.name === 'CardSection') {
       return React.cloneElement(child, {
         size: child.props.size || size, // Allow CardSection to override size if needed
-        ...child.props
+        ...child.props,
       });
     }
     return child;
@@ -106,12 +107,16 @@ function Card({
       style={style}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick(e);
-        }
-      } : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick(e);
+              }
+            }
+          : undefined
+      }
       aria-label={ariaLabel}
       {...rest}
     >
@@ -123,9 +128,9 @@ function Card({
 // Card variant constants for easy imports
 export const CARD_VARIANTS = {
   DEFAULT: 'default',
-  OUTLINED: 'outlined', 
+  OUTLINED: 'outlined',
   ELEVATED: 'elevated',
-  FLAT: 'flat'
+  FLAT: 'flat',
 };
 
 // Card padding constants for easy imports
@@ -134,7 +139,7 @@ export const CARD_PADDING = {
   SM: 'sm',
   MD: 'md',
   LG: 'lg',
-  XL: 'xl' // Added XL to match CARD_SIZES
+  XL: 'xl', // Added XL to match CARD_SIZES
 };
 
 // Card background constants for easy imports
@@ -142,7 +147,7 @@ export const CARD_BACKGROUNDS = {
   DEFAULT: 'default',
   LIGHT: 'light',
   DARK: 'dark',
-  TRANSPARENT: 'transparent'
+  TRANSPARENT: 'transparent',
 };
 
 export default Card;

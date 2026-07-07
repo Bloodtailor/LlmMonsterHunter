@@ -1,6 +1,7 @@
 # UI Components Reference
 
 ## Button
+
 ```javascript
 /**
  * Primary Button component with variants, sizes, and states
@@ -24,23 +25,24 @@
 // Constants
 export const BUTTON_VARIANTS = {
   PRIMARY: 'primary',
-  SECONDARY: 'secondary', 
+  SECONDARY: 'secondary',
   DANGER: 'danger',
   SUCCESS: 'success',
   WARNING: 'warning',
   GHOST: 'ghost',
-  LINK: 'link'
+  LINK: 'link',
 };
 
 export const BUTTON_SIZES = {
   SM: 'sm',
-  MD: 'md', 
+  MD: 'md',
   LG: 'lg',
-  XL: 'xl'
+  XL: 'xl',
 };
 ```
 
 ## IconButton
+
 ```javascript
 /**
  * Icon-only button component with optimized styling and behavior
@@ -60,6 +62,7 @@ export const BUTTON_SIZES = {
 ```
 
 ## ButtonGroup
+
 ```javascript
 /**
  * Container component for grouping multiple buttons
@@ -77,24 +80,25 @@ export const BUTTON_SIZES = {
 // Constants
 export const BUTTON_GROUP_ORIENTATIONS = {
   HORIZONTAL: 'horizontal',
-  VERTICAL: 'vertical'
+  VERTICAL: 'vertical',
 };
 
 export const BUTTON_GROUP_SPACING = {
   TIGHT: 'tight',
   NORMAL: 'normal',
-  LOOSE: 'loose'
+  LOOSE: 'loose',
 };
 
 export const BUTTON_GROUP_ALIGNMENT = {
   START: 'start',
-  CENTER: 'center', 
+  CENTER: 'center',
   END: 'end',
-  STRETCH: 'stretch'
+  STRETCH: 'stretch',
 };
 ```
 
 ## Badge
+
 ```javascript
 /**
  * Base Badge component for labels, tags, and indicators
@@ -122,17 +126,18 @@ export const BADGE_VARIANTS = {
   SUCCESS: 'success',
   ERROR: 'error',
   WARNING: 'warning',
-  INFO: 'info'
+  INFO: 'info',
 };
 
 export const BADGE_SIZES = {
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
 };
 ```
 
 ## StatusBadge
+
 ```javascript
 /**
  * Status-specific badge with predefined icons and styling
@@ -159,11 +164,12 @@ export const STATUS_TYPES = {
   COMPLETED: 'completed',
   FAILED: 'failed',
   READY: 'ready',
-  LOADING: 'loading'
+  LOADING: 'loading',
 };
 ```
 
 ## CountBadge
+
 ```javascript
 /**
  * Count/numeric badge with intelligent formatting and state indication
@@ -185,12 +191,13 @@ export const STATUS_TYPES = {
 // Constants
 export const COUNT_FORMATS = {
   SIMPLE: 'simple',
-  FRACTION: 'fraction', 
-  PERCENTAGE: 'percentage'
+  FRACTION: 'fraction',
+  PERCENTAGE: 'percentage',
 };
 ```
 
 ## LoadingSpinner
+
 ```javascript
 /**
  * Pure CSS loading spinner component with size and animation variants
@@ -214,7 +221,7 @@ export const LOADING_SIZES = {
   XL: 'xl',
   CARD: 'card',
   SECTION: 'section',
-  SCREEN: 'screen'
+  SCREEN: 'screen',
 };
 
 export const LOADING_COLORS = {
@@ -224,7 +231,7 @@ export const LOADING_COLORS = {
   DARK: 'dark',
   SUCCESS: 'success',
   WARNING: 'warning',
-  ERROR: 'error'
+  ERROR: 'error',
 };
 
 export const LOADING_TYPES = {
@@ -233,11 +240,12 @@ export const LOADING_TYPES = {
   BOUNCE: 'bounce',
   DOTS: 'dots',
   BARS: 'bars',
-  CARD_FLIP: 'cardFlip'
+  CARD_FLIP: 'cardFlip',
 };
 ```
 
 ## LoadingContainer
+
 ```javascript
 /**
  * Simplified full-screen or inline loading container
@@ -251,6 +259,7 @@ export const LOADING_TYPES = {
 ```
 
 ## LoadingSkeleton
+
 ```javascript
 /**
  * Minimal Skeleton placeholder component for loading content
@@ -263,6 +272,7 @@ export const LOADING_TYPES = {
 ```
 
 ## Alert
+
 ```javascript
 /**
  * Alert component for displaying important messages to users
@@ -289,17 +299,18 @@ export const ALERT_TYPES = {
   ERROR: 'error',
   WARNING: 'warning',
   INFO: 'info',
-  LOADING: 'loading'
+  LOADING: 'loading',
 };
 
 export const ALERT_SIZES = {
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
 };
 ```
 
 ## EmptyState
+
 ```javascript
 /**
  * EmptyState component for displaying "no data" states
@@ -323,35 +334,36 @@ export const EMPTY_STATE_SIZES = {
   SM: 'sm',
   MD: 'md',
   LG: 'lg',
-  XL: 'xl'
+  XL: 'xl',
 };
 
 export const EMPTY_STATE_VARIANTS = {
   DEFAULT: 'default',
   SUBDUED: 'subdued',
-  HIGHLIGHTED: 'highlighted'
+  HIGHLIGHTED: 'highlighted',
 };
 
 export const EMPTY_STATE_PRESETS = {
   NO_MONSTERS: {
     icon: '🏛️',
     title: 'No Monsters Found',
-    message: 'Your collection is empty. Generate some monsters to get started!'
+    message: 'Your collection is empty. Generate some monsters to get started!',
   },
   NO_PARTY: {
     icon: '👥',
     title: 'No Party Members',
-    message: 'Add monsters to your party to begin your adventure.'
+    message: 'Add monsters to your party to begin your adventure.',
   },
   NO_SEARCH_RESULTS: {
     icon: '🔍',
     title: 'No Results Found',
-    message: 'Try adjusting your search criteria or filters.'
-  }
+    message: 'Try adjusting your search criteria or filters.',
+  },
 };
 ```
 
 ## Card
+
 ```javascript
 /**
  * Enhanced card container component
@@ -375,9 +387,9 @@ export const EMPTY_STATE_PRESETS = {
 // Constants
 export const CARD_VARIANTS = {
   DEFAULT: 'default',
-  OUTLINED: 'outlined', 
+  OUTLINED: 'outlined',
   ELEVATED: 'elevated',
-  FLAT: 'flat'
+  FLAT: 'flat',
 };
 
 export const CARD_PADDING = {
@@ -385,18 +397,19 @@ export const CARD_PADDING = {
   SM: 'sm',
   MD: 'md',
   LG: 'lg',
-  XL: 'xl'
+  XL: 'xl',
 };
 
 export const CARD_BACKGROUNDS = {
   DEFAULT: 'default',
   LIGHT: 'light',
   DARK: 'dark',
-  TRANSPARENT: 'transparent'
+  TRANSPARENT: 'transparent',
 };
 ```
 
 ## CardSection
+
 ```javascript
 /**
  * Simplified CardSection component with clear usage patterns
@@ -419,18 +432,19 @@ export const CARD_BACKGROUNDS = {
 // Constants
 export const CARD_SECTION_TYPES = {
   HEADER: 'header',
-  CONTENT: 'content', 
-  FOOTER: 'footer'
+  CONTENT: 'content',
+  FOOTER: 'footer',
 };
 
 export const CARD_SECTION_ALIGNMENT = {
   LEFT: 'left',
   CENTER: 'center',
-  RIGHT: 'right'
+  RIGHT: 'right',
 };
 ```
 
 ## Input
+
 ```javascript
 /**
  * Simple Input component for text inputs with error handling
@@ -447,6 +461,7 @@ export const CARD_SECTION_ALIGNMENT = {
 ```
 
 ## Textarea
+
 ```javascript
 /**
  * Simple Textarea component for multi-line text input
@@ -463,6 +478,7 @@ export const CARD_SECTION_ALIGNMENT = {
 ```
 
 ## Select
+
 ```javascript
 /**
  * Simple Select component for dropdowns with error handling
@@ -479,6 +495,7 @@ export const CARD_SECTION_ALIGNMENT = {
 ```
 
 ## SearchInput
+
 ```javascript
 /**
  * Simple SearchInput component with icon, clear button, and error handling
@@ -495,6 +512,7 @@ export const CARD_SECTION_ALIGNMENT = {
 ```
 
 ## FormField
+
 ```javascript
 /**
  * Simple FormField wrapper for label + input combinations with error handling
@@ -508,6 +526,7 @@ export const CARD_SECTION_ALIGNMENT = {
 ```
 
 ## Form
+
 ```javascript
 /**
  * Simple Form container component with submission handling
@@ -523,6 +542,7 @@ export const CARD_SECTION_ALIGNMENT = {
 ```
 
 ## Pagination
+
 ```javascript
 /**
  * Complete pagination component with clean layout options
@@ -540,6 +560,7 @@ export const CARD_SECTION_ALIGNMENT = {
 ```
 
 ## Table
+
 ```javascript
 /**
  * Responsive table component with automatic text truncation
@@ -561,11 +582,12 @@ export const CARD_SECTION_ALIGNMENT = {
 export const TABLE_SIZES = {
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
 };
 ```
 
 ## ExpandableTable
+
 ```javascript
 /**
  * Expandable table component with inline row expansion
@@ -588,6 +610,7 @@ export const TABLE_SIZES = {
 ```
 
 ## Scroll
+
 ```javascript
 /**
  * Scrollable container component with custom styling
@@ -606,17 +629,18 @@ export const TABLE_SIZES = {
 export const SCROLL_DIRECTIONS = {
   VERTICAL: 'vertical',
   HORIZONTAL: 'horizontal',
-  BOTH: 'both'
+  BOTH: 'both',
 };
 
 export const SCROLL_SIZES = {
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
 };
 ```
 
 ## ToggleButton
+
 ```javascript
 /**
  * Generic toggle button for collection management
@@ -638,6 +662,7 @@ export const SCROLL_SIZES = {
 ```
 
 ## FilterSelectGroup
+
 ```javascript
 /**
  * FilterSelectGroup Component - Creates multiple filter dropdowns from options object
@@ -657,6 +682,7 @@ export const SCROLL_SIZES = {
 ```
 
 ## CoCaTok
+
 ```javascript
 /**
  * Interactive collectable card token that spins in 3D space
@@ -674,13 +700,14 @@ export const SCROLL_SIZES = {
 // Constants
 export const COCATOK_SIZES = {
   SM: 'sm',
-  MD: 'md', 
+  MD: 'md',
   LG: 'lg',
-  XL: 'xl'
+  XL: 'xl',
 };
 ```
 
 ## Explosion
+
 ```javascript
 /**
  * High-level preset-based explosion component
@@ -703,11 +730,12 @@ export const EXPLOSION_TYPES = {
   NUCLEAR_DOME: 'nuclear-dome',
   CHAIN_REACTION: 'chain-reaction',
   SHOCKWAVE_BLAST: 'shockwave-blast',
-  SHATTER_BREAK: 'shatter-break'
+  SHATTER_BREAK: 'shatter-break',
 };
 ```
 
 ## BasicColorSelection
+
 ```javascript
 /**
  * Basic color selection dropdown component

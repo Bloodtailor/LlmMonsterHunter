@@ -4,7 +4,16 @@
 
 import React, { useState, useCallback } from 'react';
 import { useGameTester } from '../../../app/hooks/useGameTester.js';
-import { Button, Card, CardSection, Select, FormField, StatusBadge, Alert, LoadingSpinner } from '../../../shared/ui/index.js';
+import {
+  Button,
+  Card,
+  CardSection,
+  Select,
+  FormField,
+  StatusBadge,
+  Alert,
+  LoadingSpinner,
+} from '../../../shared/ui/index.js';
 
 /**
  * Test Runner Component - Interface for running backend tests
@@ -23,7 +32,7 @@ export default function TestRunner() {
     testResult,
     isRunningTest,
     testRunError,
-    resetTestRun
+    resetTestRun,
   } = useGameTester();
 
   // Handle test selection change
@@ -56,20 +65,19 @@ export default function TestRunner() {
   // Prepare options for Select component
   const testOptions = [
     { value: '', label: 'Choose a test...' },
-    ...testFiles.map(testName => ({
+    ...testFiles.map((testName) => ({
       value: testName,
-      label: testName
-    }))
+      label: testName,
+    })),
   ];
 
   return (
-    <Card size="lg" >
+    <Card size="lg">
       {/* Header */}
-      <CardSection title="🧪 Test Runner" type="header"/>
+      <CardSection title="🧪 Test Runner" type="header" />
 
       {/* Test Selection Section */}
       <CardSection type="content" title={`Test Selection (${testFilesCount} available)`}>
-        
         {/* Loading State */}
         {isLoadingTestFiles && (
           <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-dim)' }}>
@@ -87,16 +95,16 @@ export default function TestRunner() {
         {/* Test Selection Form */}
         {!isLoadingTestFiles && !testFilesError && testFiles.length > 0 && (
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <FormField label="Select Test to Run" >
+            <FormField label="Select Test to Run">
               <Select
                 value={selectedTest}
                 onChange={handleTestSelection}
                 options={testOptions}
                 disabled={isRunningTest}
-                style={{width: '200px'}}
+                style={{ width: '200px' }}
               />
             </FormField>
-            
+
             <Button
               variant="primary"
               onClick={handleRunSelectedTest}
@@ -128,10 +136,9 @@ export default function TestRunner() {
           )
         }
       >
-
         {isRunningTest ? (
-          <div >
-            <LoadingSpinner size='card'/>
+          <div>
+            <LoadingSpinner size="card" />
           </div>
         ) : testRunError ? (
           <Alert type="error" title="Test Execution Failed">
@@ -139,35 +146,35 @@ export default function TestRunner() {
           </Alert>
         ) : testResult.testName ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            
             {/* Test Header */}
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              padding: '0.5rem',
-              background: 'var(--background-light)',
-              borderRadius: 'var(--radius-sm)'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0.5rem',
+                background: 'var(--background-light)',
+                borderRadius: 'var(--radius-sm)',
+              }}
+            >
               <div>
                 <strong>Test:</strong> {testResult.testName}
               </div>
-              <StatusBadge 
-                status={testResult.success ? 'success' : 'error'} 
-                size="md"
-              >
+              <StatusBadge status={testResult.success ? 'success' : 'error'} size="md">
                 {testResult.success ? 'PASSED' : 'FAILED'}
               </StatusBadge>
             </div>
 
             {/* Success Message */}
             {testResult.message && (
-              <div style={{ 
-                padding: '0.75rem',
-                background: 'var(--background-light)',
-                borderRadius: 'var(--radius-sm)',
-                borderLeft: '4px solid var(--success-color)'
-              }}>
+              <div
+                style={{
+                  padding: '0.75rem',
+                  background: 'var(--background-light)',
+                  borderRadius: 'var(--radius-sm)',
+                  borderLeft: '4px solid var(--success-color)',
+                }}
+              >
                 <strong>Message:</strong> {testResult.message}
               </div>
             )}
@@ -182,17 +189,17 @@ export default function TestRunner() {
             {/* Traceback */}
             {testResult.traceback && (
               <div>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-light)' }}>
-                  Traceback:
-                </h4>
+                <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-light)' }}>Traceback:</h4>
                 <Card size="sm" background="dark">
-                  <pre style={{ 
-                    margin: 0, 
-                    fontSize: 'var(--font-size-sm)',
-                    lineHeight: '1.4',
-                    overflow: 'auto',
-                    maxHeight: '200px'
-                  }}>
+                  <pre
+                    style={{
+                      margin: 0,
+                      fontSize: 'var(--font-size-sm)',
+                      lineHeight: '1.4',
+                      overflow: 'auto',
+                      maxHeight: '200px',
+                    }}
+                  >
                     {testResult.traceback}
                   </pre>
                 </Card>
@@ -202,18 +209,18 @@ export default function TestRunner() {
             {/* Test Output */}
             {testResult.output && (
               <div>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-light)' }}>
-                  Output:
-                </h4>
+                <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-light)' }}>Output:</h4>
                 <Card size="sm" background="dark">
-                  <pre style={{ 
-                    margin: 0, 
-                    fontSize: 'var(--font-size-sm)',
-                    lineHeight: '1.4',
-                    overflow: 'auto',
-                    maxHeight: '300px',
-                    whiteSpace: 'pre-wrap'
-                  }}>
+                  <pre
+                    style={{
+                      margin: 0,
+                      fontSize: 'var(--font-size-sm)',
+                      lineHeight: '1.4',
+                      overflow: 'auto',
+                      maxHeight: '300px',
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
                     {testResult.output}
                   </pre>
                 </Card>
@@ -221,12 +228,14 @@ export default function TestRunner() {
             )}
           </div>
         ) : (
-          <div style={{ 
-            padding: '2rem', 
-            textAlign: 'center', 
-            color: 'var(--text-dim)',
-            fontStyle: 'italic'
-          }}>
+          <div
+            style={{
+              padding: '2rem',
+              textAlign: 'center',
+              color: 'var(--text-dim)',
+              fontStyle: 'italic',
+            }}
+          >
             Select a test and click "Run Test" to see results here
           </div>
         )}

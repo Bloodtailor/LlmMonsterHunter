@@ -163,7 +163,7 @@ validation (kind filtering, cap, empty-list path, source details), memory
 line prefix, last-run snapshot on victory/defeat close paths, dungeon and
 battle log composition with summaries, eligibility rules.
 
-Docs: new `notes_for_claude/backend-api/chat.md`; index, events-and-sse
+Docs: new `docs/api/chat.md`; index, events-and-sse
 (workflow type + step key), data-models (ChatMessage/ChatThread), and
 dungeon-and-battle (rolling summaries note) updated.
 

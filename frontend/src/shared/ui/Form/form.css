@@ -75,7 +75,9 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
   width: 100%;
 }
 
@@ -131,7 +133,9 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-relaxed);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
   width: 100%;
   resize: vertical;
   min-height: 80px;
@@ -191,7 +195,9 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
   width: 100%;
   cursor: pointer;
   appearance: none;
@@ -253,7 +259,9 @@
   background: var(--color-surface-secondary);
   border: var(--border-width-thin) solid var(--color-surface-secondary);
   border-radius: var(--radius-sm);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
   box-shadow: var(--shadow-sm);
 }
 
@@ -307,7 +315,9 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  transition: color var(--transition-fast), opacity var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    opacity var(--transition-fast);
   border-radius: var(--radius-sm);
 }
 
@@ -345,7 +355,7 @@
 }
 
 /* Form field label styling for required fields */
-.form-field-label[data-required="true"]::after {
+.form-field-label[data-required='true']::after {
   content: ' *';
   color: var(--error-color);
   font-weight: var(--font-weight-semibold);
@@ -381,15 +391,15 @@
   .form-select {
     font-size: var(--font-size-md); /* Prevents zoom on iOS */
   }
-  
+
   .form {
     gap: var(--spacing-sm);
   }
-  
+
   .form-content {
     gap: var(--spacing-sm);
   }
-  
+
   .form-error-message {
     padding: var(--spacing-sm);
     margin-bottom: var(--spacing-sm);
@@ -400,11 +410,11 @@
   .form {
     gap: var(--spacing-xs);
   }
-  
+
   .form-content {
     gap: var(--spacing-xs);
   }
-  
+
   .form-input,
   .form-textarea,
   .form-select {

@@ -7,7 +7,15 @@
 // (During battles, abilities and items cost a turn instead.)
 
 import React, { useState } from 'react';
-import { Card, CardSection, Button, Select, Input, Badge, LoadingSpinner } from '../../../shared/ui/index.js';
+import {
+  Card,
+  CardSection,
+  Button,
+  Select,
+  Input,
+  Badge,
+  LoadingSpinner,
+} from '../../../shared/ui/index.js';
 import { useParty } from '../../../app/contexts/PartyContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/useDungeon.js';
 import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
@@ -23,7 +31,7 @@ const CONDITION_VARIANTS = {
   wounded: 'warning',
   battered: 'warning',
   critical: 'error',
-  incapacitated: 'error'
+  incapacitated: 'error',
 };
 
 const narrationStyles = {
@@ -33,7 +41,7 @@ const narrationStyles = {
   fontFamily: 'var(--font-family-serif)',
   fontStyle: 'italic',
   textAlign: 'center',
-  whiteSpace: 'pre-wrap'
+  whiteSpace: 'pre-wrap',
 };
 
 /**
@@ -53,7 +61,7 @@ function DungeonPartyPanel() {
     isUsingItem,
     itemResult,
     activateItem,
-    exitText
+    exitText,
   } = useDungeon();
   const { displayedBattle } = useBattleContext();
   const { MonsterCard, viewer } = useMonsterCardViewer();
@@ -78,39 +86,39 @@ function DungeonPartyPanel() {
   // During a battle, abilities and items are used on the monster's turn
   const battleInProgress = !!displayedBattle?.in_battle;
 
-  const actorMonster = partyMonsters.find(m => String(m.id) === actorId) || null;
+  const actorMonster = partyMonsters.find((m) => String(m.id) === actorId) || null;
 
-  const actorOptions = partyMonsters.map(monster => ({
+  const actorOptions = partyMonsters.map((monster) => ({
     value: String(monster.id),
-    label: `🛡️ ${monster.name}`
+    label: `🛡️ ${monster.name}`,
   }));
 
-  const abilityOptions = (actorMonster?.abilities || []).map(ability => ({
+  const abilityOptions = (actorMonster?.abilities || []).map((ability) => ({
     value: String(ability.id),
-    label: `⚡ ${ability.name}`
+    label: `⚡ ${ability.name}`,
   }));
 
-  const itemOptions = usableItems.map(item => ({
+  const itemOptions = usableItems.map((item) => ({
     value: String(item.id),
-    label: `${item.emoji} ${item.name} (×${item.usesRemaining})`
+    label: `${item.emoji} ${item.name} (×${item.usesRemaining})`,
   }));
 
   // Targets: anything and anyone. Values encode the target type.
   const targetOptions = [
     { value: 'location', label: '📍 This location' },
-    ...partyMonsters.map(monster => ({
+    ...partyMonsters.map((monster) => ({
       value: `party:${monster.id}`,
-      label: `🛡️ ${monster.name}`
+      label: `🛡️ ${monster.name}`,
     })),
-    ...(encounterMonsters || []).map(monster => ({
+    ...(encounterMonsters || []).map((monster) => ({
       value: `monster:${monster.id}`,
-      label: `👹 ${monster.name}`
+      label: `👹 ${monster.name}`,
     })),
     ...Object.entries(paths || {}).map(([pathId, path]) => ({
       value: `path:${pathId}`,
-      label: `🧭 ${path.name || pathId}`
+      label: `🧭 ${path.name || pathId}`,
     })),
-    { value: 'custom', label: '✍️ Something else...' }
+    { value: 'custom', label: '✍️ Something else...' },
   ];
 
   // Decode a target-select value into the API's shape
@@ -136,11 +144,14 @@ function DungeonPartyPanel() {
     return { targetType, targetId, targetText };
   };
 
-  const isAbilityComplete = !!actorId && !!abilityId && !!targetValue &&
+  const isAbilityComplete =
+    !!actorId &&
+    !!abilityId &&
+    !!targetValue &&
     (targetValue !== 'custom' || !!customTarget.trim());
 
-  const isItemComplete = !!itemId && !!itemTargetValue &&
-    (itemTargetValue !== 'custom' || !!itemCustomTarget.trim());
+  const isItemComplete =
+    !!itemId && !!itemTargetValue && (itemTargetValue !== 'custom' || !!itemCustomTarget.trim());
 
   const handleUseAbility = () => {
     if (!isAbilityComplete || isUsingAbility) return;
@@ -148,7 +159,7 @@ function DungeonPartyPanel() {
     activateAbility({
       monsterId: Number(actorId),
       abilityId: Number(abilityId),
-      ...target
+      ...target,
     });
   };
 
@@ -157,7 +168,7 @@ function DungeonPartyPanel() {
     const target = decodeTarget(itemTargetValue, itemCustomTarget);
     activateItem({
       itemId: Number(itemId),
-      ...target
+      ...target,
     });
     setItemId('');
   };
@@ -193,8 +204,10 @@ function DungeonPartyPanel() {
         <>
           {/* Every member as their real card, with their condition for this run */}
           <CardSection type="content">
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {partyMonsters.map(monster => {
+            <div
+              style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}
+            >
+              {partyMonsters.map((monster) => {
                 const condition = partyConditions?.[String(monster.id)] || 'fresh';
                 const pools = partyResources?.[String(monster.id)] || {};
                 return (
@@ -204,7 +217,7 @@ function DungeonPartyPanel() {
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '6px',
                     }}
                   >
                     <MonsterCard
@@ -233,8 +246,23 @@ function DungeonPartyPanel() {
             <>
               {/* The free-form ability form - anything, on anything */}
               <CardSection type="content">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '640px', margin: '0 auto' }}>
-                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    maxWidth: '640px',
+                    margin: '0 auto',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '12px',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                    }}
+                  >
                     <div style={{ minWidth: '180px' }}>
                       <Select
                         options={actorOptions}
@@ -282,7 +310,9 @@ function DungeonPartyPanel() {
                     >
                       {isUsingAbility ? (
                         <>
-                          <span style={{ marginRight: '8px' }}><LoadingSpinner size="sm" type="spin" /></span>
+                          <span style={{ marginRight: '8px' }}>
+                            <LoadingSpinner size="sm" type="spin" />
+                          </span>
                           Using ability...
                         </>
                       ) : (
@@ -292,17 +322,30 @@ function DungeonPartyPanel() {
                   </div>
 
                   {/* The referee's narration of what came of it */}
-                  {abilityResult && (
-                    <p style={narrationStyles}>{abilityResult.narration}</p>
-                  )}
+                  {abilityResult && <p style={narrationStyles}>{abilityResult.narration}</p>}
                 </div>
               </CardSection>
 
               {/* The item form - the party's inventory, on anything */}
               {itemOptions.length > 0 && (
                 <CardSection type="content">
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '640px', margin: '0 auto' }}>
-                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      maxWidth: '640px',
+                      margin: '0 auto',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '12px',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                      }}
+                    >
                       <div style={{ minWidth: '220px' }}>
                         <Select
                           options={itemOptions}
@@ -339,7 +382,9 @@ function DungeonPartyPanel() {
                       >
                         {isUsingItem ? (
                           <>
-                            <span style={{ marginRight: '8px' }}><LoadingSpinner size="sm" type="spin" /></span>
+                            <span style={{ marginRight: '8px' }}>
+                              <LoadingSpinner size="sm" type="spin" />
+                            </span>
                             Using item...
                           </>
                         ) : (
@@ -348,9 +393,7 @@ function DungeonPartyPanel() {
                       </Button>
                     </div>
 
-                    {itemResult && (
-                      <p style={narrationStyles}>{itemResult.narration}</p>
-                    )}
+                    {itemResult && <p style={narrationStyles}>{itemResult.narration}</p>}
                   </div>
                 </CardSection>
               )}

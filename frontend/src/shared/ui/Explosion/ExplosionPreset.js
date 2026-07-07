@@ -32,19 +32,18 @@ function ExplosionPreset({
   style = {},
   ...rest
 }) {
-
   // Generate random configuration
   const generateRandomConfig = () => {
     const types = Object.values(EXPLOSION_TYPES);
     const themes = Object.keys(COLOR_THEMES);
     const sizes = ['sm', 'md', 'lg', 'xl', 'massive'];
-    
+
     return {
       type: types[Math.floor(Math.random() * types.length)],
       colorTheme: themes[Math.floor(Math.random() * themes.length)],
       size: sizes[Math.floor(Math.random() * sizes.length)],
       intensity: 0.8 + Math.random() * 1.5,
-      speed: 0.7 + Math.random() * 1.8
+      speed: 0.7 + Math.random() * 1.8,
     };
   };
 
@@ -62,23 +61,23 @@ function ExplosionPreset({
   const getThemeColors = () => {
     // Check if it's a predefined color theme
     if (COLOR_THEMES[config.colorTheme]) {
-      return COLOR_THEMES[config.colorTheme].map(colorName => getColor(colorName) || '#ff6348');
-    } 
-    
+      return COLOR_THEMES[config.colorTheme].map((colorName) => getColor(colorName) || '#ff6348');
+    }
+
     // Check if it's a color family (red, blue, etc.)
     const familyColors = getColorsInFamily(config.colorTheme);
     if (familyColors.length > 0) {
-      return familyColors.slice(0, 4).map(color => color.hex);
+      return familyColors.slice(0, 4).map((color) => color.hex);
     }
-    
+
     // Single color
     const singleColor = getColor(config.colorTheme);
     if (singleColor) {
       return [singleColor];
     }
-    
+
     // Fallback to fire theme
-    return COLOR_THEMES.fire.map(colorName => getColor(colorName) || '#ff6348');
+    return COLOR_THEMES.fire.map((colorName) => getColor(colorName) || '#ff6348');
   };
 
   const themeColors = getThemeColors();
@@ -102,7 +101,7 @@ function ExplosionPreset({
     autoStart,
     className,
     style,
-    ...rest
+    ...rest,
   };
 
   return <ExplosionEngine {...engineProps} />;

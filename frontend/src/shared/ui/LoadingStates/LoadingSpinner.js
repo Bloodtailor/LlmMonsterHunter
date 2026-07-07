@@ -26,28 +26,29 @@ function LoadingSpinner({
   ariaLabel = 'Loading',
   ...rest
 }) {
-  
   // Build CSS classes based on props
   const spinnerClasses = [
     'loading-spinner', // Base spinner class
     `loading-spinner-${size}`, // Size styling
     `loading-spinner-${color}`, // Color styling
     `loading-spinner-${type}`, // Animation type
-    className // Additional classes
-  ].filter(Boolean).join(' ');
+    className, // Additional classes
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Get spinner content based on type - now pure CSS
   const getSpinnerContent = () => {
     switch (type) {
       case 'spin':
         return <div className="spinner-ring" />;
-      
+
       case 'pulse':
         return <div className="spinner-circle" />;
-      
+
       case 'bounce':
         return <div className="spinner-bounce" />;
-      
+
       case 'dots':
         return (
           <div className="loading-dots-container">
@@ -56,7 +57,7 @@ function LoadingSpinner({
             <div className="loading-dot"></div>
           </div>
         );
-      
+
       case 'bars':
         return (
           <div className="loading-bars-container">
@@ -65,7 +66,7 @@ function LoadingSpinner({
             <div className="loading-bar"></div>
           </div>
         );
-      
+
       case 'cardFlip':
         return (
           <div className="spinner-card-flip">
@@ -82,7 +83,7 @@ function LoadingSpinner({
             </div>
           </div>
         );
-      
+
       default:
         return <div className="spinner-ring" />;
     }
@@ -110,11 +111,11 @@ export const LOADING_SIZES = {
   MD: 'md',
   LG: 'lg',
   XL: 'xl',
-  
+
   // Standalone sizes (explicit sizing) - for prominent loading states
-  CARD: 'card',        // ~32px - for loading individual cards
-  SECTION: 'section',  // ~48px - for loading content sections  
-  SCREEN: 'screen'     // ~64px - for full-screen loading
+  CARD: 'card', // ~32px - for loading individual cards
+  SECTION: 'section', // ~48px - for loading content sections
+  SCREEN: 'screen', // ~64px - for full-screen loading
 };
 
 // Color constants for easy imports
@@ -125,7 +126,7 @@ export const LOADING_COLORS = {
   DARK: 'dark',
   SUCCESS: 'success',
   WARNING: 'warning',
-  ERROR: 'error'
+  ERROR: 'error',
 };
 
 // Animation type constants for easy imports
@@ -135,7 +136,7 @@ export const LOADING_TYPES = {
   BOUNCE: 'bounce',
   DOTS: 'dots',
   BARS: 'bars',
-  CARD_FLIP: 'cardFlip'  // 3D rotating monster card
+  CARD_FLIP: 'cardFlip', // 3D rotating monster card
 };
 
 export default LoadingSpinner;

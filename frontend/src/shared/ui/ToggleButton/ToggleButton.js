@@ -37,34 +37,30 @@ function ToggleButton({
   className = '',
   ...rest
 }) {
-
   // Handle toggle click
   const handleToggle = (event) => {
     if (disabled || isLoading || hasError) {
       return;
     }
-    
+
     if (onToggle) {
       onToggle(event);
     }
   };
 
   // Add shared classes
-  const toggleClasses = [
-    'toggle-button',
-    className
-  ].filter(Boolean).join(' ');
+  const toggleClasses = ['toggle-button', className].filter(Boolean).join(' ');
 
   // LOADING STATE - Show spinner, not clickable
   if (isLoading) {
     return (
       <IconButton
-      icon={ <LoadingSpinner size={size} type="spin" color="secondary"/> }
-      variant="primary"
-      size={size}
-      disabled={true}
-      className={toggleClasses}
-      {...rest}
+        icon={<LoadingSpinner size={size} type="spin" color="secondary" />}
+        variant="primary"
+        size={size}
+        disabled={true}
+        className={toggleClasses}
+        {...rest}
       />
     );
   }
@@ -104,10 +100,10 @@ function ToggleButton({
 
   // COLLECTION FULL - Show block icon, not clickable
   if (isCollectionFull) {
-    const fullTooltip = maxItems 
+    const fullTooltip = maxItems
       ? `${collectionName} is full (${maxItems}/${maxItems})`
       : `${collectionName} is full`;
-      
+
     return (
       <IconButton
         icon="🚫"

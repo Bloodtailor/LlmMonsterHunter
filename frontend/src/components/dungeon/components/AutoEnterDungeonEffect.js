@@ -13,7 +13,7 @@ import { useDungeon } from '../../../app/contexts/DungeonContext/index.js';
 function AutoEnterDungeonEffect() {
   // Ref to track if we've already called enterDungeon
   const hasEnteredRef = useRef(false);
-  
+
   // Subscribe to context for auto-enter (isolated from parent)
   const { enterDungeon } = useDungeon();
 

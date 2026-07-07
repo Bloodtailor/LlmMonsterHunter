@@ -25,7 +25,7 @@ import { transformGenerationLogs } from '../transformers/generation.js';
  */
 export async function getGenerationLogs(options = {}) {
   const params = {};
-  
+
   // pagination options
   if (options.limit !== undefined) params.limit = options.limit;
   if (options.offset !== undefined) params.offset = options.offset;
@@ -40,21 +40,21 @@ export async function getGenerationLogs(options = {}) {
   if (options.prompt_type) params.prompt_type = options.prompt_type;
   if (options.prompt_name) params.prompt_name = options.prompt_name;
   if (options.priority) params.priority = options.priority;
-  
+
   const response = await getWithParams('/api/generation/logs', params);
-  
+
   return {
     logs: transformGenerationLogs(response.data?.logs ?? getGenerationLogs.defaults.logs),
     count: response.data?.count ?? getGenerationLogs.defaults.count,
     returnedCount: response.data?.returned_count ?? 0,
     filters: response.data?.filters ?? {},
-    _raw: response
+    _raw: response,
   };
 }
 
 getGenerationLogs.defaults = {
   logs: [],
-  count: 0
+  count: 0,
 };
 
 /**
@@ -63,12 +63,12 @@ getGenerationLogs.defaults = {
  */
 export async function getGenerationLogOptions() {
   const response = await get('/api/generation/log-options');
-  
+
   // Only convert the main response keys, keep all option values as-is from backend
   return {
     filterOptions: response.data?.filter_options ?? getGenerationLogOptions.defaults.filterOptions,
     sortOptions: response.data?.sort_options ?? getGenerationLogOptions.defaults.sortOptions,
-    _raw: response
+    _raw: response,
   };
 }
 
@@ -76,6 +76,6 @@ getGenerationLogOptions.defaults = {
   filterOptions: [],
   sortOptions: {
     fields: [],
-    orders: []
-  }
+    orders: [],
+  },
 };

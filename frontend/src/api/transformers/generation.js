@@ -16,22 +16,22 @@ export function transformGenerationLog(rawLog) {
     promptType: rawLog.prompt_type ?? '',
     promptName: rawLog.prompt_name ?? '',
     promptText: rawLog.prompt_text ?? '',
-    
+
     status: rawLog.status ?? '',
     priority: rawLog.priority ?? 0,
-    
+
     generationAttempt: rawLog.generation_attempt ?? 0,
     maxAttempts: rawLog.max_attempts ?? 0,
 
     startTime: rawLog.start_time ? new Date(rawLog.start_time) : null,
     endTime: rawLog.end_time ? new Date(rawLog.end_time) : null,
-    
+
     durationSeconds: rawLog.duration_seconds ? Math.floor(rawLog.duration_seconds) : 0,
 
     errorMessage: rawLog.error_message ?? '',
-    
+
     llmLogId: rawLog.llm_data ? transformLlmLog(rawLog.llm_data) : [],
-    imageLogId: rawLog.image_data ? transformImageLog(rawLog.image_data): []
+    imageLogId: rawLog.image_data ? transformImageLog(rawLog.image_data) : [],
   };
 }
 
@@ -41,16 +41,12 @@ export function transformGenerationLog(rawLog) {
  * @returns {Array} Array of clean log objects (filters out invalid ones)
  */
 export function transformGenerationLogs(rawLogs) {
-
-    if (!Array.isArray(rawLogs)) {
+  if (!Array.isArray(rawLogs)) {
     console.warn('transformGenerationLogs expects an array, received:', typeof rawLogs);
     return [];
   }
 
-  return rawLogs
-    .map(transformGenerationLog)
-    .filter(Boolean); // Remove any null results from invalid abilities
-
+  return rawLogs.map(transformGenerationLog).filter(Boolean); // Remove any null results from invalid abilities
 }
 
 /**

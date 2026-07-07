@@ -2,7 +2,7 @@
 
 The gameplay loop. Every endpoint here is **async** (queues a workflow,
 returns a `workflow_id`, results arrive via SSE) except `GET .../state`.
-Read the [index](../backend-api-reference.md) workflow model first, and the
+Read the [index](README.md) workflow model first, and the
 [Events & SSE](events-and-sse.md) catalog for how results are delivered.
 
 ## The loop at a glance

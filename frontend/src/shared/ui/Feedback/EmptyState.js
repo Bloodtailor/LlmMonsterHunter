@@ -34,7 +34,6 @@ function EmptyState({
   style = {},
   ...rest
 }) {
-  
   // Build CSS classes based on props
   const emptyStateClasses = [
     'empty-state', // Base empty state class
@@ -43,19 +42,17 @@ function EmptyState({
     centered && 'empty-state-centered', // Centered styling
     illustration && 'empty-state-with-illustration', // Has illustration
     action && 'empty-state-with-action', // Has action
-    className // Additional classes
-  ].filter(Boolean).join(' ');
+    className, // Additional classes
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Render illustration or icon
   const renderVisual = () => {
     if (illustration) {
       return (
         <div className="empty-state-illustration">
-          <img 
-            src={illustration} 
-            alt="" 
-            className="empty-state-image"
-          />
+          <img src={illustration} alt="" className="empty-state-image" />
         </div>
       );
     }
@@ -74,25 +71,17 @@ function EmptyState({
   // Render title
   const renderTitle = () => {
     if (!title) return null;
-    
-    return (
-      <h3 className="empty-state-title">
-        {title}
-      </h3>
-    );
+
+    return <h3 className="empty-state-title">{title}</h3>;
   };
 
   // Render message
   const renderMessage = () => {
     if (!message) return null;
-    
+
     return (
       <div className="empty-state-message">
-        {typeof message === 'string' ? (
-          <p>{message}</p>
-        ) : (
-          message
-        )}
+        {typeof message === 'string' ? <p>{message}</p> : message}
       </div>
     );
   };
@@ -100,12 +89,8 @@ function EmptyState({
   // Render action
   const renderAction = () => {
     if (!action) return null;
-    
-    return (
-      <div className="empty-state-action">
-        {action}
-      </div>
-    );
+
+    return <div className="empty-state-action">{action}</div>;
   };
 
   return (
@@ -131,14 +116,14 @@ export const EMPTY_STATE_SIZES = {
   SM: 'sm',
   MD: 'md',
   LG: 'lg',
-  XL: 'xl'
+  XL: 'xl',
 };
 
 // Variant constants for easy imports
 export const EMPTY_STATE_VARIANTS = {
   DEFAULT: 'default',
   SUBDUED: 'subdued',
-  HIGHLIGHTED: 'highlighted'
+  HIGHLIGHTED: 'highlighted',
 };
 
 // Common empty state presets for quick use
@@ -146,39 +131,39 @@ export const EMPTY_STATE_PRESETS = {
   NO_MONSTERS: {
     icon: '🏛️',
     title: 'No Monsters Found',
-    message: 'Your collection is empty. Generate some monsters to get started!'
+    message: 'Your collection is empty. Generate some monsters to get started!',
   },
   NO_PARTY: {
     icon: '👥',
     title: 'No Party Members',
-    message: 'Add monsters to your party to begin your adventure.'
+    message: 'Add monsters to your party to begin your adventure.',
   },
   NO_SEARCH_RESULTS: {
     icon: '🔍',
     title: 'No Results Found',
-    message: 'Try adjusting your search criteria or filters.'
+    message: 'Try adjusting your search criteria or filters.',
   },
   NO_LOGS: {
     icon: '📋',
     title: 'No Logs Available',
-    message: 'No activity logs found. Start generating content to see logs here.'
+    message: 'No activity logs found. Start generating content to see logs here.',
   },
   CONNECTION_ERROR: {
     icon: '🔌',
     title: 'Connection Error',
-    message: 'Unable to connect to the server. Please check your connection and try again.'
+    message: 'Unable to connect to the server. Please check your connection and try again.',
   },
   LOADING_ERROR: {
     icon: '⚠️',
     title: 'Loading Failed',
-    message: 'Something went wrong while loading data. Please try again.'
+    message: 'Something went wrong while loading data. Please try again.',
   },
   NO_CARD_ART: {
     icon: '🐲',
     title: 'No Card Art',
     message: null, // Remove the message for simplicity like the old one
-    className: 'monster-art-placeholder'
-  }
+    className: 'monster-art-placeholder',
+  },
 };
 
 export default EmptyState;

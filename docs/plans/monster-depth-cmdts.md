@@ -232,7 +232,8 @@ body language). `contextual_monster` template is deleted (superseded by the stag
 ## 6. Frontend
 
 - **Transformers** (`frontend/src/api/transformers/monsters.js` and the `app/transformers`
-  copy — determine during build which is live, update accordingly): pass through rarity,
+  copy — determine during build which is live, update accordingly; *resolved later: the
+  `app/` copy was dead code, deleted in Arch-M1*): pass through rarity,
   partyRole, taxonomy, classTaxonomy, ecology, persona, appearance, generationStage.
 - **MonsterCardDetails**: rarity + role badges beside the species badge; species badge shows
   `race_label`/`type_label`.
@@ -267,7 +268,7 @@ checking out the branch. No migration tooling added (out of scope; note for late
   single-speaker + secret rules, dialogue template updates.
 - **M4 Frontend**: badges, viewer sections, updated-event handling.
 - **M5 Tuning & docs**: run verification suite, iterate prompt wording, update
-  `notes_for_claude/backend-api/` (data-models, monsters-and-roster).
+  `docs/api/` (data-models, monsters-and-roster).
 
 ## 10. Risks and flagged decisions
 

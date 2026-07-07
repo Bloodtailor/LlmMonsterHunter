@@ -9,12 +9,7 @@ import './loading.css';
  * @param {object} style - Optional inline styles
  * @returns {React.ReactElement}
  */
-function LoadingSkeleton({
-  type = 'text',
-  count = 1,
-  animated = true,
-  style = {},
-}) {
+function LoadingSkeleton({ type = 'text', count = 1, animated = true, style = {} }) {
   const skeletonClass = `loading-skeleton ${animated ? 'animated' : ''}`;
 
   const renderMonsterCard = () => (
@@ -26,9 +21,7 @@ function LoadingSkeleton({
     </div>
   );
 
-  const renderText = () => (
-    <div className={`${skeletonClass} text-skeleton`} style={style} />
-  );
+  const renderText = () => <div className={`${skeletonClass} text-skeleton`} style={style} />;
 
   const renderOne = (index) => {
     switch (type) {

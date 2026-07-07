@@ -15,14 +15,13 @@ export function useEnterDungeon() {
   const api = useAsyncState(dungeonApi.enterDungeon);
 
   const enterDungeon = useCallback(async () => {
-
     return await api.execute();
   }, [api.execute]);
 
   return {
     // Clean result (guaranteed shapes!)
-    success: api.data.success,           // null initially, then boolean
-    workflowId: api.data.workflowId,     // null initially, then number
+    success: api.data.success, // null initially, then boolean
+    workflowId: api.data.workflowId, // null initially, then number
 
     // Raw data (for debugging)
     rawResponse: api.data._raw,
@@ -44,10 +43,12 @@ export function useChoosePath() {
   // ✨ Automatically uses choosePath.defaults
   const api = useAsyncState(dungeonApi.choosePath);
 
-  const choosePath = useCallback(async (pathId) => {
-
-    return await api.execute(pathId);
-  }, [api.execute]);
+  const choosePath = useCallback(
+    async (pathId) => {
+      return await api.execute(pathId);
+    },
+    [api.execute],
+  );
 
   return {
     success: api.data.success,
@@ -69,10 +70,12 @@ export function useRespondToMonster() {
   // ✨ Automatically uses respondToMonster.defaults
   const api = useAsyncState(dungeonApi.respondToMonster);
 
-  const respondToMonster = useCallback(async (message) => {
-
-    return await api.execute(message);
-  }, [api.execute]);
+  const respondToMonster = useCallback(
+    async (message) => {
+      return await api.execute(message);
+    },
+    [api.execute],
+  );
 
   return {
     success: api.data.success,
@@ -95,7 +98,6 @@ export function useSneakPast() {
   const api = useAsyncState(dungeonApi.sneakPast);
 
   const sneakPast = useCallback(async () => {
-
     return await api.execute();
   }, [api.execute]);
 
@@ -120,7 +122,6 @@ export function useSurpriseAttack() {
   const api = useAsyncState(dungeonApi.surpriseAttack);
 
   const surpriseAttack = useCallback(async () => {
-
     return await api.execute();
   }, [api.execute]);
 
@@ -145,7 +146,6 @@ export function useSetupCamp() {
   const api = useAsyncState(dungeonApi.setupCamp);
 
   const setupCamp = useCallback(async () => {
-
     return await api.execute();
   }, [api.execute]);
 
@@ -172,10 +172,12 @@ export function useDungeonAbility() {
   // ✨ Automatically uses useDungeonAbility.defaults
   const api = useAsyncState(dungeonApi.useDungeonAbility);
 
-  const activateAbility = useCallback(async ({ monsterId, abilityId, targetType, targetId, targetText }) => {
-
-    return await api.execute({ monsterId, abilityId, targetType, targetId, targetText });
-  }, [api.execute]);
+  const activateAbility = useCallback(
+    async ({ monsterId, abilityId, targetType, targetId, targetText }) => {
+      return await api.execute({ monsterId, abilityId, targetType, targetId, targetText });
+    },
+    [api.execute],
+  );
 
   return {
     success: api.data.success,
@@ -200,10 +202,12 @@ export function useDungeonItem() {
   // ✨ Automatically uses useDungeonItem.defaults
   const api = useAsyncState(dungeonApi.useDungeonItem);
 
-  const activateItem = useCallback(async ({ itemId, targetType, targetId, targetText }) => {
-
-    return await api.execute({ itemId, targetType, targetId, targetText });
-  }, [api.execute]);
+  const activateItem = useCallback(
+    async ({ itemId, targetType, targetId, targetText }) => {
+      return await api.execute({ itemId, targetType, targetId, targetText });
+    },
+    [api.execute],
+  );
 
   return {
     success: api.data.success,
@@ -226,7 +230,6 @@ export function useContinueExploring() {
   const api = useAsyncState(dungeonApi.continueExploring);
 
   const continueExploring = useCallback(async () => {
-
     return await api.execute();
   }, [api.execute]);
 

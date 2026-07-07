@@ -62,20 +62,53 @@ function EvolutionLineage({ monsterId, refreshToken }) {
               <div
                 key={evolution.id}
                 style={{
-                  display: 'flex', gap: '12px', alignItems: 'flex-start',
-                  background: 'var(--color-background-medium)', borderRadius: '10px', padding: '10px 12px'
+                  display: 'flex',
+                  gap: '12px',
+                  alignItems: 'flex-start',
+                  background: 'var(--color-background-medium)',
+                  borderRadius: '10px',
+                  padding: '10px 12px',
                 }}
               >
-                {artUrl
-                  ? <img src={artUrl} alt={evolution.oldName} style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, opacity: 0.8 }} />
-                  : <div style={{ width: '48px', height: '48px', borderRadius: '8px', flexShrink: 0, background: 'var(--color-background-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>👹</div>}
+                {artUrl ? (
+                  <img
+                    src={artUrl}
+                    alt={evolution.oldName}
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '8px',
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                      opacity: 0.8,
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '8px',
+                      flexShrink: 0,
+                      background: 'var(--color-background-dark)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                    }}
+                  >
+                    👹
+                  </div>
+                )}
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 'bold' }}>
                     Stage {evolution.stage}: {evolution.oldName} the {evolution.oldSpecies}
                     <span style={{ color: 'var(--color-text-muted)' }}> → </span>
                     {evolution.newName} the {evolution.newSpecies}
                   </div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
+                  <div
+                    style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}
+                  >
                     {evolution.oldRarity || 'common'} → {evolution.newRarity}
                     {evolution.createdAt ? ` · ${evolution.createdAt.toLocaleDateString()}` : ''}
                     {evolution.guidance ? ` · whispered: "${evolution.guidance}"` : ''}
@@ -83,9 +116,14 @@ function EvolutionLineage({ monsterId, refreshToken }) {
                   {evolution.narrative && (
                     <div
                       style={{
-                        fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)',
-                        fontStyle: 'italic', marginTop: '4px', display: '-webkit-box',
-                        WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+                        fontSize: 'var(--font-size-sm)',
+                        color: 'var(--color-text-secondary)',
+                        fontStyle: 'italic',
+                        marginTop: '4px',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
                       }}
                     >
                       {evolution.narrative}

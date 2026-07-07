@@ -8,11 +8,11 @@ import { workflowStateStore } from './workflowStateStore.js';
 export const useWorkflowStatusSlice = () =>
   useSyncExternalStore(
     workflowStateStore.subscribeToWorkflowStatus,
-    workflowStateStore.getWorkflowStatus
+    workflowStateStore.getWorkflowStatus,
   );
 
 export const useWorkflowQueueStatus = () =>
   useSyncExternalStore(
     workflowStateStore.subscribeToWorkflowQueueStatus,
-    workflowStateStore.getWorkflowQueueStatus
+    workflowStateStore.getWorkflowQueueStatus,
   );

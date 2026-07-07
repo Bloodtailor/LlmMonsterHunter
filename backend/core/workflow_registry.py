@@ -3,16 +3,18 @@
 # Registers files named "registered_workflows.py" as callable workflows
 print(f"🔍 Loading {__file__.split('LlmMonsterHunter', 1)[-1]}")
 
-from typing import Callable, Dict, Any, Optional
 import inspect
 import threading
+from typing import Callable, Optional
 
 # Global registry of workflow_name -> callable
-_WORKFLOW_REGISTRY: Dict[str, Callable[[dict, Callable], dict]] = {}
+_WORKFLOW_REGISTRY: dict[str, Callable[[dict, Callable], dict]] = {}
 _REGISTRY_LOCK = threading.Lock()  # thread-safe if registering dynamically
+
 
 class WorkflowRegistrationError(Exception):
     pass
+
 
 def register_workflow(name: Optional[str] = None):
     """
@@ -22,6 +24,7 @@ def register_workflow(name: Optional[str] = None):
       - Callable takes exactly 2 parameters: context (dict-like) and on_update (Callable)
       - Returns a dict (checked at runtime on first call; optional strict mode)
     """
+
     def decorator(fn: Callable[[dict, Callable], dict]):
         nonlocal name
         workflow_name = name or fn.__name__
@@ -33,12 +36,10 @@ def register_workflow(name: Optional[str] = None):
             raise WorkflowRegistrationError(
                 f"{fn.__name__} must take exactly two arguments: context and on_update."
             )
-        
+
         # Enforce parameter names for clarity
         if params[0].name != "context":
-            raise WorkflowRegistrationError(
-                f"{fn.__name__} first param must be named 'context'."
-            )
+            raise WorkflowRegistrationError(f"{fn.__name__} first param must be named 'context'.")
         if params[1].name != "on_update":
             raise WorkflowRegistrationError(
                 f"{fn.__name__} second param must be named 'on_update'."
@@ -47,19 +48,21 @@ def register_workflow(name: Optional[str] = None):
         # Register thread-safely
         with _REGISTRY_LOCK:
             if workflow_name in _WORKFLOW_REGISTRY:
-                raise WorkflowRegistrationError(
-                    f"Workflow '{workflow_name}' already registered."
-                )
+                raise WorkflowRegistrationError(f"Workflow '{workflow_name}' already registered.")
             _WORKFLOW_REGISTRY[workflow_name] = fn
 
         return fn
+
     return decorator
+
 
 def get_workflow(name: str) -> Callable[[dict, Callable], dict] | None:
     return _WORKFLOW_REGISTRY.get(name)
 
+
 def list_workflows() -> list[str]:
     return sorted(_WORKFLOW_REGISTRY.keys())
+
 
 def is_workflow_supported(name: str) -> bool:
     return name in _WORKFLOW_REGISTRY

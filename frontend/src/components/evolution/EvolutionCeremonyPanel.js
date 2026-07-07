@@ -7,7 +7,13 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Card, CardSection, Button, Alert, Textarea, LoadingSpinner, EmptyState
+  Card,
+  CardSection,
+  Button,
+  Alert,
+  Textarea,
+  LoadingSpinner,
+  EmptyState,
 } from '../../shared/ui/index.js';
 import MonsterCard from '../cards/MonsterCard.js';
 import HueBasedExplosion from '../../shared/ui/Explosion/HueBasedExplosion.js';
@@ -25,12 +31,24 @@ function cardArtUrl(relativePath) {
 function StatDelta({ label, before, after }) {
   const grew = Number(after) > Number(before);
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: 'var(--font-size-sm)' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '12px',
+        fontSize: 'var(--font-size-sm)',
+      }}
+    >
       <span style={{ color: 'var(--color-text-muted)' }}>{label}</span>
       <span>
         {before}
         <span style={{ color: 'var(--color-text-muted)' }}> → </span>
-        <span style={{ color: grew ? 'var(--color-success, #3fb950)' : 'var(--color-text-primary)', fontWeight: 'bold' }}>
+        <span
+          style={{
+            color: grew ? 'var(--color-success, #3fb950)' : 'var(--color-text-primary)',
+            fontWeight: 'bold',
+          }}
+        >
           {after}
         </span>
       </span>
@@ -44,8 +62,13 @@ function BurstOverlay({ active, hue, onDone }) {
   return (
     <div
       style={{
-        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
-        justifyContent: 'center', pointerEvents: 'none', zIndex: 5
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+        zIndex: 5,
       }}
     >
       <HueBasedExplosion hue={hue} size="xl" intensity={1.5} onComplete={onDone} />
@@ -60,8 +83,16 @@ function BurstOverlay({ active, hue, onDone }) {
  */
 function EvolutionCeremonyPanel({ monster }) {
   const {
-    phase, currentStep, narration, beforeSnapshot, evolution, result,
-    artRevealed, error, begin, reset
+    phase,
+    currentStep,
+    narration,
+    beforeSnapshot,
+    evolution,
+    result,
+    artRevealed,
+    error,
+    begin,
+    reset,
   } = useMonsterEvolution(monster);
 
   const [guidance, setGuidance] = useState('');
@@ -106,22 +137,39 @@ function EvolutionCeremonyPanel({ monster }) {
         <CardSection
           type="header"
           size="md"
-          title={phase === 'complete' ? `⬆️ ${monster.name} has evolved` : `⬆️ The Altar — ${monster.name}`}
+          title={
+            phase === 'complete'
+              ? `⬆️ ${monster.name} has evolved`
+              : `⬆️ The Altar — ${monster.name}`
+          }
           alignment="center"
         />
         <CardSection type="content">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}
+          >
             {/* The card, live-patched as the ceremony lands; bursts overlay it */}
             <div style={{ position: 'relative' }}>
               <MonsterCard monster={monster} size="lg" hideFlipHint={phase === 'evolving'} />
-              <BurstOverlay active={transformBurst} hue="purple" onDone={() => setTransformBurst(false)} />
+              <BurstOverlay
+                active={transformBurst}
+                hue="purple"
+                onDone={() => setTransformBurst(false)}
+              />
               <BurstOverlay active={artBurst} hue="yellow" onDone={() => setArtBurst(false)} />
             </div>
 
             {/* ===== IDLE: the whisper and the leap ===== */}
             {phase === 'idle' && (
-              <div style={{ width: '100%', maxWidth: '520px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '520px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
                 <Textarea
                   value={guidance}
                   onChange={(event) => setGuidance(event.target.value)}
@@ -129,32 +177,66 @@ function EvolutionCeremonyPanel({ monster }) {
                   rows={3}
                   maxLength={GUIDANCE_MAX_CHARS}
                 />
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)', textAlign: 'right' }}>
+                <div
+                  style={{
+                    fontSize: 'var(--font-size-sm)',
+                    color: 'var(--color-text-muted)',
+                    textAlign: 'right',
+                  }}
+                >
                   {guidance.length}/{GUIDANCE_MAX_CHARS}
                 </div>
                 <Button size="lg" icon="⬆️" variant="primary" onClick={() => begin(guidance)}>
                   Begin the Evolution
                 </Button>
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)', textAlign: 'center', margin: 0 }}>
-                  Evolution is permanent. {monster.name} keeps every memory, bond,
-                  and ability — and becomes something more.
+                <p
+                  style={{
+                    fontSize: 'var(--font-size-sm)',
+                    color: 'var(--color-text-muted)',
+                    textAlign: 'center',
+                    margin: 0,
+                  }}
+                >
+                  Evolution is permanent. {monster.name} keeps every memory, bond, and ability — and
+                  becomes something more.
                 </p>
               </div>
             )}
 
             {/* ===== EVOLVING: the step line and the streaming story ===== */}
             {phase === 'evolving' && (
-              <div style={{ width: '100%', maxWidth: '560px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', color: 'var(--color-text-secondary)' }}>
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '560px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    justifyContent: 'center',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
                   <LoadingSpinner size="sm" type="spin" />
                   <span>{stepLabel}...</span>
                 </div>
                 {narration && (
                   <div
                     style={{
-                      fontStyle: 'italic', color: 'var(--color-text-secondary)', lineHeight: 1.6,
-                      background: 'var(--color-background-medium)', borderRadius: '10px',
-                      padding: '14px 16px', maxHeight: '220px', overflowY: 'auto'
+                      fontStyle: 'italic',
+                      color: 'var(--color-text-secondary)',
+                      lineHeight: 1.6,
+                      background: 'var(--color-background-medium)',
+                      borderRadius: '10px',
+                      padding: '14px 16px',
+                      maxHeight: '220px',
+                      overflowY: 'auto',
                     }}
                   >
                     {narration}
@@ -165,19 +247,38 @@ function EvolutionCeremonyPanel({ monster }) {
 
             {/* ===== COMPLETE: what it was, what it became ===== */}
             {phase === 'complete' && (
-              <div style={{ width: '100%', maxWidth: '560px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '560px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px',
+                }}
+              >
                 {evolution && beforeSnapshot && (
                   <div
                     style={{
-                      display: 'flex', gap: '16px', alignItems: 'center',
-                      background: 'var(--color-background-medium)', borderRadius: '10px', padding: '14px 16px'
+                      display: 'flex',
+                      gap: '16px',
+                      alignItems: 'center',
+                      background: 'var(--color-background-medium)',
+                      borderRadius: '10px',
+                      padding: '14px 16px',
                     }}
                   >
                     {oldArt && (
                       <img
                         src={oldArt}
                         alt={evolution.oldName}
-                        style={{ width: '64px', height: '64px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, opacity: 0.75 }}
+                        style={{
+                          width: '64px',
+                          height: '64px',
+                          borderRadius: '8px',
+                          objectFit: 'cover',
+                          flexShrink: 0,
+                          opacity: 0.75,
+                        }}
                       />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -186,29 +287,70 @@ function EvolutionCeremonyPanel({ monster }) {
                         <span style={{ color: 'var(--color-text-muted)' }}> → </span>
                         {evolution.newName} the {evolution.newSpecies}
                       </div>
-                      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
-                        Stage {evolution.stage} · {evolution.oldRarity || 'common'} → {evolution.newRarity}
+                      <div
+                        style={{
+                          fontSize: 'var(--font-size-sm)',
+                          color: 'var(--color-text-muted)',
+                        }}
+                      >
+                        Stage {evolution.stage} · {evolution.oldRarity || 'common'} →{' '}
+                        {evolution.newRarity}
                       </div>
-                      <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <StatDelta label="Health" before={beforeSnapshot.stats?.maxHealth} after={monster.stats?.maxHealth} />
-                        <StatDelta label="Attack" before={beforeSnapshot.stats?.attack} after={monster.stats?.attack} />
-                        <StatDelta label="Defense" before={beforeSnapshot.stats?.defense} after={monster.stats?.defense} />
-                        <StatDelta label="Speed" before={beforeSnapshot.stats?.speed} after={monster.stats?.speed} />
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '2px',
+                        }}
+                      >
+                        <StatDelta
+                          label="Health"
+                          before={beforeSnapshot.stats?.maxHealth}
+                          after={monster.stats?.maxHealth}
+                        />
+                        <StatDelta
+                          label="Attack"
+                          before={beforeSnapshot.stats?.attack}
+                          after={monster.stats?.attack}
+                        />
+                        <StatDelta
+                          label="Defense"
+                          before={beforeSnapshot.stats?.defense}
+                          after={monster.stats?.defense}
+                        />
+                        <StatDelta
+                          label="Speed"
+                          before={beforeSnapshot.stats?.speed}
+                          after={monster.stats?.speed}
+                        />
                       </div>
                     </div>
                   </div>
                 )}
 
                 {(result?.new_ability || (result?.reworded_abilities || []).length > 0) && (
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', textAlign: 'center' }}>
+                  <div
+                    style={{
+                      fontSize: 'var(--font-size-sm)',
+                      color: 'var(--color-text-secondary)',
+                      textAlign: 'center',
+                    }}
+                  >
                     {result?.new_ability && (
-                      <div>✨ New signature ability: <strong>{result.new_ability.name}</strong></div>
+                      <div>
+                        ✨ New signature ability: <strong>{result.new_ability.name}</strong>
+                      </div>
                     )}
                     {(result?.reworded_abilities || []).length > 0 && (
-                      <div>🔁 Evolved abilities: {(result.reworded_abilities || []).join(', ')}</div>
+                      <div>
+                        🔁 Evolved abilities: {(result.reworded_abilities || []).join(', ')}
+                      </div>
                     )}
                     {result?.art_regenerated === false && (
-                      <div style={{ color: 'var(--color-text-muted)' }}>Its old portrait stands, for now.</div>
+                      <div style={{ color: 'var(--color-text-muted)' }}>
+                        Its old portrait stands, for now.
+                      </div>
                     )}
                   </div>
                 )}
@@ -216,9 +358,14 @@ function EvolutionCeremonyPanel({ monster }) {
                 {narration && (
                   <div
                     style={{
-                      fontStyle: 'italic', color: 'var(--color-text-secondary)', lineHeight: 1.6,
-                      background: 'var(--color-background-medium)', borderRadius: '10px',
-                      padding: '14px 16px', maxHeight: '260px', overflowY: 'auto'
+                      fontStyle: 'italic',
+                      color: 'var(--color-text-secondary)',
+                      lineHeight: 1.6,
+                      background: 'var(--color-background-medium)',
+                      borderRadius: '10px',
+                      padding: '14px 16px',
+                      maxHeight: '260px',
+                      overflowY: 'auto',
                     }}
                   >
                     {narration}
@@ -233,14 +380,23 @@ function EvolutionCeremonyPanel({ monster }) {
 
             {/* ===== FAILED ===== */}
             {phase === 'failed' && (
-              <div style={{ width: '100%', maxWidth: '520px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <Alert type="error" size="md">{error || 'The evolution faltered.'}</Alert>
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '520px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <Alert type="error" size="md">
+                  {error || 'The evolution faltered.'}
+                </Alert>
                 <Button size="md" icon="⬆️" variant="secondary" onClick={reset}>
                   Try again
                 </Button>
               </div>
             )}
-
           </div>
         </CardSection>
       </Card>

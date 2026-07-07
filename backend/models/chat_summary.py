@@ -6,8 +6,10 @@
 # recent" instead of the whole conversation.
 # Data storage only - when/how to condense lives in backend/game/chat.
 
+from sqlalchemy import Column, ForeignKey, Integer, Text
+
 from .base import BaseModel
-from sqlalchemy import Column, Integer, Text, ForeignKey
+
 
 class ChatSummary(BaseModel):
     """
@@ -26,11 +28,13 @@ class ChatSummary(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'monster_id': self.monster_id,
-            'through_message_id': self.through_message_id,
-            'text': self.text
-        })
+        result.update(
+            {
+                'monster_id': self.monster_id,
+                'through_message_id': self.through_message_id,
+                'text': self.text,
+            }
+        )
         return result
 
     @classmethod
@@ -40,7 +44,7 @@ class ChatSummary(BaseModel):
             summary = cls(
                 monster_id=int(monster_id),
                 through_message_id=int(through_message_id),
-                text=str(text).strip()
+                text=str(text).strip(),
             )
             return summary if summary.save() else None
         except Exception as e:
@@ -51,8 +55,7 @@ class ChatSummary(BaseModel):
     def for_monster(cls, monster_id: int):
         """All summaries oldest first (their texts read in order)"""
         try:
-            return (cls.query.filter_by(monster_id=monster_id)
-                    .order_by(cls.through_message_id).all())
+            return cls.query.filter_by(monster_id=monster_id).order_by(cls.through_message_id).all()
         except Exception as e:
             print(f"❌ Error reading chat summaries for monster {monster_id}: {e}")
             return []
@@ -61,13 +64,18 @@ class ChatSummary(BaseModel):
     def last_through_id(cls, monster_id: int) -> int:
         """The newest message id the summaries already cover (0 if none)"""
         try:
-            last = (cls.query.filter_by(monster_id=monster_id)
-                    .order_by(cls.through_message_id.desc()).first())
+            last = (
+                cls.query.filter_by(monster_id=monster_id)
+                .order_by(cls.through_message_id.desc())
+                .first()
+            )
             return int(last.through_message_id) if last else 0
         except Exception as e:
             print(f"❌ Error reading chat summary coverage for monster {monster_id}: {e}")
             return 0
 
     def __repr__(self):
-        return (f"<ChatSummary(id={self.id}, monster_id={self.monster_id}, "
-                f"through={self.through_message_id})>")
+        return (
+            f"<ChatSummary(id={self.id}, monster_id={self.monster_id}, "
+            f"through={self.through_message_id})>"
+        )

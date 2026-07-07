@@ -33,23 +33,20 @@ export function useMonsterCardViewer() {
 
   // Pre-rendered viewer (conditionally shown)
   const viewer = viewingMonster ? (
-    <MonsterCardViewer
-      monster={viewingMonster}
-      onClose={closeViewer}
-    />
+    <MonsterCardViewer monster={viewingMonster} onClose={closeViewer} />
   ) : null;
 
   return {
     // Pre-configured MonsterCard component - just pass your props!
     MonsterCard: MonsterCardWithViewer,
-    
+
     // Pre-rendered viewer - just include in your JSX
     viewer,
-    
+
     // Optional: Direct access to state/handlers if needed
     viewingMonster,
     openViewer: setViewingMonster,
     closeViewer,
-    isViewerOpen: !!viewingMonster
+    isViewerOpen: !!viewingMonster,
   };
 }

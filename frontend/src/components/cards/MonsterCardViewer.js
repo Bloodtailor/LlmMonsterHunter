@@ -5,15 +5,15 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import MonsterCard from './MonsterCard.js';
-import './monsterCardViewer.css'
+import './monsterCardViewer.css';
 import { IconButton } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 
-function MonsterCardViewer({ 
+function MonsterCardViewer({
   isOpen = true, // Default to open since parent controls visibility
-  onClose, 
+  onClose,
   monster,
-  startOnBack = false
+  startOnBack = false,
 }) {
   // Handle escape key to close modal
   useEffect(() => {
@@ -46,10 +46,7 @@ function MonsterCardViewer({
   };
 
   return createPortal(
-    <div 
-      className="monster-card-viewer-overlay"
-      onClick={handleBackdropClick}
-    >
+    <div className="monster-card-viewer-overlay" onClick={handleBackdropClick}>
       <div className="monster-card-viewer-container">
         {/* Close Button - Using refactored IconButton */}
         <IconButton
@@ -69,7 +66,7 @@ function MonsterCardViewer({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 

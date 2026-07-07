@@ -28,17 +28,16 @@ function SearchInput({
   className = '',
   ...rest
 }) {
-  
   const handleClear = () => {
     const syntheticEvent = {
       target: { value: '' },
-      type: 'change'
+      type: 'change',
     };
-    
+
     if (onChange) {
       onChange(syntheticEvent);
     }
-    
+
     if (onClear) {
       onClear();
     }
@@ -48,14 +47,16 @@ function SearchInput({
     'form-search-input',
     value && 'form-search-input-with-value',
     error && 'form-search-input-error',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="form-search-input-container">
       <div className={searchClasses}>
         <div className="form-search-icon">🔍</div>
-        
+
         <Input
           type="search"
           value={value}
@@ -65,23 +66,15 @@ function SearchInput({
           className="form-search-input-field"
           {...rest}
         />
-        
+
         {value && !disabled && (
-          <button
-            type="button"
-            className="form-search-clear"
-            onClick={handleClear}
-          >
+          <button type="button" className="form-search-clear" onClick={handleClear}>
             ✕
           </button>
         )}
       </div>
-      
-      {error && (
-        <div className="form-search-input-error-message">
-          {error}
-        </div>
-      )}
+
+      {error && <div className="form-search-input-error-message">{error}</div>}
     </div>
   );
 }

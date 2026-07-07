@@ -4,123 +4,141 @@
 # turn phases, and outcomes. The LLM narrates, judges impacts,
 # directs turn order, and adjudicates negotiations.
 
-from typing import Dict, Any, Optional, List
-from backend.models.global_variables import GlobalVariable
+from typing import Any, Optional
+
 from backend.game.battle.constants import (
+    BRIMMING,
     CONDITION_LADDER,
-    INCAPACITATED,
     FRESH,
     IMPACT_STEPS,
+    INCAPACITATED,
     RECENT_LOG_SIZE,
-    TURN_HISTORY_SIZE,
-    RESOURCE_LADDER,
-    RESOURCE_KEYS,
     RESOURCE_DELTAS,
-    BRIMMING
+    RESOURCE_KEYS,
+    RESOURCE_LADDER,
+    TURN_HISTORY_SIZE,
 )
+from backend.models.global_variables import GlobalVariable
 
 BATTLE_STATE_KEY = 'battle_state'
 
 _EMPTY_STATE = {
     'in_battle': False,
-    'phase': None,          # 'ready'|'awaiting_player_turn'|'awaiting_player_response'|'processing'|'victory'|'defeat'
+    'phase': None,  # 'ready'|'awaiting_player_turn'|'awaiting_player_response'|'processing'|'victory'|'defeat'
     'turn_count': 0,
-    'turn_history': [],     # [{'actor', 'side', 'action'}] - context for the turn-order LLM
-    'last_acted': {},       # monster_id(str): turn_count when it last acted - fairness tracking
+    'turn_history': [],  # [{'actor', 'side', 'action'}] - context for the turn-order LLM
+    'last_acted': {},  # monster_id(str): turn_count when it last acted - fairness tracking
     'pending_actor': None,  # ally monster_id whose turn awaits player input
-    'pending_talk': None,   # {'speaker_id', 'dialogue'} - enemy talk awaiting player response
-    'allies': {},           # monster_id(str): {'name', 'condition', 'defending', 'stamina', 'mana'}
-    'enemies': {},          # monster_id(str): {'name', 'condition', 'defending', 'fled', 'stamina', 'mana'}
-    'recent_log': [],       # every turn narration this battle, oldest first
-    'log_summaries': [],    # [{'through': int, 'text': str}] - rolling condensed batches
+    'pending_talk': None,  # {'speaker_id', 'dialogue'} - enemy talk awaiting player response
+    'allies': {},  # monster_id(str): {'name', 'condition', 'defending', 'stamina', 'mana'}
+    'enemies': {},  # monster_id(str): {'name', 'condition', 'defending', 'fled', 'stamina', 'mana'}
+    'recent_log': [],  # every turn narration this battle, oldest first
+    'log_summaries': [],  # [{'through': int, 'text': str}] - rolling condensed batches
     'finishing_blows': {},  # monster_id(str): {'by_id','by_name','action','ability_name'} - who dropped whom
-    'resolution': None      # 'combat'|'joined'|'yielded'|'fled'|'spared'
+    'resolution': None,  # 'combat'|'joined'|'yielded'|'fled'|'spared'
 }
 
 # ===== CORE STATE ACCESS =====
 
-def get_battle_state() -> Dict[str, Any]:
+
+def get_battle_state() -> dict[str, Any]:
     return GlobalVariable.get(BATTLE_STATE_KEY, dict(_EMPTY_STATE))
 
-def save_battle_state(state: Dict[str, Any]) -> None:
+
+def save_battle_state(state: dict[str, Any]) -> None:
     GlobalVariable.set(BATTLE_STATE_KEY, state)
+
 
 def is_in_battle() -> bool:
     return get_battle_state().get('in_battle', False)
 
+
 # ===== BATTLE LIFECYCLE =====
 
-def start_battle(ally_conditions: Dict[str, Dict[str, Any]], enemy_entries: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+
+def start_battle(
+    ally_conditions: dict[str, dict[str, Any]], enemy_entries: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
     """
     Begin a battle in the 'ready' phase - the first battle_turn call
     (with no player action) runs the opening initiative
     """
     state = dict(_EMPTY_STATE)
-    state.update({
-        'in_battle': True,
-        'phase': 'ready',
-        'turn_count': 0,
-        'turn_history': [],
-        'last_acted': {},
-        'allies': {
-            str(monster_id): {
-                'name': info.get('name', f'Monster {monster_id}'),
-                'condition': info.get('condition', FRESH),
-                'defending': False,
-                # Reserves carry over from the run - entering the dungeon
-                # is the only guaranteed refill
-                'stamina': info.get('stamina', BRIMMING),
-                'mana': info.get('mana', BRIMMING)
-            }
-            for monster_id, info in ally_conditions.items()
-        },
-        'enemies': {
-            str(monster_id): {
-                'name': info.get('name', f'Monster {monster_id}'),
-                'condition': FRESH,
-                'defending': False,
-                'fled': False,
-                'stamina': info.get('stamina', BRIMMING),
-                'mana': info.get('mana', BRIMMING)
-            }
-            for monster_id, info in enemy_entries.items()
-        },
-        'recent_log': [],
-        'log_summaries': [],
-        'finishing_blows': {},
-        'resolution': None
-    })
+    state.update(
+        {
+            'in_battle': True,
+            'phase': 'ready',
+            'turn_count': 0,
+            'turn_history': [],
+            'last_acted': {},
+            'allies': {
+                str(monster_id): {
+                    'name': info.get('name', f'Monster {monster_id}'),
+                    'condition': info.get('condition', FRESH),
+                    'defending': False,
+                    # Reserves carry over from the run - entering the dungeon
+                    # is the only guaranteed refill
+                    'stamina': info.get('stamina', BRIMMING),
+                    'mana': info.get('mana', BRIMMING),
+                }
+                for monster_id, info in ally_conditions.items()
+            },
+            'enemies': {
+                str(monster_id): {
+                    'name': info.get('name', f'Monster {monster_id}'),
+                    'condition': FRESH,
+                    'defending': False,
+                    'fled': False,
+                    'stamina': info.get('stamina', BRIMMING),
+                    'mana': info.get('mana', BRIMMING),
+                }
+                for monster_id, info in enemy_entries.items()
+            },
+            'recent_log': [],
+            'log_summaries': [],
+            'finishing_blows': {},
+            'resolution': None,
+        }
+    )
     save_battle_state(state)
     return state
+
 
 def end_battle() -> None:
     """Clear all battle state"""
     save_battle_state(dict(_EMPTY_STATE))
 
+
 # ===== PARTICIPANT STATUS =====
 
-def is_incapacitated(state: Dict[str, Any], side: str, monster_id: str) -> bool:
+
+def is_incapacitated(state: dict[str, Any], side: str, monster_id: str) -> bool:
     monster = state.get(side, {}).get(str(monster_id))
     return not monster or monster.get('condition') == INCAPACITATED
 
-def is_out(state: Dict[str, Any], side: str, monster_id: str) -> bool:
+
+def is_out(state: dict[str, Any], side: str, monster_id: str) -> bool:
     """Out of the fight: incapacitated or fled"""
     monster = state.get(side, {}).get(str(monster_id))
     return not monster or monster.get('condition') == INCAPACITATED or monster.get('fled')
 
-def active_ids(state: Dict[str, Any], side: str) -> List[str]:
+
+def active_ids(state: dict[str, Any], side: str) -> list[str]:
     """Everyone on a side still in the fight"""
     return [mid for mid in state.get(side, {}) if not is_out(state, side, mid)]
 
-def mark_fled(state: Dict[str, Any], monster_id: str) -> None:
+
+def mark_fled(state: dict[str, Any], monster_id: str) -> None:
     """An enemy escapes the battle (in place)"""
     monster = state.get('enemies', {}).get(str(monster_id))
     if monster:
         monster['fled'] = True
 
+
 # ===== THE CONDITION LADDER =====
 
-def apply_impact(state: Dict[str, Any], side: str, monster_id: str, impact: str) -> Optional[str]:
+
+def apply_impact(state: dict[str, Any], side: str, monster_id: str, impact: str) -> Optional[str]:
     """
     Apply a referee impact judgment to a monster's condition (in place)
     Defending downgrades harmful impacts one step. Clamped at ladder ends.
@@ -142,9 +160,13 @@ def apply_impact(state: Dict[str, Any], side: str, monster_id: str, impact: str)
 
     return monster['condition']
 
+
 # ===== THE RESOURCE LADDERS (stamina and mana) =====
 
-def apply_resource(state: Dict[str, Any], side: str, monster_id: str, resource: str, delta_word: str) -> Optional[str]:
+
+def apply_resource(
+    state: dict[str, Any], side: str, monster_id: str, resource: str, delta_word: str
+) -> Optional[str]:
     """
     Apply a referee cost/restore judgment to one of a monster's pools
     (in place). Same shape as apply_impact: word -> steps -> clamped
@@ -164,34 +186,43 @@ def apply_resource(state: Dict[str, Any], side: str, monster_id: str, resource: 
 
     return monster[resource]
 
+
 # ===== DEFENDING (lasts until the monster's next turn) =====
 
-def clear_defending(state: Dict[str, Any], side: str, monster_id: str) -> None:
+
+def clear_defending(state: dict[str, Any], side: str, monster_id: str) -> None:
     """A monster's defending stance ends when its next turn begins (in place)"""
     monster = state.get(side, {}).get(str(monster_id))
     if monster:
         monster['defending'] = False
 
-def set_defending(state: Dict[str, Any], side: str, monster_id: str) -> None:
+
+def set_defending(state: dict[str, Any], side: str, monster_id: str) -> None:
     monster = state.get(side, {}).get(str(monster_id))
     if monster:
         monster['defending'] = True
 
+
 # ===== TURN TRACKING =====
 
-def record_turn(state: Dict[str, Any], actor_name: str, action: str, actor_id: Any = None, side: str = None) -> None:
+
+def record_turn(
+    state: dict[str, Any], actor_name: str, action: str, actor_id: Any = None, side: str = None
+) -> None:
     """
     Track who acted (in place): the rolling history for the turn-order
     LLM's context, and per-monster last-acted turns for fairness
     """
     state['turn_count'] = state.get('turn_count', 0) + 1
     history = state.get('turn_history', [])
-    history.append({
-        'turn': state['turn_count'],
-        'actor': actor_name,
-        'side': 'party' if side == 'allies' else 'hostile' if side == 'enemies' else None,
-        'action': action
-    })
+    history.append(
+        {
+            'turn': state['turn_count'],
+            'actor': actor_name,
+            'side': 'party' if side == 'allies' else 'hostile' if side == 'enemies' else None,
+            'action': action,
+        }
+    )
     state['turn_history'] = history[-TURN_HISTORY_SIZE:]
 
     if actor_id is not None:
@@ -199,13 +230,16 @@ def record_turn(state: Dict[str, Any], actor_name: str, action: str, actor_id: A
         last_acted[str(actor_id)] = state['turn_count']
         state['last_acted'] = last_acted
 
-def turns_waiting(state: Dict[str, Any], monster_id: Any) -> int:
+
+def turns_waiting(state: dict[str, Any], monster_id: Any) -> int:
     """How many turns since this monster last acted (whole battle if never)"""
     return state.get('turn_count', 0) - state.get('last_acted', {}).get(str(monster_id), 0)
 
+
 # ===== ROLLING LOG =====
 
-def append_log(state: Dict[str, Any], narration: str) -> None:
+
+def append_log(state: dict[str, Any], narration: str) -> None:
     """
     Keep every narration this battle as context for the referee (in
     place), each stamped with its turn number. append_log is always
@@ -225,6 +259,7 @@ def append_log(state: Dict[str, Any], narration: str) -> None:
         ]
     state['recent_log'] = log
 
+
 def record_log_summary(through: int, text: str) -> None:
     """Store one condensed batch covering recent_log[0:through]"""
     if not text or not str(text).strip():
@@ -237,6 +272,7 @@ def record_log_summary(through: int, text: str) -> None:
     state['log_summaries'] = summaries
     save_battle_state(state)
 
+
 def queue_log_condense_if_due() -> None:
     """
     Queue a condense_battle_log workflow when enough old turns have piled
@@ -244,25 +280,29 @@ def queue_log_condense_if_due() -> None:
     after the player already has their result. Never raises.
     """
     try:
-        from backend.game.utils.rolling_summary import plan_batch, covered_count
+        from backend.game.utils.rolling_summary import covered_count, plan_batch
+
         state = get_battle_state()
         if not state.get('in_battle'):
             return
         batch = plan_batch(
             'battle_log',
             len(state.get('recent_log', [])),
-            covered_count(state.get('log_summaries', []))
+            covered_count(state.get('log_summaries', [])),
         )
         if not batch:
             return
         from backend.workflow.workflow_gateway import request_workflow
+
         request_workflow('condense_battle_log', context={})
     except Exception as e:
         print(f"❌ Failed to queue battle log condense: {e}")
 
+
 # ===== OUTCOME =====
 
-def derive_outcome(state: Dict[str, Any]) -> str:
+
+def derive_outcome(state: dict[str, Any]) -> str:
     """
     Python decides the battle outcome:
     victory when every enemy is incapacitated or fled,
@@ -279,9 +319,11 @@ def derive_outcome(state: Dict[str, Any]) -> str:
         return 'defeat'
     return 'unresolved'
 
+
 # ===== SNAPSHOT =====
 
-def get_battle_snapshot(state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+
+def get_battle_snapshot(state: Optional[dict[str, Any]] = None) -> dict[str, Any]:
     """Public battle snapshot for the frontend (nothing hidden in battles)"""
     if state is None:
         state = get_battle_state()
@@ -293,5 +335,5 @@ def get_battle_snapshot(state: Optional[Dict[str, Any]] = None) -> Dict[str, Any
         'pending_talk': state.get('pending_talk'),
         'resolution': state.get('resolution'),
         'allies': state.get('allies', {}),
-        'enemies': state.get('enemies', {})
+        'enemies': state.get('enemies', {}),
     }

@@ -27,13 +27,14 @@ function Textarea({
   className = '',
   ...rest
 }) {
-  
   const textareaClasses = [
     'form-textarea',
     disabled && 'form-textarea-disabled',
     error && 'form-textarea-error',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="form-textarea-container">
@@ -46,12 +47,8 @@ function Textarea({
         className={textareaClasses}
         {...rest}
       />
-      
-      {error && (
-        <div className="form-textarea-error-message">
-          {error}
-        </div>
-      )}
+
+      {error && <div className="form-textarea-error-message">{error}</div>}
     </div>
   );
 }

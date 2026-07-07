@@ -14,13 +14,7 @@ import './pagination.css';
  * @param {object} props.rest - Additional HTML div attributes
  * @returns {React.ReactElement} PaginationInfo component
  */
-function PaginationInfo({
-  pagination,
-  itemName = 'items',
-  className = '',
-  ...rest
-}) {
-  
+function PaginationInfo({ pagination, itemName = 'items', className = '', ...rest }) {
   // Don't render if no pagination data
   if (!pagination || !pagination.paginationInfo) {
     return null;
@@ -29,18 +23,13 @@ function PaginationInfo({
   const { paginationInfo } = pagination;
   const { startItem, endItem, total } = paginationInfo;
 
-  const infoClasses = [
-    'pagination-info',
-    className
-  ].filter(Boolean).join(' ');
+  const infoClasses = ['pagination-info', className].filter(Boolean).join(' ');
 
   // Handle different scenarios
   if (total === 0) {
     return (
       <div className={infoClasses} {...rest}>
-        <span className="pagination-info-text">
-          No {itemName} found
-        </span>
+        <span className="pagination-info-text">No {itemName} found</span>
       </div>
     );
   }
@@ -58,7 +47,8 @@ function PaginationInfo({
   return (
     <div className={infoClasses} {...rest}>
       <span className="pagination-info-text">
-        Showing <strong>{startItem}</strong>-<strong>{endItem}</strong> of <strong>{total}</strong> {itemName}
+        Showing <strong>{startItem}</strong>-<strong>{endItem}</strong> of <strong>{total}</strong>{' '}
+        {itemName}
       </span>
     </div>
   );

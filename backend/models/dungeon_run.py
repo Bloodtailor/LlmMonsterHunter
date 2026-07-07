@@ -5,11 +5,14 @@
 # Data storage only - run lifecycle decisions live in the game layer.
 
 from datetime import datetime
+
+from sqlalchemy import Column, DateTime, Integer, String, Text
+
 from .base import BaseModel
-from sqlalchemy import Column, Integer, String, Text, DateTime
 
 # The ways a run can end (result stays NULL while the run is active)
 RUN_RESULTS = ('victory_exit', 'defeat', 'abandoned')
+
 
 class DungeonRun(BaseModel):
     """
@@ -30,12 +33,14 @@ class DungeonRun(BaseModel):
 
     def to_dict(self):
         result = super().to_dict()
-        result.update({
-            'run_number': self.run_number,
-            'ended_at': self.ended_at.isoformat() if self.ended_at else None,
-            'result': self.result,
-            'summary': self.summary
-        })
+        result.update(
+            {
+                'run_number': self.run_number,
+                'ended_at': self.ended_at.isoformat() if self.ended_at else None,
+                'result': self.result,
+                'summary': self.summary,
+            }
+        )
         return result
 
     @classmethod

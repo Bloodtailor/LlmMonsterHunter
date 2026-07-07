@@ -12,17 +12,12 @@ const IMPACT_LABELS = {
   heavy: { text: 'a heavy blow!', variant: 'error' },
   devastating: { text: 'DEVASTATING!', variant: 'error' },
   heal_light: { text: 'a soothing mend', variant: 'success' },
-  heal_major: { text: 'a mighty restoration!', variant: 'success' }
+  heal_major: { text: 'a mighty restoration!', variant: 'success' },
 };
 
 function BattleLogBox() {
-  const {
-    isProcessing,
-    currentNarration,
-    pendingNarrations,
-    turnResult,
-    advanceLog
-  } = useBattleContext();
+  const { isProcessing, currentNarration, pendingNarrations, turnResult, advanceLog } =
+    useBattleContext();
 
   if (!isProcessing && !currentNarration) return null;
 
@@ -31,7 +26,7 @@ function BattleLogBox() {
     lineHeight: 'var(--line-height-relaxed)',
     color: 'var(--color-text-primary)',
     fontFamily: 'var(--font-family-serif)',
-    whiteSpace: 'pre-wrap'
+    whiteSpace: 'pre-wrap',
   };
 
   // "Next" advances when there's more story, or applies the turn's
@@ -51,7 +46,13 @@ function BattleLogBox() {
         {currentNarration ? (
           <>
             {isTalk && (
-              <p style={{ ...narrationStyles, fontStyle: 'italic', color: 'var(--color-text-secondary)' }}>
+              <p
+                style={{
+                  ...narrationStyles,
+                  fontStyle: 'italic',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
                 {currentNarration.actor_name}: "{currentNarration.dialogue}"
               </p>
             )}
@@ -78,15 +79,12 @@ function BattleLogBox() {
 
       {currentNarration && (
         <CardSection type="content" alignment="center">
-          <Button
-            size="lg"
-            variant="primary"
-            onClick={advanceLog}
-            disabled={waitingOnReferee}
-          >
+          <Button size="lg" variant="primary" onClick={advanceLog} disabled={waitingOnReferee}>
             {waitingOnReferee ? (
               <>
-                <span style={{ marginRight: '8px' }}><LoadingSpinner size="sm" type="spin" /></span>
+                <span style={{ marginRight: '8px' }}>
+                  <LoadingSpinner size="sm" type="spin" />
+                </span>
                 The battle rages on...
               </>
             ) : canFinish ? (

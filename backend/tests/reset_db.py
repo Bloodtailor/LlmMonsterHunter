@@ -6,7 +6,9 @@
 # Usage: python -m backend.tests.reset_db   (from the project root)
 
 import os
+
 from flask import Flask
+
 
 def build_minimal_app():
     """A Flask app with ONLY the database configured - no LLM load,
@@ -23,32 +25,36 @@ def build_minimal_app():
     db_port = os.getenv('DB_PORT', '3306')
     db_name = os.getenv('DB_NAME', 'monster_hunter_game')
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     init_db(app)
     return app
 
+
 def import_all_models():
     """Every model module, so SQLAlchemy metadata knows every table"""
 
-    from backend.models.monster import Monster
     from backend.models.ability import Ability
-    from backend.models.item import Item
-    from backend.models.cocatok import CoCaTok
-    from backend.models.following_monsters import FollowingMonster
     from backend.models.active_party import ActiveParty
-    from backend.models.global_variables import GlobalVariable
-    from backend.models.generation_log import GenerationLog
-    from backend.models.llm_log import LLMLog
-    from backend.models.image_log import ImageLog
-    from backend.models.game_workflow import GameWorkflow
-    from backend.models.dungeon_run import DungeonRun
-    from backend.models.monster_memory import MonsterMemory
-    from backend.models.monster_evolution import MonsterEvolution
     from backend.models.chat_message import ChatMessage
     from backend.models.chat_summary import ChatSummary
     from backend.models.chat_thread import ChatThread
+    from backend.models.cocatok import CoCaTok
+    from backend.models.dungeon_run import DungeonRun
+    from backend.models.following_monsters import FollowingMonster
+    from backend.models.game_workflow import GameWorkflow
+    from backend.models.generation_log import GenerationLog
+    from backend.models.global_variables import GlobalVariable
+    from backend.models.image_log import ImageLog
+    from backend.models.item import Item
+    from backend.models.llm_log import LLMLog
+    from backend.models.monster import Monster
+    from backend.models.monster_evolution import MonsterEvolution
+    from backend.models.monster_memory import MonsterMemory
+
 
 def main():
     db_name = os.getenv('DB_NAME', 'monster_hunter_game')
@@ -75,10 +81,12 @@ def main():
         db.create_all()
 
         from sqlalchemy import inspect
+
         table_names = inspect(db.engine).get_table_names()
         print(f'🎉 Reset complete. {len(table_names)} empty tables:')
         for table_name in sorted(table_names):
             print(f'    {table_name}')
+
 
 if __name__ == '__main__':
     main()

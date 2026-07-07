@@ -2,19 +2,19 @@
 // Choose the right component for your needs
 
 // Main components
-export { default as ExplosionEngine } from './ExplosionEngine.js';     // Raw granular control
-export { default as ExplosionPreset } from './ExplosionPreset.js';     // High-level presets
-export { default as Explosion } from './ExplosionPreset.js';           // Default to preset version
+export { default as ExplosionEngine } from './ExplosionEngine.js'; // Raw granular control
+export { default as ExplosionPreset } from './ExplosionPreset.js'; // High-level presets
+export { default as Explosion } from './ExplosionPreset.js'; // Default to preset version
 export { default as HueBasedExplosion } from './HueBasedExplosion.js'; // Hue family explosions
 
 // Constants
-export { 
-  EXPLOSION_TYPES, 
-  EXPLOSION_PATTERNS, 
+export {
+  EXPLOSION_TYPES,
+  EXPLOSION_PATTERNS,
   SIZE_MULTIPLIERS,
   EXPLOSION_CONFIGS,
   ENGINE_DEFAULTS,
-  RANDOMIZATION_RANGES
+  RANDOMIZATION_RANGES,
 } from './ExplosionConstants.js';
 
 // For backwards compatibility - default export is the preset version

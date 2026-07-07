@@ -58,7 +58,7 @@ export const useSSE = (eventHandlers) => {
   // Auto-connect on mount and disconnect on unmount
   useEffect(() => {
     connect();
-    
+
     // Cleanup function - disconnect on unmount
     return disconnect;
   }, []);
@@ -67,6 +67,6 @@ export const useSSE = (eventHandlers) => {
     isConnected,
     connectionError,
     connect,
-    disconnect
+    disconnect,
   };
 };

@@ -22,14 +22,15 @@
   transform: translate(-50%, -50%);
   width: calc(40px * var(--size-multiplier));
   height: calc(40px * var(--size-multiplier));
-  background: radial-gradient(circle, 
+  background: radial-gradient(
+    circle,
     rgba(255, 255, 255, 1) 0%,
     var(--color-primary) 30%,
     transparent 70%
   );
   border-radius: 50%;
   opacity: 0;
-  box-shadow: 
+  box-shadow:
     0 0 calc(30px * var(--size-multiplier)) rgba(255, 255, 255, 0.8),
     0 0 calc(60px * var(--size-multiplier)) var(--color-primary);
 }
@@ -39,9 +40,18 @@
 }
 
 @keyframes flash {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(var(--explosion-intensity)); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 3)); }
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(var(--explosion-intensity));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 3));
+  }
 }
 
 /* SHOCKWAVE - Expanding ring */
@@ -63,9 +73,18 @@
 }
 
 @keyframes shockwave {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.1); }
-  70% { opacity: 0.4; transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 4)); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 8)); }
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.1);
+  }
+  70% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 4));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(calc(var(--explosion-intensity) * 8));
+  }
 }
 
 /* PARTICLES - Main explosion elements */
@@ -89,7 +108,8 @@
   left: 50%;
   width: calc(4px * var(--size-multiplier));
   height: calc(25px * var(--size-multiplier));
-  background: linear-gradient(to bottom, 
+  background: linear-gradient(
+    to bottom,
     rgba(255, 255, 255, 1) 0%,
     var(--element-color) 50%,
     transparent 100%
@@ -134,7 +154,8 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
   opacity: 0;
-  background: radial-gradient(circle, 
+  background: radial-gradient(
+    circle,
     transparent 70%,
     rgba(255, 255, 255, 0.1) 80%,
     transparent 90%
@@ -152,7 +173,7 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
   opacity: 0;
-  box-shadow: 
+  box-shadow:
     0 0 calc(8px * var(--size-multiplier)) var(--element-color),
     0 0 calc(16px * var(--size-multiplier)) rgba(255, 255, 255, 0.5);
 }
@@ -168,17 +189,14 @@
 @keyframes default-particle {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(0) 
-               scale(0.5);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(0) scale(0.5);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(100px * var(--explosion-intensity))) 
-               scale(0);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(100px * var(--explosion-intensity))) scale(0);
   }
 }
 
@@ -190,15 +208,14 @@
 @keyframes default-streak {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(5px);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(5px);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(120px * var(--explosion-intensity)));
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(120px * var(--explosion-intensity)));
   }
 }
 
@@ -228,17 +245,16 @@
 @keyframes default-fragment {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(0) 
-               rotateZ(0deg);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(0)
+      rotateZ(0deg);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(100px * var(--explosion-intensity))) 
-               rotateZ(calc(var(--element-index) * 180deg));
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(100px * var(--explosion-intensity)))
+      rotateZ(calc(var(--element-index) * 180deg));
   }
 }
 
@@ -268,15 +284,15 @@
 @keyframes default-spark {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(10px + var(--element-index) * 3px));
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(10px + var(--element-index) * 3px));
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(80px * var(--explosion-intensity) + var(--element-index) * 5px));
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(80px * var(--explosion-intensity) + var(--element-index) * 5px));
   }
 }
 
@@ -291,17 +307,14 @@
 @keyframes particle-storm {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(0) 
-               scale(0.5);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(0) scale(0.5);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(120px * var(--explosion-intensity))) 
-               scale(0);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(120px * var(--explosion-intensity))) scale(0);
   }
 }
 
@@ -313,15 +326,14 @@
 @keyframes streak-radial {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(10px);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(10px);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(150px * var(--explosion-intensity)));
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(150px * var(--explosion-intensity)));
   }
 }
 
@@ -335,24 +347,21 @@
 @keyframes lightning-bolt {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg))) 
-               translateX(0) 
-               scaleY(0.2);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg))) translateX(0)
+      scaleY(0.2);
   }
   20% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg))) 
-               translateX(calc(50px * var(--explosion-intensity))) 
-               scaleY(1.5);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg)))
+      translateX(calc(50px * var(--explosion-intensity))) scaleY(1.5);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg))) 
-               translateX(calc(100px * var(--explosion-intensity))) 
-               scaleY(0.3);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 45deg + (var(--element-index) * 23deg)))
+      translateX(calc(100px * var(--explosion-intensity))) scaleY(0.3);
   }
 }
 
@@ -364,15 +373,13 @@
 @keyframes lightning-spark {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 12deg)) 
-               translateX(calc(20px + var(--element-index) * 5px));
+    transform: translate(-50%, -50%) rotate(calc(var(--element-index) * 12deg))
+      translateX(calc(20px + var(--element-index) * 5px));
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 12deg)) 
-               translateX(calc(80px * var(--explosion-intensity) + var(--element-index) * 10px));
+    transform: translate(-50%, -50%) rotate(calc(var(--element-index) * 12deg))
+      translateX(calc(80px * var(--explosion-intensity) + var(--element-index) * 10px));
   }
 }
 
@@ -385,31 +392,25 @@
 @keyframes gravity-implosion {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(150px * var(--explosion-intensity))) 
-               scale(1);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(150px * var(--explosion-intensity))) scale(1);
   }
   30% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(0) 
-               scale(0.3);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(0) scale(0.3);
   }
   50% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(0) 
-               scale(1.5);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(0) scale(1.5);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(200px * var(--explosion-intensity))) 
-               scale(0);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(200px * var(--explosion-intensity))) scale(0);
   }
 }
 
@@ -422,15 +423,14 @@
 @keyframes plasma-spiral {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(0);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(0);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements) + 720deg)) 
-               translateX(calc(100px * var(--explosion-intensity)));
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements) + 720deg))
+      translateX(calc(100px * var(--explosion-intensity)));
   }
 }
 
@@ -502,31 +502,23 @@
 @keyframes chain-burst {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 36deg)) 
-               translateX(calc(var(--element-index) * 8px))
-               scale(0.2);
+    transform: translate(-50%, -50%) rotate(calc(var(--element-index) * 36deg))
+      translateX(calc(var(--element-index) * 8px)) scale(0.2);
   }
   20% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 36deg)) 
-               translateX(calc(var(--element-index) * 12px))
-               scale(1.8);
+    transform: translate(-50%, -50%) rotate(calc(var(--element-index) * 36deg))
+      translateX(calc(var(--element-index) * 12px)) scale(1.8);
   }
   50% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 36deg)) 
-               translateX(calc(var(--element-index) * 15px))
-               scale(1.2);
+    transform: translate(-50%, -50%) rotate(calc(var(--element-index) * 36deg))
+      translateX(calc(var(--element-index) * 15px)) scale(1.2);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 36deg)) 
-               translateX(calc(120px * var(--explosion-intensity)))
-               scale(0);
+    transform: translate(-50%, -50%) rotate(calc(var(--element-index) * 36deg))
+      translateX(calc(120px * var(--explosion-intensity))) scale(0);
   }
 }
 
@@ -563,17 +555,16 @@
 @keyframes shatter-fly {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(0) 
-               rotateZ(0deg);
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements))) translateX(0)
+      rotateZ(0deg);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) 
-               rotate(calc(var(--element-index) * 360deg / var(--total-elements))) 
-               translateX(calc(120px * var(--explosion-intensity))) 
-               rotateZ(calc(var(--element-index) * 180deg));
+    transform: translate(-50%, -50%)
+      rotate(calc(var(--element-index) * 360deg / var(--total-elements)))
+      translateX(calc(120px * var(--explosion-intensity)))
+      rotateZ(calc(var(--element-index) * 180deg));
   }
 }
 
@@ -587,7 +578,7 @@
   .ultimate-explosion * {
     animation: none !important;
   }
-  
+
   .explosion-active .explosion-flash {
     opacity: 0.3;
     transform: translate(-50%, -50%) scale(1);

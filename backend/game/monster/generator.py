@@ -6,29 +6,33 @@
 # Normalization here guards LLM output, not our own code.
 
 import random
-from backend.models.monster import Monster
-from backend.models.ability import Ability
-from backend.game.utils import build_and_generate
-from backend.game.monster import cmdts_data
+
 from backend.ai import gateway
 from backend.core.events import (
+    emit_monster_ability_added,
+    emit_monster_art_ready,
     emit_monster_created,
     emit_monster_updated,
-    emit_monster_ability_added,
-    emit_monster_art_ready
 )
+from backend.game.monster import cmdts_data
+from backend.game.utils import build_and_generate
+from backend.models.ability import Ability
+from backend.models.monster import Monster
 
 WILDS_LOCATION_CONTEXT = "The untamed wilds of the realm, far from any charted place"
 
 # ===== PUBLIC ENTRY POINTS (signatures stable for workflows) =====
 
+
 def generate_base_monster():
     """Generate a complete monster of the open wilds (all stages)"""
     return _generate_monster_chain(WILDS_LOCATION_CONTEXT)
 
+
 def generate_contextual_monster(location: dict):
     """Generate a complete monster that belongs to a specific dungeon location"""
     return _generate_monster_chain(_location_context(location))
+
 
 def _generate_monster_chain(location_context: str):
     monster = generate_monster_blueprint(location_context)
@@ -36,10 +40,13 @@ def _generate_monster_chain(location_context: str):
     monster = generate_monster_story(monster, location_context)
     return monster
 
+
 def _location_context(location: dict) -> str:
     return f"{location.get('name', 'Unknown Location')}: {location.get('description', '')}"
 
+
 # ===== STAGE 1: BLUEPRINT (identity + ecology facts, code-derived stats) =====
+
 
 def generate_monster_blueprint(location_context: str = WILDS_LOCATION_CONTEXT) -> Monster:
     """Stages A1+A2: lineage, role, and way of life. Saves the monster
@@ -47,32 +54,40 @@ def generate_monster_blueprint(location_context: str = WILDS_LOCATION_CONTEXT) -
 
     rarity = cmdts_data.roll_rarity()
 
-    identity_raw = build_and_generate('monster_blueprint_identity', 'monster_generation', {
-        'location_context': location_context,
-        'rarity': rarity,
-        'taxonomy_options': cmdts_data.taxonomy_options_text(),
-        'role_options': cmdts_data.options_line(cmdts_data.PARTY_ROLES),
-        'size_options': cmdts_data.options_line(cmdts_data.SIZE_CLASSES),
-        'lifecycle_options': cmdts_data.options_line(cmdts_data.LIFECYCLE_STAGES),
-        'creation_options': cmdts_data.options_line(cmdts_data.CREATION_MECHANISMS)
-    })
+    identity_raw = build_and_generate(
+        'monster_blueprint_identity',
+        'monster_generation',
+        {
+            'location_context': location_context,
+            'rarity': rarity,
+            'taxonomy_options': cmdts_data.taxonomy_options_text(),
+            'role_options': cmdts_data.options_line(cmdts_data.PARTY_ROLES),
+            'size_options': cmdts_data.options_line(cmdts_data.SIZE_CLASSES),
+            'lifecycle_options': cmdts_data.options_line(cmdts_data.LIFECYCLE_STAGES),
+            'creation_options': cmdts_data.options_line(cmdts_data.CREATION_MECHANISMS),
+        },
+    )
     identity = _normalize_identity(identity_raw)
 
-    ecology_raw = build_and_generate('monster_blueprint_ecology', 'monster_generation', {
-        'location_context': location_context,
-        'identity_facts': _identity_facts_text(identity, rarity),
-        'habitat_options': cmdts_data.options_line(cmdts_data.HABITAT_DOMAINS),
-        'biome_options': cmdts_data.options_line(cmdts_data.BIOMES),
-        'social_options': cmdts_data.options_line(cmdts_data.SOCIAL_STRUCTURES),
-        'sustenance_options': cmdts_data.options_line(cmdts_data.SUSTENANCE_SOURCES),
-        'feeding_options': cmdts_data.options_line(cmdts_data.FEEDING_STYLES),
-        'sapience_options': cmdts_data.options_line(cmdts_data.SAPIENCE_LEVELS),
-        'communication_options': cmdts_data.options_line(cmdts_data.COMMUNICATION_MODES),
-        'element_options': cmdts_data.options_line(cmdts_data.ELEMENTS),
-        'activity_options': cmdts_data.options_line(cmdts_data.ACTIVITY_CYCLES),
-        'class_domain_options_line': cmdts_data.options_line(list(cmdts_data.CLASS_DOMAINS)),
-        'class_domain_options': cmdts_data.class_domain_options_text()
-    })
+    ecology_raw = build_and_generate(
+        'monster_blueprint_ecology',
+        'monster_generation',
+        {
+            'location_context': location_context,
+            'identity_facts': _identity_facts_text(identity, rarity),
+            'habitat_options': cmdts_data.options_line(cmdts_data.HABITAT_DOMAINS),
+            'biome_options': cmdts_data.options_line(cmdts_data.BIOMES),
+            'social_options': cmdts_data.options_line(cmdts_data.SOCIAL_STRUCTURES),
+            'sustenance_options': cmdts_data.options_line(cmdts_data.SUSTENANCE_SOURCES),
+            'feeding_options': cmdts_data.options_line(cmdts_data.FEEDING_STYLES),
+            'sapience_options': cmdts_data.options_line(cmdts_data.SAPIENCE_LEVELS),
+            'communication_options': cmdts_data.options_line(cmdts_data.COMMUNICATION_MODES),
+            'element_options': cmdts_data.options_line(cmdts_data.ELEMENTS),
+            'activity_options': cmdts_data.options_line(cmdts_data.ACTIVITY_CYCLES),
+            'class_domain_options_line': cmdts_data.options_line(list(cmdts_data.CLASS_DOMAINS)),
+            'class_domain_options': cmdts_data.class_domain_options_text(),
+        },
+    )
     ecology, class_taxonomy = _normalize_ecology(ecology_raw, identity)
 
     stats = cmdts_data.derive_stats(identity['party_role'], rarity, identity['size_class'])
@@ -97,7 +112,7 @@ def generate_monster_blueprint(location_context: str = WILDS_LOCATION_CONTEXT) -
         ecology=ecology,
         persona=None,
         appearance=None,
-        card_art_path=None
+        card_art_path=None,
     )
     monster.save()
 
@@ -107,7 +122,9 @@ def generate_monster_blueprint(location_context: str = WILDS_LOCATION_CONTEXT) -
 
     return monster
 
+
 # ===== STAGE 2: PERSONA (inner life + social self) =====
+
 
 def generate_monster_persona(monster: Monster) -> Monster:
     """Stages B+C: wish/fears/secret, then traits/tastes/voice.
@@ -115,14 +132,13 @@ def generate_monster_persona(monster: Monster) -> Monster:
 
     facts = _monster_facts_text(monster)
 
-    inner = build_and_generate('monster_inner_life', 'monster_generation', {
-        'monster_facts': facts
-    })
+    inner = build_and_generate('monster_inner_life', 'monster_generation', {'monster_facts': facts})
 
-    social = build_and_generate('monster_social_self', 'monster_generation', {
-        'monster_facts': facts,
-        'inner_life_facts': _inner_life_facts_text(inner)
-    })
+    social = build_and_generate(
+        'monster_social_self',
+        'monster_generation',
+        {'monster_facts': facts, 'inner_life_facts': _inner_life_facts_text(inner)},
+    )
 
     monster.persona = _assemble_persona(inner, social)
     monster.personality_traits = _clean_list(social.get('personality_traits'), ['mysterious'])[:5]
@@ -132,24 +148,32 @@ def generate_monster_persona(monster: Monster) -> Monster:
     emit_monster_updated(monster.to_dict())
     return monster
 
+
 # ===== STAGE 3: STORY (description, backstory, structured appearance) =====
 
-def generate_monster_story(monster: Monster, location_context: str = WILDS_LOCATION_CONTEXT) -> Monster:
+
+def generate_monster_story(
+    monster: Monster, location_context: str = WILDS_LOCATION_CONTEXT
+) -> Monster:
     """Stage D: the finished prose, conditioned on every fact so far.
     Advances generation_stage to 'complete'."""
 
-    creative = build_and_generate('monster_creative_text', 'monster_generation', {
-        'location_context': location_context,
-        'monster_facts': _monster_facts_text(monster),
-        'persona_facts': _persona_facts_text(monster.persona or {})
-    })
+    creative = build_and_generate(
+        'monster_creative_text',
+        'monster_generation',
+        {
+            'location_context': location_context,
+            'monster_facts': _monster_facts_text(monster),
+            'persona_facts': _persona_facts_text(monster.persona or {}),
+        },
+    )
 
     monster.description = _clean_str(creative.get('description'), monster.description)
     monster.backstory = _clean_str(creative.get('backstory'), '') or None
     monster.appearance = {
         'visual_description': _clean_str(creative.get('visual_description'), monster.description),
         'primary_colors': _clean_list(creative.get('primary_colors'), []),
-        'distinguishing_features': _clean_list(creative.get('distinguishing_features'), [])
+        'distinguishing_features': _clean_list(creative.get('distinguishing_features'), []),
     }
     monster.generation_stage = 'complete'
     monster.save()
@@ -157,7 +181,9 @@ def generate_monster_story(monster: Monster, location_context: str = WILDS_LOCAT
     emit_monster_updated(monster.to_dict())
     return monster
 
+
 # ===== ABILITIES AND CARD ART (signatures unchanged) =====
+
 
 def generate_card_art(monster: Monster):
     """Generate and connect card art"""
@@ -165,9 +191,7 @@ def generate_card_art(monster: Monster):
     prompt_text = _build_card_art_prompt(monster)
 
     image_result = gateway.image_generation_request(
-        prompt_text=prompt_text,
-        prompt_type="monster_card_art",
-        prompt_name="monster_generation"
+        prompt_text=prompt_text, prompt_type="monster_card_art", prompt_name="monster_generation"
     )
 
     image_path = image_result.get('image_path')
@@ -178,6 +202,7 @@ def generate_card_art(monster: Monster):
     emit_monster_art_ready(monster.id, image_path)
 
     return image_path
+
 
 def generate_ability(monster: Monster, growth_context: str = ''):
 
@@ -192,18 +217,26 @@ def generate_ability(monster: Monster, growth_context: str = ''):
 
     return ability
 
+
 def generate_ability_by_id(monster_id):
     monster = Monster.query.get(monster_id)
     return generate_ability(monster)
+
 
 def _build_ability_variables(monster: Monster, growth_context: str = ''):
 
     # Format existing abilities
     existing_abilities = monster.abilities
-    abilities_text = "\n".join([
-        f"- {ability.name} ({ability.ability_type}): {ability.description}"
-        for ability in existing_abilities
-    ]) if existing_abilities else "None (this will be their first ability)"
+    abilities_text = (
+        "\n".join(
+            [
+                f"- {ability.name} ({ability.ability_type}): {ability.description}"
+                for ability in existing_abilities
+            ]
+        )
+        if existing_abilities
+        else "None (this will be their first ability)"
+    )
 
     persona = monster.persona or {}
     ecology = monster.ecology or {}
@@ -212,7 +245,8 @@ def _build_ability_variables(monster: Monster, growth_context: str = ''):
     # generation leaves this block empty
     growth_block = (
         f"\n--- Why this ability is being learned NOW ---\n{growth_context}\n"
-        if growth_context else ''
+        if growth_context
+        else ''
     )
 
     return {
@@ -231,8 +265,9 @@ def _build_ability_variables(monster: Monster, growth_context: str = ''):
         'monster_elements': ', '.join(ecology.get('elemental_affinities') or []) or 'none',
         'monster_wish': persona.get('core_wish', 'unknown'),
         'existing_abilities_text': abilities_text,
-        'ability_count': len(monster.abilities)
+        'ability_count': len(monster.abilities),
     }
+
 
 def _build_card_art_prompt(monster: Monster):
     """Image prompt from the structured appearance block (falls back to
@@ -246,7 +281,7 @@ def _build_card_art_prompt(monster: Monster):
         monster.name,
         taxonomy.get('race_label') or monster.species,
         ecology.get('size_class') or '',
-        appearance.get('visual_description') or monster.description
+        appearance.get('visual_description') or monster.description,
     ]
 
     colors = appearance.get('primary_colors') or []
@@ -259,13 +294,16 @@ def _build_card_art_prompt(monster: Monster):
 
     return ", ".join(part for part in prompt_parts if part)
 
+
 # ===== NORMALIZATION (snap LLM output onto curated data) =====
+
 
 def _clean_str(value, default, max_length=None):
     if isinstance(value, str) and value.strip():
         cleaned = value.strip()
         return cleaned[:max_length] if max_length else cleaned
     return default
+
 
 def _clean_list(value, default):
     if isinstance(value, str) and value.strip():
@@ -276,6 +314,7 @@ def _clean_list(value, default):
             return cleaned
     return default
 
+
 def _normalize_identity(data: dict) -> dict:
     domain, kingdom = cmdts_data.normalize_taxonomy_pick(data.get('domain'), data.get('kingdom'))
     species = _clean_str(data.get('species'), f"{kingdom} of {domain}", 100)
@@ -285,13 +324,17 @@ def _normalize_identity(data: dict) -> dict:
         'species': species,
         'kingdom': kingdom,
         'party_role': cmdts_data.normalize_choice(
-            data.get('party_role'), cmdts_data.PARTY_ROLES, random.choice(cmdts_data.PARTY_ROLES)),
+            data.get('party_role'), cmdts_data.PARTY_ROLES, random.choice(cmdts_data.PARTY_ROLES)
+        ),
         'size_class': cmdts_data.normalize_choice(
-            data.get('size_class'), cmdts_data.SIZE_CLASSES, 'medium'),
+            data.get('size_class'), cmdts_data.SIZE_CLASSES, 'medium'
+        ),
         'lifecycle_stage': cmdts_data.normalize_choice(
-            data.get('lifecycle_stage'), cmdts_data.LIFECYCLE_STAGES, 'adult'),
+            data.get('lifecycle_stage'), cmdts_data.LIFECYCLE_STAGES, 'adult'
+        ),
         'creation_mechanism': cmdts_data.normalize_choice(
-            data.get('creation_mechanism'), cmdts_data.CREATION_MECHANISMS, 'born'),
+            data.get('creation_mechanism'), cmdts_data.CREATION_MECHANISMS, 'born'
+        ),
         'taxonomy': {
             'domain': domain,
             'kingdom': kingdom,
@@ -299,17 +342,20 @@ def _normalize_identity(data: dict) -> dict:
             'genus': _clean_str(data.get('genus'), 'Unnamed Breed', 100),
             'species': species,
             'type_label': kingdom,  # display label derived, never LLM-invented
-            'race_label': _clean_str(data.get('race_label'), kingdom, 50)
-        }
+            'race_label': _clean_str(data.get('race_label'), kingdom, 50),
+        },
     }
+
 
 def _normalize_ecology(data: dict, identity: dict) -> tuple:
     """Returns (ecology_json, class_taxonomy_json)"""
 
     sustenance = cmdts_data.normalize_multi(
-        data.get('sustenance'), cmdts_data.SUSTENANCE_SOURCES, ['matter'])
+        data.get('sustenance'), cmdts_data.SUSTENANCE_SOURCES, ['matter']
+    )
     sapience = cmdts_data.normalize_choice(
-        data.get('sapience'), cmdts_data.SAPIENCE_LEVELS, 'sapient')
+        data.get('sapience'), cmdts_data.SAPIENCE_LEVELS, 'sapient'
+    )
     default_communication = ['speech'] if sapience in ('sapient', 'erudite') else ['none']
 
     ecology = {
@@ -318,45 +364,56 @@ def _normalize_ecology(data: dict, identity: dict) -> tuple:
         'creation_mechanism': identity['creation_mechanism'],
         'habitat': {
             'primary': cmdts_data.normalize_choice(
-                data.get('habitat_primary'), cmdts_data.HABITAT_DOMAINS, 'land'),
+                data.get('habitat_primary'), cmdts_data.HABITAT_DOMAINS, 'land'
+            ),
             'secondary': cmdts_data.normalize_multi(
-                data.get('habitat_secondary'), cmdts_data.HABITAT_DOMAINS, []),
-            'biomes': cmdts_data.normalize_multi(
-                data.get('biomes'), cmdts_data.BIOMES, [])
+                data.get('habitat_secondary'), cmdts_data.HABITAT_DOMAINS, []
+            ),
+            'biomes': cmdts_data.normalize_multi(data.get('biomes'), cmdts_data.BIOMES, []),
         },
         'social_structure': {
             'primary': cmdts_data.normalize_choice(
-                data.get('social_structure'), cmdts_data.SOCIAL_STRUCTURES, 'solitary'),
-            'notes': _clean_str(data.get('social_notes'), '')
+                data.get('social_structure'), cmdts_data.SOCIAL_STRUCTURES, 'solitary'
+            ),
+            'notes': _clean_str(data.get('social_notes'), ''),
         },
         'diet': {
             'feeds': sustenance != ['none'],
             'sustenance': sustenance,
             'feeding_style': cmdts_data.normalize_choice(
-                data.get('feeding_style'), cmdts_data.FEEDING_STYLES,
-                'omnivore' if 'matter' in sustenance else 'none'),
-            'notes': _clean_str(data.get('diet_notes'), '')
+                data.get('feeding_style'),
+                cmdts_data.FEEDING_STYLES,
+                'omnivore' if 'matter' in sustenance else 'none',
+            ),
+            'notes': _clean_str(data.get('diet_notes'), ''),
         },
         'sapience': sapience,
         'communication': cmdts_data.normalize_multi(
-            data.get('communication'), cmdts_data.COMMUNICATION_MODES, default_communication),
+            data.get('communication'), cmdts_data.COMMUNICATION_MODES, default_communication
+        ),
         'elemental_affinities': cmdts_data.normalize_multi(
-            data.get('elements'), cmdts_data.ELEMENTS, []),
+            data.get('elements'), cmdts_data.ELEMENTS, []
+        ),
         'activity_cycle': cmdts_data.normalize_choice(
-            data.get('activity_cycle'), cmdts_data.ACTIVITY_CYCLES, 'diurnal')
+            data.get('activity_cycle'), cmdts_data.ACTIVITY_CYCLES, 'diurnal'
+        ),
     }
 
     class_domain = cmdts_data.normalize_choice(
-        data.get('class_domain'), list(cmdts_data.CLASS_DOMAINS), None)
+        data.get('class_domain'), list(cmdts_data.CLASS_DOMAINS), None
+    )
     class_taxonomy = []
     if class_domain:
-        class_taxonomy.append({
-            'domain': class_domain,
-            'discipline': _clean_str(data.get('class_discipline'), ''),
-            'specialization': _clean_str(data.get('class_specialization'), '')
-        })
+        class_taxonomy.append(
+            {
+                'domain': class_domain,
+                'discipline': _clean_str(data.get('class_discipline'), ''),
+                'specialization': _clean_str(data.get('class_specialization'), ''),
+            }
+        )
 
     return ecology, class_taxonomy
+
 
 def _assemble_persona(inner: dict, social: dict) -> dict:
     return {
@@ -377,13 +434,15 @@ def _assemble_persona(inner: dict, social: dict) -> dict:
         'recruitment_lever': _clean_str(social.get('recruitment_lever'), ''),
         'social_bonds': {
             'drawn_to': _clean_str(social.get('drawn_to'), ''),
-            'clashes_with': _clean_str(social.get('clashes_with'), '')
+            'clashes_with': _clean_str(social.get('clashes_with'), ''),
         },
         'speech_style': _clean_str(social.get('speech_style'), ''),
-        'battle_line': _clean_str(social.get('battle_line'), '')
+        'battle_line': _clean_str(social.get('battle_line'), ''),
     }
 
+
 # ===== FACTS TEXT (compact context blocks passed between stages) =====
+
 
 def _identity_facts_text(identity: dict, rarity: str) -> str:
     taxonomy = identity['taxonomy']
@@ -394,6 +453,7 @@ def _identity_facts_text(identity: dict, rarity: str) -> str:
         f"Rarity: {rarity} | Party role: {identity['party_role']} | Size: {identity['size_class']} | "
         f"Lifecycle: {identity['lifecycle_stage']} | Came to be: {identity['creation_mechanism']}"
     )
+
 
 def _monster_facts_text(monster: Monster) -> str:
     """Every established fact about a blueprinted monster, as prompt context
@@ -413,15 +473,18 @@ def _monster_facts_text(monster: Monster) -> str:
         f"Rarity: {monster.rarity} | Party role: {monster.party_role} | Size: {ecology.get('size_class')} | "
         f"Lifecycle: {ecology.get('lifecycle_stage')} | Came to be: {ecology.get('creation_mechanism')}",
         f"Habitat: {habitat.get('primary')} (biomes: {biomes})",
-        f"Social life: {social.get('primary')}" + (f" - {social.get('notes')}" if social.get('notes') else ""),
-        f"Diet: {diet.get('feeding_style')}" + (f" ({diet.get('notes')})" if diet.get('notes') else "") +
-        f", sustained by {', '.join(diet.get('sustenance') or [])}",
+        f"Social life: {social.get('primary')}"
+        + (f" - {social.get('notes')}" if social.get('notes') else ""),
+        f"Diet: {diet.get('feeding_style')}"
+        + (f" ({diet.get('notes')})" if diet.get('notes') else "")
+        + f", sustained by {', '.join(diet.get('sustenance') or [])}",
         f"Mind: {ecology.get('sapience')} | Communicates by: {', '.join(ecology.get('communication') or [])}",
         f"Elemental affinities: {', '.join(ecology.get('elemental_affinities') or []) or 'none'}",
         f"Trained class: {_class_text(monster.class_taxonomy)}",
-        f"Active: {ecology.get('activity_cycle')}"
+        f"Active: {ecology.get('activity_cycle')}",
     ]
     return "\n".join(lines)
+
 
 def _inner_life_facts_text(inner: dict) -> str:
     goals = ", ".join(_clean_list(inner.get('goals'), [])) or 'none stated'
@@ -435,6 +498,7 @@ def _inner_life_facts_text(inner: dict) -> str:
         f"Fears: {fears}\n"
         f"Secret (shapes the outward mask, never shown openly): {inner.get('secret')}"
     )
+
 
 def _persona_facts_text(persona: dict) -> str:
     """Persona context for the story stage. The SECRET is deliberately
@@ -455,12 +519,16 @@ def _persona_facts_text(persona: dict) -> str:
         f"Speech style: {persona.get('speech_style')}"
     )
 
+
 def _class_text(class_taxonomy) -> str:
     if not class_taxonomy:
         return 'untrained'
     parts = []
     for entry in class_taxonomy:
-        chain = " > ".join(p for p in (
-            entry.get('domain'), entry.get('discipline'), entry.get('specialization')) if p)
+        chain = " > ".join(
+            p
+            for p in (entry.get('domain'), entry.get('discipline'), entry.get('specialization'))
+            if p
+        )
         parts.append(chain)
     return "; ".join(parts)

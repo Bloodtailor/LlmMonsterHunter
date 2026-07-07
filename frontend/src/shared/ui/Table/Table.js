@@ -8,19 +8,19 @@ import './table.css';
 /**
  * Responsive table component with automatic text truncation
  * Supports both simple data-driven API and manual markup
- * 
+ *
  * SIMPLE API (recommended):
- * <Table 
+ * <Table
  *   columns={[
  *     { key: 'id', header: 'ID', width: '15%' },
  *     { key: 'status', header: 'Status', render: (val) => <Badge>{val}</Badge> }
  *   ]}
  *   data={[{ id: 1002, status: 'completed' }]}
  * />
- * 
+ *
  * MANUAL API (for complex cases):
  * <Table><TableHead>...</TableHead></Table>
- * 
+ *
  * @param {object} props - Table props
  * @param {Array} props.columns - Column definitions (key, header, and width%)
  * @param {Array} props.data - Row data (for simple API)
@@ -39,10 +39,10 @@ function Table({
   columns = null,
   data = null,
   emptyMessage = 'No data available',
-  
+
   // Manual API props
   children = null,
-  
+
   // Styling props
   size = 'md',
   striped = false,
@@ -51,7 +51,6 @@ function Table({
   className = '',
   ...rest
 }) {
-  
   // Build CSS classes
   const tableClasses = [
     'table',
@@ -59,8 +58,10 @@ function Table({
     striped && 'table-striped',
     bordered && 'table-bordered',
     hover && 'table-hover',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Simple API: Generate table from columns/data
   if (columns && data !== null) {
@@ -71,7 +72,7 @@ function Table({
           <TableHead>
             <TableRow>
               {columns.map((col, index) => (
-                <TableHeaderCell 
+                <TableHeaderCell
                   key={col.key || index}
                   style={col.width ? { width: col.width } : undefined}
                 >
@@ -80,16 +81,12 @@ function Table({
               ))}
             </TableRow>
           </TableHead>
-          
+
           {/* Generate body */}
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell 
-                  colSpan={columns.length}
-                  className="table-empty"
-                  truncate={false}
-                >
+                <TableCell colSpan={columns.length} className="table-empty" truncate={false}>
                   {emptyMessage}
                 </TableCell>
               </TableRow>
@@ -99,9 +96,9 @@ function Table({
                   {columns.map((col, colIndex) => {
                     const value = row[col.key];
                     const displayValue = col.render ? col.render(value, row) : value;
-                    
+
                     return (
-                      <TableCell 
+                      <TableCell
                         key={col.key || colIndex}
                         truncate={col.truncate !== false}
                         className={col.cellClass || ''}
@@ -177,11 +174,9 @@ export function TableHeaderCell({ children, className = '', ...rest }) {
  * Table data cell with truncation and responsive behavior
  */
 export function TableCell({ children, className = '', truncate = true, ...rest }) {
-  const cellClasses = [
-    'table-cell',
-    truncate && 'table-cell-truncate',
-    className
-  ].filter(Boolean).join(' ');
+  const cellClasses = ['table-cell', truncate && 'table-cell-truncate', className]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <td className={cellClasses} {...rest}>
@@ -196,7 +191,7 @@ export function TableCell({ children, className = '', truncate = true, ...rest }
 export const TABLE_SIZES = {
   SM: 'sm',
   MD: 'md',
-  LG: 'lg'
+  LG: 'lg',
 };
 
 export default Table;

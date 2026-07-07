@@ -1,19 +1,48 @@
 import React, { useState } from 'react';
 import {
-  Button, IconButton, ButtonGroup,
-  Badge, StatusBadge, CountBadge,
-  LoadingSpinner, LoadingContainer, LoadingSkeleton,
-  Alert, EmptyState,
-  Card, CardSection,
-  Input, Textarea, Select, SearchInput, FormField, Form,
-  Pagination, PaginationInfo, PageJumper, ItemsPerPageSelector,
-  BUTTON_VARIANTS, BUTTON_SIZES,
-  BADGE_VARIANTS, BADGE_SIZES, STATUS_TYPES, COUNT_FORMATS,
-  LOADING_SIZES, LOADING_COLORS, LOADING_TYPES,
-  ALERT_TYPES, ALERT_SIZES,
-  EMPTY_STATE_SIZES, EMPTY_STATE_VARIANTS, EMPTY_STATE_PRESETS,
-  CARD_VARIANTS, CARD_SIZES, CARD_PADDING, CARD_BACKGROUNDS,
-  CARD_SECTION_TYPES, CARD_SECTION_ALIGNMENT
+  Button,
+  IconButton,
+  ButtonGroup,
+  Badge,
+  StatusBadge,
+  CountBadge,
+  LoadingSpinner,
+  LoadingContainer,
+  LoadingSkeleton,
+  Alert,
+  EmptyState,
+  Card,
+  CardSection,
+  Input,
+  Textarea,
+  Select,
+  SearchInput,
+  FormField,
+  Form,
+  Pagination,
+  PaginationInfo,
+  PageJumper,
+  ItemsPerPageSelector,
+  BUTTON_VARIANTS,
+  BUTTON_SIZES,
+  BADGE_VARIANTS,
+  BADGE_SIZES,
+  STATUS_TYPES,
+  COUNT_FORMATS,
+  LOADING_SIZES,
+  LOADING_COLORS,
+  LOADING_TYPES,
+  ALERT_TYPES,
+  ALERT_SIZES,
+  EMPTY_STATE_SIZES,
+  EMPTY_STATE_VARIANTS,
+  EMPTY_STATE_PRESETS,
+  CARD_VARIANTS,
+  CARD_SIZES,
+  CARD_PADDING,
+  CARD_BACKGROUNDS,
+  CARD_SECTION_TYPES,
+  CARD_SECTION_ALIGNMENT,
 } from '../../shared/ui/index.js';
 
 // Mock pagination data for testing
@@ -28,13 +57,13 @@ const mockPagination = {
     startItem: 11,
     endItem: 20,
     total: 45,
-    pageRange: [1, 2, 3, '...', 5]
+    pageRange: [1, 2, 3, '...', 5],
   },
   goToPage: (page) => console.log('Go to page:', page),
   nextPage: () => console.log('Next page'),
   prevPage: () => console.log('Previous page'),
   firstPage: () => console.log('First page'),
-  lastPage: () => console.log('Last page')
+  lastPage: () => console.log('Last page'),
 };
 
 function StyleTestScreen() {
@@ -42,13 +71,13 @@ function StyleTestScreen() {
     input: '',
     textarea: '',
     select: '',
-    search: ''
+    search: '',
   });
 
   const handleFormChange = (field) => (event) => {
-    setFormValues(prev => ({
+    setFormValues((prev) => ({
       ...prev,
-      [field]: event.target.value
+      [field]: event.target.value,
     }));
   };
 
@@ -60,12 +89,14 @@ function StyleTestScreen() {
   );
 
   const ComponentGrid = ({ children, columns = 3 }) => (
-    <div style={{ 
-      display: 'grid', 
-      gridTemplateColumns: `repeat(auto-fit, minmax(250px, 1fr))`, 
-      gap: '1.5rem',
-      marginBottom: '3rem'
-    }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(auto-fit, minmax(250px, 1fr))`,
+        gap: '1.5rem',
+        marginBottom: '3rem',
+      }}
+    >
       {children}
     </div>
   );
@@ -74,7 +105,14 @@ function StyleTestScreen() {
     <Card variant="elevated" padding="md" style={{ height: 'fit-content' }}>
       <CardSection type="header" title={title} />
       <CardSection type="content">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            alignItems: 'flex-start',
+          }}
+        >
           {children}
         </div>
       </CardSection>
@@ -82,14 +120,15 @@ function StyleTestScreen() {
   );
 
   return (
-    <div style={{ 
-      padding: '2rem',
-      backgroundColor: '#1a1a2e',
-      minHeight: '100vh',
-      fontFamily: 'Segoe UI, sans-serif'
-    }}>
+    <div
+      style={{
+        padding: '2rem',
+        backgroundColor: '#1a1a2e',
+        minHeight: '100vh',
+        fontFamily: 'Segoe UI, sans-serif',
+      }}
+    >
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <h1 style={{ color: '#f39c12', fontSize: '2.5rem', marginBottom: '1rem' }}>
@@ -101,14 +140,14 @@ function StyleTestScreen() {
         </div>
 
         {/* BUTTONS SECTION */}
-        <SectionHeader 
-          title="🔘 Buttons" 
+        <SectionHeader
+          title="🔘 Buttons"
           description="Primary interactive elements - Button, IconButton, ButtonGroup"
         />
-        
+
         <ComponentGrid>
           <ComponentDemo title="Button Variants">
-            {Object.values(BUTTON_VARIANTS).map(variant => (
+            {Object.values(BUTTON_VARIANTS).map((variant) => (
               <Button key={variant} variant={variant}>
                 {variant.charAt(0).toUpperCase() + variant.slice(1)}
               </Button>
@@ -116,7 +155,7 @@ function StyleTestScreen() {
           </ComponentDemo>
 
           <ComponentDemo title="Button Sizes">
-            {Object.values(BUTTON_SIZES).map(size => (
+            {Object.values(BUTTON_SIZES).map((size) => (
               <Button key={size} variant="primary" size={size}>
                 Size {size.toUpperCase()}
               </Button>
@@ -125,10 +164,18 @@ function StyleTestScreen() {
 
           <ComponentDemo title="Button States">
             <Button variant="primary">Normal</Button>
-            <Button variant="primary" loading>Loading</Button>
-            <Button variant="primary" disabled>Disabled</Button>
-            <Button variant="primary" icon="🚀">With Icon</Button>
-            <Button variant="primary" icon="⭐" iconPosition="right">Icon Right</Button>
+            <Button variant="primary" loading>
+              Loading
+            </Button>
+            <Button variant="primary" disabled>
+              Disabled
+            </Button>
+            <Button variant="primary" icon="🚀">
+              With Icon
+            </Button>
+            <Button variant="primary" icon="⭐" iconPosition="right">
+              Icon Right
+            </Button>
           </ComponentDemo>
 
           <ComponentDemo title="Icon Buttons">
@@ -148,22 +195,28 @@ function StyleTestScreen() {
               <Button variant="secondary">Third</Button>
             </ButtonGroup>
             <ButtonGroup orientation="vertical" spacing="tight">
-              <Button variant="primary" size="sm">Top</Button>
-              <Button variant="primary" size="sm">Middle</Button>
-              <Button variant="primary" size="sm">Bottom</Button>
+              <Button variant="primary" size="sm">
+                Top
+              </Button>
+              <Button variant="primary" size="sm">
+                Middle
+              </Button>
+              <Button variant="primary" size="sm">
+                Bottom
+              </Button>
             </ButtonGroup>
           </ComponentDemo>
         </ComponentGrid>
 
         {/* BADGES SECTION */}
-        <SectionHeader 
-          title="🏷️ Badges" 
+        <SectionHeader
+          title="🏷️ Badges"
           description="Small informational labels - Badge, StatusBadge, CountBadge"
         />
-        
+
         <ComponentGrid>
           <ComponentDemo title="Badge Variants">
-            {Object.values(BADGE_VARIANTS).map(variant => (
+            {Object.values(BADGE_VARIANTS).map((variant) => (
               <Badge key={variant} variant={variant}>
                 {variant}
               </Badge>
@@ -171,7 +224,7 @@ function StyleTestScreen() {
           </ComponentDemo>
 
           <ComponentDemo title="Badge Sizes">
-            {Object.values(BADGE_SIZES).map(size => (
+            {Object.values(BADGE_SIZES).map((size) => (
               <Badge key={size} variant="primary" size={size}>
                 {size.toUpperCase()}
               </Badge>
@@ -179,7 +232,7 @@ function StyleTestScreen() {
           </ComponentDemo>
 
           <ComponentDemo title="Status Badges">
-            {Object.values(STATUS_TYPES).map(status => (
+            {Object.values(STATUS_TYPES).map((status) => (
               <StatusBadge key={status} status={status} />
             ))}
           </ComponentDemo>
@@ -193,22 +246,30 @@ function StyleTestScreen() {
           </ComponentDemo>
 
           <ComponentDemo title="Badge Modifiers">
-            <Badge variant="primary" pill>Pill Shape</Badge>
-            <Badge variant="secondary" outlined>Outlined</Badge>
-            <Badge variant="success" removable onRemove={() => {}}>Removable</Badge>
-            <Badge variant="info" onClick={() => {}}>Clickable</Badge>
+            <Badge variant="primary" pill>
+              Pill Shape
+            </Badge>
+            <Badge variant="secondary" outlined>
+              Outlined
+            </Badge>
+            <Badge variant="success" removable onRemove={() => {}}>
+              Removable
+            </Badge>
+            <Badge variant="info" onClick={() => {}}>
+              Clickable
+            </Badge>
           </ComponentDemo>
         </ComponentGrid>
 
         {/* LOADING SECTION */}
-        <SectionHeader 
-          title="⏳ Loading States" 
+        <SectionHeader
+          title="⏳ Loading States"
           description="Loading indicators - LoadingSpinner, LoadingContainer, LoadingSkeleton"
         />
-        
+
         <ComponentGrid>
           <ComponentDemo title="Loading Spinner Types">
-            {Object.values(LOADING_TYPES).map(type => (
+            {Object.values(LOADING_TYPES).map((type) => (
               <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <LoadingSpinner type={type} size="md" />
                 <span>{type}</span>
@@ -217,7 +278,7 @@ function StyleTestScreen() {
           </ComponentDemo>
 
           <ComponentDemo title="Loading Spinner Sizes">
-            {Object.values(LOADING_SIZES).map(size => (
+            {Object.values(LOADING_SIZES).map((size) => (
               <div key={size} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <LoadingSpinner size={size} />
                 <span>{size}</span>
@@ -238,17 +299,17 @@ function StyleTestScreen() {
         </ComponentGrid>
 
         {/* FEEDBACK SECTION */}
-        <SectionHeader 
-          title="💬 Feedback" 
+        <SectionHeader
+          title="💬 Feedback"
           description="User feedback components - Alert, EmptyState"
         />
-        
+
         <ComponentGrid columns={2}>
           <ComponentDemo title="Alert Types">
-            {Object.values(ALERT_TYPES).map(type => (
-              <Alert 
-                key={type} 
-                type={type} 
+            {Object.values(ALERT_TYPES).map((type) => (
+              <Alert
+                key={type}
+                type={type}
                 title={`${type.charAt(0).toUpperCase() + type.slice(1)} Alert`}
               >
                 This is a {type} alert message.
@@ -257,41 +318,45 @@ function StyleTestScreen() {
           </ComponentDemo>
 
           <ComponentDemo title="Alert Variations">
-            <Alert type="info" size="sm" title="Small Alert">Small size alert</Alert>
-            <Alert type="warning" outlined title="Outlined Alert">Outlined style</Alert>
-            <Alert 
-              type="error" 
-              closeable 
+            <Alert type="info" size="sm" title="Small Alert">
+              Small size alert
+            </Alert>
+            <Alert type="warning" outlined title="Outlined Alert">
+              Outlined style
+            </Alert>
+            <Alert
+              type="error"
+              closeable
               onClose={() => {}}
-              action={<Button size="sm" variant="ghost">Retry</Button>}
+              action={
+                <Button size="sm" variant="ghost">
+                  Retry
+                </Button>
+              }
             >
               Alert with close button and action
             </Alert>
           </ComponentDemo>
 
           <ComponentDemo title="Empty States">
-            <EmptyState 
-              icon="📋" 
-              title="No Data" 
-              message="Nothing to display here"
-              size="sm"
-            />
-            <EmptyState 
+            <EmptyState icon="📋" title="No Data" message="Nothing to display here" size="sm" />
+            <EmptyState
               {...EMPTY_STATE_PRESETS.NO_SEARCH_RESULTS}
-              action={<Button variant="primary" size="sm">Clear Filters</Button>}
+              action={
+                <Button variant="primary" size="sm">
+                  Clear Filters
+                </Button>
+              }
             />
           </ComponentDemo>
         </ComponentGrid>
 
         {/* CARDS SECTION */}
-        <SectionHeader 
-          title="🃏 Cards" 
-          description="Content containers - Card, CardSection"
-        />
-        
+        <SectionHeader title="🃏 Cards" description="Content containers - Card, CardSection" />
+
         <ComponentGrid>
           <ComponentDemo title="Card Variants">
-            {Object.values(CARD_VARIANTS).map(variant => (
+            {Object.values(CARD_VARIANTS).map((variant) => (
               <Card key={variant} variant={variant} padding="md" style={{ minHeight: '100px' }}>
                 <p>{variant.charAt(0).toUpperCase() + variant.slice(1)} Card</p>
               </Card>
@@ -305,15 +370,17 @@ function StyleTestScreen() {
                 <p>This is the main content area of the card.</p>
               </CardSection>
               <CardSection type="footer" padding="md">
-                <Button variant="primary" size="sm">Action</Button>
+                <Button variant="primary" size="sm">
+                  Action
+                </Button>
               </CardSection>
             </Card>
           </ComponentDemo>
 
           <ComponentDemo title="Interactive Card">
-            <Card 
-              variant="outlined" 
-              interactive 
+            <Card
+              variant="outlined"
+              interactive
               onClick={() => alert('Card clicked!')}
               padding="md"
             >
@@ -323,23 +390,23 @@ function StyleTestScreen() {
         </ComponentGrid>
 
         {/* FORM SECTION */}
-        <SectionHeader 
-          title="📝 Form Components" 
+        <SectionHeader
+          title="📝 Form Components"
           description="Input elements - Input, Textarea, Select, SearchInput, FormField"
         />
-        
+
         <ComponentGrid>
           <ComponentDemo title="Basic Inputs">
             <FormField label="Text Input">
-              <Input 
+              <Input
                 value={formValues.input}
                 onChange={handleFormChange('input')}
                 placeholder="Enter text..."
               />
             </FormField>
-            
+
             <FormField label="Textarea">
-              <Textarea 
+              <Textarea
                 value={formValues.textarea}
                 onChange={handleFormChange('textarea')}
                 placeholder="Enter description..."
@@ -350,20 +417,20 @@ function StyleTestScreen() {
 
           <ComponentDemo title="Select & Search">
             <FormField label="Select Option">
-              <Select 
+              <Select
                 value={formValues.select}
                 onChange={handleFormChange('select')}
                 options={[
                   { value: 'option1', label: '🔥 Fire', icon: '🔥' },
                   { value: 'option2', label: '💧 Water', icon: '💧' },
-                  { value: 'option3', label: '🌍 Earth', icon: '🌍' }
+                  { value: 'option3', label: '🌍 Earth', icon: '🌍' },
                 ]}
                 placeholder="Choose element..."
               />
             </FormField>
-            
+
             <FormField label="Search">
-              <SearchInput 
+              <SearchInput
                 value={formValues.search}
                 onChange={handleFormChange('search')}
                 placeholder="Search monsters..."
@@ -379,11 +446,11 @@ function StyleTestScreen() {
         </ComponentGrid>
 
         {/* PAGINATION SECTION */}
-        <SectionHeader 
-          title="📄 Pagination" 
+        <SectionHeader
+          title="📄 Pagination"
           description="Navigation components - Pagination controls and info"
         />
-        
+
         <ComponentGrid columns={1}>
           <ComponentDemo title="Pagination Controls">
             <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
@@ -392,14 +459,22 @@ function StyleTestScreen() {
           </ComponentDemo>
 
           <ComponentDemo title="Pagination Info & Jumper">
-            <div style={{ display: 'flex', justify: 'space-between', alignItems: 'center', width: '100%', gap: '2rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justify: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                gap: '2rem',
+              }}
+            >
               <PaginationInfo pagination={mockPagination} itemName="monsters" />
               <PageJumper pagination={mockPagination} />
             </div>
           </ComponentDemo>
 
           <ComponentDemo title="Items Per Page Selector">
-            <ItemsPerPageSelector 
+            <ItemsPerPageSelector
               value={10}
               onChange={(value) => console.log('Items per page:', value)}
               itemName="monsters"
@@ -408,11 +483,11 @@ function StyleTestScreen() {
         </ComponentGrid>
 
         {/* TESTING SECTION */}
-        <SectionHeader 
-          title="🧪 Interactive Tests" 
+        <SectionHeader
+          title="🧪 Interactive Tests"
           description="Test component interactions and state changes"
         />
-        
+
         <ComponentGrid>
           <ComponentDemo title="Form Layout">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -420,7 +495,7 @@ function StyleTestScreen() {
                 <Input placeholder="Enter monster name..." />
               </FormField>
               <FormField label="Element">
-                <Select 
+                <Select
                   options={['Fire', 'Water', 'Earth', 'Air']}
                   placeholder="Choose element..."
                 />
@@ -448,19 +523,20 @@ function StyleTestScreen() {
         </ComponentGrid>
 
         {/* Footer */}
-        <div style={{ 
-          textAlign: 'center', 
-          marginTop: '4rem', 
-          padding: '2rem',
-          borderTop: '1px solid #4a90e2',
-          color: '#b0b0b0'
-        }}>
+        <div
+          style={{
+            textAlign: 'center',
+            marginTop: '4rem',
+            padding: '2rem',
+            borderTop: '1px solid #4a90e2',
+            color: '#b0b0b0',
+          }}
+        >
           <p>🎉 All UI primitives and components displayed successfully!</p>
           <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
             This style guide shows every variation of our design system components.
           </p>
         </div>
-
       </div>
     </div>
   );

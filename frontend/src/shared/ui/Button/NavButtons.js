@@ -8,7 +8,7 @@ import { ButtonGroup, Button } from '../index.js';
 /**
  * Navigation button group component
  * @param {object} props - NavButtons props
- * @param {Array} props.buttons - Array of button objects with {screen, label} 
+ * @param {Array} props.buttons - Array of button objects with {screen, label}
  * @param {string} props.activeScreen - Currently active screen identifier
  * @param {Function} props.onScreenChange - Called when a button is clicked
  * @param {string} props.spacing - ButtonGroup spacing ('tight', 'normal', 'loose')
@@ -22,17 +22,12 @@ function NavButtons({
   activeScreen = null,
   onScreenChange = null,
   spacing = 'tight',
-  alignment = 'center', 
+  alignment = 'center',
   size = 'sm',
-  className = ''
+  className = '',
 }) {
-
   return (
-    <ButtonGroup 
-      spacing={spacing}
-      alignment={alignment}
-      className={`nav-buttons ${className}`}
-    >
+    <ButtonGroup spacing={spacing} alignment={alignment} className={`nav-buttons ${className}`}>
       {buttons.map((button) => (
         <Button
           key={button.screen}

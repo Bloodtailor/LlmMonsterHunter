@@ -23,7 +23,7 @@ function ReunionDisplay() {
     padding: '24px',
     whiteSpace: 'pre-wrap',
     fontFamily: 'var(--font-family-serif)',
-    fontStyle: 'italic'
+    fontStyle: 'italic',
   };
 
   return (
@@ -34,11 +34,7 @@ function ReunionDisplay() {
             🕯️ It remembers you
           </Badge>
         </div>
-        {reunionText && (
-          <div style={textStyles}>
-            {reunionText}
-          </div>
-        )}
+        {reunionText && <div style={textStyles}>{reunionText}</div>}
       </CardSection>
     </Card>
   );

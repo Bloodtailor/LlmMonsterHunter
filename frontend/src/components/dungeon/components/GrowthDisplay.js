@@ -40,16 +40,32 @@ function GrowthDisplay() {
     fontFamily: 'var(--font-family-serif)',
     fontStyle: 'italic',
     whiteSpace: 'pre-wrap',
-    margin: 0
+    margin: 0,
   };
 
   return (
     <Card size="xl" background="dark">
-      <CardSection type="header" size="md" title="🌱 By the fire, something settles" alignment="center" />
+      <CardSection
+        type="header"
+        size="md"
+        title="🌱 By the fire, something settles"
+        alignment="center"
+      />
       <CardSection type="content">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '720px', margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            maxWidth: '720px',
+            margin: '0 auto',
+          }}
+        >
           {growthResults.map((growth) => (
-            <div key={growth.monster_id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div
+              key={growth.monster_id}
+              style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+            >
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <strong>{growth.monster_name}</strong>
                 {growthBadges(growth).map((badge, index) => (

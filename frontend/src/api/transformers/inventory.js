@@ -19,7 +19,7 @@ export function transformItem(rawItem) {
     emoji: rawItem.emoji || '🎁',
     usesRemaining: rawItem.uses_remaining ?? 1,
     sourceNote: rawItem.source_note || null,
-    createdAt: rawItem.created_at ? new Date(rawItem.created_at) : null
+    createdAt: rawItem.created_at ? new Date(rawItem.created_at) : null,
   };
 }
 
@@ -42,7 +42,7 @@ export function transformCoCaTok(rawCoCaTok) {
     commemoration: rawCoCaTok.commemoration,
     eventType: rawCoCaTok.event_type || 'battle_victory',
     locationName: rawCoCaTok.location_name || null,
-    earnedAt: rawCoCaTok.created_at ? new Date(rawCoCaTok.created_at) : null
+    earnedAt: rawCoCaTok.created_at ? new Date(rawCoCaTok.created_at) : null,
   };
 }
 

@@ -8,18 +8,18 @@ import { EventContext } from './EventContext.js';
 /**
  * Hook to access global streaming state from any component
  * Must be used within a StreamingProvider
- * 
+ *
  * @returns {object} Streaming state and controls
  */
 export function useEventContext() {
   const context = useContext(EventContext);
-  
+
   if (context === null) {
     throw new Error(
       'useEventContext must be used within a EventProvider. ' +
-      'Make sure your component is wrapped with <EventProvider>.'
+        'Make sure your component is wrapped with <EventProvider>.',
     );
   }
-  
+
   return context;
 }

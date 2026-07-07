@@ -9,7 +9,7 @@ import {
   useCurrentActivity,
   useQueueStatus,
   useLlmStatus,
-  useImageStatus
+  useImageStatus,
 } from '../../api/stores/useAiStore.js';
 
 /**
@@ -17,7 +17,6 @@ import {
  * Returns everything a component needs for AI generation UI
  */
 export function useAiStatus() {
-
   // Connection state still comes from context (it's connection-only now)
   const { isConnected } = useEventContext();
 
@@ -29,15 +28,16 @@ export function useAiStatus() {
   const imageStatus = useImageStatus();
 
   // Show "Disconnected" instead of "Idle" when the SSE connection is down
-  const currentActivity = (!isConnected && !storeActivity.type)
-    ? { ...storeActivity, label: 'Disconnected' }
-    : storeActivity;
+  const currentActivity =
+    !isConnected && !storeActivity.type
+      ? { ...storeActivity, label: 'Disconnected' }
+      : storeActivity;
 
   return {
     activeGeneration,
     currentActivity,
     queueStatus,
     llmStatus,
-    imageStatus
+    imageStatus,
   };
 }

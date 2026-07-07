@@ -1,5 +1,5 @@
 // Game Tester API Service - Following established patterns
-// Co-located: HTTP calls + defaults in one place  
+// Co-located: HTTP calls + defaults in one place
 // 1:1 with backend routes, functions carry their own defaults for perfect pairing with useAsyncState
 
 import { get } from '../core/client.js';
@@ -12,19 +12,19 @@ import { get } from '../core/client.js';
  */
 export async function getTestFiles() {
   const response = await get('/api/game_tester/tests');
-  
+
   // Backend returns array directly, so we normalize it to an object
   const testFiles = Array.isArray(response) ? response : getTestFiles.defaults.testFiles;
-  
+
   return {
     testFiles: testFiles ?? getTestFiles.defaults.testFiles,
-    _raw: response // Raw response for debugging
+    _raw: response, // Raw response for debugging
   };
 }
 
 // Defaults attached to function - perfect pairing with useAsyncState!
 getTestFiles.defaults = {
-  testFiles: []
+  testFiles: [],
 };
 
 /**
@@ -36,9 +36,9 @@ export async function runTest(testName) {
   if (!testName || typeof testName !== 'string') {
     throw new Error('Test name is required and must be a string');
   }
-  
+
   const response = await get(`/api/game_tester/run/${testName}`);
-  
+
   return {
     success: response.success ?? runTest.defaults.success,
     testName: response.test_name ?? runTest.defaults.testName,
@@ -46,7 +46,7 @@ export async function runTest(testName) {
     message: response.message ?? runTest.defaults.message,
     error: response.error ?? runTest.defaults.error,
     traceback: response.traceback ?? runTest.defaults.traceback,
-    _raw: response // Raw response for debugging
+    _raw: response, // Raw response for debugging
   };
 }
 
@@ -56,5 +56,5 @@ runTest.defaults = {
   output: '',
   message: '',
   error: null,
-  traceback: null
+  traceback: null,
 };

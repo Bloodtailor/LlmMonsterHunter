@@ -35,7 +35,6 @@ function CountBadge({
   className = '',
   ...rest
 }) {
-
   // Determine badge variant based on count and thresholds
   const getBadgeVariant = () => {
     // If no max provided, use default styling
@@ -48,10 +47,10 @@ function CountBadge({
 
     // Handle warning threshold
     if (warningThreshold) {
-      const threshold = warningThreshold.endsWith('%') 
-        ? parseFloat(warningThreshold) 
+      const threshold = warningThreshold.endsWith('%')
+        ? parseFloat(warningThreshold)
         : (warningThreshold / max) * 100;
-      
+
       if (percentage >= threshold) {
         return 'warning';
       }
@@ -76,14 +75,14 @@ function CountBadge({
     switch (format) {
       case 'fraction':
         return max !== null ? `${count}/${max}` : count;
-      
+
       case 'percentage':
         if (max !== null) {
           const percentage = Math.round((count / max) * 100);
           return `${percentage}%`;
         }
         return `${count}%`;
-      
+
       case 'simple':
       default:
         return count;
@@ -100,7 +99,7 @@ function CountBadge({
       parts.push(
         <span key="icon" className="count-badge-icon" aria-hidden="true">
           {icon}
-        </span>
+        </span>,
       );
     }
 
@@ -109,7 +108,7 @@ function CountBadge({
       parts.push(
         <span key="label" className="count-badge-label">
           {label}:
-        </span>
+        </span>,
       );
     }
 
@@ -117,7 +116,7 @@ function CountBadge({
     parts.push(
       <span key="count" className="count-badge-number">
         {formattedCount}
-      </span>
+      </span>,
     );
 
     return parts;
@@ -130,8 +129,10 @@ function CountBadge({
     max !== null && 'count-badge-with-max', // Has maximum styling
     count === 0 && 'count-badge-empty', // Empty state styling
     max !== null && count >= max && 'count-badge-full', // Full state styling
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <Badge
@@ -149,8 +150,8 @@ function CountBadge({
 // Format constants for easy imports
 export const COUNT_FORMATS = {
   SIMPLE: 'simple',
-  FRACTION: 'fraction', 
-  PERCENTAGE: 'percentage'
+  FRACTION: 'fraction',
+  PERCENTAGE: 'percentage',
 };
 
 export default CountBadge;

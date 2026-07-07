@@ -17,7 +17,7 @@ const DUNGEON_WORKFLOWS = [
   'setup_camp',
   'use_dungeon_ability',
   'use_dungeon_item',
-  'continue_exploring'
+  'continue_exploring',
 ];
 
 /**
@@ -25,10 +25,7 @@ const DUNGEON_WORKFLOWS = [
  * @param {object} stateHook - State hook from useDungeonState
  */
 export function useDungeonEvents(stateHook) {
-  const {
-    state,
-    setters
-  } = stateHook;
+  const { state, setters } = stateHook;
 
   const {
     setEntryText,
@@ -60,37 +57,37 @@ export function useDungeonEvents(stateHook) {
     setTreasureText,
     setTreasureItem,
     setExitText,
-    setErrorState
+    setErrorState,
   } = setters;
 
   // Stream the entry text announced by the enter_dungeon workflow
   useStreamedGeneration('entry_text_generation_id', {
-    onText: (partialText) => setEntryText(partialText)
+    onText: (partialText) => setEntryText(partialText),
   });
 
   // Stream the encounter vanity text announced by the choose_path workflow
   useStreamedGeneration('encounter_text_generation_id', {
-    onText: (partialText) => setEncounterText(partialText)
+    onText: (partialText) => setEncounterText(partialText),
   });
 
   // Stream the look-around text for explore arrivals
   useStreamedGeneration('look_text_generation_id', {
-    onText: (partialText) => setLookText(partialText)
+    onText: (partialText) => setLookText(partialText),
   });
 
   // Stream the camp scene - the party's monsters talking around the fire
   useStreamedGeneration('camp_text_generation_id', {
-    onText: (partialText) => setCampText(partialText)
+    onText: (partialText) => setCampText(partialText),
   });
 
   // Stream the treasure discovery narration for treasure arrivals
   useStreamedGeneration('treasure_text_generation_id', {
-    onText: (partialText) => setTreasureText(partialText)
+    onText: (partialText) => setTreasureText(partialText),
   });
 
   // Stream the reunion scene - the party recognizes a returning monster
   useStreamedGeneration('reunion_text_generation_id', {
-    onText: (partialText) => setReunionText(partialText)
+    onText: (partialText) => setReunionText(partialText),
   });
 
   // The choose_path workflow announces the arrival location mid-flight
@@ -109,7 +106,7 @@ export function useDungeonEvents(stateHook) {
 
   useEventSubscription('monsterCreated', ({ monster }) => {
     if (isEncounterUnfolding() && monster) {
-      setEncounterMonsters(prev => [...prev, monster]);
+      setEncounterMonsters((prev) => [...prev, monster]);
     }
   });
 
@@ -117,30 +114,38 @@ export function useDungeonEvents(stateHook) {
   // and blend-ins arrive complete - no monster.created fires for them)
   useEventSubscription('dungeonMonsterRevealed', ({ monster }) => {
     if (isEncounterUnfolding() && monster) {
-      setEncounterMonsters(prev =>
-        prev.some(existing => existing.id === monster.id)
-          ? prev.map(existing => existing.id === monster.id ? monster : existing)
-          : [...prev, monster]
+      setEncounterMonsters((prev) =>
+        prev.some((existing) => existing.id === monster.id)
+          ? prev.map((existing) => (existing.id === monster.id ? monster : existing))
+          : [...prev, monster],
       );
     }
   });
 
   useEventSubscription('monsterAbilityAdded', ({ monsterId, ability }) => {
     if (!monsterId || !ability) return;
-    setEncounterMonsters(prev => prev.map(monster =>
-      monster.id === monsterId
-        ? { ...monster, abilities: [...(monster.abilities || []), ability], abilityCount: (monster.abilityCount || 0) + 1 }
-        : monster
-    ));
+    setEncounterMonsters((prev) =>
+      prev.map((monster) =>
+        monster.id === monsterId
+          ? {
+              ...monster,
+              abilities: [...(monster.abilities || []), ability],
+              abilityCount: (monster.abilityCount || 0) + 1,
+            }
+          : monster,
+      ),
+    );
   });
 
   useEventSubscription('monsterArtReady', ({ monsterId, imagePath }) => {
     if (!monsterId || !imagePath) return;
-    setEncounterMonsters(prev => prev.map(monster =>
-      monster.id === monsterId
-        ? { ...monster, cardArt: { exists: true, relativePath: imagePath } }
-        : monster
-    ));
+    setEncounterMonsters((prev) =>
+      prev.map((monster) =>
+        monster.id === monsterId
+          ? { ...monster, cardArt: { exists: true, relativePath: imagePath } }
+          : monster,
+      ),
+    );
   });
 
   // A dungeon workflow failed - surface the error instead of hanging the UI
@@ -156,10 +161,8 @@ export function useDungeonEvents(stateHook) {
 
     // The party's optimistic dialogue line never reached the monster
     if (workflowType === 'respond_to_monster') {
-      setDialogue(prev =>
-        prev.length && prev[prev.length - 1].speaker === 'The party'
-          ? prev.slice(0, -1)
-          : prev
+      setDialogue((prev) =>
+        prev.length && prev[prev.length - 1].speaker === 'The party' ? prev.slice(0, -1) : prev,
       );
     }
 
@@ -205,7 +208,7 @@ export function useDungeonEvents(stateHook) {
           setGrowthResults(result.growth || []);
         } else if (result.event === 'monster_dialogue') {
           // The monster opens the conversation: greeting, then its question
-          setDialogue(prev => {
+          setDialogue((prev) => {
             const speaker = state.encounterMonsters?.[0]?.name || 'The monster';
             const opening = [];
             if (result.greeting) opening.push({ speaker, text: result.greeting });
@@ -228,7 +231,7 @@ export function useDungeonEvents(stateHook) {
         setIsMonsterResponding(false);
         const speaker = state.encounterMonsters?.[0]?.name || 'The monster';
         if (result.response) {
-          setDialogue(prev => [...prev, { speaker, text: result.response }]);
+          setDialogue((prev) => [...prev, { speaker, text: result.response }]);
         }
         // continue_dialogue keeps the conversation open; every other
         // outcome resolves the encounter (battle start is handled by
@@ -236,7 +239,7 @@ export function useDungeonEvents(stateHook) {
         if (result.outcome && result.outcome !== 'continue_dialogue') {
           setDialogueOutcome({
             outcome: result.outcome,
-            joinedNames: result.joined_names || []
+            joinedNames: result.joined_names || [],
           });
         }
         break;
@@ -246,7 +249,7 @@ export function useDungeonEvents(stateHook) {
         setIsSneaking(false);
         setSneakResult({
           success: !!result.success,
-          narration: result.narration || ''
+          narration: result.narration || '',
         });
         // On failure the battle starts - the BattleContext picks up the snapshot
         break;
@@ -266,7 +269,7 @@ export function useDungeonEvents(stateHook) {
         setIsUsingAbility(false);
         setAbilityResult({
           narration: result.narration || '',
-          effect: result.effect || 'none'
+          effect: result.effect || 'none',
         });
         break;
 
@@ -274,7 +277,7 @@ export function useDungeonEvents(stateHook) {
         setIsUsingItem(false);
         setItemResult({
           narration: result.narration || '',
-          effect: result.effect || 'none'
+          effect: result.effect || 'none',
         });
         break;
 

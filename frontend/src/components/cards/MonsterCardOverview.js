@@ -4,13 +4,7 @@
 
 import React from 'react';
 import './monsterCard.css';
-import { 
-  IconButton, 
-  CountBadge, 
-  StatusBadge,
-  Badge,
-  EmptyState
-} from '../../shared/ui/index.js';
+import { IconButton, CountBadge, StatusBadge, Badge, EmptyState } from '../../shared/ui/index.js';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 import { useParty } from '../../app/contexts/PartyContext/index.js';
 import ToggleButton from '../../shared/ui/ToggleButton/ToggleButton.js';
@@ -18,29 +12,21 @@ import ToggleButton from '../../shared/ui/ToggleButton/ToggleButton.js';
 function MonsterCardOverview({
   monster,
   size,
-  
+
   // Party management
   showPartyToggle = false,
-  
+
   // Card interactions
   onExpandCard = null,
-  
-  // URL helper
-  getCardArtUrl
-}) {
 
-    // NEW: Get party data from context instead of props
-  const { 
-    isInParty, 
-    isFollowing,
-    isPartyFull, 
-    toggleParty, 
-    isLoading: partyDisabled 
-  } = useParty();
+  // URL helper
+  getCardArtUrl,
+}) {
+  // NEW: Get party data from context instead of props
+  const { isInParty, isFollowing, isPartyFull, toggleParty, isLoading: partyDisabled } = useParty();
 
   const monsterIsInParty = isInParty(monster.id);
   const monsterIsFollowing = isFollowing(monster.id);
-
 
   // Handle party toggle - just call parent callback
   const handlePartyToggle = (e) => {
@@ -62,15 +48,15 @@ function MonsterCardOverview({
   const getBadgeSize = () => {
     switch (size) {
       case CARD_SIZES.SM:
-        return "sm";
+        return 'sm';
       case CARD_SIZES.MD:
-        return "md";
+        return 'md';
       case CARD_SIZES.LG:
-        return "md";
+        return 'md';
       case CARD_SIZES.XL:
-        return "lg";
+        return 'lg';
       default:
-        return "sm";
+        return 'sm';
     }
   };
 
@@ -78,26 +64,31 @@ function MonsterCardOverview({
   const getButtonSize = () => {
     switch (size) {
       case CARD_SIZES.SM:
-        return "sm";
+        return 'sm';
       case CARD_SIZES.MD:
-        return "md";
+        return 'md';
       case CARD_SIZES.LG:
-        return "md";
+        return 'md';
       case CARD_SIZES.XL:
-        return "lg";
+        return 'lg';
       default:
-        return "sm";
+        return 'sm';
     }
   };
 
   // Helper to get ability count based on card size
   const getMaxAbilities = () => {
     switch (size) {
-      case CARD_SIZES.SM: return 0;
-      case CARD_SIZES.MD: return 2;
-      case CARD_SIZES.LG: return 2;
-      case CARD_SIZES.XL: return 3; 
-      default: return 1;
+      case CARD_SIZES.SM:
+        return 0;
+      case CARD_SIZES.MD:
+        return 2;
+      case CARD_SIZES.LG:
+        return 2;
+      case CARD_SIZES.XL:
+        return 3;
+      default:
+        return 1;
     }
   };
 
@@ -106,7 +97,7 @@ function MonsterCardOverview({
   return (
     <div className="monster-card-overview">
       {/* Party Toggle Button - Clean and simple with ToggleButton */}
-      { showPartyToggle && monsterIsFollowing && (
+      {showPartyToggle && monsterIsFollowing && (
         <div className="monster-card-party-toggle">
           <ToggleButton
             isInCollection={monsterIsInParty}
@@ -124,8 +115,8 @@ function MonsterCardOverview({
       <div className="monster-art-section">
         {getCardArtUrl() ? (
           <>
-            <img 
-              src={getCardArtUrl()} 
+            <img
+              src={getCardArtUrl()}
               alt={`${monster.name} card art`}
               className="monster-art-image"
             />
@@ -174,25 +165,22 @@ function MonsterCardOverview({
               size={getBadgeSize()}
               className="abilities-count-badge"
             />
-            
+
             {/* Show ability chips based on size */}
             {monster.abilities && monster.abilities.length > 0 && (
               <div className="ability-preview-chips">
                 {/* NORMAL: 1 chip, LARGE: 2 chips, FULL: 3 chips */}
-                {monster.abilities
-                  .slice(0, maxAbilities)
-                  .map((ability, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="primary" 
-                      size={getBadgeSize()}
-                      className="ability-preview-chip"
-                    >
-                      ⚡ {ability.name}
-                    </Badge>
-                  ))
-                }
-                
+                {monster.abilities.slice(0, maxAbilities).map((ability, index) => (
+                  <Badge
+                    key={index}
+                    variant="primary"
+                    size={getBadgeSize()}
+                    className="ability-preview-chip"
+                  >
+                    ⚡ {ability.name}
+                  </Badge>
+                ))}
+
                 {/* Show "more" indicator if there are additional abilities */}
                 {monster.abilities.length > maxAbilities && (
                   <span className={`more-abilities-indicator more-abilities-indicator-${size}`}>

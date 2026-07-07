@@ -4,14 +4,7 @@
 # Python owns these rules - the LLM only ever picks an impact word.
 
 # Monster wellbeing, best to worst. Bottom of the ladder = out of the fight.
-CONDITION_LADDER = [
-    'fresh',
-    'scuffed',
-    'wounded',
-    'battered',
-    'critical',
-    'incapacitated'
-]
+CONDITION_LADDER = ['fresh', 'scuffed', 'wounded', 'battered', 'critical', 'incapacitated']
 
 INCAPACITATED = 'incapacitated'
 FRESH = 'fresh'
@@ -24,7 +17,7 @@ IMPACT_STEPS = {
     'heavy': 2,
     'devastating': 3,
     'heal_light': -1,
-    'heal_major': -2
+    'heal_major': -2,
 }
 
 # ===== RESOURCE POOLS (stamina and mana) =====
@@ -35,13 +28,7 @@ IMPACT_STEPS = {
 # abilities and items).
 
 # Reserve levels, fullest to emptiest. Bottom = nothing left to give.
-RESOURCE_LADDER = [
-    'brimming',
-    'steady',
-    'strained',
-    'drained',
-    'spent'
-]
+RESOURCE_LADDER = ['brimming', 'steady', 'strained', 'drained', 'spent']
 
 RESOURCE_KEYS = ('stamina', 'mana')
 
@@ -56,7 +43,7 @@ RESOURCE_DELTAS = {
     'moderate': 2,
     'heavy': 3,
     'restore_minor': -1,
-    'restore_major': -2
+    'restore_major': -2,
 }
 
 # Which pool an ability drains BY DEFAULT when the referee stays silent,
@@ -68,12 +55,14 @@ ABILITY_POOL_BY_TYPE = {
     'movement': 'stamina',
     'support': 'mana',
     'special': 'mana',
-    'utility': 'mana'
+    'utility': 'mana',
 }
+
 
 def full_resources() -> dict:
     """A fresh set of pools - both reserves brimming"""
     return {key: BRIMMING for key in RESOURCE_KEYS}
+
 
 # How many enemies a battle spawns (inclusive range)
 # Design allows up to 7 - kept small while each enemy costs ~4 LLM calls + art

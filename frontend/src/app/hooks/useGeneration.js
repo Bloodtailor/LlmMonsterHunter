@@ -11,9 +11,9 @@ import * as generationApi from './../../api/services/generation.js';
 /**
  * Enhanced hook for managing generation logs with built-in filtering, sorting, and pagination
  * Uses existing usePagination hook and works perfectly with FilterSelectGroup component
- * 
+ *
  * COMPLETELY GENERIC - derives filter names from backend options, no hardcoded filter names!
- * 
+ *
  * How it works:
  * 1. Loads filterOptions from backend (contains filter names + possible values)
  * 2. Dynamically initializes filters state with all filters set to 'all'
@@ -21,10 +21,7 @@ import * as generationApi from './../../api/services/generation.js';
  * 4. Can work with ANY backend that provides filterOptions structure
  */
 export function useGenerationLogs(options = {}) {
-  const {
-    autoLoad = true,
-    defaultLimit = 20
-  } = options;
+  const { autoLoad = true, defaultLimit = 20 } = options;
 
   // ✨ Core data fetching using useAsyncState pattern
   const logsApi = useAsyncState(generationApi.getGenerationLogs);
@@ -34,7 +31,7 @@ export function useGenerationLogs(options = {}) {
   const [filters, setFilters] = useState({});
   const [sortValues, setSortValues] = useState({
     field: 'id',
-    order: 'desc'
+    order: 'desc',
   });
   const [limit, setLimit] = useState(defaultLimit);
 
@@ -42,7 +39,7 @@ export function useGenerationLogs(options = {}) {
   const pagination = usePagination({
     limit,
     total: logsApi.data.count,
-    initialPage: 1
+    initialPage: 1,
   });
 
   // ===== AUTO-LOAD OPTIONS AND INITIALIZE FILTERS =====
@@ -55,7 +52,7 @@ export function useGenerationLogs(options = {}) {
   useEffect(() => {
     if (optionsApi.data.filterOptions && Object.keys(filters).length === 0) {
       const initialFilters = {};
-      Object.keys(optionsApi.data.filterOptions).forEach(filterName => {
+      Object.keys(optionsApi.data.filterOptions).forEach((filterName) => {
         initialFilters[filterName] = 'all';
       });
       setFilters(initialFilters);
@@ -79,13 +76,13 @@ export function useGenerationLogs(options = {}) {
     if (!optionsApi.data.sortOptions) {
       return {
         field: ['id', 'generation_type', 'status', 'start_time'],
-        order: ['desc', 'asc']
+        order: ['desc', 'asc'],
       };
     }
 
     return {
       field: optionsApi.data.sortOptions.fields || ['id'],
-      order: optionsApi.data.sortOptions.orders || ['desc', 'asc']
+      order: optionsApi.data.sortOptions.orders || ['desc', 'asc'],
     };
   }, [optionsApi.data.sortOptions]);
 
@@ -93,7 +90,7 @@ export function useGenerationLogs(options = {}) {
   const loadData = useCallback(() => {
     const params = {
       limit,
-      offset: pagination.currentOffset
+      offset: pagination.currentOffset,
     };
 
     // Add non-"all" filters (completely dynamic!)
@@ -118,20 +115,29 @@ export function useGenerationLogs(options = {}) {
   }, [loadData, autoLoad, optionsApi.data.filterOptions, filters]);
 
   // ===== SIMPLE EVENT HANDLERS =====
-  const handleFilterChange = useCallback((fieldName, newValue, updatedValues) => {
-    setFilters(updatedValues);
-    pagination.firstPage(); // Reset to first page
-  }, [pagination]);
+  const handleFilterChange = useCallback(
+    (fieldName, newValue, updatedValues) => {
+      setFilters(updatedValues);
+      pagination.firstPage(); // Reset to first page
+    },
+    [pagination],
+  );
 
-  const handleSortChange = useCallback((fieldName, newValue, updatedValues) => {
-    setSortValues(updatedValues);
-    pagination.firstPage(); // Reset to first page
-  }, [pagination]);
+  const handleSortChange = useCallback(
+    (fieldName, newValue, updatedValues) => {
+      setSortValues(updatedValues);
+      pagination.firstPage(); // Reset to first page
+    },
+    [pagination],
+  );
 
-  const handleLimitChange = useCallback((newLimit) => {
-    setLimit(newLimit);
-    pagination.setLimit(newLimit);
-  }, [pagination]);
+  const handleLimitChange = useCallback(
+    (newLimit) => {
+      setLimit(newLimit);
+      pagination.setLimit(newLimit);
+    },
+    [pagination],
+  );
 
   const refresh = useCallback(() => {
     loadData();
@@ -141,7 +147,7 @@ export function useGenerationLogs(options = {}) {
     // Dynamically reset all filters to 'all' - works with any filter set!
     if (optionsApi.data.filterOptions) {
       const clearedFilters = {};
-      Object.keys(optionsApi.data.filterOptions).forEach(filterName => {
+      Object.keys(optionsApi.data.filterOptions).forEach((filterName) => {
         clearedFilters[filterName] = 'all';
       });
       setFilters(clearedFilters);
@@ -155,13 +161,13 @@ export function useGenerationLogs(options = {}) {
     count: logsApi.data.count || 0,
 
     // ===== OPTIONS (ready for FilterSelectGroup) =====
-    filterOptions,  // Enhanced with "all" options
-    sortOptions,    // Formatted for FilterSelectGroup
+    filterOptions, // Enhanced with "all" options
+    sortOptions, // Formatted for FilterSelectGroup
 
     // ===== CURRENT STATE =====
-    filters,        // Current filter values
-    sortValues,     // Current sort values
-    limit,          // Current page size
+    filters, // Current filter values
+    sortValues, // Current sort values
+    limit, // Current page size
 
     // ===== PAGINATION (from usePagination hook) =====
     pagination,
@@ -173,14 +179,14 @@ export function useGenerationLogs(options = {}) {
     isLoadingOptions: optionsApi.isLoading,
 
     // ===== SIMPLE HANDLERS (ready for FilterSelectGroup) =====
-    handleFilterChange,  // For FilterSelectGroup onChange
-    handleSortChange,    // For FilterSelectGroup onChange
-    handleLimitChange,   // For Pagination onLimitChange
+    handleFilterChange, // For FilterSelectGroup onChange
+    handleSortChange, // For FilterSelectGroup onChange
+    handleLimitChange, // For Pagination onLimitChange
     refresh,
     clearFilters,
 
     // ===== DEBUG =====
     rawResponse: logsApi.data._raw,
-    rawOptionsResponse: optionsApi.data._raw
+    rawOptionsResponse: optionsApi.data._raw,
   };
 }

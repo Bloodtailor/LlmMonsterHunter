@@ -4,24 +4,23 @@
 // Uses callback pattern for clean separation of concerns
 
 import React from 'react';
-import FlippableCard from '../../shared/ui/Card/FlippableCard.js'
+import FlippableCard from '../../shared/ui/Card/FlippableCard.js';
 import MonsterCardOverview from './MonsterCardOverview.js';
 import MonsterCardDetails from './MonsterCardDetails.js';
 import './monsterCard.css';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
 
-function MonsterCard({ 
-  monster, 
+function MonsterCard({
+  monster,
   size = 'md', // Updated to use new CARD_SIZES
-  
+
   // Party management (optional)
   showPartyToggle = false,
-  
+
   // Card viewer (callback pattern - no circular dependencies!)
   onExpandCard = null,
-  hideFlipHint = false
+  hideFlipHint = false,
 }) {
-
   // Construct card art URL using clean monster object
   const getCardArtUrl = () => {
     if (!monster.cardArt.exists || !monster.cardArt.relativePath) return null;
@@ -30,14 +29,13 @@ function MonsterCard({
 
   // Handle expand card - just call parent callback
   const handleExpandCard = onExpandCard
-  ? (e) => {
-      if (e && typeof e.stopPropagation === 'function') {
-        e.stopPropagation();
+    ? (e) => {
+        if (e && typeof e.stopPropagation === 'function') {
+          e.stopPropagation();
+        }
+        onExpandCard(monster);
       }
-      onExpandCard(monster);
-    }
-  : null;
-
+    : null;
 
   // Front of card - Use Overview component
   const frontContent = (
@@ -51,12 +49,7 @@ function MonsterCard({
   );
 
   // Back of card - Use Details component
-  const backContent = (
-    <MonsterCardDetails
-      monster={monster}
-      size={size}
-    />
-  );
+  const backContent = <MonsterCardDetails monster={monster} size={size} />;
 
   return (
     <FlippableCard

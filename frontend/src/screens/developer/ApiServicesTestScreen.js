@@ -4,14 +4,14 @@
 
 import React from 'react';
 import { useGenerationLogs } from '../../app/hooks/useGeneration';
-import { 
-  Button, 
-  Card, 
-  CardSection, 
-  Table, 
-  FilterSelectGroup, 
+import {
+  Button,
+  Card,
+  CardSection,
+  Table,
+  FilterSelectGroup,
   LoadingSpinner,
-  Pagination
+  Pagination,
 } from '../../shared/ui';
 
 function ApiServicesTestScreen() {
@@ -20,42 +20,42 @@ function ApiServicesTestScreen() {
     // Data
     logs,
     count,
-    
+
     // Options (ready for FilterSelectGroup)
     filterOptions,
     sortOptions,
-    
+
     // Current state
     filters,
     sortValues,
     limit,
-    
+
     // Pagination (from usePagination)
     pagination,
-    
+
     // State flags
     isLoading,
     isError,
     error,
     isLoadingOptions,
-    
+
     // Simple handlers (ready for components)
     handleFilterChange,
     handleSortChange,
     handleLimitChange,
     refresh,
     clearFilters,
-    
+
     // Debug
     rawResponse,
-    rawOptionsResponse
+    rawOptionsResponse,
   } = useGenerationLogs({
     autoLoad: true,
-    defaultLimit: 10
+    defaultLimit: 10,
   });
 
   // ===== RENDER =====
-  
+
   if (isLoadingOptions) {
     return (
       <Card>
@@ -70,7 +70,6 @@ function ApiServicesTestScreen() {
     <Card>
       {/* Controls */}
       <CardSection type="header" title="Enhanced useGenerationLogs Test">
-        
         {/* Filters - Using existing FilterSelectGroup */}
         <div style={{ marginBottom: '1rem' }}>
           <strong>Filters:</strong>
@@ -92,26 +91,17 @@ function ApiServicesTestScreen() {
             layout="horizontal"
             customLabels={{
               field: 'Sort Field',
-              order: 'Sort Order'
+              order: 'Sort Order',
             }}
           />
         </div>
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            onClick={refresh}
-            disabled={isLoading}
-          >
+          <Button variant="secondary" size="sm" onClick={refresh} disabled={isLoading}>
             🔄 Refresh
           </Button>
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            onClick={clearFilters}
-          >
+          <Button variant="secondary" size="sm" onClick={clearFilters}>
             🗑️ Clear Filters
           </Button>
         </div>
@@ -119,26 +109,42 @@ function ApiServicesTestScreen() {
 
       {/* Status */}
       <CardSection title="Status" type="content">
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
-          gap: '1rem',
-          marginBottom: '1rem'
-        }}>
-          <div><strong>Total:</strong> {count}</div>
-          <div><strong>Showing:</strong> {logs.length}</div>
-          <div><strong>Page:</strong> {pagination.currentPage} of {pagination.totalPages || '?'}</div>
-          <div><strong>Status:</strong> {isLoading ? 'Loading...' : 'Ready'}</div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '1rem',
+            marginBottom: '1rem',
+          }}
+        >
+          <div>
+            <strong>Total:</strong> {count}
+          </div>
+          <div>
+            <strong>Showing:</strong> {logs.length}
+          </div>
+          <div>
+            <strong>Page:</strong> {pagination.currentPage} of {pagination.totalPages || '?'}
+          </div>
+          <div>
+            <strong>Status:</strong> {isLoading ? 'Loading...' : 'Ready'}
+          </div>
         </div>
 
-        <div style={{ 
-          background: 'var(--background-medium)', 
-          padding: '0.5rem', 
-          borderRadius: 'var(--radius-sm)',
-          fontSize: 'var(--font-size-sm)'
-        }}>
-          <div><strong>Filters:</strong> {JSON.stringify(filters)}</div>
-          <div><strong>Sort:</strong> {JSON.stringify(sortValues)}</div>
+        <div
+          style={{
+            background: 'var(--background-medium)',
+            padding: '0.5rem',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: 'var(--font-size-sm)',
+          }}
+        >
+          <div>
+            <strong>Filters:</strong> {JSON.stringify(filters)}
+          </div>
+          <div>
+            <strong>Sort:</strong> {JSON.stringify(sortValues)}
+          </div>
         </div>
       </CardSection>
 
@@ -169,7 +175,7 @@ function ApiServicesTestScreen() {
               { key: 'durationSeconds', header: 'Duration', width: '12%' },
               { key: 'startTime', header: 'Date', width: '16%' },
             ]}
-            data={logs.map(log => ({
+            data={logs.map((log) => ({
               id: log.id ? `#${log.id.toString().slice(-6)}` : 'N/A',
               generationType: log.generationType || 'N/A',
               promptType: log.promptType || 'N/A',
@@ -179,7 +185,7 @@ function ApiServicesTestScreen() {
               startTime: log.startTime ? new Date(log.startTime).toLocaleDateString() : 'N/A',
             }))}
             maxHeight="400px"
-            emptyMessage={isLoading ? "Loading..." : "No logs found"}
+            emptyMessage={isLoading ? 'Loading...' : 'No logs found'}
             loading={isLoading}
           />
         )}
@@ -190,26 +196,30 @@ function ApiServicesTestScreen() {
         <div style={{ fontSize: 'var(--font-size-sm)' }}>
           <div style={{ marginBottom: '0.5rem' }}>
             <strong>Options Response:</strong>
-            <pre style={{ 
-              background: 'var(--background-dark)', 
-              padding: '0.5rem', 
-              borderRadius: 'var(--radius-sm)',
-              overflow: 'auto',
-              maxHeight: '100px'
-            }}>
+            <pre
+              style={{
+                background: 'var(--background-dark)',
+                padding: '0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                overflow: 'auto',
+                maxHeight: '100px',
+              }}
+            >
               {JSON.stringify(rawOptionsResponse, null, 2)?.slice(0, 400)}...
             </pre>
           </div>
-          
+
           <div>
             <strong>Data Response:</strong>
-            <pre style={{ 
-              background: 'var(--background-dark)', 
-              padding: '0.5rem', 
-              borderRadius: 'var(--radius-sm)',
-              overflow: 'auto',
-              maxHeight: '100px'
-            }}>
+            <pre
+              style={{
+                background: 'var(--background-dark)',
+                padding: '0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                overflow: 'auto',
+                maxHeight: '100px',
+              }}
+            >
               {JSON.stringify(rawResponse, null, 2)?.slice(0, 400)}...
             </pre>
           </div>

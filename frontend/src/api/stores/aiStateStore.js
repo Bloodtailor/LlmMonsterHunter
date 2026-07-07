@@ -5,10 +5,10 @@
 // ===== EXTERNAL STATE STORAGE =====
 let aiState = {
   // Active generation tracking
-  activeGeneration: { 
-    state: null, 
-    queueItem: null, 
-    type: null 
+  activeGeneration: {
+    state: null,
+    queueItem: null,
+    type: null,
   },
 
   // Current activity (computed from activeGeneration + streaming states)
@@ -16,7 +16,7 @@ let aiState = {
     type: null,
     label: 'Idle',
     progress: '',
-    queueItem: null
+    queueItem: null,
   },
 
   // Queue status
@@ -27,7 +27,7 @@ let aiState = {
     completed: 0,
     failed: 0,
     items: [],
-    trigger: null
+    trigger: null,
   },
 
   // LLM status with streaming data
@@ -40,7 +40,7 @@ let aiState = {
     tokensSoFar: null,
     result: null,
     error: null,
-    startedAt: null
+    startedAt: null,
   },
 
   // Image status with streaming data
@@ -52,8 +52,8 @@ let aiState = {
     result: null,
     error: null,
     startedAt: null,
-    imageUrl: null
-  }
+    imageUrl: null,
+  },
 };
 
 // ===== SUBSCRIPTION MANAGEMENT =====
@@ -62,12 +62,12 @@ const listeners = {
   currentActivity: new Set(),
   queueStatus: new Set(),
   llmStatus: new Set(),
-  imageStatus: new Set()
+  imageStatus: new Set(),
 };
 
 // Notify all subscribers of a specific state slice
 const notifyListeners = (stateKey) => {
-  listeners[stateKey].forEach(listener => listener());
+  listeners[stateKey].forEach((listener) => listener());
 };
 
 // ===== PUBLIC SUBSCRIPTION INTERFACE =====
@@ -99,7 +99,7 @@ export const aiStateStore = {
   subscribeToImageStatus: (listener) => {
     listeners.imageStatus.add(listener);
     return () => listeners.imageStatus.delete(listener);
-  }
+  },
 };
 
 // ===== INTERNAL STATE UPDATE FUNCTIONS =====
@@ -107,7 +107,7 @@ const updateActiveGeneration = (newState) => {
   const oldState = aiState.activeGeneration;
   aiState.activeGeneration = { ...oldState, ...newState };
   notifyListeners('activeGeneration');
-  
+
   // Active generation changes trigger current activity recalculation
   recalculateCurrentActivity();
 };
@@ -116,7 +116,7 @@ const updateLlmStatus = (updates) => {
   const oldState = aiState.llmStatus;
   aiState.llmStatus = { ...oldState, ...updates };
   notifyListeners('llmStatus');
-  
+
   // LLM status changes might trigger current activity recalculation
   recalculateCurrentActivity();
 };
@@ -125,7 +125,7 @@ const updateImageStatus = (updates) => {
   const oldState = aiState.imageStatus;
   aiState.imageStatus = { ...oldState, ...updates };
   notifyListeners('imageStatus');
-  
+
   // Image status changes might trigger current activity recalculation
   recalculateCurrentActivity();
 };
@@ -149,7 +149,7 @@ const updateQueueStatus = (newQueueData) => {
     completed: statusCounts.completed || 0,
     failed: statusCounts.failed || 0,
     items,
-    trigger: newQueueData.trigger
+    trigger: newQueueData.trigger,
   };
 
   notifyListeners('queueStatus');
@@ -161,10 +161,10 @@ const recalculateCurrentActivity = () => {
 
   if (activeGeneration.state && activeGeneration.queueItem) {
     const { state, type, queueItem } = activeGeneration;
-    
+
     if (state === 'generating') {
       let progress = 'initializing...';
-      
+
       if (type === 'llm' && llmStatus.tokensSoFar !== null) {
         progress = `${llmStatus.tokensSoFar} tokens`;
       } else if (type === 'image' && imageStatus.elapsedSeconds !== null) {
@@ -175,14 +175,14 @@ const recalculateCurrentActivity = () => {
         type,
         label: type === 'llm' ? 'Generating text' : 'Generating image',
         progress,
-        queueItem
+        queueItem,
       };
     } else {
       newActivity = {
         type: null,
         label: 'Idle',
         progress: '',
-        queueItem: null
+        queueItem: null,
       };
     }
   } else {
@@ -190,7 +190,7 @@ const recalculateCurrentActivity = () => {
       type: null,
       label: 'Idle',
       progress: '',
-      queueItem: null
+      queueItem: null,
     };
   }
 
@@ -209,7 +209,7 @@ export const aiStatusRouter = (eventName, eventData) => {
       updateActiveGeneration({
         state: 'generating',
         queueItem: eventData.aiQueueItem,
-        type: 'llm'
+        type: 'llm',
       });
       updateLlmStatus({
         generationId: eventData.generationId,
@@ -220,7 +220,7 @@ export const aiStatusRouter = (eventName, eventData) => {
         tokensSoFar: null,
         result: null,
         error: null,
-        startedAt: eventData.aiQueueItem?.startedAt || null
+        startedAt: eventData.aiQueueItem?.startedAt || null,
       });
       break;
 
@@ -228,7 +228,7 @@ export const aiStatusRouter = (eventName, eventData) => {
       updateLlmStatus({
         status: 'generating',
         partialText: eventData.partialText,
-        tokensSoFar: eventData.tokensSoFar
+        tokensSoFar: eventData.tokensSoFar,
       });
       break;
 
@@ -236,11 +236,11 @@ export const aiStatusRouter = (eventName, eventData) => {
       updateActiveGeneration({
         state: 'completed',
         queueItem: eventData.aiQueueItem,
-        type: 'llm'
+        type: 'llm',
       });
       updateLlmStatus({
         status: 'completed',
-        result: eventData.result
+        result: eventData.result,
       });
       break;
 
@@ -248,11 +248,11 @@ export const aiStatusRouter = (eventName, eventData) => {
       updateActiveGeneration({
         state: 'failed',
         queueItem: eventData.aiQueueItem,
-        type: 'llm'
+        type: 'llm',
       });
       updateLlmStatus({
         status: 'failed',
-        error: eventData.error
+        error: eventData.error,
       });
       break;
 
@@ -260,7 +260,7 @@ export const aiStatusRouter = (eventName, eventData) => {
       updateActiveGeneration({
         state: 'generating',
         queueItem: eventData.aiQueueItem,
-        type: 'image'
+        type: 'image',
       });
       updateImageStatus({
         generationId: eventData.generationId,
@@ -270,14 +270,14 @@ export const aiStatusRouter = (eventName, eventData) => {
         result: null,
         error: null,
         startedAt: eventData.aiQueueItem?.startedAt || null,
-        imageUrl: null
+        imageUrl: null,
       });
       break;
 
     case 'imageGenerationUpdate':
       updateImageStatus({
         status: 'generating',
-        elapsedSeconds: eventData.elapsedSeconds
+        elapsedSeconds: eventData.elapsedSeconds,
       });
       break;
 
@@ -285,18 +285,18 @@ export const aiStatusRouter = (eventName, eventData) => {
       updateActiveGeneration({
         state: 'completed',
         queueItem: eventData.aiQueueItem,
-        type: 'image'
+        type: 'image',
       });
-      
+
       // Create image URL if we have an image path
-      const imageUrl = eventData.result?.imagePath 
+      const imageUrl = eventData.result?.imagePath
         ? `http://localhost:5000/api/monsters/card-art/${eventData.result.imagePath}`
         : null;
 
       updateImageStatus({
         status: 'completed',
         result: eventData.result,
-        imageUrl
+        imageUrl,
       });
       break;
 
@@ -304,11 +304,11 @@ export const aiStatusRouter = (eventName, eventData) => {
       updateActiveGeneration({
         state: 'failed',
         queueItem: eventData.aiQueueItem,
-        type: 'image'
+        type: 'image',
       });
       updateImageStatus({
         status: 'failed',
-        error: eventData.error
+        error: eventData.error,
       });
       break;
 

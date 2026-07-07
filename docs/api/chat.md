@@ -7,7 +7,7 @@ permanent `monster_memories` rows (with their source recorded) that then
 shape battles, growth, and future encounters. Design doc:
 `docs/plans/monster-chat.md`.
 
-Read the [index](../backend-api-reference.md) workflow model first.
+Read the [index](README.md) workflow model first.
 
 ## POST /api/chat/:monster_id/message
 **Request:** `{ "message": string }` (non-empty, ≤500 chars)

@@ -13,7 +13,6 @@ import { useBattleEvents } from './hooks/useBattleEvents.js';
  * @param {React.ReactNode} props.children - Child components
  */
 function BattleProvider({ children }) {
-
   // State management
   const stateHook = useBattleState();
 
@@ -26,14 +25,10 @@ function BattleProvider({ children }) {
   // Clean context value using spread syntax
   const contextValue = {
     ...stateHook.state,
-    ...actionsHook.actions
+    ...actionsHook.actions,
   };
 
-  return (
-    <BattleContext.Provider value={contextValue}>
-      {children}
-    </BattleContext.Provider>
-  );
+  return <BattleContext.Provider value={contextValue}>{children}</BattleContext.Provider>;
 }
 
 export default BattleProvider;

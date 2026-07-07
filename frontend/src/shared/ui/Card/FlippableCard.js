@@ -7,15 +7,15 @@ import React, { useState } from 'react';
 import { CARD_SIZES } from '../../../shared/constants/constants.js';
 import './flippableCard.css';
 
-function FlippableCard({ 
-  frontContent, 
-  backContent, 
-  className = '', 
+function FlippableCard({
+  frontContent,
+  backContent,
+  className = '',
   cardId = null,
   onFlip = null,
   disabled = false,
   hideFlipHint = false,
-  size = 'md' // Updated to use unified CARD_SIZES system
+  size = 'md', // Updated to use unified CARD_SIZES system
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [currentSide, setCurrentSide] = useState(0); // For future multi-side support
@@ -25,7 +25,7 @@ function FlippableCard({
 
     const newFlipped = !isFlipped;
     setIsFlipped(newFlipped);
-    
+
     // Call callback if provided
     if (onFlip) {
       onFlip(newFlipped, cardId);
@@ -36,27 +36,21 @@ function FlippableCard({
 
   return (
     <div className={`flippable-card-container ${className}`}>
-      <div 
+      <div
         className={`flippable-card ${cardSizeClass} ${isFlipped ? 'flipped' : ''} ${disabled ? 'disabled' : ''}`}
         onClick={handleFlip}
       >
         {/* Front Side */}
-        <div className="card-front">
-          {frontContent}
-        </div>
-        
+        <div className="card-front">{frontContent}</div>
+
         {/* Back Side */}
-        <div className="card-back">
-          {backContent}
-        </div>
+        <div className="card-back">{backContent}</div>
       </div>
-      
+
       {/* Optional flip indicator */}
       {!hideFlipHint && (
         <div className="flip-indicator">
-          <span className="flip-hint">
-            {isFlipped ? '↻ Flip to front' : '↻ Flip for details'}
-          </span>
+          <span className="flip-hint">{isFlipped ? '↻ Flip to front' : '↻ Flip for details'}</span>
         </div>
       )}
     </div>

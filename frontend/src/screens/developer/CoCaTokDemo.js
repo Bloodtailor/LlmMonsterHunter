@@ -1,7 +1,7 @@
 // Treasure Card Usage Examples - See the magic in action!
 
 import React from 'react';
-import CoCaTok, {COCATOK_SIZES, COCATOK_TYPES} from '../../shared/ui/CoCaTok/CoCaTok';
+import CoCaTok, { COCATOK_SIZES, COCATOK_TYPES } from '../../shared/ui/CoCaTok/CoCaTok';
 
 function CoCaTokDemo() {
   const handleHeal = () => {
@@ -20,50 +20,26 @@ function CoCaTokDemo() {
   };
 
   return (
-    <div >
+    <div>
       <h2>Collectable Card Tokens</h2>
-      
+
       {/* Different Types */}
       <div>
-        <CoCaTok 
-          color='red-intense' 
-          emoji='🔥'
-          size={COCATOK_SIZES.LG}
-        />
-        
-        <CoCaTok 
-          color='rainbow-6'
-          size={COCATOK_SIZES.LG}
-          emoji="🌈"
-        />
-        
-        <CoCaTok 
-          color='blue-electric'
-          size={COCATOK_SIZES.LG}
-          emoji="❄️"
-        />
-        
-        <CoCaTok 
-          size={COCATOK_SIZES.LG}
-          color='gold-bright'
-          emoji='🔮'
-        />
-        
-        <CoCaTok 
-          size={COCATOK_SIZES.LG}
-          color='green-forest'
-          emoji='=D'
-        />
-        
-        <CoCaTok 
-          size={COCATOK_SIZES.LG}
-          color='white-pearl'
-          emoji=''
-        />
+        <CoCaTok color="red-intense" emoji="🔥" size={COCATOK_SIZES.LG} />
+
+        <CoCaTok color="rainbow-6" size={COCATOK_SIZES.LG} emoji="🌈" />
+
+        <CoCaTok color="blue-electric" size={COCATOK_SIZES.LG} emoji="❄️" />
+
+        <CoCaTok size={COCATOK_SIZES.LG} color="gold-bright" emoji="🔮" />
+
+        <CoCaTok size={COCATOK_SIZES.LG} color="green-forest" emoji="=D" />
+
+        <CoCaTok size={COCATOK_SIZES.LG} color="white-pearl" emoji="" />
       </div>
 
       {/* Different Sizes */}
-      <div >
+      <div>
         <CoCaTok size={COCATOK_SIZES.SM} />
         <CoCaTok size={COCATOK_SIZES.MD} />
         <CoCaTok size={COCATOK_SIZES.LG} />
@@ -71,10 +47,7 @@ function CoCaTokDemo() {
       </div>
 
       {/* Disabled State */}
-      <CoCaTok 
-        disabled 
-        size={COCATOK_SIZES.LG}
-      />
+      <CoCaTok disabled size={COCATOK_SIZES.LG} />
     </div>
   );
 }
