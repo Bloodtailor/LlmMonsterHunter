@@ -7,10 +7,8 @@
 
 import random
 
-from backend.ai import gateway
 from backend.core.events import (
     emit_monster_ability_added,
-    emit_monster_art_ready,
     emit_monster_created,
     emit_monster_updated,
 )
@@ -184,23 +182,8 @@ def generate_monster_story(
 # ===== ABILITIES AND CARD ART (signatures unchanged) =====
 
 
-def generate_card_art(monster: Monster):
-    """Generate and connect card art"""
-
-    prompt_text = _build_card_art_prompt(monster)
-
-    image_result = gateway.image_generation_request(
-        prompt_text=prompt_text, prompt_type="monster_card_art", prompt_name="monster_generation"
-    )
-
-    image_path = image_result.get('image_path')
-
-    monster.set_card_art(image_path)
-
-    # The monster's card art is now attached
-    emit_monster_art_ready(monster.id, image_path)
-
-    return image_path
+# Card art (generation + prompt composition) lives in card_art.py -
+# art is a bonus, never a blocker
 
 
 def generate_ability(monster: Monster, growth_context: str = ''):
@@ -266,32 +249,6 @@ def _build_ability_variables(monster: Monster, growth_context: str = ''):
         'existing_abilities_text': abilities_text,
         'ability_count': len(monster.abilities),
     }
-
-
-def _build_card_art_prompt(monster: Monster):
-    """Image prompt from the structured appearance block (falls back to
-    prose description for monsters that lack one)"""
-
-    taxonomy = monster.taxonomy or {}
-    ecology = monster.ecology or {}
-    appearance = monster.appearance or {}
-
-    prompt_parts = [
-        monster.name,
-        taxonomy.get('race_label') or monster.species,
-        ecology.get('size_class') or '',
-        appearance.get('visual_description') or monster.description,
-    ]
-
-    colors = appearance.get('primary_colors') or []
-    if colors:
-        prompt_parts.append("colors: " + ", ".join(colors))
-
-    features = appearance.get('distinguishing_features') or []
-    if features:
-        prompt_parts.append(", ".join(features))
-
-    return ", ".join(part for part in prompt_parts if part)
 
 
 # ===== NORMALIZATION (snap LLM output onto curated data) =====

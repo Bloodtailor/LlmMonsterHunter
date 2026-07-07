@@ -50,12 +50,12 @@ def generate_expedition_notices() -> dict[str, Any]:
 def begin_first_run() -> dict[str, Any]:
     """
     New Game: queue the opening scene (the wish-granting premise). Always
-    available - replaying the opening wipes nothing. The frontend follows
-    the streamed text, then calls enter_dungeon with first_run=true.
+    available - replaying the opening wipes nothing, and a leftover run
+    is NOT a blocker: entering the first dungeon abandons it properly
+    (spoils forfeited, log snapshotted) exactly like any re-entry.
+    The frontend follows the streamed text, then calls enter_dungeon
+    with first_run=true.
     """
-
-    if manager.is_in_dungeon():
-        return error_response("A run is already underway - abandon it first")
 
     success, workflow_id = request_workflow(workflow_type="begin_first_run")
 

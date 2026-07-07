@@ -293,7 +293,10 @@ class WorkflowQueue:
                 if workflow:
                     workflow.status = item.status.value
                     workflow.result_data = item.result
-                    workflow.error_message = item.error
+                    # Failure envelopes may carry a dict - the column is
+                    # text, and a failed save here would leave the row
+                    # lying about its status ('pending' forever)
+                    workflow.error_message = str(item.error) if item.error else None
                     workflow.completed_at = item.completed_at
                     workflow.save()
 

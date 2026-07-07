@@ -1,9 +1,12 @@
 # Game Loop v1 — Plan
 
-**Status:** IMPLEMENTED (July 2026) — all seven milestones landed;
-pending live soak (full first run, a themed run with a goal completed
-and one failed, a defeat losing provisional spoils, a wary recruit
-acting on its own then earning trust).
+**Status:** IMPLEMENTED (July 2026) — all seven milestones landed. The
+guided FIRST RUN was soaked live end to end on the real model (title →
+opening → recruit-by-words → battle victory with mid-battle negotiation
+→ forced exit → goal reward + chronicle persisted → Continue unlocked).
+Still on Aaron's soak list: a themed notice run with a goal failed, a
+defeat losing provisional spoils, and a fresh wary recruit acting on its
+own in battle.
 **Branch:** `feature/game-loop-v1` — one milestone commit per milestone, prefix `Loop-M#`.
 
 The July 2026 architecture review put it plainly: every verb exists —
@@ -140,3 +143,13 @@ recruit acting on its own, then earning `familiar` and taking commands.
   (grandfathered file may only shrink). The test harness now REBUILDS the
   disposable test DB when its schema drifts behind the models
   (`_SCHEMA_MARKERS` in tests/harness.py) — create_all never ALTERs.
+- **Live soak fixes:** (1) `begin_first_run` no longer refuses when a
+  stale run exists — entering the first dungeon abandons it properly,
+  like any re-entry. (2) Card art is a bonus, never a blocker: with
+  image generation disabled the gateway RAISES, and bare
+  `generate_card_art` calls were killing whole encounter workflows —
+  art generation moved to `game/monster/card_art.py` and now skips or
+  fails quietly (monster/generator.py left the grandfather list).
+  (3) Failed workflows stayed `pending` in game_workflows forever —
+  the failure envelope's dict error broke the text-column save; the
+  error is now stringified.

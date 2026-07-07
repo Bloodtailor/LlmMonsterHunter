@@ -14,9 +14,9 @@ def run_monster_dialogue(step: WorkflowStep, location: dict, workflow_name: str)
         generate_encounter_vanity_text,
         generate_monster_question,
     )
+    from backend.game.monster.card_art import generate_card_art
     from backend.game.monster.generator import (
         generate_ability,
-        generate_card_art,
         generate_contextual_monster,
     )
 

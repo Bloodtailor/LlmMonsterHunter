@@ -18,9 +18,9 @@ def generate_detailed_monster(
     progress_data = {}
 
     try:
+        from backend.game.monster.card_art import generate_card_art
         from backend.game.monster.generator import (
             generate_ability,
-            generate_card_art,
             generate_monster_blueprint,
             generate_monster_persona,
             generate_monster_story,
@@ -214,7 +214,7 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
             step = "regenerating_art"
             on_update(step, progress_data)
             try:
-                from backend.game.monster.generator import generate_card_art
+                from backend.game.monster.card_art import generate_card_art
 
                 generate_card_art(monster)
                 art_regenerated = True
