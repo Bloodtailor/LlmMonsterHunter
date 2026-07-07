@@ -61,6 +61,52 @@ def get_monster_memories(monster_id: int) -> Dict[str, Any]:
         'memories': [memory.to_dict() for memory in memories]
     })
 
+def evolve_monster(monster_id, guidance=None) -> Dict[str, Any]:
+    """
+    Evolve a following monster at home base - queues the ceremony
+    workflow; the transform and narration arrive over SSE.
+    """
+    from backend.game.monster.evolution import (
+        evolution_eligibility_error, clean_guidance, GUIDANCE_MAX_CHARS
+    )
+
+    try:
+        monster_id = int(monster_id)
+    except (TypeError, ValueError):
+        return error_response("A valid monster_id is required")
+
+    eligibility_error = evolution_eligibility_error(monster_id)
+    if eligibility_error:
+        return error_response(eligibility_error)
+
+    if guidance and len(str(guidance).strip()) > GUIDANCE_MAX_CHARS:
+        return error_response(f"Guidance too long (max {GUIDANCE_MAX_CHARS} characters)")
+
+    try:
+        success, workflow_id = request_workflow(
+            workflow_type="evolve_monster",
+            context={"monster_id": monster_id, "guidance": clean_guidance(guidance)}
+        )
+        if success:
+            return success_response({'workflow_id': workflow_id})
+        return error_response('Failed to queue evolution workflow')
+    except Exception as e:
+        return error_response(f'Workflow request failed: {str(e)}')
+
+def get_monster_evolutions(monster_id: int) -> Dict[str, Any]:
+    """A monster's evolution lineage, oldest first (its forms in order)"""
+    from backend.models.monster import Monster
+    from backend.models.monster_evolution import MonsterEvolution
+
+    if not Monster.get_monster_by_id(monster_id):
+        return error_response('Monster not found')
+
+    evolutions = MonsterEvolution.for_monster(monster_id)
+    return success_response({
+        'monster_id': monster_id,
+        'evolutions': [evolution.to_dict() for evolution in evolutions]
+    })
+
 def generate_ability(monster_id: int) -> Dict[str, Any]:
     """Generate ability - only validate monster exists"""
 

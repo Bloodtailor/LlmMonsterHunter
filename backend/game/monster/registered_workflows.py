@@ -70,6 +70,165 @@ def generate_detailed_monster(context: dict, on_update: Callable[[str, Dict[str,
     
 
 @register_workflow()
+def evolve_monster(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
+    """
+    The home-base evolution ceremony: design the evolved form (the ONLY
+    abort point), transform the monster in place (same id - memories,
+    chat threads, abilities, party status all survive), stream the
+    narration (the frontend follows evolution_text_generation_id), then
+    settle persona/prose/abilities with keep-old fallbacks, record the
+    permanent memory, and regenerate the card art for the new body.
+    """
+
+    workflow_name = 'evolve_monster'
+    # "context" should have the following keys:
+    required_keys = ["monster_id"]
+
+    step = "initialize_workflow"
+    progress_data = {}
+
+    try:
+        from backend.game.monster import evolution
+        from backend.game.chat.generator import wait_for_streamed_text
+        from backend.game.utils import IMAGE_GENERATION_ENABLED
+        from backend.models.monster import Monster
+
+        # Step 0 - validate keys and eligibility (re-checked here: the
+        # queue may run this long after the service said yes)
+        step = "validate_context"
+        on_update(step, progress_data)
+        require_keys(context, required_keys)
+
+        monster_id = int(context['monster_id'])
+        guidance = evolution.clean_guidance(context.get('guidance'))
+
+        eligibility_error = evolution.evolution_eligibility_error(monster_id)
+        if eligibility_error:
+            raise Exception(eligibility_error)
+
+        monster = Monster.get_monster_by_id(monster_id)
+        stage = evolution.next_stage_number(monster_id)
+
+        # Step 1 - design the evolved form (nothing is mutated if this fails)
+        step = "designing_form"
+        on_update(step, progress_data)
+        form = evolution.run_form_design(monster, guidance, stage, workflow_name)
+
+        # Step 2 - the transform: lineage row, identity, stats, rarity, heal.
+        # Emits monster.updated + monster.evolved (the ceremony trigger).
+        step = "applying_form"
+        on_update(step, progress_data)
+        evolution_row = evolution.apply_evolution_form(monster, form, guidance, stage)
+        progress_data.update({
+            "monster": monster.to_dict(),
+            "evolution": evolution_row.to_dict()
+        })
+        step = "form_applied"
+        on_update(step, progress_data)
+
+        # Step 3 - queue the streamed ceremony text and hand its id over
+        step = "queue_narration"
+        on_update(step, progress_data)
+        narration_id = evolution.queue_evolution_narration(
+            monster, evolution_row, guidance, workflow_name
+        )
+        progress_data.update({
+            "evolution_text_generation_id": narration_id,
+            "monster_id": monster_id
+        })
+        step = "emit_generation_id"
+        on_update(step, progress_data)
+
+        step = "await_narration"
+        on_update(step, progress_data)
+        narrative = ''
+        try:
+            narrative = wait_for_streamed_text(narration_id)
+        except Exception as e:
+            print(f"❌ Evolution narration failed for {monster.name} - the ceremony continues: {e}")
+
+        # Step 4 - the inner life settles into the new form
+        step = "shifting_persona"
+        on_update(step, progress_data)
+        shift = evolution.run_persona_shift(monster, evolution_row, guidance, workflow_name)
+        persona_applied = evolution.apply_persona_shift(monster, shift)
+
+        # Step 5 - new words and the artist's brief
+        step = "rewriting_story"
+        on_update(step, progress_data)
+        prose = evolution.run_prose_rewrite(
+            monster, evolution_row,
+            evolution.build_persona_shift_facts(persona_applied),
+            guidance, workflow_name
+        )
+        art_worthy = evolution.apply_prose(monster, prose)
+
+        # Step 6 - abilities evolve with the body; maybe one signature is earned
+        step = "evolving_abilities"
+        on_update(step, progress_data)
+        decisions = evolution.run_ability_evolution(monster, evolution_row, guidance, workflow_name)
+        ability_applied = evolution.apply_ability_evolution(monster, decisions)
+
+        new_ability = None
+        if (ability_applied['wants_new'] and ability_applied['theme']
+                and len(monster.abilities or []) < evolution.MAX_ABILITIES):
+            step = "adding_signature_ability"
+            on_update(step, progress_data)
+            try:
+                from backend.game.monster.generator import generate_ability as make_ability
+                new_ability = make_ability(
+                    monster,
+                    growth_context=(f"Just evolved into {monster.species}: "
+                                    f"{ability_applied['theme']}. Only this new form can hold it.")
+                )
+            except Exception as e:
+                print(f"❌ Signature ability failed for {monster.name}: {e}")
+
+        # Step 7 - the evolution becomes part of its story forever
+        step = "recording_memory"
+        on_update(step, progress_data)
+        evolution.finalize_evolution(
+            monster, evolution_row, narrative, persona_applied.get('memory_note'),
+            {
+                'new_ability': new_ability.name if new_ability else None,
+                'reworded': ability_applied['reworded']
+            }
+        )
+
+        # Step 8 - a new face for the new form (old art stays on disk,
+        # its path lives in the lineage row). Prose failure skips this so
+        # the art never mismatches the appearance block.
+        art_regenerated = False
+        if art_worthy and IMAGE_GENERATION_ENABLED:
+            step = "regenerating_art"
+            on_update(step, progress_data)
+            try:
+                from backend.game.monster.generator import generate_card_art
+                generate_card_art(monster)
+                art_regenerated = True
+            except Exception as e:
+                print(f"❌ Card art regen failed for {monster.name} - the old face stands: {e}")
+
+        return success_response({
+            "monster_id": monster_id,
+            "monster_name": monster.name,
+            "monster": monster.to_dict(),
+            "evolution": evolution_row.to_dict(),
+            "narrative": narrative,
+            "new_ability": new_ability.to_dict() if new_ability else None,
+            "reworded_abilities": ability_applied['reworded'],
+            "art_regenerated": art_regenerated
+        })
+
+    except Exception as e:
+        return error_response({
+            'failed_at': step,
+            'completed_work': progress_data,
+            'error': str(e)
+        })
+
+
+@register_workflow()
 def generate_ability(context: dict, on_update: Callable[[str, Dict[str, Any]], None]) -> dict:
     """Generate detailed monster using AI with progress updates"""
 

@@ -242,7 +242,7 @@ One permanent remembered moment in a monster's life (table `monster_memories`).
   "id": number,
   "monster_id": number,
   "run_id": number|null,             // the dungeon run it happened in
-  "kind": "was_defeated"|"defeated_party"|"joined_party"|"yielded_to_party"|"fled_from_party"|"spared_party"|"let_party_pass"|"gave_reward"|"punished_party"|"talked_with_party"|"avoided"|"camp"|"growth"|"lesson"|"returned"|"run_complete"|"confided"|"grew_closer"|"shared_lore"|"learned_fact"|"voiced_wish",
+  "kind": "was_defeated"|"defeated_party"|"joined_party"|"yielded_to_party"|"fled_from_party"|"spared_party"|"let_party_pass"|"gave_reward"|"punished_party"|"talked_with_party"|"avoided"|"camp"|"growth"|"lesson"|"returned"|"evolved"|"run_complete"|"confided"|"grew_closer"|"shared_lore"|"learned_fact"|"voiced_wish",
   "content": string,                 // 1-2 past-tense sentences, prompt-ready
   "details": { "run_number?": number, "source?": string, "by?": string,
                "with?": string, "location?": string, "stat?": string,
@@ -254,7 +254,36 @@ One permanent remembered moment in a monster's life (table `monster_memories`).
 ```
 The last five kinds come from home-base chats (`details.source: "home_chat"`,
 `message_span` = the chat_messages ids the extraction reviewed) — see
-[Chat](chat.md).
+[Chat](chat.md). `evolved` memories are deliberately INVISIBLE to the
+growth/return lifetime caps (`growth_total_pct` only sums `growth`/`returned`).
+
+## EvolutionObject
+One completed evolution ceremony (table `monster_evolutions`) — the lineage
+record of the form the monster left behind. The monster row itself mutates in
+place (same id); art files are never deleted, so `old_card_art_path` stays
+servable via `GET /monsters/card-art/:path`.
+```json
+{
+  "id": number,
+  "monster_id": number,
+  "stage": number,                   // 1 for the first evolution, counting up
+  "guidance": string|null,           // the player's whisper, if any
+  "narrative": string|null,          // the streamed ceremony text
+  "old_name": string,
+  "old_species": string,
+  "old_rarity": string|null,
+  "new_name": string,
+  "new_species": string,
+  "new_rarity": string,
+  "old_stats": { "max_health": number, "attack": number,
+                 "defense": number, "speed": number },
+  "applied_boost_pct": number,       // code-owned: 0.25 / 0.15 / 0.10 by stage
+  "old_card_art_path": string|null,
+  "details": { "form_theme?": string, "size_class?": { "from": string, "to": string },
+               "new_ability?": string, "reworded?": string[] },
+  "created_at": string
+}
+```
 
 ## ChatMessageObject
 One line of a monster's persistent home-base thread (table `chat_messages`).
