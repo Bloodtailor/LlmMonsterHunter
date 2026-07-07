@@ -232,7 +232,8 @@ body language). `contextual_monster` template is deleted (superseded by the stag
 ## 6. Frontend
 
 - **Transformers** (`frontend/src/api/transformers/monsters.js` and the `app/transformers`
-  copy — determine during build which is live, update accordingly): pass through rarity,
+  copy — determine during build which is live, update accordingly; *resolved later: the
+  `app/` copy was dead code, deleted in Arch-M1*): pass through rarity,
   partyRole, taxonomy, classTaxonomy, ecology, persona, appearance, generationStage.
 - **MonsterCardDetails**: rarity + role badges beside the species badge; species badge shows
   `race_label`/`type_label`.
