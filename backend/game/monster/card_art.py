@@ -1,8 +1,8 @@
 # Card Art - a monster's face, generated through the gateway's image
 # pipeline. Art is a BONUS, never a blocker: when image generation is
-# disabled (or ComfyUI fails) the monster simply stays art-less - the
-# frontend fully supports that - and the workflow that wanted the art
-# carries on.
+# not configured (or the paint fails) the monster simply stays art-less
+# - the frontend fully supports that - and the workflow that wanted the
+# art carries on.
 
 from backend.ai import gateway
 from backend.core.events import emit_monster_art_ready
@@ -11,9 +11,9 @@ from backend.models.monster import Monster
 
 def generate_card_art(monster: Monster):
     """Generate and connect card art (quietly skipped when disabled)"""
-    from backend.game.utils import IMAGE_GENERATION_ENABLED
+    from backend.game.utils import is_image_generation_enabled
 
-    if not IMAGE_GENERATION_ENABLED:
+    if not is_image_generation_enabled():
         return None
 
     try:
@@ -22,7 +22,7 @@ def generate_card_art(monster: Monster):
         image_result = gateway.image_generation_request(
             prompt_text=prompt_text,
             prompt_type="monster_card_art",
-            prompt_name="monster_generation",
+            prompt_name="card_art",
         )
 
         image_path = image_result.get('image_path')

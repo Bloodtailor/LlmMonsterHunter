@@ -89,7 +89,7 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
     try:
         from backend.game.chat.generator import wait_for_streamed_text
         from backend.game.monster import evolution
-        from backend.game.utils import IMAGE_GENERATION_ENABLED
+        from backend.game.utils import is_image_generation_enabled
         from backend.models.monster import Monster
 
         # Step 0 - validate keys and eligibility (re-checked here: the
@@ -212,7 +212,7 @@ def evolve_monster(context: dict, on_update: Callable[[str, dict[str, Any]], Non
         # its path lives in the lineage row). Prose failure skips this so
         # the art never mismatches the appearance block.
         art_regenerated = False
-        if art_worthy and IMAGE_GENERATION_ENABLED:
+        if art_worthy and is_image_generation_enabled():
             step = "regenerating_art"
             on_update(step, progress_data)
             try:

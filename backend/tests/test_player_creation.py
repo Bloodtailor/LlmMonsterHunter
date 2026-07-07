@@ -1,4 +1,4 @@
-# Player Creation Tests - OFFLINE (no LLM, no ComfyUI, test DB)
+# Player Creation Tests - OFFLINE (no LLM, no image API, test DB)
 # Exercises Ngx-M3 (docs/plans/new-game-experience.md): option sets
 # (count/length clamps, junk dropped), the staged finalize (choices are
 # LAW: wish and appearance verbatim, taxonomy normalized, code-owned

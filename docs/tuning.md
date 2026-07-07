@@ -21,9 +21,7 @@ Copy `.env.example` to `.env` and adjust. Restart the backend after changes.
 | `LLM_DISABLE_THINKING` | `true` | Prefill an empty `<think>` block so reasoning models answer directly |
 | `LLM_DEFAULT_MAX_TOKENS` | `256` | Response length cap per generation |
 | `LLM_DEFAULT_TEMPERATURE` | `0.8` | Sampling temperature (also `_TOP_P` `0.9`, `_TOP_K` `40`, `_REPEAT_PENALTY` `1.1`, `_SEED` `-1`, and the rest of the `LLM_DEFAULT_*` family — see `backend/core/config/llm_config.py`) |
-| `ENABLE_IMAGE_GENERATION` | `false` | Master switch for ComfyUI card art |
-| `COMFYUI_SERVER_URL` | `http://127.0.0.1:8188` | ComfyUI endpoint (also `COMFYUI_TIMEOUT` `300`) |
-| `COMFYUI_CHECKPOINT` | DreamShaper XL Turbo | Image model; also `_STEPS` `8`, `_CFG` `2.0`, `_WIDTH` `896`, `_HEIGHT` `1254`, `_SAMPLER`, `_SCHEDULER`, `_NEGATIVE_PROMPT` — see `backend/core/config/comfyui_config.py` |
+| `IMAGE_TIMEOUT` | `120` | Seconds per Gemini image call. Everything else about image generation is player-configured in-game (Settings → Images: key, model, enabled) or code-owned in `backend/core/config/image_config.py` (house style, avoid instruction, aspect `2:3`, resolution `1K`, default model Nano Banana 2) |
 | `DB_NAME` / `DB_NAME_TEST` | `monster_hunter_game` / `monster_hunter_game_test` | Game database / offline-suite database (test DB auto-created) |
 | `FLASK_DEBUG` | `True` | Debug mode; also gates the in-app test-runner routes |
 

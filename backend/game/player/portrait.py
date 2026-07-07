@@ -5,7 +5,7 @@
 # touches monster.card_art_path until an explicit selection - and art
 # is a bonus, never a blocker: skipping is always allowed.
 #
-# Uploads land beside generated art in the ComfyUI outputs tree
+# Uploads land beside generated art in the image outputs tree
 # (outputs/player_uploads/) so the existing card-art serving route and
 # every cardArt-consuming component work unchanged.
 
@@ -33,8 +33,10 @@ UPLOAD_SIGNATURES = {
 
 
 def outputs_dir() -> Path:
-    """The ComfyUI outputs root (same tree the serving route reads)"""
-    return Path(__file__).parent.parent.parent / 'ai' / 'comfyui' / 'outputs'
+    """The image outputs root (same tree the serving route reads)"""
+    from backend.ai.image.paths import outputs_root
+
+    return outputs_root()
 
 
 def compose_portrait_prompt(monster: Monster, description: str) -> str:
@@ -59,7 +61,7 @@ def generate_portrait_candidate(monster: Monster, description: str) -> str:
     result = gateway.image_generation_request(
         prompt_text=compose_portrait_prompt(monster, description),
         prompt_type=GENERATED_FOLDER,  # the processor files images by prompt_type
-        prompt_name='monster_generation',  # the ComfyUI graph, shared with card art
+        prompt_name='card_art',  # the shared log label for painted art
     )
     image_path = result.get('image_path')
     if not image_path:

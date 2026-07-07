@@ -74,12 +74,14 @@ def create_character(payload: dict) -> dict[str, Any]:
 def generate_portrait(description: str = None) -> dict[str, Any]:
     """Queue ONE portrait candidate paint"""
     from backend.game.player.manager import player_exists
-    from backend.game.utils import IMAGE_GENERATION_ENABLED
+    from backend.game.utils import is_image_generation_enabled
 
     if not player_exists():
         return error_response('No player character exists yet')
-    if not IMAGE_GENERATION_ENABLED:
-        return error_response('Image generation is disabled - upload an image instead, or skip')
+    if not is_image_generation_enabled():
+        return error_response(
+            'Image generation is not configured - upload an image instead, or skip'
+        )
 
     try:
         success, workflow_id = request_workflow(

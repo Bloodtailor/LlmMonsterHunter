@@ -20,7 +20,7 @@ from flask import Flask
 
 def build_minimal_app():
     """A Flask app with ONLY the database configured - no LLM load,
-    no AI queue, no ComfyUI check (reset_db.py pattern)"""
+    no AI queue, no image-provider check (reset_db.py pattern)"""
 
     from backend.models.core import init_db
 
