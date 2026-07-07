@@ -94,9 +94,21 @@ def get_history_page(monster_id: int, limit: int = None, before_id: int = None) 
 # ===== PROMPT CONTEXT =====
 
 
-def speaker_display_name(role: str, monster_name: str) -> str:
-    """How a stored chat role reads inside a prompt line"""
-    return 'The adventurer' if role == 'player' else monster_name
+def chat_player_name() -> str:
+    """The name the player's lines wear in prompts: their character's
+    name once one exists, the old generic before that"""
+    from backend.game.player.manager import get_player_monster
+
+    player = get_player_monster()
+    return player.name if player else 'The adventurer'
+
+
+def speaker_display_name(role: str, monster_name: str, player_name: str = None) -> str:
+    """How a stored chat role reads inside a prompt line (callers in
+    loops resolve player_name ONCE via chat_player_name and pass it)"""
+    if role == 'player':
+        return player_name or chat_player_name()
+    return monster_name
 
 
 def build_chat_history_block(monster_id: int, monster_name: str) -> str:
@@ -115,7 +127,8 @@ def build_chat_history_block(monster_id: int, monster_name: str) -> str:
     ]
     covered_id = ChatSummary.last_through_id(monster_id)
     recent = ChatMessage.after_id(monster_id, covered_id)
-    lines = [f'{speaker_display_name(m.role, monster_name)}: "{m.text}"' for m in recent]
+    player_name = chat_player_name()
+    lines = [f'{speaker_display_name(m.role, monster_name, player_name)}: "{m.text}"' for m in recent]
     return compose_history(
         'chat_history',
         summaries,

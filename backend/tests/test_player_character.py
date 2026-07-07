@@ -72,6 +72,9 @@ def main():
             check('no pointer reads as no player', player_manager.get_player_monster_id() is None)
             check('no player exists', not player_manager.player_exists())
             check('nothing is the player', not player_manager.is_player_monster(1))
+            from backend.game.chat.manager import chat_player_name as absent_name
+
+            check('chat keeps the old generic name', absent_name() == 'The adventurer')
             check('the companion cap stays at 4', state_manager.companion_cap() == 4)
             check(
                 'an empty party is not dungeon-ready',
@@ -176,6 +179,24 @@ def main():
             check('the altar refuses the player', evolution_error is not None, str(evolution_error))
             result = game_state_service.add_following_monster(player.id)
             check('the player cannot follow themself', result['success'] is False)
+
+            # ===== chat speaks AS the player =====
+            print('\n-- chat as the player --')
+            from backend.game.chat.manager import chat_player_name, speaker_display_name
+
+            check('the chat knows the player by name', chat_player_name() == 'The Adventurer')
+            check(
+                "player lines wear the character's name",
+                speaker_display_name('player', companion.name) == 'The Adventurer',
+            )
+            check(
+                'monster lines still wear their own',
+                speaker_display_name('monster', companion.name) == companion.name,
+            )
+            check(
+                'loop callers can pass the name once',
+                speaker_display_name('player', companion.name, 'Cached Name') == 'Cached Name',
+            )
 
             # ===== the returning pool =====
             print('\n-- the returning pool --')

@@ -1,6 +1,12 @@
 # New Game Experience — Wipe + Player Character — Plan
 
-**Status:** IN PROGRESS (July 2026) — M1-M4 landed; M5 (chat-as-player + docs) next.
+**Status:** IMPLEMENTED (July 2026) — all five milestones landed. The
+creation flow was soaked end-to-end on the real model + ComfyUI against
+the test DB (New Game → wizard with mixed picked/typed answers → forge
+→ paint + upload + select → personalized opening). Still on Aaron's
+soak list: the full guided first run as a created character, a
+home-base chat where the monster uses the character's name, and a
+battle with the player fighting as a commanded ally.
 **Branch:** `feature/new-game-experience` — one milestone commit per milestone, prefix `Ngx-M#`.
 
 Today "New Game" wipes nothing (game-loop-v1 locked decision #1: the
@@ -88,7 +94,7 @@ handlers; navigation `character-creation` between Title's New Game and
 `first-run-opening`; sanctuary/party pin the player card with a "You"
 badge and hide follow/release/chat-with-self controls.
 
-### M5 — The world knows the player — PLANNED
+### M5 — The world knows the player — IMPLEMENTED
 Chat: `speaker_display_name` returns the player's name for role
 `player`; `home_chat_reply` + `chat_memory_extraction` gain a
 `{player_details}` block and name the player instead of "the adventurer";

@@ -146,7 +146,7 @@ backend/
   app.py, run.py, startup.py   Flask factory, runner, subsystem init
   routes/       thin HTTP wrappers (one file per domain)
   services/     validation + business rules (the trust boundary)
-  game/         monster/ dungeon/ battle/ chat/ inventory/ memory/ state/ utils/
+  game/         monster/ dungeon/ battle/ chat/ inventory/ memory/ player/ state/ utils/
   ai/           gateway.py, queue.py, llm/ (core, prompts, parser), comfyui/
   workflow/     the workflow queue + gateway
   core/         events/, config/, utils/, workflow_registry.py

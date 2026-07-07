@@ -133,13 +133,23 @@ Serves a card-art image file directly (not JSON). `:path` is the monster's
 
 ### GET /game-state
 The high-level save summary the title screen reads.
-**Success:** `{ "success": true, "first_run_complete": boolean, "following_count": number, "party_count": number, "in_dungeon": boolean }`
-`first_run_complete` gates the title screen's Continue button; New Game
-(the guided first run) is always available and wipes nothing.
+**Success:** `{ "success": true, "first_run_complete": boolean, "has_world_data": boolean, "has_player": boolean, "player_monster_id": number|null, "following_count": number, "party_count": number, "in_dungeon": boolean }`
+`first_run_complete` gates the title screen's Continue button;
+`has_world_data` drives New Game's erase-the-world confirmation.
+
+### POST /game-state/new-game
+The New Game promise: erases every game-domain table (monsters, chats,
+memories, evolutions, items, keepsakes, runs, party, globals) in one
+transaction. Developer log tables and art files on disk survive.
+Refuses while any workflow is pending or processing. The frontend
+confirms with the player BEFORE calling.
+**Success:** `{ "success": true, "message": string, "deleted_rows": { table: count } }`
+**Error (400):** `{ "success": false, "error": string }` (workflows still busy)
 
 ### POST /game-state/reset
 Clears the party, the following list, and all `global_variables` (dungeon
-and battle state). Testing/dev convenience.
+and battle state). Testing/dev convenience — `new-game` above is the
+player-facing full wipe.
 **Success:** `{ "success": true, "message": string, "game_state": GameStateObject }`
 
 ### GET /game-state/following
@@ -161,6 +171,56 @@ backend directly — see [Dungeon & Battle](dungeon-and-battle.md).
 
 ### POST /game-state/party/set
 Sets the active party from monsters that are already following you.
+The player character is filtered out quietly (always in the party
+already); what remains must fit the companion cap (3 beside a player,
+4 on a pre-character world).
 **Request:** `{ "monster_ids": number[] }`
 **Success:** `{ "success": true, "message": string, "active_party": PartyObject }`
 **Error (400):** `{ "success": false, "error": string, ... }` (e.g. party size limits, monsters not following)
+
+## Player Character (`/api/player`)
+
+The player's own character: a real monster row that is always in the
+party, chats AS the player, and is built by the character-creation
+wizard. Async endpoints answer `{ workflow_id }`; results arrive over
+SSE as `workflow.completed` events carrying the workflow result.
+
+### GET /player
+**Success:** `{ "success": true, "player": MonsterObject }`
+**Error (404):** `{ "success": false, "error": "No player character exists yet", "player": null }`
+
+### POST /player/options
+Options for ONE creation field, conditioned on the choices so far.
+**Request:** `{ "field": "kind"|"name"|"background"|"personality"|"wish"|"appearance", "choices": { field: string } }`
+**Success:** `{ "success": true, "workflow_id": number }` — the workflow
+result carries `{ field, options: string[] }`.
+
+### POST /player/create
+The finalize: the player's answers become their character (staged like
+monster generation; the wish and appearance text are kept verbatim).
+Refuses when a complete character exists; a half-built one from a
+failed attempt is discarded and rebuilt.
+**Request:** `{ "name", "kind", "background", "personality", "wish", "role", "appearance" }` (name + kind required)
+**Success:** `{ "success": true, "workflow_id": number }` — steps
+`building_identity → shaping_persona → writing_story →
+adding_first_ability → adding_second_ability`, standard `monster.*`
+events along the way.
+
+### POST /player/portrait/generate
+Paints ONE portrait candidate from the description (default: the
+character's own appearance text). The result carries `image_path` as a
+CANDIDATE — nothing becomes the portrait until selected.
+**Request:** `{ "description": string }`
+**Success:** `{ "success": true, "workflow_id": number }`
+**Error (400):** image generation disabled (uploads still work).
+
+### POST /player/portrait/select
+**Request:** `{ "image_path": string }` (must live under
+`player_card_art/` or `player_uploads/` and exist)
+**Success:** `{ "success": true, "image_path": string, "monster": MonsterObject }`
+
+### POST /player/portrait/upload
+Multipart upload (`image` file field): png/jpg/webp, max 8MB,
+magic-byte checked. Uploads auto-select as the portrait and are served
+by the card-art route like any other image.
+**Success:** `{ "success": true, "image_path": string, "monster": MonsterObject }`

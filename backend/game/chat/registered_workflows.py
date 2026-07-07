@@ -106,7 +106,7 @@ def chat_housekeeping(context: dict, on_update: Callable[[str, dict[str, Any]], 
     try:
         from backend.game.chat import manager
         from backend.game.chat.generator import extract_chat_memories
-        from backend.game.chat.manager import CHAT_SETTINGS, speaker_display_name
+        from backend.game.chat.manager import CHAT_SETTINGS, chat_player_name, speaker_display_name
         from backend.game.memory.manager import write_memory
         from backend.game.utils.rolling_summary import plan_batch, summarize_lines
         from backend.models.chat_message import ChatMessage
@@ -170,8 +170,9 @@ def chat_housekeeping(context: dict, on_update: Callable[[str, dict[str, Any]], 
             if batch_messages:
                 prior_rows = ChatSummary.for_monster(monster_id)
                 prior = prior_rows[-1].text if prior_rows else None
+                player_name = chat_player_name()
                 lines = [
-                    f'{speaker_display_name(m.role, monster.name)}: "{m.text}"'
+                    f'{speaker_display_name(m.role, monster.name, player_name)}: "{m.text}"'
                     for m in batch_messages
                 ]
                 summary_text = summarize_lines(

@@ -40,18 +40,35 @@ def build_chat_memories_block(monster_id: int) -> str:
     return build_memory_block(monster_id)
 
 
+def build_chat_player_block() -> str:
+    """WHO the monster is talking to: the player character as a compact
+    context block (chats are AS the character - the monster should know
+    the face across the fire). Pre-character worlds keep the old generic."""
+    from backend.game.monster.context_builder import build_monster_block
+    from backend.game.player.manager import get_player_monster
+
+    player = get_player_monster()
+    if player is None:
+        return 'The adventurer the party follows - no more is known of them yet.'
+    return build_monster_block(player, tier='compact')
+
+
 def queue_chat_reply(monster, player_message: str, workflow_name: str) -> int:
     """
     Queue the streamed in-character reply. Returns the generation_id the
     frontend follows for token streaming (and wait_for_streamed_text
     resolves into the final text).
     """
+    from backend.game.chat.manager import chat_player_name
+
     return build_and_stream(
         'home_chat_reply',
         workflow_name,
         {
             'monster_details': build_chat_speaker_block(monster),
             'monster_memories': build_chat_memories_block(monster.id),
+            'player_name': chat_player_name(),
+            'player_details': build_chat_player_block(),
             'last_run_status': build_last_run_status(),
             'last_run_log': build_last_run_block(),
             'chat_history': build_chat_history_block(monster.id, monster.name),
@@ -98,13 +115,15 @@ def extract_chat_memories(
     talk deserves no memory), or None when the LLM call itself failed
     (the caller must NOT advance the watermark then).
     """
-    from backend.game.chat.manager import speaker_display_name
+    from backend.game.chat.manager import chat_player_name, speaker_display_name
     from backend.game.memory.manager import get_memory_lines
     from backend.game.monster.context_builder import build_monster_block
 
     try:
+        player_name = chat_player_name()
         segment_lines = "\n".join(
-            f'{speaker_display_name(m.role, monster.name)}: "{m.text}"' for m in segment_messages
+            f'{speaker_display_name(m.role, monster.name, player_name)}: "{m.text}"'
+            for m in segment_messages
         )
         existing = get_memory_lines(monster.id, cap=8)
         result = build_and_generate(
@@ -112,6 +131,7 @@ def extract_chat_memories(
             workflow_name,
             {
                 'monster_details': build_monster_block(monster),
+                'player_name': player_name,
                 'existing_memories': "\n".join(f"- {line}" for line in existing) or "Nothing yet.",
                 'conversation_segment': segment_lines,
             },
