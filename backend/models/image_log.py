@@ -55,12 +55,15 @@ class ImageLog(BaseModel):
         return result
 
     def _check_image_exists(self) -> bool:
-        """Check if the image file actually exists on disk"""
+        """Check if the image file actually exists on disk (image_path is
+        relative to THE outputs root - never resolve it against the CWD)"""
         if not self.image_path:
             return False
 
         try:
-            return Path(self.image_path).exists()
+            from backend.ai.image.paths import outputs_root
+
+            return (outputs_root() / self.image_path).exists()
         except Exception:
             return False
 
