@@ -3,7 +3,7 @@
 // Keeps all actual option values exactly as they come from backend
 // Properly converts parameters when sending to backend
 
-import { get, post, getWithParams } from '../core/client.js';
+import { get, getWithParams } from '../core/client.js';
 import { transformGenerationLogs } from '../transformers/generation.js';
 
 // ===== GENERATION LOGS (UNIFIED SYSTEM) =====
@@ -73,7 +73,9 @@ export async function getGenerationLogOptions() {
 }
 
 getGenerationLogOptions.defaults = {
-  filterOptions: [],
+  // filterOptions is an object keyed by filter name (matching the backend's
+  // filter_options shape) — consumers iterate it with Object.keys/Object.entries
+  filterOptions: {},
   sortOptions: {
     fields: [],
     orders: [],
