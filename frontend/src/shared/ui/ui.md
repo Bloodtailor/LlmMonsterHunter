@@ -599,6 +599,7 @@ export const TABLE_SIZES = {
  * @param {Function} props.renderExpandedContent - Function to render expanded content: (row) => ReactElement
  * @param {string} props.expandIconColumn - Column key to show expand icon (default: first column)
  * @param {string} props.emptyMessage - Message when no data (default: 'No data available')
+ * @param {boolean} props.loading - Show a loading spinner row instead of body rows (default: false)
  * @param {string} props.size - Table size (sm, md, lg) (default: 'md')
  * @param {boolean} props.striped - Alternating row colors (default: false)
  * @param {boolean} props.bordered - Show borders (default: false)

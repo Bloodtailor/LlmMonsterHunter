@@ -3,14 +3,8 @@
 // Works seamlessly with existing pagination and maintains responsive behavior
 
 import React from 'react';
-import {
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableHeaderCell,
-  TableCell,
-} from '../Table/index.js';
+import { TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from '../Table/index.js';
+import { LoadingSpinner } from '../LoadingStates/index.js';
 import ExpandableTableRow from './ExpandableTableRow.js';
 import './expandableTable.css';
 
@@ -25,6 +19,7 @@ import './expandableTable.css';
  * @param {Function} props.renderExpandedContent - Function to render expanded content: (row) => ReactElement
  * @param {string} props.expandIconColumn - Column key to show expand icon (default: first column)
  * @param {string} props.emptyMessage - Message when no data (default: 'No data available')
+ * @param {boolean} props.loading - Show a loading spinner row instead of body rows (default: false)
  * @param {string} props.size - Table size (sm, md, lg) (default: 'md')
  * @param {boolean} props.striped - Alternating row colors (default: false)
  * @param {boolean} props.bordered - Show borders (default: false)
@@ -44,6 +39,7 @@ function ExpandableTable({
   // Optional configuration
   expandIconColumn = null, // Auto-detect first column if null
   emptyMessage = 'No data available',
+  loading = false,
 
   // Table styling (same as existing Table)
   size = 'md',
@@ -85,33 +81,45 @@ function ExpandableTable({
     .filter(Boolean)
     .join(' ');
 
-  // Handle empty state
-  if (data.length === 0) {
-    return (
-      <div className="table-container">
-        <table className={tableClasses} {...rest}>
-          <TableHead>
-            <TableRow>
-              {columns.map((col, index) => (
-                <TableHeaderCell
-                  key={col.key || index}
-                  style={col.width ? { width: col.width } : undefined}
-                >
-                  {col.header}
-                </TableHeaderCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={columns.length} className="table-empty" truncate={false}>
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </table>
-      </div>
+  // Body content: loading spinner row, empty-message row, or the data rows.
+  // WHY status rows instead of swapping out the whole table: the header keeps
+  // its shape (same treatment Table gives emptyMessage), so the layout doesn't
+  // jump when rows arrive.
+  let bodyContent;
+  if (loading) {
+    bodyContent = (
+      <TableRow>
+        <TableCell
+          colSpan={columns.length}
+          className="table-empty expandable-table-loading-cell"
+          truncate={false}
+        >
+          <LoadingSpinner size="sm" ariaLabel="Loading rows" />
+          Loading...
+        </TableCell>
+      </TableRow>
     );
+  } else if (data.length === 0) {
+    bodyContent = (
+      <TableRow>
+        <TableCell colSpan={columns.length} className="table-empty" truncate={false}>
+          {emptyMessage}
+        </TableCell>
+      </TableRow>
+    );
+  } else {
+    bodyContent = data.map((row, rowIndex) => (
+      <ExpandableTableRow
+        key={row.id || rowIndex}
+        row={row}
+        rowIndex={rowIndex}
+        columns={columns}
+        expandableRows={expandableRows}
+        renderExpandedContent={renderExpandedContent}
+        iconColumnKey={iconColumnKey}
+        animateExpansion={animateExpansion}
+      />
+    ));
   }
 
   return (
@@ -131,21 +139,7 @@ function ExpandableTable({
           </TableRow>
         </TableHead>
 
-        {/* Table Body with Expandable Rows */}
-        <TableBody>
-          {data.map((row, rowIndex) => (
-            <ExpandableTableRow
-              key={row.id || rowIndex}
-              row={row}
-              rowIndex={rowIndex}
-              columns={columns}
-              expandableRows={expandableRows}
-              renderExpandedContent={renderExpandedContent}
-              iconColumnKey={iconColumnKey}
-              animateExpansion={animateExpansion}
-            />
-          ))}
-        </TableBody>
+        <TableBody>{bodyContent}</TableBody>
       </table>
     </div>
   );
