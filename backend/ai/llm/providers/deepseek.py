@@ -67,12 +67,13 @@ def generate_streaming(
     accumulated_text = ''
     content_chunk_count = 0
     usage = None
+    stream_completed = False
 
     if callback:
         callback('')
 
-    # A dropped connection mid-stream keeps whatever arrived (mirroring
-    # the local provider's stream loop) - an empty result still fails
+    # Collect the stream; if it ends without [DONE]/finish_reason the
+    # result is discarded below - a half answer must not pass as whole
     try:
         for line in response.iter_lines(decode_unicode=True):
             if not line or not line.startswith('data:'):
@@ -80,6 +81,7 @@ def generate_streaming(
 
             payload = line[len('data:') :].strip()
             if payload == '[DONE]':
+                stream_completed = True
                 break
 
             try:
@@ -95,6 +97,9 @@ def generate_streaming(
             choices = chunk.get('choices') or []
             if not choices:
                 continue
+
+            if choices[0].get('finish_reason'):
+                stream_completed = True
 
             delta = choices[0].get('delta') or {}
 
@@ -113,6 +118,14 @@ def generate_streaming(
 
     if not accumulated_text:
         return _failure('DeepSeek returned no text', start_time)
+
+    if not stream_completed:
+        # Half an answer presented as whole would poison logs and
+        # chronicles - fail instead, so callers use their deterministic
+        # fallbacks
+        return _failure(
+            'DeepSeek stream ended early - connection dropped mid-generation', start_time
+        )
 
     if callback:
         callback(accumulated_text)

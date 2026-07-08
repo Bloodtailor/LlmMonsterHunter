@@ -280,7 +280,9 @@ def resolve_action(
         narration = str(result.get('narration') or fallback_narration)
         impact = str(result.get('impact', '')).strip().lower()
         if impact not in IMPACT_STEPS:
-            impact = 'light'
+            # A garbled impact word must never turn a heal into a blow
+            # ('heal', 'heal_minor'... land as heal_light; all else is none)
+            impact = 'heal_light' if impact.startswith('heal') else 'none'
 
         return {
             'narration': narration,

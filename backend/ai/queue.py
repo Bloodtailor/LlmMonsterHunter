@@ -2,6 +2,7 @@
 # Handles both LLM text generation and Gemini image generation
 # Uses normalized generation_log database structure with unified queue events
 import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -200,9 +201,18 @@ class AIGenerationQueue:
         """Process a queue item by delegating to appropriate processor"""
 
         try:
-            # Create streaming callback that emits events
+            # Create streaming callback that emits events. Each update
+            # re-sends the FULL accumulated text, so unthrottled per-token
+            # emits grow O(n^2) over SSE - cap the emit rate; the completed
+            # event always carries the final text regardless
+            last_emit = [0.0]
+
             def on_stream(streaming_data):
                 if item.generation_type == 'llm':
+                    now = time.time()
+                    if now - last_emit[0] < 0.1:
+                        return
+                    last_emit[0] = now
                     # For LLM, partial_data is partial text
                     emit_llm_generation_update(
                         generation_id=item.generation_id,

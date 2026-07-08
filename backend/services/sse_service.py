@@ -4,6 +4,7 @@
 
 import threading
 import time
+import uuid
 from queue import Empty, Queue
 from typing import Any, Optional
 
@@ -78,7 +79,11 @@ class SSEService:
         """
 
         if connection_id is None:
-            connection_id = f"sse_{int(time.time() * 1000)}"
+            # uuid, not a millisecond timestamp: two connections created in
+            # the same ms (React StrictMode double-mounts do this) would
+            # collide, orphaning one stream and later deleting the other's
+            # registration when the orphan disconnects
+            connection_id = f"sse_{uuid.uuid4().hex}"
 
         connection = SSEConnection(connection_id)
 
