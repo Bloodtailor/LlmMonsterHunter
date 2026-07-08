@@ -35,11 +35,73 @@ def get_following_monsters():
     return FollowingMonster.get_all_following()
 
 
-def add_following_monster(monster_id: int):
+def add_following_monster(monster_id: int) -> dict[str, Any]:
+    """A monster starts following the party. A NEW follower steps
+    straight into the active party while a companion seat is open (an
+    open seat never stays empty - locked to the player's request), and
+    a mid-run join arrives battle-ready.
 
-    FollowingMonster.add_follower(monster_id)
+    Returns {'newly_following': bool, 'joined_party': bool}.
+    """
+    newly_following = bool(FollowingMonster.add_follower(monster_id))
 
-    return
+    joined_party = False
+    if newly_following:
+        joined_party = _seat_follower_if_room(monster_id)
+        _emit_party_update(monster_id, joined_party)
+
+    return {'newly_following': newly_following, 'joined_party': joined_party}
+
+
+def _seat_follower_if_room(monster_id: int) -> bool:
+    """Seat a new follower while there is room. The player character is
+    never a companion row, and a full party stays untouched."""
+    from backend.game.player.manager import is_player_monster
+
+    if is_player_monster(monster_id):
+        return False
+    if ActiveParty.is_in_active_party(monster_id):
+        return False
+    if ActiveParty.get_party_count() >= companion_cap():
+        return False
+    if not ActiveParty.add_to_party(monster_id):
+        return False
+
+    # A mid-run join steps in battle-ready: fresh condition, full
+    # stamina/mana (it just walked in - it has not fought this run)
+    from backend.game.dungeon import manager as dungeon
+
+    if dungeon.is_in_dungeon():
+        from backend.game.battle.constants import full_resources
+
+        conditions = dungeon.get_party_conditions()
+        if str(monster_id) not in conditions:
+            conditions[str(monster_id)] = 'fresh'
+            dungeon.set_party_conditions(conditions)
+
+        resources = dungeon.get_party_resources()
+        if str(monster_id) not in resources:
+            resources[str(monster_id)] = full_resources()
+            dungeon.set_party_resources(resources)
+
+    return True
+
+
+def _emit_party_update(monster_id: int, joined_party: bool) -> None:
+    """Tell the frontend the roster changed (never raises - the join
+    itself must stand even when the announcement fails)"""
+    try:
+        from backend.core.events import emit_party_updated
+
+        monster = Monster.get_monster_by_id(monster_id)
+        emit_party_updated(
+            monster_id=monster_id,
+            monster_name=monster.name if monster else None,
+            joined_party=joined_party,
+            party_ids=get_party_monster_ids(),
+        )
+    except Exception as event_error:
+        print(f"❌ Party update event failed (the join stands): {event_error}")
 
 
 def remove_from_party(monster_id: int):

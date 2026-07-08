@@ -64,6 +64,14 @@ function PartyProvider({ children }) {
     if (!playerMonster) loadPlayer();
   });
 
+  // The backend reshaped the roster on its own (a recruit started
+  // following and may have auto-seated into an open party slot):
+  // refetch both lists so every party panel shows the newcomer
+  useEventSubscription('partyUpdated', () => {
+    followingHook.getFollowingMonsters();
+    partyHook.getActiveParty();
+  });
+
   // New Game erased the world: empty every roster NOW (no refresh
   // needed), then refetch so the hooks' own state agrees with the
   // empty world

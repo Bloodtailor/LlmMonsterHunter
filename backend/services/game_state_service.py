@@ -68,14 +68,16 @@ def add_following_monster(monster_id: int) -> dict[str, Any]:
                 following_count=FollowingMonster.get_following_count(),
             )
 
-        # Business logic
-        state_manager.add_following_monster(monster_id)
+        # Business logic (a new follower auto-seats into any open slot)
+        followed = state_manager.add_following_monster(monster_id)
 
+        joined_note = ' and joined the party' if followed['joined_party'] else ''
         return success_response(
             {
-                'message': f'{monster.name} is now following you',
+                'message': f'{monster.name} is now following you{joined_note}',
                 'monster': monster.to_dict(),
                 'following_count': FollowingMonster.get_following_count(),
+                'joined_party': followed['joined_party'],
             }
         )
 

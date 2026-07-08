@@ -42,7 +42,7 @@ from .event_registry import (
 )
 
 # Import game-state domain event emission functions
-from .game_state_events import emit_game_world_erased
+from .game_state_events import emit_game_world_erased, emit_party_updated
 
 # Import inventory domain event emission functions
 from .inventory_events import (
@@ -108,6 +108,7 @@ __all__ = [
     'emit_dungeon_monster_revealed',
     # Game-State Domain Event Emission Functions
     'emit_game_world_erased',
+    'emit_party_updated',
     # Inventory Domain Event Emission Functions
     'emit_inventory_item_added',
     'emit_inventory_item_updated',
