@@ -2,6 +2,9 @@
 backend/ai/comfyui/outputs/**
 !backend/ai/comfyui/outputs/.gitkeep
 
+backend/ai/image/outputs/**
+!backend/ai/image/outputs/.gitkeep
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
