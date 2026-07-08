@@ -44,7 +44,6 @@ export const API_ENDPOINTS = {
   // Monster card art
   MONSTER_GENERATE_CARD_ART: (id) => `/api/monsters/${id}/card-art`,
   MONSTER_GET_CARD_ART: (id) => `/api/monsters/${id}/card-art`,
-  MONSTER_CARD_ART_FILE: (path) => `/api/monsters/card-art/${path}`,
 
   // ===== GAME STATE MANAGEMENT =====
   GAME_STATE: '/api/game-state',
