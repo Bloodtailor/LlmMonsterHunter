@@ -21,6 +21,11 @@ links to the per-domain files.
   the CRA dev server's proxy (`frontend/package.json` `"proxy"`) forwards
   them to `:5000`. Everything stays same-origin on any dev-server port, so
   the backend serves no CORS headers.
+- Production: the frontend uses `REACT_APP_API_URL` (baked in at build
+  time). Because the backend no longer ships CORS headers, a production
+  deploy that puts the API on a **different origin** than the frontend
+  would be blocked by the browser — serve both from the same origin
+  (reverse proxy), or re-add cross-origin headers for that API host.
 
 ## Standard response format
 Every JSON endpoint returns an envelope:
