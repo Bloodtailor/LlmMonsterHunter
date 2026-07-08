@@ -143,6 +143,16 @@
   margin: var(--spacing-sm);
 }
 
+/* ===== LOADING STATE ===== */
+
+/* Spinner + label sit side by side inside the status row; .table-empty
+ * (table.css) already supplies the centered dim-italic status treatment. */
+.expandable-table-loading-cell .cell-content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
 /* ===== SIZE VARIATIONS ===== */
 
 .expandable-table-sm .expand-icon {

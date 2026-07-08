@@ -244,7 +244,7 @@ function AiLogTableView({
             data={logs}
             expandableRows={expandableRows}
             renderExpandedContent={renderExpandedContent}
-            emptyMessage={isLoading ? 'Loading...' : 'No logs found'}
+            emptyMessage="No logs found"
             size="sm"
             striped
             hover
