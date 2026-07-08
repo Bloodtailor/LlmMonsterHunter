@@ -124,7 +124,7 @@
   "goal_check": {
     "description": "THE GOAL REFEREE: did what just happened touch the run's goal? One word: no / progress / complete",
     "max_tokens": 250,
-    "temperature": 0.6,
+    "temperature": 0.2,
     "parser": {
       "type": "json",
       "parser_name": "basic_parser",

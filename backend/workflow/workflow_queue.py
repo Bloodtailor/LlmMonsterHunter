@@ -4,7 +4,7 @@
 
 import threading
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from queue import Empty, Queue
 from typing import Any, Optional
@@ -22,6 +22,10 @@ from backend.models.game_workflow import GameWorkflow
 
 _global_game_queue = None
 _game_queue_lock = threading.Lock()
+
+# Finished workflows linger for status polls, then get pruned - a long
+# session must not hold every workflow's result in memory forever
+PRUNE_FINISHED_AFTER_SECONDS = 900
 
 
 class WorkflowStatus(Enum):
@@ -109,6 +113,8 @@ class WorkflowQueue:
             int: Workflow ID if successful, None if failed
         """
 
+        self._prune_finished()
+
         try:
             # Create workflow database record
             workflow = GameWorkflow.create_workflow(workflow_type, context, priority)
@@ -141,6 +147,20 @@ class WorkflowQueue:
         except Exception as e:
             print_error(f"Error adding workflow {workflow_type}: {e}")
             return None
+
+    def _prune_finished(self):
+        """Drop finished items old enough that no waiter can still want them"""
+        cutoff = datetime.utcnow() - timedelta(seconds=PRUNE_FINISHED_AFTER_SECONDS)
+        with self._lock:
+            stale = [
+                workflow_id
+                for workflow_id, item in self._items.items()
+                if item.status in (WorkflowStatus.COMPLETED, WorkflowStatus.FAILED)
+                and item.completed_at
+                and item.completed_at < cutoff
+            ]
+            for workflow_id in stale:
+                del self._items[workflow_id]
 
     def get_workflow_status(self, workflow_id: int) -> Optional[dict[str, Any]]:
         """Get status of a specific workflow"""

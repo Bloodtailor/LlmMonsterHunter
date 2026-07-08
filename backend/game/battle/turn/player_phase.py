@@ -114,11 +114,12 @@ def _resolve_player_turn(ctx: TurnContext, context: dict):
                 None,
             )
 
-        # A custom action that actually happened costs something -
-        # referee's word first, light exertion otherwise
+        # A custom action costs something even when it fails - the
+        # referee's word first, light exertion otherwise (free failed
+        # attempts would reward probing the referee with wild ideas)
         stamina_delta = result.get('stamina_delta')
         mana_delta = result.get('mana_delta')
-        if stamina_delta is None and mana_delta is None and result['possible']:
+        if stamina_delta is None and mana_delta is None:
             stamina_delta, mana_delta = 'minor', None
         ctx.apply_resource_deltas(
             'allies', actor_id, impacted_side, impacted_id, stamina_delta, mana_delta

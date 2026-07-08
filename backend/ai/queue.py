@@ -2,8 +2,9 @@
 # Handles both LLM text generation and Gemini image generation
 # Uses normalized generation_log database structure with unified queue events
 import threading
+import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from queue import Empty, Queue
 from typing import Any, Optional
@@ -28,6 +29,11 @@ from backend.models.generation_log import GenerationLog
 
 _global_queue = None
 _queue_lock = threading.Lock()
+
+# Finished items linger for status polls (the gateway's waiter polls up
+# to 600s), then get pruned - a long session must not hold every
+# generation's result text in memory forever
+PRUNE_FINISHED_AFTER_SECONDS = 900
 
 
 class QueueItemStatus(Enum):
@@ -110,6 +116,8 @@ class AIGenerationQueue:
             bool: True if added successfully
         """
 
+        self._prune_finished()
+
         try:
             # Get generation log entry (service layer already validated it exists)
             log_entry = GenerationLog.query.get(generation_id)
@@ -151,6 +159,20 @@ class AIGenerationQueue:
 
         except Exception:
             return False
+
+    def _prune_finished(self):
+        """Drop finished items old enough that no waiter can still want them"""
+        cutoff = datetime.utcnow() - timedelta(seconds=PRUNE_FINISHED_AFTER_SECONDS)
+        with self._lock:
+            stale = [
+                gen_id
+                for gen_id, item in self._items.items()
+                if item.status in (QueueItemStatus.COMPLETED, QueueItemStatus.FAILED)
+                and item.completed_at
+                and item.completed_at < cutoff
+            ]
+            for gen_id in stale:
+                del self._items[gen_id]
 
     def get_request_status(self, generation_id: int) -> Optional[dict[str, Any]]:
         """Get queue status for a specific generation_id"""
@@ -200,9 +222,18 @@ class AIGenerationQueue:
         """Process a queue item by delegating to appropriate processor"""
 
         try:
-            # Create streaming callback that emits events
+            # Create streaming callback that emits events. Each update
+            # re-sends the FULL accumulated text, so unthrottled per-token
+            # emits grow O(n^2) over SSE - cap the emit rate; the completed
+            # event always carries the final text regardless
+            last_emit = [0.0]
+
             def on_stream(streaming_data):
                 if item.generation_type == 'llm':
+                    now = time.time()
+                    if now - last_emit[0] < 0.1:
+                        return
+                    last_emit[0] = now
                     # For LLM, partial_data is partial text
                     emit_llm_generation_update(
                         generation_id=item.generation_id,

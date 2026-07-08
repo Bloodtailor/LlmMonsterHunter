@@ -315,7 +315,9 @@ def derive_outcome(state: dict[str, Any]) -> str:
         m.get('condition') == INCAPACITATED or m.get('fled') for m in enemies.values()
     ):
         return 'victory'
-    if allies and all(m.get('condition') == INCAPACITATED for m in allies.values()):
+    # An empty ally side is a defeat, not 'unresolved' - otherwise the
+    # advance loop would exit outcome-less and finish_battle would raise
+    if not allies or all(m.get('condition') == INCAPACITATED for m in allies.values()):
         return 'defeat'
     return 'unresolved'
 

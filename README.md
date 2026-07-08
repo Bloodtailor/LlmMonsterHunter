@@ -53,7 +53,7 @@ All core mechanics are implemented and playable. Each initiative below has a ful
 | [Settings + DeepSeek](docs/plans/game-settings.md) | In-game settings panel, DeepSeek cloud provider with live model discovery and exact token usage |
 | [Cloud generation](docs/plans/cloud-generation.md) | 1M-token context floor (absolute token caps, 70% ceiling), ComfyUI → Gemini image API, reference-image evolution repaints, Images settings section |
 
-**What's next:** living on the cloud stack — tuning prompt budgets and art style in real play, then new gameplay initiatives on top of it.
+**What's next:** living on the cloud stack — tuning prompt budgets and art style in real play — alongside a [codebase health pass](docs/plans/codebase-health.md) (retiring the file-size grandfather list, consolidating the dev/demo surfaces). The gameplay direction after that is sketched in the [roadmap](docs/roadmap.md): monster requests, nemesis arcs, party bonds, regions.
 
 ![Monster Sanctuary](docs/assets/images/monster_sanctuary.png)
 

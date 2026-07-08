@@ -200,7 +200,13 @@ def _wait_for_completion(
         status = queue.get_request_status(generation_id)
 
         if not status:
-            break
+            # Pruning keeps finished items well past this waiter's timeout,
+            # so a vanished record is a real anomaly - name it honestly
+            # instead of reporting a fake timeout
+            raise Exception(
+                f'{generation_type.upper()} generation {generation_id} '
+                'record vanished while waiting for completion'
+            )
 
         if status['status'] == 'completed':
             result = status['result']
