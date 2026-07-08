@@ -27,8 +27,20 @@ export function useGenerationLogs(options = {}) {
   const logsApi = useAsyncState(generationApi.getGenerationLogs);
   const optionsApi = useAsyncState(generationApi.getGenerationLogOptions);
 
+  // Destructured because effects/callbacks below depend on these functions:
+  // useAsyncState keeps execute referentially stable, and depending on it
+  // directly (instead of on the whole logsApi/optionsApi object, which is
+  // rebuilt every render) is what lets the dependency arrays stay honest.
+  const { execute: fetchLogs } = logsApi;
+  const { execute: fetchOptions } = optionsApi;
+
   // ===== SIMPLE STATE MANAGEMENT =====
-  const [filters, setFilters] = useState({});
+  // filters starts as null, NOT {} — "filter names unknown until options
+  // arrive" must be distinguishable from "initialized", or the init effect
+  // below could re-fire forever (that exact loop used to crash this hook
+  // with "Maximum update depth exceeded"). Consumers never see the null:
+  // the return block substitutes {}.
+  const [filters, setFilters] = useState(null);
   const [sortValues, setSortValues] = useState({
     field: 'id',
     order: 'desc',
@@ -42,22 +54,34 @@ export function useGenerationLogs(options = {}) {
     initialPage: 1,
   });
 
+  // Only these pieces of pagination participate in dependency arrays — the
+  // pagination object itself is rebuilt every render, so depending on it
+  // would recreate every callback on every render.
+  const { currentOffset, firstPage, setLimit: setPaginationLimit } = pagination;
+
   // ===== AUTO-LOAD OPTIONS AND INITIALIZE FILTERS =====
   useEffect(() => {
-    optionsApi.execute();
-  }, [optionsApi.execute]);
+    fetchOptions();
+  }, [fetchOptions]);
 
   // Initialize filters when options load (completely dynamic!)
-  // This makes the hook work with ANY backend that provides filterOptions
+  // This makes the hook work with ANY backend that provides filterOptions.
+  // Gated on isSuccess rather than on the data: before the fetch resolves,
+  // data holds placeholder defaults that must not be mistaken for real
+  // options. The functional update returns the existing state untouched once
+  // initialized, so this effect cannot re-trigger itself.
   useEffect(() => {
-    if (optionsApi.data.filterOptions && Object.keys(filters).length === 0) {
+    if (!optionsApi.isSuccess) return;
+    const loadedFilterOptions = optionsApi.data.filterOptions || {};
+    setFilters((currentFilters) => {
+      if (currentFilters !== null) return currentFilters;
       const initialFilters = {};
-      Object.keys(optionsApi.data.filterOptions).forEach((filterName) => {
+      Object.keys(loadedFilterOptions).forEach((filterName) => {
         initialFilters[filterName] = 'all';
       });
-      setFilters(initialFilters);
-    }
-  }, [optionsApi.data.filterOptions, filters]);
+      return initialFilters;
+    });
+  }, [optionsApi.isSuccess, optionsApi.data.filterOptions]);
 
   // ===== ENHANCED OPTIONS FOR FilterSelectGroup =====
   const filterOptions = useMemo(() => {
@@ -90,11 +114,13 @@ export function useGenerationLogs(options = {}) {
   const loadData = useCallback(() => {
     const params = {
       limit,
-      offset: pagination.currentOffset,
+      offset: currentOffset,
     };
 
     // Add non-"all" filters (completely dynamic!)
-    Object.entries(filters).forEach(([key, value]) => {
+    // filters can still be null if this is called before options load
+    // (e.g. refresh() clicked early) — treat that as "no filters"
+    Object.entries(filters ?? {}).forEach(([key, value]) => {
       if (value && value !== 'all') {
         params[key] = value;
       }
@@ -104,39 +130,40 @@ export function useGenerationLogs(options = {}) {
     params.sortBy = sortValues.field;
     params.sortOrder = sortValues.order;
 
-    logsApi.execute(params);
-  }, [logsApi.execute, limit, pagination.currentOffset, filters, sortValues]);
+    fetchLogs(params);
+  }, [fetchLogs, limit, currentOffset, filters, sortValues]);
 
-  // Auto-load when dependencies change (wait for filters to be initialized)
+  // Auto-load when dependencies change (wait for filters to be initialized,
+  // so the first fetch isn't duplicated a moment later by the filter init)
   useEffect(() => {
-    if (autoLoad && optionsApi.data.filterOptions && Object.keys(filters).length > 0) {
+    if (autoLoad && filters !== null) {
       loadData();
     }
-  }, [loadData, autoLoad, optionsApi.data.filterOptions, filters]);
+  }, [autoLoad, filters, loadData]);
 
   // ===== SIMPLE EVENT HANDLERS =====
   const handleFilterChange = useCallback(
     (fieldName, newValue, updatedValues) => {
       setFilters(updatedValues);
-      pagination.firstPage(); // Reset to first page
+      firstPage(); // Reset to first page
     },
-    [pagination],
+    [firstPage],
   );
 
   const handleSortChange = useCallback(
     (fieldName, newValue, updatedValues) => {
       setSortValues(updatedValues);
-      pagination.firstPage(); // Reset to first page
+      firstPage(); // Reset to first page
     },
-    [pagination],
+    [firstPage],
   );
 
   const handleLimitChange = useCallback(
     (newLimit) => {
       setLimit(newLimit);
-      pagination.setLimit(newLimit);
+      setPaginationLimit(newLimit);
     },
-    [pagination],
+    [setPaginationLimit],
   );
 
   const refresh = useCallback(() => {
@@ -151,9 +178,9 @@ export function useGenerationLogs(options = {}) {
         clearedFilters[filterName] = 'all';
       });
       setFilters(clearedFilters);
-      pagination.firstPage();
+      firstPage();
     }
-  }, [pagination, optionsApi.data.filterOptions]);
+  }, [optionsApi.data.filterOptions, firstPage]);
 
   return {
     // ===== DATA =====
@@ -165,7 +192,7 @@ export function useGenerationLogs(options = {}) {
     sortOptions, // Formatted for FilterSelectGroup
 
     // ===== CURRENT STATE =====
-    filters, // Current filter values
+    filters: filters ?? {}, // Current filter values (always an object for consumers)
     sortValues, // Current sort values
     limit, // Current page size
 
