@@ -3,6 +3,7 @@
 // Automatically truncates content to prevent horizontal overflow
 
 import React from 'react';
+import { Scroll } from '../Scroll/index.js';
 import './table.css';
 
 /**
@@ -29,6 +30,7 @@ import './table.css';
  * @param {boolean} props.striped - Alternating row colors
  * @param {boolean} props.bordered - Show borders
  * @param {boolean} props.hover - Hover effects on rows
+ * @param {string} props.maxHeight - Max height (CSS value like '200px'); taller content scrolls vertically with the header pinned
  * @param {string} props.emptyMessage - Message when no data
  * @param {string} props.className - Additional CSS classes
  * @param {object} props.rest - Additional table attributes
@@ -48,6 +50,7 @@ function Table({
   striped = false,
   bordered = false,
   hover = false,
+  maxHeight = null,
   className = '',
   ...rest
 }) {
@@ -63,65 +66,79 @@ function Table({
     .filter(Boolean)
     .join(' ');
 
-  // Simple API: Generate table from columns/data
-  if (columns && data !== null) {
-    return (
-      <div className="table-container">
-        <table className={tableClasses} {...rest}>
-          {/* Generate header */}
-          <TableHead>
+  // Simple API: Generate table content from columns/data
+  // Manual API: Use provided children as-is
+  const tableContent =
+    columns && data !== null ? (
+      <>
+        {/* Generate header */}
+        <TableHead>
+          <TableRow>
+            {columns.map((col, index) => (
+              <TableHeaderCell
+                key={col.key || index}
+                style={col.width ? { width: col.width } : undefined}
+              >
+                {col.header}
+              </TableHeaderCell>
+            ))}
+          </TableRow>
+        </TableHead>
+
+        {/* Generate body */}
+        <TableBody>
+          {data.length === 0 ? (
             <TableRow>
-              {columns.map((col, index) => (
-                <TableHeaderCell
-                  key={col.key || index}
-                  style={col.width ? { width: col.width } : undefined}
-                >
-                  {col.header}
-                </TableHeaderCell>
-              ))}
+              <TableCell colSpan={columns.length} className="table-empty" truncate={false}>
+                {emptyMessage}
+              </TableCell>
             </TableRow>
-          </TableHead>
+          ) : (
+            data.map((row, rowIndex) => (
+              <TableRow key={row.id || rowIndex}>
+                {columns.map((col, colIndex) => {
+                  const value = row[col.key];
+                  const displayValue = col.render ? col.render(value, row) : value;
 
-          {/* Generate body */}
-          <TableBody>
-            {data.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="table-empty" truncate={false}>
-                  {emptyMessage}
-                </TableCell>
+                  return (
+                    <TableCell
+                      key={col.key || colIndex}
+                      truncate={col.truncate !== false}
+                      className={col.cellClass || ''}
+                    >
+                      {displayValue}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
-            ) : (
-              data.map((row, rowIndex) => (
-                <TableRow key={row.id || rowIndex}>
-                  {columns.map((col, colIndex) => {
-                    const value = row[col.key];
-                    const displayValue = col.render ? col.render(value, row) : value;
-
-                    return (
-                      <TableCell
-                        key={col.key || colIndex}
-                        truncate={col.truncate !== false}
-                        className={col.cellClass || ''}
-                      >
-                        {displayValue}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </>
+    ) : (
+      children
     );
-  }
 
-  // Manual API: Use provided children
+  const table = (
+    <table className={tableClasses} {...rest}>
+      {tableContent}
+    </table>
+  );
+
+  // WHY delegate to Scroll instead of styling overflow here: scrolling (custom
+  // scrollbars, overflow rules) is Scroll's one concept — Table only decides
+  // WHEN to scroll. The Scroll viewport sits inside .table-container so the
+  // table keeps its frame while rows scroll within it; the scroll-table
+  // content type (scroll.css) strips Scroll's text-oriented chrome.
   return (
     <div className="table-container">
-      <table className={tableClasses} {...rest}>
-        {children}
-      </table>
+      {maxHeight ? (
+        <Scroll maxHeight={maxHeight} className="scroll-table">
+          {table}
+        </Scroll>
+      ) : (
+        table
+      )}
     </div>
   );
 }
