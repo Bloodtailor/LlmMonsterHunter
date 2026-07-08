@@ -83,7 +83,7 @@ function PartyDisplay({
 
             {/* Render empty slot placeholders */}
             {emptySlots.map((_, index) => (
-              <EmptyPartySlot size={cardSize}></EmptyPartySlot>
+              <EmptyPartySlot key={`empty-${index}`} size={cardSize} />
             ))}
           </div>
         )}
