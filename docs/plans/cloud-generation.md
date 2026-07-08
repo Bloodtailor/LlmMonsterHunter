@@ -213,6 +213,9 @@ Cost sanity: NB2 at 1K ≈ $0.067/image → a heavy session (~20–30 images)
   blocks, `response_format` carrying `aspect_ratio`/`image_size`,
   image bytes in `output_image` with a `steps` fallback) rather than
   `generateContent`. The provider and its suite pin that shape.
+  Soak-found: `response_format.mime_type` accepts ONLY `image/jpeg`
+  (png is a 400), so paints are requested as JPEG and filed with the
+  extension the response declares (`.jpg` beside the ComfyUI-era PNGs).
 - **M3 (art_regenerated honesty):** evolution's `art_regenerated` flag
   now reports the actual paint result — the old code marked it true
   whenever the attempt ran, even if the paint quietly failed.

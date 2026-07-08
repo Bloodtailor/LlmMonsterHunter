@@ -140,11 +140,11 @@ def main():
                 == {'type': 'text', 'text': 'A stone beetle guarding a cavern.'},
             )
             check(
-                'card geometry rides response_format',
+                'card geometry rides response_format (jpeg: the one supported output mime)',
                 body['response_format']
                 == {
                     'type': 'image',
-                    'mime_type': 'image/png',
+                    'mime_type': 'image/jpeg',
                     'aspect_ratio': '2:3',
                     'image_size': '1K',
                 },
@@ -419,15 +419,23 @@ def main():
                     and not paths._LEGACY_OUTPUTS_DIR.exists(),
                 )
 
-                first = processor._save_image_bytes(PNG_BYTES, 'monster_card_art')
+                first = processor._save_image_bytes(PNG_BYTES, 'monster_card_art', 'image/png')
                 check(
                     'sequential numbering continues after migrated art',
                     first == 'monster_card_art/00000008.png',
                     first,
                 )
-                second = processor._save_image_bytes(PNG_BYTES, 'monster_card_art')
+                second = processor._save_image_bytes(PNG_BYTES, 'monster_card_art', 'image/jpeg')
                 check(
-                    'the counter keeps counting', second == 'monster_card_art/00000009.png', second
+                    'a jpeg answer files as .jpg and the counter spans extensions',
+                    second == 'monster_card_art/00000009.jpg',
+                    second,
+                )
+                third = processor._save_image_bytes(PNG_BYTES, 'monster_card_art', None)
+                check(
+                    'an undeclared mime falls back to .png and keeps counting',
+                    third == 'monster_card_art/00000010.png',
+                    third,
                 )
             finally:
                 paths.IMAGE_OUTPUTS_DIR = original_target

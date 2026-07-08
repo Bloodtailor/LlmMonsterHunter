@@ -64,7 +64,9 @@ def process_image_request(
         if not result['success']:
             return _fail(generation_log, generation_id, result['error'])
 
-        relative_path = _save_image_bytes(result['image_bytes'], generation_log.prompt_type)
+        relative_path = _save_image_bytes(
+            result['image_bytes'], generation_log.prompt_type, result.get('mime_type')
+        )
 
         image_log.mark_image_generated(relative_path)
         generation_log.mark_completed()
@@ -119,22 +121,35 @@ def _load_reference_bytes(reference_paths) -> list[bytes]:
     return loaded
 
 
-def _save_image_bytes(image_bytes: bytes, folder_name: str) -> str:
-    """File the PNG with sequential numbering (the ComfyUI-era scheme)"""
+# The file extension for each mime type the provider may declare
+# (Gemini answers JPEG today; the ComfyUI era left PNGs behind)
+_EXTENSION_BY_MIME = {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
+}
+
+
+def _save_image_bytes(image_bytes: bytes, folder_name: str, mime_type: str = None) -> str:
+    """File the image with sequential numbering (the ComfyUI-era scheme);
+    the extension follows what the provider actually painted"""
     from backend.ai.image.paths import outputs_root
 
     target_dir = outputs_root() / folder_name
     target_dir.mkdir(parents=True, exist_ok=True)
 
     numbers = []
-    for existing in target_dir.glob('*.png'):
+    for existing in target_dir.iterdir():
+        if not existing.is_file():
+            continue
         try:
             numbers.append(int(existing.stem))
         except ValueError:
             continue
     next_number = max(numbers) + 1 if numbers else 1
 
-    filename = f"{next_number:08d}.png"
+    extension = _EXTENSION_BY_MIME.get(mime_type, '.png')
+    filename = f"{next_number:08d}{extension}"
     (target_dir / filename).write_bytes(image_bytes)
 
     relative_path = f"{folder_name}/{filename}"

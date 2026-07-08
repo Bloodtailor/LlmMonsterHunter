@@ -1,7 +1,8 @@
 # Gemini Image Provider - the cloud painter behind the image seam
 # Speaks the Gemini Interactions API over plain requests (no SDK - the
 # deepseek.py precedent): one blocking POST per image, text + optional
-# base64 reference images in, base64 PNG out. Reference images are the
+# base64 reference images in, base64 image out (JPEG - the only output
+# mime the API accepts today). Reference images are the
 # headline capability: identity-preserving edits, which is how Monster
 # Evolution keeps a creature recognizable across its new form. The API
 # key arrives from the resolved settings at call time; the model id was
@@ -54,8 +55,11 @@ def generate_image(
         'model': model,
         'input': input_blocks,
         'response_format': {
+            # image/jpeg is the ONLY output mime the interactions API
+            # accepts (soak-verified 2026-07-07: png is refused with a
+            # 400); the processor files by the mime the response declares
             'type': 'image',
-            'mime_type': 'image/png',
+            'mime_type': 'image/jpeg',
             'aspect_ratio': aspect_ratio,
             'image_size': resolution,
         },
@@ -92,7 +96,7 @@ def generate_image(
         'success': True,
         'error': None,
         'image_bytes': image_bytes,
-        'mime_type': mime_type or 'image/png',
+        'mime_type': mime_type or 'image/jpeg',
         'model_name': model,
     }
 
