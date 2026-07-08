@@ -3,8 +3,8 @@
 #    format string (catches unbalanced {braces} in JSON examples)
 # 2. The staged monster templates render with exactly the variables
 #    generator.py passes (catches placeholder/variable drift)
-# 3. A full battle roster (4 party + 3 enemies) fits the prompt budget
-#    at every context-window bin (catches tier-content bloat)
+# 3. A full battle roster (4 party + 3 enemies) stays a sliver of the
+#    prompt budget (identity blocks are never truncated - catches bloat)
 #
 # Usage: python -m backend.tests.test_monster_templates   (from project root)
 
@@ -375,37 +375,36 @@ def sample_monster(i):
 
 
 def test_roster_fits_budget():
-    print('\n3. Full battle roster (4 party + 3 enemies) fits the prompt budget per bin')
+    print('\n3. Full battle roster (4 party + 3 enemies) is a sliver of the prompt budget')
     import os
 
     from backend.game.monster.context_builder import build_monster_block
-    from backend.game.utils.context_limits import get_prompt_char_budget, resolve_detail_tier
+    from backend.game.utils.context_limits import get_prompt_char_budget
 
     roster = [sample_monster(i) for i in range(7)]
     original = os.environ.get('LLM_CONTEXT_SIZE')
 
-    # At least this share of the budget must remain for logs + instructions
-    HEADROOM_SHARE = 0.45
+    # Identity blocks are REQUIRED (never truncated), so the roster must
+    # stay a small fraction of the budget - the rest belongs to history
+    # blocks and the prompt's instructions
+    MAX_ROSTER_SHARE = 0.10
 
     try:
-        for context_size in (4096, 8192, 16384):
-            os.environ['LLM_CONTEXT_SIZE'] = str(context_size)
-            tier = resolve_detail_tier()
-            blocks = "\n".join(
-                build_monster_block(
-                    m, condition='fresh', side_label='HOSTILE ENEMY' if i >= 4 else "PLAYER'S PARTY"
-                )
-                for i, m in enumerate(roster)
+        os.environ['LLM_CONTEXT_SIZE'] = '1000000'  # the supported floor
+        blocks = "\n".join(
+            build_monster_block(
+                m, condition='fresh', side_label='HOSTILE ENEMY' if i >= 4 else "PLAYER'S PARTY"
             )
-            budget = get_prompt_char_budget()
-            used_share = len(blocks) / budget
-            check(
-                f'{context_size} tokens -> {tier}: roster {len(blocks)} chars '
-                f'= {used_share:.0%} of {budget} budget',
-                used_share <= (1 - HEADROOM_SHARE),
-            )
-            secret_leaked = 'froze in fear' in blocks
-            check(f'{context_size} tokens -> secret stays out of battle blocks', not secret_leaked)
+            for i, m in enumerate(roster)
+        )
+        budget = get_prompt_char_budget()
+        used_share = len(blocks) / budget
+        check(
+            f'roster {len(blocks)} chars = {used_share:.1%} of {budget} char budget',
+            used_share <= MAX_ROSTER_SHARE,
+        )
+        check('blocks carry the full persona (beliefs present)', 'Beliefs:' in blocks)
+        check('secret stays out of battle blocks', 'froze in fear' not in blocks)
     finally:
         if original is None:
             os.environ.pop('LLM_CONTEXT_SIZE', None)

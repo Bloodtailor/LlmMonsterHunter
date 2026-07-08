@@ -128,7 +128,9 @@ def build_chat_history_block(monster_id: int, monster_name: str) -> str:
     covered_id = ChatSummary.last_through_id(monster_id)
     recent = ChatMessage.after_id(monster_id, covered_id)
     player_name = chat_player_name()
-    lines = [f'{speaker_display_name(m.role, monster_name, player_name)}: "{m.text}"' for m in recent]
+    lines = [
+        f'{speaker_display_name(m.role, monster_name, player_name)}: "{m.text}"' for m in recent
+    ]
     return compose_history(
         'chat_history',
         summaries,

@@ -1,5 +1,5 @@
 # AI Generation Queue - UPDATED WITH UNIFIED QUEUE EVENTS
-# Handles both LLM text generation and ComfyUI image generation
+# Handles both LLM text generation and Gemini image generation
 # Uses normalized generation_log database structure with unified queue events
 import threading
 from dataclasses import dataclass
@@ -8,8 +8,7 @@ from enum import Enum
 from queue import Empty, Queue
 from typing import Any, Optional
 
-from backend.ai.comfyui.processor import process_image_request
-from backend.ai.llm.core import unload_model
+from backend.ai.image.processor import process_image_request
 from backend.ai.llm.processor import process_llm_request
 
 # Import event emission functions from new events package
@@ -118,10 +117,15 @@ class AIGenerationQueue:
             if not log_entry:
                 return False
 
-            # The model that will speak, captured NOW in the caller's app
+            # The model that will answer, captured NOW in the caller's app
             # context - the started event fires in the worker loop, where
-            # there is no DB session to ask
-            model_name = log_entry.llm_log.model_name if log_entry.llm_log else None
+            # there is no DB session to ask. Image rows carry theirs too
+            # (the dev log names every engine).
+            model_name = None
+            if log_entry.llm_log:
+                model_name = log_entry.llm_log.model_name
+            elif log_entry.image_log:
+                model_name = log_entry.image_log.model_name
 
             # Create queue item with enhanced data
             item = QueueItem(
@@ -283,10 +287,9 @@ class AIGenerationQueue:
         return process_llm_request(item.generation_id, callback=callback)
 
     def _process_image_item(self, item: QueueItem, callback) -> dict[str, Any]:
-        """Process image generation using ComfyUI processor"""
-
-        # Unload the LLM Model
-        unload_model()
+        """Process image generation using the Gemini image processor.
+        (The unload-the-local-LLM-first VRAM dance died with ComfyUI -
+        a cloud paint needs no GPU.)"""
         return process_image_request(item.generation_id, callback=callback)
 
     def _worker_loop(self):

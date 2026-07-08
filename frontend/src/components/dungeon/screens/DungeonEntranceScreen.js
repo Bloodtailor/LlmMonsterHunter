@@ -10,6 +10,7 @@ import ExpeditionNoticeBoard from '../components/ExpeditionNoticeBoard.js';
 import DungeonEntryText from '../components/DungeonEntryText.js';
 import ContinueToDoorsButton from '../components/ContinueToDoorsButton.js';
 import DungeonResetButton from '../components/DungeonResetButton.js';
+import DungeonPartyPanel from '../components/DungeonPartyPanel.js';
 
 /**
  * DungeonEntranceScreen component
@@ -49,6 +50,9 @@ function DungeonEntranceScreen() {
           </div>
         </CardSection>
       </Card>
+
+      {/* The party - visible on every dungeon screen, entrance included */}
+      <DungeonPartyPanel />
     </div>
   );
 }

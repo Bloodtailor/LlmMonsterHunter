@@ -81,17 +81,16 @@ def generate_ability_for_monster(monster_id):
 def serve_card_art(image_path):
     """Serve card art images - direct file serving"""
     try:
-        from pathlib import Path
-
         from flask import send_from_directory
+
+        from backend.ai.image.paths import outputs_root
 
         # Simple security check
         if '..' in image_path or image_path.startswith('/'):
             return jsonify({'success': False, 'error': 'Invalid image path'}), 400
 
         # Build path and serve
-        outputs_dir = Path(__file__).parent.parent / 'ai' / 'comfyui' / 'outputs'
-        return send_from_directory(outputs_dir, image_path)
+        return send_from_directory(outputs_root(), image_path)
 
     except FileNotFoundError:
         return jsonify({'success': False, 'error': 'Image not found'}), 404

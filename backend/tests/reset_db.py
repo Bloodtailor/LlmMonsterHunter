@@ -12,7 +12,7 @@ from flask import Flask
 
 def build_minimal_app():
     """A Flask app with ONLY the database configured - no LLM load,
-    no AI queue, no ComfyUI check"""
+    no AI queue, no image-provider check"""
 
     # Importing backend loads .env (backend/__init__.py calls load_dotenv)
     from backend.models.core import init_db

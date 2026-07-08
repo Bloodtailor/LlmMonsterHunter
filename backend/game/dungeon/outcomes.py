@@ -43,14 +43,15 @@ def apply_dialogue_outcome(
 
     if outcome == 'join_party':
         from backend.game.dungeon.spoils import record_run_recruit
-        from backend.models.following_monsters import FollowingMonster
+        from backend.game.state.manager import add_following_monster
 
         for monster_id in monster_ids:
             monster = Monster.get_monster_by_id(int(monster_id))
             if monster:
                 # Provisional until the party exits alive (only NEW
-                # followers are at stake)
-                if FollowingMonster.add_follower(int(monster_id)):
+                # followers are at stake). A new follower auto-seats
+                # into any open party slot.
+                if add_following_monster(int(monster_id))['newly_following']:
                     record_run_recruit(int(monster_id))
 
                     # Choosing the party AGAIN - with memories of them -

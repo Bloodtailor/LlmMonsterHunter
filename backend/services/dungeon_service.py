@@ -427,13 +427,17 @@ def get_dungeon_state() -> dict[str, Any]:
     )
 
 
-def abandon_run() -> dict[str, Any]:
+def abandon_run(interrupted: bool = False) -> dict[str, Any]:
     """
     Call the party home mid-run: the active run closes as 'abandoned'
     (its log is snapshotted first so home-base chats can still look back
     on it), any battle ends, and the run state is wiped. Synchronous -
     no LLM. Safe to call when not in a dungeon (quiet no-op), so the
     frontend can use it to clear stale run state.
+
+    interrupted=True is the title screen's Continue sweeping a run the
+    player never finished (the session died mid-run): same mechanics,
+    but the story says an unknown force struck the party down.
     """
 
     from backend.game.battle import manager as battle_manager
@@ -442,6 +446,15 @@ def abandon_run() -> dict[str, Any]:
 
     if not manager.is_in_dungeon():
         return success_response({'abandoned': False, 'in_dungeon': False})
+
+    # The interruption joins the run's story BEFORE the forfeit adds its
+    # costs and the snapshot freezes the log - chats can look back on it
+    if interrupted:
+        manager.append_dungeon_log(
+            'An unknown force overwhelmed the expedition - the party\'s '
+            'memory of the run ends abruptly, and they woke safe at the '
+            'home base with empty hands.'
+        )
 
     # Walking away is not exiting alive - this run's provisional
     # recruits and possessions stay behind (memories remain)

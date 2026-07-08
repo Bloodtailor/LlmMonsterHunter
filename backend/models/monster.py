@@ -126,14 +126,13 @@ class Monster(BaseModel):
                 'exists': False,
             }
 
-        # Build full path for existence check
+        # Existence check against THE outputs root - paths.outputs_root()
+        # is the single source of truth (it also migrates legacy trees),
+        # never a hand-built path that goes stale when the root moves
         try:
-            from pathlib import Path
+            from backend.ai.image.paths import outputs_root
 
-            # Assume images are in backend/ai/comfyui/outputs/
-            full_path = (
-                Path(__file__).parent.parent / 'ai' / 'comfyui' / 'outputs' / self.card_art_path
-            )
+            full_path = outputs_root() / self.card_art_path
             exists = full_path.exists()
         except Exception:
             exists = False
@@ -143,9 +142,7 @@ class Monster(BaseModel):
             'relative_path': self.card_art_path,
             'full_path': str(full_path) if exists else None,
             'exists': exists,
-            'url': f'/api/images/{self.card_art_path}'
-            if exists
-            else None,  # For future API endpoint
+            'url': f'/api/monsters/card-art/{self.card_art_path}' if exists else None,
         }
 
     def set_card_art(self, relative_path: str) -> bool:

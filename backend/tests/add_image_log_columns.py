@@ -1,19 +1,19 @@
-# Dev Database Column Add - llm_logs.provider + llm_logs.prompt_tokens
-# (Game Settings M2)
+# Dev Database Column Add - image_logs.params + image_logs.model_name
+# (Cloud Generation M2)
 # db.create_all() never ALTERs existing tables and this project has no
-# migration tooling, so this one-off script adds the provider-seam
+# migration tooling, so this one-off script adds the image-seam
 # observability columns to the DEV database without touching any data
-# (the add_affinity_column.py precedent). Idempotent - safe to run any
-# number of times. The TEST database heals itself via harness.py's
+# (the add_provider_log_columns.py precedent). Idempotent - safe to run
+# any number of times. The TEST database heals itself via harness.py's
 # _SCHEMA_MARKERS; this script is only for the dev world.
 #
 # What it does:
-#   1. ALTER TABLE llm_logs ADD COLUMN provider VARCHAR(20) NULL
-#   2. ALTER TABLE llm_logs ADD COLUMN prompt_tokens INT NULL
+#   1. ALTER TABLE image_logs ADD COLUMN params JSON NULL
+#   2. ALTER TABLE image_logs ADD COLUMN model_name VARCHAR(200) NULL
 #   (each skipped if the column already exists; no backfill - NULL reads
-#    as "logged before the provider seam existed", which is the truth)
+#    as "logged before the Gemini seam existed", which is the truth)
 #
-# Usage: python -m backend.tests.add_provider_log_columns   (from project root)
+# Usage: python -m backend.tests.add_image_log_columns   (from project root)
 
 import os
 
@@ -22,7 +22,7 @@ from flask import Flask
 
 def build_minimal_app():
     """A Flask app with ONLY the database configured - no LLM load,
-    no AI queue, no image-provider check (reset_db.py pattern)"""
+    no AI queue (reset_db.py pattern)"""
 
     from backend.models.core import init_db
 
@@ -63,16 +63,16 @@ def add_column(db, table: str, column: str, definition: str):
 
 def main():
     db_name = os.getenv('DB_NAME', 'monster_hunter_game')
-    print('🗣️ PROVIDER LOG COLUMNS ADD')
+    print('🖼️ IMAGE LOG COLUMNS ADD')
     print('=' * 50)
-    print(f"Database: '{db_name}' - adds llm_logs.provider and llm_logs.prompt_tokens.")
+    print(f"Database: '{db_name}' - adds image_logs.params and image_logs.model_name.")
 
     app = build_minimal_app()
     from backend.models.core import db
 
     with app.app_context():
-        add_column(db, 'llm_logs', 'provider', 'VARCHAR(20) NULL')
-        add_column(db, 'llm_logs', 'prompt_tokens', 'INT NULL')
+        add_column(db, 'image_logs', 'params', 'JSON NULL')
+        add_column(db, 'image_logs', 'model_name', 'VARCHAR(200) NULL')
 
         print('🎉 Done.')
 

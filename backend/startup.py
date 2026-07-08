@@ -1,6 +1,6 @@
 # AI Systems Initialization - CLEANED UP
 # Loads LLM model and initializes unified AI generation queue
-from backend.core.utils.console import print_error, print_info, print_section, print_warning
+from backend.core.utils.console import print_error, print_info, print_section
 
 
 def initialize_database(app):
@@ -86,7 +86,7 @@ def initialize_ai_systems(app):
 
     # Check image generation capability
     print_section('Initializing Image Generation Systems...')
-    _check_image_generation()
+    _check_image_generation(app)
 
 
 def initialize_workflows(app):
@@ -158,30 +158,21 @@ def _initialize_ai_queue(app):
         return False
 
 
-def _check_image_generation():
-    """Check image generation capability"""
-    from backend.core.config.comfyui_config import IMAGE_GENERATION_ENABLED
+def _check_image_generation(app):
+    """Report image generation state (panel-configured, resolved per call)"""
+    from backend.ai.image.image_settings import resolve_image_settings
+    from backend.ai.image.paths import outputs_root
 
-    if not IMAGE_GENERATION_ENABLED:
-        print_info("Image generation disabled")
-        print("Skipping image generation initialization")
+    # One lazy housekeeping pass: pre-cloud installs keep their art
+    outputs_root()
+
+    with app.app_context():
+        settings = resolve_image_settings()
+
+    if settings['enabled']:
+        print(f"Image generation ready (Gemini: {settings['model']})")
         return True
 
-    try:
-        from backend.ai.comfyui.client import ComfyUIClient
-
-        client = ComfyUIClient()
-
-        if client.is_server_running():
-            print("ComfyUI server connection successful")
-            print("image generation ready")
-            return True
-        else:
-            print_warning("ComfyUI server not running")
-            print_info("Please start the ComfyUI server before running this startup")
-            print_info("To play the game without it, disable image generation in the .env")
-            return False
-
-    except Exception as e:
-        print_warning(f"Image generation check failed: {e}")
-        return False
+    print_info("Image generation not configured")
+    print("Add a Gemini API key in Settings (gear icon) to enable card art")
+    return True

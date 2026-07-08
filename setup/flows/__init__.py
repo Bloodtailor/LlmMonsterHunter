@@ -24,6 +24,16 @@ COMPONENT_FLOWS = {
     'LLM Integration': run_llama_cpp_interactive_setup,
 }
 
+# The API-first game needs NONE of these: they serve the unsupported
+# local-LLM escape hatch (docs/plans/cloud-generation.md), so the
+# orchestrator gates the whole chain behind one opt-in question.
+LOCAL_EXTRA_COMPONENTS = (
+    'NVIDIA GPU & CUDA',
+    'Visual Studio Build Tools',
+    'Model Directory',
+    'LLM Integration',
+)
+
 
 def run_component_flow(component_name):
     """Run interactive setup flow for specific component"""
