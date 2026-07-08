@@ -572,6 +572,7 @@ export const CARD_SECTION_ALIGNMENT = {
  * @param {boolean} props.striped - Alternating row colors
  * @param {boolean} props.bordered - Show borders
  * @param {boolean} props.hover - Hover effects on rows
+ * @param {string} props.maxHeight - Max height (CSS value like '200px'); taller content scrolls vertically with the header pinned
  * @param {string} props.emptyMessage - Message when no data
  * @param {string} props.className - Additional CSS classes
  * @param {object} props.rest - Additional table attributes

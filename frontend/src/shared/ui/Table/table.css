@@ -66,6 +66,20 @@
   text-overflow: ellipsis;
 }
 
+/* ===== SCROLLING TABLES (Table's maxHeight wraps rows in Scroll) ===== */
+
+/* Pin the header while rows scroll beneath it. Sticky lives on the cells, not
+ * .table-head, because Chromium won't stick a thead under border-collapse:
+ * collapse — and collapsed borders don't travel with stuck cells either, so
+ * the header's bottom line is a box-shadow and the background moves onto the
+ * cell (a stuck header must be opaque to cover the rows passing under it). */
+.scroll-table .table-header-cell {
+  position: sticky;
+  top: 0;
+  background: var(--background-light);
+  box-shadow: 0 var(--border-width-thin) 0 var(--background-dark);
+}
+
 /* ===== TABLE SIZES ===== */
 
 .table-sm {
