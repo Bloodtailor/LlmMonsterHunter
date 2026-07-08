@@ -20,20 +20,22 @@ VALID_PROVIDERS = (PROVIDER_LOCAL, PROVIDER_DEEPSEEK)
 # endpoint returns ids only - no sizes (verified July 2026) - so the panel
 # auto-fills from this map and the player can ALWAYS override. Unknown
 # models just need a manual value: entries here are a convenience, never
-# a gate, and new models work the day they ship.
+# a gate, and new models work the day they ship. (The legacy 128K ids -
+# deepseek-chat / deepseek-reasoner - fell below the context floor, and
+# DeepSeek removes them 2026-07-24; a saved row pointing at one resolves
+# local until its owner re-picks a model.)
 DEEPSEEK_KNOWN_CONTEXT_WINDOWS = {
     'deepseek-v4-flash': 1_000_000,
     'deepseek-v4-pro': 1_000_000,
-    # Deprecated ids (removal 2026-07-24) kept so pre-deprecation saves
-    # keep resolving until their owners re-pick a model
-    'deepseek-chat': 128_000,
-    'deepseek-reasoner': 128_000,
 }
 
-# context_limits.py reserves 1200 tokens for the model's answer; a window
-# near that starves every prompt block to nothing, so the service refuses
-# anything smaller than this.
-MIN_CONTEXT_WINDOW = 2048
+# THE HARD FLOOR (locked decision, docs/plans/cloud-generation.md):
+# models with less than 1M tokens of context are unsupported - the panel
+# refuses smaller windows outright. Sub-1M local GGUFs configured in .env
+# remain a use-at-your-own-risk escape hatch; prompt budgets stay sane
+# there because they are absolute token caps under a 70% ceiling either
+# way (context_limits.py).
+MIN_CONTEXT_WINDOW = 1_000_000
 
 
 def resolve_llm_settings() -> dict[str, Any]:
@@ -63,6 +65,13 @@ def resolve_llm_settings() -> dict[str, Any]:
         return _local_settings()
 
     context_window = _deepseek_context_window(deepseek, model)
+
+    # A pre-floor row (a saved sub-1M window, or a removed legacy model
+    # with no supported size on record): the local floor holds until the
+    # panel re-picks a 1M-class model. Budgeting a 700K-token prompt for
+    # a 128K model is the one thing this resolver must never do.
+    if not context_window:
+        return _local_settings()
 
     return {
         'provider': PROVIDER_DEEPSEEK,
@@ -113,8 +122,10 @@ def _local_settings() -> dict[str, Any]:
     }
 
 
-def _deepseek_context_window(deepseek: dict[str, Any], model: str) -> int:
-    """Stored value first, known-model map second, env floor last"""
+def _deepseek_context_window(deepseek: dict[str, Any], model: str) -> Optional[int]:
+    """Stored value first, known-model map second - but NOTHING below the
+    hard floor. None means 'no supported window': the caller falls back
+    to local rather than trusting a stale sub-1M row."""
     stored = deepseek.get('context_window')
 
     try:
@@ -123,8 +134,11 @@ def _deepseek_context_window(deepseek: dict[str, Any], model: str) -> int:
     except (TypeError, ValueError):
         pass
 
-    return DEEPSEEK_KNOWN_CONTEXT_WINDOWS.get(model, _env_context_size())
+    known = DEEPSEEK_KNOWN_CONTEXT_WINDOWS.get(model)
+    if known and known >= MIN_CONTEXT_WINDOW:
+        return known
+    return None
 
 
 def _env_context_size() -> int:
-    return int(os.getenv('LLM_CONTEXT_SIZE', '4096'))
+    return int(os.getenv('LLM_CONTEXT_SIZE', '1000000'))

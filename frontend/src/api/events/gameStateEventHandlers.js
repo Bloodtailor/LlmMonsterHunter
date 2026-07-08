@@ -14,4 +14,17 @@ export const gameStateEventHandlers = {
     };
     broadcastEvent('worldErased', transformedData);
   },
+
+  // The backend reshaped the roster on its own (a new follower,
+  // possibly auto-seated into an open party slot) - PartyContext
+  // refetches so every party panel shows the newcomer immediately
+  'game.party_updated': (eventData) => {
+    const transformedData = {
+      monsterId: eventData.monster_id ?? null,
+      monsterName: eventData.monster_name ?? null,
+      joinedParty: eventData.joined_party ?? false,
+      partyIds: eventData.party_ids || [],
+    };
+    broadcastEvent('partyUpdated', transformedData);
+  },
 };

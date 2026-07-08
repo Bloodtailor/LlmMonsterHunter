@@ -75,10 +75,9 @@ def main():
                 f'{half_budget} vs {full_budget}',
             )
             os.environ['LLM_CONTEXT_FILL_PERCENT'] = '0.01'
-            check(
-                'fill percent clamps at a sane floor',
-                context_limits.get_context_fill_percent() == 0.3,
-            )
+            check('fill clamps at a sane floor', context_limits.get_context_fill_percent() == 0.3)
+            os.environ['LLM_CONTEXT_FILL_PERCENT'] = '1.0'
+            check('fill clamps at the ceiling', context_limits.get_context_fill_percent() == 0.7)
             os.environ['LLM_CONTEXT_FILL_PERCENT'] = 'not-a-number'
             check(
                 'bad fill percent falls back to the default',
@@ -88,7 +87,7 @@ def main():
             os.environ.pop('LLM_CONTEXT_FILL_PERCENT', None)
 
             check(
-                'new blocks have budget shares',
+                'new blocks have budget caps',
                 context_limits.get_block_char_limit('chat_history')
                 and context_limits.get_block_char_limit('last_run_log'),
             )

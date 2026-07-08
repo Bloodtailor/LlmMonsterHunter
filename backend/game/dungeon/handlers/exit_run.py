@@ -93,9 +93,7 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
                 )
 
             goal_reward = {'item': reward_item.to_dict(), 'growth': bonus_growth}
-            manager.append_dungeon_log(
-                f"The fulfilled goal earned its reward: {reward_item.name}."
-            )
+            manager.append_dungeon_log(f"The fulfilled goal earned its reward: {reward_item.name}.")
         except Exception as reward_error:
             print(f"❌ Goal reward ceremony failed (the exit stands): {reward_error}")
     step.data.update({"goal_reward": goal_reward})
@@ -115,9 +113,7 @@ def run_exit(step: WorkflowStep, workflow_name: str) -> dict[str, Any]:
 
     queued_chronicle = chronicle.queue_run_chronicle('victory', workflow_name)
     if queued_chronicle:
-        step.data.update(
-            {"chronicle_text_generation_id": queued_chronicle['generation_id']}
-        )
+        step.data.update({"chronicle_text_generation_id": queued_chronicle['generation_id']})
         step.emit("emit_generation_id")
     chronicle_text = chronicle.await_run_chronicle(queued_chronicle)
 

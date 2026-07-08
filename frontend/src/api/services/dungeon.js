@@ -309,8 +309,12 @@ getDungeonState.defaults = {
  * battle ends, and the run state clears. Quiet no-op when already home.
  * @returns {Promise<object>} Clean transformed response
  */
-export async function abandonRun() {
-  const response = await post('/api/dungeon/abandon');
+export async function abandonRun(options = {}) {
+  // interrupted: the title screen sweeping a run the session never
+  // finished - the backend logs it as struck down by an unknown force
+  const response = await post('/api/dungeon/abandon', {
+    interrupted: Boolean(options.interrupted),
+  });
 
   return {
     success: response.success ?? abandonRun.defaults.success,

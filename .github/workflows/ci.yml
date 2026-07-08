@@ -29,7 +29,7 @@ jobs:
       DB_USER: root
       DB_PASSWORD: ''
       DB_NAME_TEST: monster_hunter_game_test
-      LLM_CONTEXT_SIZE: '4096'
+      LLM_CONTEXT_SIZE: '1000000'
       PYTHONIOENCODING: utf-8
     steps:
       - uses: actions/checkout@v4

@@ -150,7 +150,10 @@ def main():
 
             # ===== dispatch =====
             print('\n-- dispatch --')
-            check('a deepseek stamp dispatches to the deepseek provider', get_provider('deepseek') is deepseek)
+            check(
+                'a deepseek stamp dispatches to the deepseek provider',
+                get_provider('deepseek') is deepseek,
+            )
 
             # ===== the happy stream =====
             print('\n-- the happy stream --')
@@ -181,14 +184,22 @@ def main():
             )
 
             body = fake.last_post['json']
-            check('the prompt rides as one user message',
-                  body['messages'] == [{'role': 'user', 'content': 'Tell a story.'}])
-            check('streaming asks for the usage chunk',
-                  body['stream'] is True and body['stream_options'] == {'include_usage': True})
-            check('thinking is disabled for v4 models', body.get('thinking') == {'type': 'disabled'})
+            check(
+                'the prompt rides as one user message',
+                body['messages'] == [{'role': 'user', 'content': 'Tell a story.'}],
+            )
+            check(
+                'streaming asks for the usage chunk',
+                body['stream'] is True and body['stream_options'] == {'include_usage': True},
+            )
+            check(
+                'thinking is disabled for v4 models', body.get('thinking') == {'type': 'disabled'}
+            )
             check(
                 'chat-API params translate through',
-                body['max_tokens'] == 256 and body['temperature'] == 0.8 and body['stop'] == ['</s>'],
+                body['max_tokens'] == 256
+                and body['temperature'] == 0.8
+                and body['stop'] == ['</s>'],
             )
             check(
                 'llama-only knobs are dropped in translation',
@@ -328,9 +339,7 @@ def main():
             from backend.services import settings_service
 
             fake = FakeRequests(
-                get_response=FakeResponse(
-                    json_data={'data': [{'id': 'deepseek-v4-flash'}]}
-                )
+                get_response=FakeResponse(json_data={'data': [{'id': 'deepseek-v4-flash'}]})
             )
             deepseek.requests = fake
             result = settings_service.fetch_deepseek_models({})
@@ -362,20 +371,20 @@ def main():
                     'deepseek': {
                         'api_key': TEST_API_KEY,
                         'model': 'deepseek-v4-flash',
-                        'context_window': 65536,
+                        'context_window': 2_000_000,
                     },
                 },
             )
             check(
                 'deepseek active: budgets use the saved window',
-                get_context_size_tokens() == 65536,
+                get_context_size_tokens() == 2_000_000,
                 str(get_context_size_tokens()),
             )
 
             GameSetting.set(SETTINGS_KEY, {'provider': 'local'})
             check(
                 'local active: budgets use the env window',
-                get_context_size_tokens() == 4096,
+                get_context_size_tokens() == int(os.environ.get('LLM_CONTEXT_SIZE', '1000000')),
                 str(get_context_size_tokens()),
             )
 

@@ -36,9 +36,10 @@ npx prettier --check src
 # Or start_game.bat / start_backend.bat / start_frontend.bat from Explorer
 ```
 
-Offline suites stub the LLM and use the dedicated test DB
-(`DB_NAME_TEST`, auto-created via `backend/tests/harness.py`) — safe to
-run anytime. MySQL must be running; the model/ComfyUI need not be.
+Offline suites stub the LLM and the image API, and use the dedicated
+test DB (`DB_NAME_TEST`, auto-created via `backend/tests/harness.py`) —
+safe to run anytime. MySQL must be running; nothing else is (no local
+model, no image service — generation is cloud-API-first).
 
 ## The hard rules
 
@@ -47,7 +48,7 @@ run anytime. MySQL must be running; the model/ComfyUI need not be.
    Propose the right place instead of coding a workaround.
 2. **Layering:** routes are thin wrappers → services validate → game
    logic acts → ALL generation goes through `backend/ai/gateway.py`.
-   Never call the LLM or ComfyUI any other way.
+   Never call the LLM or the image API any other way.
 3. **The LLM picks words; code owns numbers.** New mechanics define word
    ladders/enums for the LLM to choose from, with code mapping words to
    effects, caps, and valves (see `game/battle/constants.py`).

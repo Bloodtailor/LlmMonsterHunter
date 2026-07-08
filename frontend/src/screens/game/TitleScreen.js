@@ -1,14 +1,16 @@
 // TitleScreen.js - The game's opening screen
 // New Game is a promise: it ERASES the world (POST /api/game-state/new-game)
 // behind an explicit confirmation step whenever anything meaningful
-// exists to lose. Continue appears once the guided opening has ever
-// been finished and goes straight to home base.
+// exists to lose. Continue appears whenever a world exists to return
+// to; a run the last session never finished is swept first - struck
+// down by an unknown force - so the player wakes at the home base.
 
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Card, CardSection, LoadingContainer } from '../../shared/ui/index.js';
 import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
 import { useAsyncState } from '../../shared/hooks/useAsyncState.js';
 import * as gameStateApi from '../../api/services/gameState.js';
+import { abandonRun } from '../../api/services/dungeon.js';
 
 function TitleScreen() {
   const { navigateToGameScreen } = useNavigation();
@@ -23,12 +25,18 @@ function TitleScreen() {
   const [isErasing, setIsErasing] = useState(false);
   const [eraseError, setEraseError] = useState(null);
 
+  // The interrupted-run step: Continue with a live run on record first
+  // tells the story of how it ended, then sweeps it and heads home
+  const [showInterruption, setShowInterruption] = useState(false);
+  const [isWaking, setIsWaking] = useState(false);
+  const [continueError, setContinueError] = useState(null);
+
   useEffect(() => {
     loadGameState();
   }, [loadGameState]);
 
-  const firstRunComplete = !!api.data.firstRunComplete;
   const hasWorldData = !!api.data.hasWorldData;
+  const inDungeon = !!api.data.inDungeon;
 
   const eraseAndBegin = async () => {
     setIsErasing(true);
@@ -55,6 +63,28 @@ function TitleScreen() {
     }
   };
 
+  const handleContinue = () => {
+    if (inDungeon) {
+      // A run is still on record from a session that never finished -
+      // tell the player how it ended before sweeping it
+      setShowInterruption(true);
+      return;
+    }
+    navigateToGameScreen('homebase');
+  };
+
+  const wakeAtHome = async () => {
+    setIsWaking(true);
+    setContinueError(null);
+    try {
+      await abandonRun({ interrupted: true });
+      navigateToGameScreen('homebase');
+    } catch (error) {
+      setContinueError(error.message || 'The way home is blocked - try again.');
+      setIsWaking(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -77,6 +107,12 @@ function TitleScreen() {
       {eraseError && (
         <Alert type="error" title="The new game could not begin">
           {String(eraseError)}
+        </Alert>
+      )}
+
+      {continueError && (
+        <Alert type="error" title="Could not continue">
+          {String(continueError)}
         </Alert>
       )}
 
@@ -124,6 +160,39 @@ function TitleScreen() {
                 Keep my world
               </Button>
             </div>
+          ) : showInterruption ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                alignItems: 'center',
+              }}
+            >
+              <p style={{ fontWeight: 'var(--font-weight-bold)', margin: 0 }}>
+                The last expedition never came home
+              </p>
+              <p
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  textAlign: 'center',
+                  margin: 0,
+                }}
+              >
+                An unknown force overwhelmed the party mid-journey — whatever that run had gathered
+                was lost to the dark. They wake safe at the home base, and the story carries the
+                scar.
+              </p>
+              <Button
+                size="xl"
+                icon="🏠"
+                variant="primary"
+                disabled={isWaking}
+                onClick={wakeAtHome}
+              >
+                {isWaking ? 'Waking...' : 'Wake at the home base'}
+              </Button>
+            </div>
           ) : (
             <div
               style={{
@@ -142,13 +211,13 @@ function TitleScreen() {
               >
                 {isErasing ? 'The story gathers itself...' : 'New Game'}
               </Button>
-              {firstRunComplete && (
+              {hasWorldData && (
                 <Button
                   size="xl"
                   icon="🏠"
                   variant="secondary"
                   disabled={isErasing}
-                  onClick={() => navigateToGameScreen('homebase')}
+                  onClick={handleContinue}
                 >
                   Continue
                 </Button>

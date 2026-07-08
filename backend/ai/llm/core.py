@@ -56,10 +56,14 @@ def load_model() -> bool:
         try:
             print("Loading LLM model...")
 
-            # Get configuration from .env
+            # Get configuration from .env. The default matches the prompt
+            # budget's env read (provider_settings._env_context_size) so
+            # the loader and the budgets can never disagree - a sub-1M
+            # local model (unsupported escape hatch) MUST set its real
+            # window here or the load fails loudly.
             model_path = os.getenv('LLM_MODEL_PATH')
             gpu_layers = int(os.getenv('LLM_GPU_LAYERS', '35'))
-            context_size = int(os.getenv('LLM_CONTEXT_SIZE', '4096'))
+            context_size = int(os.getenv('LLM_CONTEXT_SIZE', '1000000'))
 
             if not model_path or not Path(model_path).exists():
                 raise FileNotFoundError(f"Model file not found: {model_path}")

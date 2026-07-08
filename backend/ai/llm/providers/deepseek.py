@@ -145,7 +145,11 @@ def list_models(api_key: str) -> dict[str, Any]:
             timeout=(CONNECT_TIMEOUT_SECONDS, MODELS_READ_TIMEOUT_SECONDS),
         )
     except requests.exceptions.RequestException as request_error:
-        return {'success': False, 'error': f'Could not reach DeepSeek: {request_error}', 'models': []}
+        return {
+            'success': False,
+            'error': f'Could not reach DeepSeek: {request_error}',
+            'models': [],
+        }
 
     if response.status_code != 200:
         return {'success': False, 'error': _map_http_error(response), 'models': []}
@@ -153,7 +157,11 @@ def list_models(api_key: str) -> dict[str, Any]:
     try:
         data = response.json().get('data') or []
     except ValueError:
-        return {'success': False, 'error': 'DeepSeek returned an unreadable model list', 'models': []}
+        return {
+            'success': False,
+            'error': 'DeepSeek returned an unreadable model list',
+            'models': [],
+        }
 
     models = [entry.get('id') for entry in data if entry.get('id')]
     return {'success': True, 'error': None, 'models': models}

@@ -1,7 +1,6 @@
 # AI gateway - formerly generation_service.py
 # THE ONLY WAY to request any AI generation (LLM or Image)
 # Creates normalized generation_log entries and delegates to unified queue
-import os
 import time
 from typing import Any, Optional
 
@@ -103,40 +102,63 @@ def text_generation_request(
 def image_generation_request(
     prompt_text: str,
     prompt_type: str = "image_generation",
-    prompt_name: str = "monster_generation",
+    prompt_name: str = "card_art",
+    reference_images: Optional[list] = None,
     return_early: bool = False,
     **image_overrides,
 ) -> dict[str, Any]:
     """
-    THE ONLY WAY to request image generation - COMPLETELY GENERIC
+    THE ONLY WAY to request image generation
     Creates complete generation_log entry and delegates to unified queue
 
     Args:
-        prompt_text (str): The unique part of the prompt (ONLY REQUIRED parameter)
-        prompt_type (str): Type of prompt (for logging)
-        prompt_name (str): Workflow name to use
-        **image_overrides: Any image parameter overrides
+        prompt_text (str): The image's subject (ONLY REQUIRED parameter)
+        prompt_type (str): Filed under outputs/<prompt_type>/ and logged
+        prompt_name (str): Log label (the ComfyUI workflow-name concept
+            died with the ComfyUI pipeline)
+        reference_images (list): Outputs-relative paths whose bytes ride
+            along as Gemini reference images (evolution passes the old
+            card art so the new form stays recognizably the same being)
+        return_early (bool): Return without waiting for completion
+        **image_overrides: model / aspect_ratio / resolution overrides
 
     Returns:
         dict: Results from image generation pipeline
     """
+    from backend.ai.image.image_settings import resolve_image_settings
+    from backend.core.config.image_config import (
+        DEFAULT_ASPECT_RATIO,
+        DEFAULT_RESOLUTION,
+        compose_image_prompt,
+    )
 
-    # Check if image generation is enabled
-    if not os.getenv('ENABLE_IMAGE_GENERATION', 'false').lower() == 'true':
-        raise Exception('Image generation is disabled')
+    settings = resolve_image_settings()
+    if not settings['enabled']:
+        raise Exception('Image generation is not configured - add a Gemini API key in Settings')
+
+    # The house style + avoid-instruction join HERE, before logging, so
+    # generation_log.prompt_text is byte-exact with what the model
+    # receives (the nothink-prefill precedent: the dev table shows truth)
+    complete_prompt = compose_image_prompt(prompt_text)
 
     # Show simplified request info
     truncated_prompt = prompt_text[:50] + "..." if len(prompt_text) > 50 else prompt_text
     print_success(f"Image generation request: {prompt_name} - \"{truncated_prompt}\"")
 
-    # Prepare image parameters
-    image_params = {'workflow_name': prompt_name, **image_overrides}
+    # Model and geometry stamped NOW so a queued paint keeps its setup
+    # even if settings change before it processes (the LLM-seam rule)
+    image_params = {
+        'model': image_overrides.get('model') or settings['model'],
+        'aspect_ratio': image_overrides.get('aspect_ratio') or DEFAULT_ASPECT_RATIO,
+        'resolution': image_overrides.get('resolution') or DEFAULT_RESOLUTION,
+        'reference_images': [str(path) for path in (reference_images or [])],
+    }
 
     # Create generation log entry
     generation_log = GenerationLog.create_image_log(
         prompt_type=prompt_type,
         prompt_name=prompt_name,
-        prompt_text=prompt_text,
+        prompt_text=complete_prompt,
         image_params=image_params,
     )
 
@@ -199,6 +221,7 @@ def _wait_for_completion(
                     'success': result.get('success', None),
                     'error': result.get('error', None),
                     'image_path': result.get('image_path', ''),
+                    'model_name': result.get('model_name'),
                 }
 
         if status['status'] == 'failed':

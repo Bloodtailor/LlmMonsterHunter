@@ -245,8 +245,9 @@ function LlmSettingsSection() {
               </Alert>
             )}
             <p className="settings-hint">
-              Auto-fills for known models, always editable. Bigger windows mean prompts are never
-              trimmed and every prompt token is billed — a working window like 65536 is plenty.
+              Auto-fills for known models, always editable. The game requires a 1M-token window or
+              larger — smaller models are unsupported. The token bill is governed by the game&apos;s
+              per-block caps, not the window size.
             </p>
           </div>
         </div>

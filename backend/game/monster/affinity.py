@@ -19,10 +19,7 @@ MAX_AFFINITY_STEPS_PER_RUN = 2
 
 # How each tier reads inside prompt context blocks
 AFFINITY_FLAVOR = {
-    'wary': (
-        'wary - it fights beside the party on its own terms and does not '
-        'yet take commands'
-    ),
+    'wary': ('wary - it fights beside the party on its own terms and does not yet take commands'),
     'familiar': 'familiar - it has begun to trust the party\'s judgment',
     'trusting': 'trusting - it follows the party\'s lead readily',
     'devoted': 'devoted - it would give everything for this party',

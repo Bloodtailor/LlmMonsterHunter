@@ -93,3 +93,9 @@
   display: flex;
   gap: var(--spacing-sm);
 }
+
+.settings-test-image {
+  max-width: 220px;
+  border-radius: var(--radius-md);
+  align-self: flex-start;
+}

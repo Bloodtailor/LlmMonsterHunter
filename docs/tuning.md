@@ -15,15 +15,13 @@ Copy `.env.example` to `.env` and adjust. Restart the backend after changes.
 | Variable | Default | Effect |
 |---|---|---|
 | `LLM_MODEL_PATH` | — | Path to the GGUF text model |
-| `LLM_CONTEXT_SIZE` | `4096` | The model's context window. Drives every prompt budget and the monster-detail tier (see below) |
-| `LLM_CONTEXT_FILL_PERCENT` | `1.0` | Fraction of the window prompts may fill (0.3–1.0). Lower it for models that degrade when nearly full |
+| `LLM_CONTEXT_SIZE` | `1000000` | The local model's context window. Models under 1M tokens are unsupported (hard floor); sub-1M local GGUFs are a use-at-your-own-risk escape hatch |
+| `LLM_CONTEXT_FILL_PERCENT` | `0.7` | Fraction of the window prompts may fill (0.3–0.7). The 0.7 ceiling is a locked decision — higher values clamp back |
 | `LLM_GPU_LAYERS` | `35` | Layers offloaded to the GPU |
 | `LLM_DISABLE_THINKING` | `true` | Prefill an empty `<think>` block so reasoning models answer directly |
 | `LLM_DEFAULT_MAX_TOKENS` | `256` | Response length cap per generation |
 | `LLM_DEFAULT_TEMPERATURE` | `0.8` | Sampling temperature (also `_TOP_P` `0.9`, `_TOP_K` `40`, `_REPEAT_PENALTY` `1.1`, `_SEED` `-1`, and the rest of the `LLM_DEFAULT_*` family — see `backend/core/config/llm_config.py`) |
-| `ENABLE_IMAGE_GENERATION` | `false` | Master switch for ComfyUI card art |
-| `COMFYUI_SERVER_URL` | `http://127.0.0.1:8188` | ComfyUI endpoint (also `COMFYUI_TIMEOUT` `300`) |
-| `COMFYUI_CHECKPOINT` | DreamShaper XL Turbo | Image model; also `_STEPS` `8`, `_CFG` `2.0`, `_WIDTH` `896`, `_HEIGHT` `1254`, `_SAMPLER`, `_SCHEDULER`, `_NEGATIVE_PROMPT` — see `backend/core/config/comfyui_config.py` |
+| `IMAGE_TIMEOUT` | `120` | Seconds per Gemini image call. Everything else about image generation is player-configured in-game (Settings → Images: key, model, enabled) or code-owned in `backend/core/config/image_config.py` (house style, avoid instruction, aspect `2:3`, resolution `1K`, default model Nano Banana 2) |
 | `DB_NAME` / `DB_NAME_TEST` | `monster_hunter_game` / `monster_hunter_game_test` | Game database / offline-suite database (test DB auto-created) |
 | `FLASK_DEBUG` | `True` | Debug mode; also gates the in-app test-runner routes |
 
@@ -39,8 +37,10 @@ local/env as the floor.
 |---|---|---|
 | Text provider | `local` | `local` (the GGUF in `.env`) or `deepseek` (cloud API). Explicit switch — no auto-fallback on errors (locked decision) |
 | DeepSeek model | — | Picked from the live `GET /models` list or typed by hand. The model id is stamped into every `llm_logs` row it answers |
-| DeepSeek context window | auto from `DEEPSEEK_KNOWN_CONTEXT_WINDOWS` | Drives every prompt budget below while DeepSeek is active. Auto-fills for known models (v4 family: 1M), always editable; minimum `MIN_CONTEXT_WINDOW` (2048). Bigger window = prompts never trim = more billed tokens — `LLM_CONTEXT_FILL_PERCENT` still applies |
+| DeepSeek context window | auto from `DEEPSEEK_KNOWN_CONTEXT_WINDOWS` | Sets the 70% prompt ceiling while DeepSeek is active. Auto-fills for known models (v4 family: 1M), always editable; minimum `MIN_CONTEXT_WINDOW` (1,000,000 — the hard floor). The token bill is governed by the absolute block caps below, not the window |
 | DeepSeek API key | — | Stored in the row, masked to last-4 on every read, write-only through the API |
+| Image generation | off | Images section: on/off switch + Gemini API key + model, in the `image_provider` row. Turning ON requires a key; an empty model means the code default (`gemini-3.1-flash-image`, "Nano Banana 2"). Resolved per paint — no restart, no env switch |
+| Gemini API key | — | Same write-only, masked-to-last-4 rules as the DeepSeek key |
 
 `DEEPSEEK_KNOWN_CONTEXT_WINDOWS` and `MIN_CONTEXT_WINDOW` live in
 `backend/ai/llm/provider_settings.py` — update the map when DeepSeek
@@ -49,16 +49,18 @@ manual window).
 
 ## Prompt context budgets — `backend/game/utils/context_limits.py`
 
-Token-aware budgets that scale with the ACTIVE provider's context window
-(`LLM_CONTEXT_SIZE` for local; the panel's saved window for DeepSeek).
+Absolute token caps per block — COST and ATTENTION valves, not fit
+constraints (the 1M floor means prompts always fit). The whole prompt
+never exceeds 70% of the ACTIVE provider's window (`LLM_CONTEXT_SIZE`
+for local; the panel's saved window for DeepSeek).
 
 | Knob | Default | Effect |
 |---|---|---|
-| `FLEXIBLE_BLOCK_SHARES` | dungeon_log `0.25`, battle_log `0.20`, chat_history `0.20`, dialogue_history `0.15`, last_run_log `0.10`, turn_history `0.08`, monster_memories `0.06`, run_journal `0.06`, location_description `0.05` | Each growing history's share of the prompt budget. **The one place to rebalance prompt composition** |
-| `REQUIRED_BLOCKS` | party_details, monster_details | Never truncated — identity arrives whole |
+| `FLEXIBLE_BLOCK_TOKEN_CAPS` | dungeon_log `12000`, battle_log `8000`, chat_history `8000`, dialogue_history `6000`, last_run_log `4000`, turn_history `2000`, monster_memories `3000`, run_journal `2000`, location_description `1500` | Each growing history's absolute token cap. **The one place to balance prompt composition — and the token bill** |
+| `REQUIRED_BLOCKS` | party_details, monster_details | Never truncated — identity arrives whole, always the FULL persona (the window tiers are gone) |
 | `RESERVED_RESPONSE_TOKENS` | `1200` | Held back for the model's answer + fixed instructions |
-| `MIN_FLEXIBLE_CHARS` | `600` | Floor per flexible block on tiny windows |
-| `resolve_detail_tier()` | compact `<6144` / standard `<12288` / full `≥12288` | How much of each monster's persona enters multi-monster blocks, binned by window size |
+| `MAX_CONTEXT_FILL_PERCENT` | `0.7` | The ceiling: prompts never fill more than 70% of the window |
+| `MIN_FLEXIBLE_CHARS` | `600` | Floor per flexible block when caps scale down (unsupported sub-1M windows) |
 
 ## Battle — `backend/game/battle/constants.py`
 
@@ -90,7 +92,7 @@ profile — see the Expeditions section below.
 | `EXPLORE_MONSTER_COUNT_RANGE` | `(1, 2)` | How many dwell there |
 | `PATH_COUNT_RANGE` | `(2, 4)` | Paths per junction |
 | `EXIT_PATH_CHANCE` | `0.33` | Chance one path is a dungeon exit |
-| `PATH_OVERGENERATE_COUNT` | `6` | Paths asked of the LLM per batch (the LAST ones are used — small local models repeat themselves early) |
+| `PATH_OVERGENERATE_COUNT` | `4` | Paths asked of the LLM per batch (the LAST ones are used); matches `PATH_COUNT_RANGE`'s max now that the small-model over-generation workaround is gone |
 
 ## Expeditions — `backend/game/dungeon/run_context.py` + `handlers/notices.py`
 

@@ -1,6 +1,9 @@
-# comfyui image generation output
+# image generation output
+backend/ai/image/outputs/**
+!backend/ai/image/outputs/.gitkeep
+# the legacy ComfyUI outputs tree (auto-migrates on first startup) must
+# never get tracked while it waits
 backend/ai/comfyui/outputs/**
-!backend/ai/comfyui/outputs/.gitkeep
 
 backend/ai/image/outputs/**
 !backend/ai/image/outputs/.gitkeep

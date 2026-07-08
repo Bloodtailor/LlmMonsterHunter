@@ -275,6 +275,10 @@ still look back on it — any battle ends, and the run state wipes.
 Synchronous, no LLM. A quiet no-op when not in a dungeon, so the frontend
 can use it to clear stale run state (a run otherwise only ends by taking
 an exit path, being defeated, or entering the dungeon again).
+**Request (optional):** `{ "interrupted": boolean }` — the title screen's
+Continue sweeping a run the last session never finished: same mechanics,
+but an "unknown force overwhelmed the expedition" line joins the run's
+story before the snapshot.
 **Success:** `{ "success": true, "abandoned": boolean, "in_dungeon": false, "spoils_lost": { "released_names": string[], "lost_item_names": string[] } }`
 
 ### GET /dungeon/state

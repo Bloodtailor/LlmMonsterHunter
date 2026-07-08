@@ -1,10 +1,10 @@
 # Architecture
 
 How the pieces fit. The short version: **a thin, strictly-layered Flask
-backend orchestrates two AI engines (a local LLM and ComfyUI) through a
-single gateway and two queues, streams everything to a React frontend
-over SSE — and the LLM only ever picks words, while Python owns every
-number.**
+backend orchestrates two AI engines (a text LLM — DeepSeek or local —
+and the Gemini image API) through a single gateway and two queues,
+streams everything to a React frontend over SSE — and the LLM only ever
+picks words, while Python owns every number.**
 
 Companion docs: [tuning.md](tuning.md) for every knob,
 [api/README.md](api/README.md) for the HTTP surface, `CLAUDE.md` at the
@@ -20,8 +20,8 @@ flowchart TD
     G["game/ — the game itself<br/>managers (state) + generators (LLM calls) + registered workflows"]
     AI["ai/gateway.py — THE ONLY WAY to request generation<br/>logs every request, delegates to the AI queue"]
     Q2["ai/queue.py — one worker<br/>LLM + image requests, serialized"]
-    LLM["llama-cpp-python<br/>(local GGUF model)"]
-    CUI["ComfyUI<br/>(card art)"]
+    LLM["text provider<br/>(DeepSeek API / local GGUF)"]
+    CUI["Gemini image API<br/>(card art)"]
     DB[("MySQL<br/>models/")]
     SSE["SSE stream<br/>core/events/"]
 
@@ -136,15 +136,16 @@ valves, and fairness guardrails. The same pattern rules growth
 **If you're adding a mechanic: let the LLM choose among words you define,
 and let code own what the words do.**
 
-## Context budgets (fitting a game into a small model)
+## Context budgets (spending tokens deliberately)
 
-`game/utils/context_limits.py` gives every prompt block a budget that
-scales with `LLM_CONTEXT_SIZE`:
+The supported floor is a 1M-token context window, so prompts always
+fit — `game/utils/context_limits.py` budgets for COST and ATTENTION
+instead, under a hard ceiling of 70% of the window:
 
-- **Required blocks** (party/monster identity) are never truncated;
-  their *detail tier* (compact/standard/full) is binned by window size.
-- **Flexible blocks** (logs, dialogue, memories) each get a percentage
-  share and keep their most recent content when clamped.
+- **Required blocks** (party/monster identity) are never truncated and
+  always carry the full persona.
+- **Flexible blocks** (logs, dialogue, memories) each get an absolute
+  token cap and keep their most recent content when clamped.
 - **Rolling summaries** (`game/utils/rolling_summary.py`) condense old
   history via the LLM so long chats and runs stay affordable — raw
   entries are never deleted.
@@ -157,7 +158,7 @@ backend/
   routes/       thin HTTP wrappers (one file per domain)
   services/     validation + business rules (the trust boundary)
   game/         monster/ dungeon/ battle/ chat/ inventory/ memory/ player/ state/ utils/
-  ai/           gateway.py, queue.py, llm/ (core, prompts, parser, provider_settings, providers/), comfyui/
+  ai/           gateway.py, queue.py, llm/ (core, prompts, parser, provider_settings, providers/), image/ (gemini, processor, image_settings, paths)
   workflow/     the workflow queue + gateway
   core/         events/, config/, utils/, workflow_registry.py
   models/       SQLAlchemy models (one file per table)

@@ -1,8 +1,9 @@
 # Settings Service - TRUST BOUNDARY for the in-game settings panel
-# Validates panel input and shapes safe responses. The DeepSeek API key is
-# WRITE-ONLY through this layer: reads carry has_api_key + the last four
-# characters, never the key itself, and a save with a blank key field
-# keeps the stored key (the panel has nothing real to echo back).
+# Validates panel input and shapes safe responses. The DeepSeek and
+# Gemini API keys are WRITE-ONLY through this layer: reads carry
+# has_api_key + the last four characters, never the key itself, and a
+# save with a blank key field keeps the stored key (the panel has
+# nothing real to echo back).
 
 import os
 from pathlib import Path
@@ -39,7 +40,7 @@ def get_llm_settings() -> dict[str, Any]:
                     'model_file': Path(model_path).name if model_path else None,
                     'loaded': bool(model_status.get('loaded')),
                     'error': model_status.get('error'),
-                    'context_size': int(os.getenv('LLM_CONTEXT_SIZE', '4096')),
+                    'context_size': int(os.getenv('LLM_CONTEXT_SIZE', '1000000')),
                     'gpu_layers': int(os.getenv('LLM_GPU_LAYERS', '35')),
                 },
                 'deepseek': {
@@ -109,8 +110,7 @@ def update_llm_settings(payload: dict[str, Any]) -> dict[str, Any]:
                 return error_response('Switching to DeepSeek needs a model - fetch or type one')
             if not context_window:
                 return error_response(
-                    f"'{model}' is not a model this game knows - "
-                    'set its context window manually'
+                    f"'{model}' is not a model this game knows - set its context window manually"
                 )
 
         new_value = {
@@ -218,6 +218,130 @@ def test_llm_generation() -> dict[str, Any]:
         return error_response(str(e))
 
 
+# ===== IMAGES SECTION (docs/plans/cloud-generation.md: Gemini painter) =====
+
+
+def get_image_settings() -> dict[str, Any]:
+    """The Images section's read: enabled switch, masked key, model pick,
+    and the code-default model for the picker's empty state."""
+    try:
+        from backend.ai.image.image_settings import get_saved_settings
+        from backend.core.config.image_config import DEFAULT_IMAGE_MODEL
+
+        saved = get_saved_settings() or {}
+        api_key = saved.get('api_key') or ''
+
+        return success_response(
+            {
+                'enabled': bool(saved.get('enabled')),
+                'has_api_key': bool(api_key),
+                'api_key_last4': api_key[-4:] if api_key else None,
+                'model': saved.get('model') or None,
+                'default_model': DEFAULT_IMAGE_MODEL,
+            }
+        )
+
+    except Exception as e:
+        return error_response(str(e))
+
+
+def update_image_settings(payload: dict[str, Any]) -> dict[str, Any]:
+    """
+    Validate and persist the Images section's save (the LLM section's
+    rules): a blank key keeps the stored one, fields may be saved while
+    the switch stays off, and turning painting ON requires a key
+    (stored-or-provided). A missing model falls back to the code default
+    at resolve time.
+    """
+    payload = payload or {}
+
+    try:
+        from backend.ai.image.image_settings import SETTINGS_KEY, get_saved_settings
+        from backend.models.game_setting import GameSetting
+
+        stored = get_saved_settings() or {}
+
+        api_key = _clean_text(payload.get('api_key')) or stored.get('api_key')
+        model = _clean_text(payload.get('model')) or stored.get('model')
+        enabled = bool(payload.get('enabled'))
+
+        if enabled and not api_key:
+            return error_response(
+                'Turning image generation on needs a Gemini API key - paste one first'
+            )
+
+        new_value = {'enabled': enabled, 'api_key': api_key, 'model': model}
+        if not GameSetting.set(SETTINGS_KEY, new_value):
+            return error_response('Failed to save settings')
+
+        current = get_image_settings()
+        if current.get('success'):
+            current['message'] = 'Settings saved'
+        return current
+
+    except Exception as e:
+        return error_response(str(e))
+
+
+def fetch_gemini_models(payload: dict[str, Any]) -> dict[str, Any]:
+    """
+    Live image-capable model list from Gemini, proxied so the key never
+    round-trips the panel (the DeepSeek fetch precedent). The endpoint
+    needs auth, so a successful fetch IS key validation.
+    """
+    payload = payload or {}
+
+    try:
+        from backend.ai.image import gemini
+        from backend.ai.image.image_settings import get_saved_settings
+
+        stored = get_saved_settings() or {}
+        api_key = _clean_text(payload.get('api_key')) or stored.get('api_key')
+        if not api_key:
+            return error_response('Paste a Gemini API key first')
+
+        result = gemini.list_models(api_key)
+        if not result['success']:
+            return error_response(result['error'])
+
+        return success_response({'models': result['models'], 'key_valid': True})
+
+    except Exception as e:
+        return error_response(str(e))
+
+
+def test_image_generation() -> dict[str, Any]:
+    """
+    One tiny real paint through the normal gateway: it queues, shows in
+    the queue panel, lands in the developer log with its model, and
+    files a real image the panel can show. The whole path IS the test.
+    """
+    try:
+        from backend.ai import gateway
+
+        result = gateway.image_generation_request(
+            prompt_text=(
+                'A small, friendly slime creature waving hello - a test '
+                'illustration for a monster-taming game.'
+            ),
+            prompt_type='settings',
+            prompt_name='image_provider_test',
+        )
+
+        return success_response(
+            {
+                'image_path': result.get('image_path'),
+                'model_name': result.get('model_name'),
+            }
+        )
+
+    except Exception as e:
+        # Gateway raises on failures - the provider's mapped message
+        # (401 bad key, 429 rate limit, ...) is exactly what the panel
+        # should show
+        return error_response(str(e))
+
+
 def _clean_text(value: Any) -> Optional[str]:
     """Trimmed non-empty string, else None"""
     if isinstance(value, str) and value.strip():
@@ -249,8 +373,15 @@ def _resolve_context_window(
             )
         return window, None
 
-    if stored.get('context_window'):
-        return stored['context_window'], None
+    # A stored window below the (raised) floor is treated as absent so a
+    # pre-floor row self-heals through the known-models auto-fill on its
+    # next save instead of re-persisting an unsupported size
+    stored_window = stored.get('context_window')
+    try:
+        if stored_window and int(stored_window) >= minimum:
+            return stored_window, None
+    except (TypeError, ValueError):
+        pass
 
     if model and model in known_models:
         return known_models[model], None

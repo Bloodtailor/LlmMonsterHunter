@@ -205,6 +205,72 @@ def main():
                 any('turned back' in (m.content or '') for m in abandoned_memories),
             )
 
+            # ===== an interrupted session sweeps with a story =====
+            print('\n-- the interrupted-run sweep (title screen Continue) --')
+            from backend.services import dungeon_service
+
+            _in_dungeon_state(manager)
+            stranded = _make_monster('Stranded Mid-Run')
+            created_monsters.append(stranded)
+            FollowingMonster.add_follower(stranded.id)
+            spoils.record_run_recruit(stranded.id)
+
+            result = dungeon_service.abandon_run(interrupted=True)
+            check('the sweep reports the run closed', result.get('abandoned') is True)
+            check('the world is out of the dungeon', not manager.is_in_dungeon())
+            check(
+                'the stranded recruit was released',
+                not FollowingMonster.is_following(stranded.id),
+            )
+            last_run = manager.get_last_run_log() or {}
+            check(
+                'the unknown force made it into the run story',
+                any('unknown force' in str(entry) for entry in last_run.get('entries', [])),
+            )
+
+            # ===== auto-join: an open party seat never stays empty =====
+            print('\n-- auto-join: a new follower takes the open seat --')
+            from backend.game.state import manager as state_manager
+            from backend.models.active_party import ActiveParty
+
+            saved_party_ids = ActiveParty.get_party_monster_ids()
+            ActiveParty.set_party([])
+            _in_dungeon_state(manager)
+
+            seatmate = _make_monster('Seat Taker')
+            created_monsters.append(seatmate)
+            followed = state_manager.add_following_monster(seatmate.id)
+            check(
+                'a new follower with an open seat joins the party',
+                followed['newly_following'] and followed['joined_party'],
+                str(followed),
+            )
+            check(
+                'the mid-run join steps in fresh with full reserves',
+                manager.get_party_conditions().get(str(seatmate.id)) == 'fresh'
+                and bool(manager.get_party_resources().get(str(seatmate.id))),
+            )
+
+            repeat = state_manager.add_following_monster(seatmate.id)
+            check('following twice changes nothing', repeat['newly_following'] is False)
+
+            # A full party leaves the next recruit following only
+            while ActiveParty.get_party_count() < state_manager.companion_cap():
+                filler = _make_monster(f'Bench {ActiveParty.get_party_count()}')
+                created_monsters.append(filler)
+                ActiveParty.add_to_party(filler.id)
+
+            latecomer = _make_monster('Latecomer')
+            created_monsters.append(latecomer)
+            followed = state_manager.add_following_monster(latecomer.id)
+            check(
+                'a full party leaves the newcomer following only',
+                followed['newly_following'] and not followed['joined_party'],
+                str(followed),
+            )
+
+            ActiveParty.set_party(saved_party_ids)
+
         finally:
             # Leave no debris in the shared test DB
             for monster in created_monsters:

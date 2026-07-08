@@ -52,11 +52,7 @@ def resolve_autonomous_ally_turn(ctx: TurnContext, actor_id: str) -> None:
         monster = ctx.monsters.get(str(actor_id))
         wanted = str(raw.get('ability_name') or '').strip().lower()
         ability = next(
-            (
-                a
-                for a in (monster.abilities if monster else [])
-                if a.name.strip().lower() == wanted
-            ),
+            (a for a in (monster.abilities if monster else []) if a.name.strip().lower() == wanted),
             None,
         )
         if not ability:

@@ -49,8 +49,12 @@ def queue_run_chronicle(result_word: str, workflow_name: str) -> Optional[dict[s
             if monster
         ]
         if recruit_names:
-            kept_or_lost = 'walking out with the party' if result_word == 'victory' else 'lost with the run'
-            companions_line = f"Companions recruited this run: {', '.join(recruit_names)} ({kept_or_lost})."
+            kept_or_lost = (
+                'walking out with the party' if result_word == 'victory' else 'lost with the run'
+            )
+            companions_line = (
+                f"Companions recruited this run: {', '.join(recruit_names)} ({kept_or_lost})."
+            )
         else:
             companions_line = 'No new companions were recruited this run.'
 
@@ -84,9 +88,7 @@ def await_run_chronicle(queued: Optional[dict[str, Any]]) -> Optional[str]:
     try:
         from backend.game.chat.generator import wait_for_streamed_text
 
-        return wait_for_streamed_text(
-            queued['generation_id'], timeout=CHRONICLE_TIMEOUT_SECONDS
-        )
+        return wait_for_streamed_text(queued['generation_id'], timeout=CHRONICLE_TIMEOUT_SECONDS)
     except Exception as chronicle_error:
         print(f"❌ Chronicle generation failed (the run still ends): {chronicle_error}")
         return None
