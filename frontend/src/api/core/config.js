@@ -2,9 +2,22 @@
 // Updated to match complete backend API reference guide
 // Centralizes URLs, timeouts, and endpoint definitions
 
+// Where API requests go.
+// Development: '' (relative URLs) so REST calls, the SSE stream, uploads,
+// and <img> card art all stay same-origin and ride the CRA dev-server proxy
+// (package.json "proxy" -> http://localhost:5000). Same-origin means any
+// dev-server port works (parallel sessions auto-pick ports) and the backend
+// needs no CORS headers.
+// Production: set REACT_APP_API_URL at build time if the API lives on
+// another origin.
+const BASE_URL =
+  process.env.NODE_ENV === 'production'
+    ? process.env.REACT_APP_API_URL || 'http://localhost:5000'
+    : '';
+
 // Base configuration
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:5000',
+  BASE_URL,
   DEFAULT_TIMEOUT: 600000, // 10 minutes
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',
@@ -61,7 +74,7 @@ export const API_ENDPOINTS = {
   GENERATION_LOG_OPTIONS: '/api/generation/log-options',
 
   // ===== STREAMING & REAL-TIME =====
-  STREAMING_EVENTS: '/api/streaming/llm-events',
+  SSE_EVENTS: '/api/sse/events',
 
   // ===== TESTING & DEBUG =====
   GAME_TESTER_TESTS: '/api/game_tester/tests',
@@ -79,10 +92,9 @@ export const getApiConfig = () => {
     config.LOG_RESPONSES = true;
   }
 
-  // Production overrides
+  // Production overrides (BASE_URL already resolves REACT_APP_API_URL above)
   if (process.env.NODE_ENV === 'production') {
     config.ENABLE_LOGGING = false;
-    config.BASE_URL = process.env.REACT_APP_API_URL || config.BASE_URL;
   }
 
   return config;

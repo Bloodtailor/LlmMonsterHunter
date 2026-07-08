@@ -6,6 +6,7 @@
 
 import { get, post } from '../core/client.js';
 import { getApiConfig } from '../core/config.js';
+import { getCardArtUrl } from './monster.js';
 import { transformMonster } from '../transformers/monsters.js';
 
 /**
@@ -146,11 +147,11 @@ uploadPortrait.defaults = {
 
 /**
  * Display URL for any portrait candidate path (served by the existing
- * card-art route - uploads and painted candidates live in the same tree)
+ * card-art route - uploads and painted candidates live in the same tree,
+ * so this delegates to the one card-art URL builder)
  * @param {string} relativePath
  * @returns {string|null}
  */
 export function getPortraitUrl(relativePath) {
-  if (!relativePath) return null;
-  return `${getApiConfig().BASE_URL}/api/monsters/card-art/${relativePath}`;
+  return getCardArtUrl(relativePath);
 }

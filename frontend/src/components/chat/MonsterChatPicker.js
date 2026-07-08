@@ -5,10 +5,11 @@
 import React from 'react';
 import { Card, CardSection, EmptyState, LoadingSpinner } from '../../shared/ui/index.js';
 import { useParty } from '../../app/contexts/PartyContext/index.js';
+import { getCardArtUrl } from '../../api/services/monster.js';
 
 function partnerArtUrl(monster) {
-  if (!monster?.cardArt?.exists || !monster.cardArt.relativePath) return null;
-  return `http://localhost:5000/api/monsters/card-art/${monster.cardArt.relativePath}`;
+  if (!monster?.cardArt?.exists) return null;
+  return getCardArtUrl(monster.cardArt.relativePath);
 }
 
 /**

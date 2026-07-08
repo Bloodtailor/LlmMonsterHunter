@@ -19,13 +19,9 @@ import MonsterCard from '../cards/MonsterCard.js';
 import HueBasedExplosion from '../../shared/ui/Explosion/HueBasedExplosion.js';
 import EvolutionLineage from './EvolutionLineage.js';
 import { useMonsterEvolution, EVOLUTION_STEP_LABELS } from './hooks/useMonsterEvolution.js';
+import { getCardArtUrl } from '../../api/services/monster.js';
 
 const GUIDANCE_MAX_CHARS = 200;
-
-function cardArtUrl(relativePath) {
-  if (!relativePath) return null;
-  return `http://localhost:5000/api/monsters/card-art/${relativePath}`;
-}
 
 // One "HP 100 -> 125" line for the summary strip
 function StatDelta({ label, before, after }) {
@@ -129,7 +125,7 @@ function EvolutionCeremonyPanel({ monster }) {
   }
 
   const stepLabel = EVOLUTION_STEP_LABELS[currentStep] || 'The ceremony continues';
-  const oldArt = evolution ? cardArtUrl(evolution.oldCardArtPath) : null;
+  const oldArt = evolution ? getCardArtUrl(evolution.oldCardArtPath) : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

@@ -8,7 +8,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, Input, LoadingSpinner, Select } from '../../shared/ui/index.js';
-import { API_CONFIG, API_ENDPOINTS } from '../../api/core/config.js';
+import { getCardArtUrl } from '../../api/services/monster.js';
 import * as settingsApi from '../../api/services/settings.js';
 
 function ImageSettingsSection() {
@@ -100,9 +100,7 @@ function ImageSettingsSection() {
   const modelOptions = fetchedModels.length
     ? fetchedModels
     : [model || settings.defaultModel].filter(Boolean);
-  const testImageUrl = testState.result?.imagePath
-    ? `${API_CONFIG.BASE_URL}${API_ENDPOINTS.MONSTER_CARD_ART_FILE(testState.result.imagePath)}`
-    : null;
+  const testImageUrl = getCardArtUrl(testState.result?.imagePath);
 
   return (
     <div className="llm-settings">

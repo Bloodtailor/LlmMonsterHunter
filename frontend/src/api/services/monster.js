@@ -4,6 +4,7 @@
 // Functions carry their own defaults for perfect pairing with useAsyncState
 
 import { get, post, getWithParams } from '../core/client.js';
+import { API_CONFIG } from '../core/config.js';
 import {
   transformMonster,
   transformMonsters,
@@ -163,12 +164,14 @@ loadMonsterEvolutions.defaults = {
 };
 
 /**
- * Get monster card art file URL
- * Note: This returns the full URL for the card art file endpoint
- * @param {string} relativePath - Relative path from monster.card_art.relative_path
- * @returns {string} Full URL to the card art image endpoint
+ * Build the display URL for a card art image - the ONE place these URLs
+ * come from (player portraits reuse it too; the backend serves both from
+ * the same route). Relative in development so images stay same-origin
+ * through the CRA proxy no matter which port the dev server runs on.
+ * @param {string} relativePath - Relative path from monster.cardArt.relativePath
+ * @returns {string|null} URL for an <img> src, or null when there is no art
  */
 export function getCardArtUrl(relativePath) {
   if (!relativePath) return null;
-  return `http://localhost:5000/api/monsters/card-art/file/${relativePath}`;
+  return `${API_CONFIG.BASE_URL}/api/monsters/card-art/${relativePath}`;
 }

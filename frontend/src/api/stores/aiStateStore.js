@@ -2,6 +2,8 @@
 // Manages computed states outside React with useSyncExternalStore infrastructure
 // Each computed state can be subscribed to independently to prevent unnecessary re-renders
 
+import { getCardArtUrl } from '../services/monster.js';
+
 // ===== EXTERNAL STATE STORAGE =====
 let aiState = {
   // Active generation tracking
@@ -291,9 +293,7 @@ export const aiStatusRouter = (eventName, eventData) => {
       });
 
       // Create image URL if we have an image path
-      const imageUrl = eventData.result?.imagePath
-        ? `http://localhost:5000/api/monsters/card-art/${eventData.result.imagePath}`
-        : null;
+      const imageUrl = getCardArtUrl(eventData.result?.imagePath);
 
       updateImageStatus({
         status: 'completed',

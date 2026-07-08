@@ -61,6 +61,24 @@ export async function processResponse(response, endpoint = 'unknown') {
   try {
     // Check if response is ok
     if (!response.ok) {
+      // "Backend unreachable" detection: the CRA dev proxy reports a dead
+      // backend as a 500 with a plain-text "Proxy error" body (verified -
+      // it does NOT send 502/504), while real backend errors always arrive
+      // as Flask jsonify JSON. 502/504 are the same signal from
+      // production-style gateways.
+      const contentType = response.headers.get('content-type') || '';
+      const backendUnreachable =
+        response.status === 502 ||
+        response.status === 504 ||
+        (response.status === 500 && !contentType.includes('application/json'));
+      if (backendUnreachable) {
+        throw new ApiError(
+          'Backend unreachable - make sure it is running (dev proxies /api to localhost:5000)',
+          response.status,
+          response,
+          endpoint,
+        );
+      }
       throw new ApiError(
         `API request failed: ${response.status} ${response.statusText}`,
         response.status,
@@ -126,8 +144,11 @@ export function processError(error, endpoint = 'unknown') {
   }
 
   if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+    // Requests go same-origin (through the dev proxy in development), so a
+    // network-level failure means the server that served the page is gone -
+    // a down BACKEND surfaces as a 502/504 response instead.
     return new ApiError(
-      'Cannot connect to backend server - make sure it is running on localhost:5000',
+      'Cannot connect to the server - request failed before reaching the backend',
       null,
       null,
       endpoint,

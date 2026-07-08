@@ -3,7 +3,6 @@
 import os
 
 from flask import Flask
-from flask_cors import CORS
 
 
 def create_app(config_name='development'):
@@ -25,8 +24,10 @@ def create_app(config_name='development'):
     app = Flask(__name__)
     _configure_app(app)
 
-    # Enable CORS for React frontend
-    CORS(app, origins=['http://localhost:3000'])
+    # No CORS setup on purpose: the React dev server proxies /api calls here
+    # (frontend/package.json "proxy"), so the browser only ever makes
+    # same-origin requests - on any dev-server port. Cross-origin headers
+    # would be dead weight.
 
     # Initialize database
     from backend.startup import initialize_database

@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { API_CONFIG, API_ENDPOINTS } from './config.js';
 
-const SSE_URL = 'http://localhost:5000/api/sse/events';
+// Same base-URL policy as REST calls: relative in development, so the
+// EventSource stream stays same-origin and rides the CRA proxy to the backend.
+const SSE_URL = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.SSE_EVENTS}`;
 
 export const useSSE = (eventHandlers) => {
   const [isConnected, setIsConnected] = useState(false);
