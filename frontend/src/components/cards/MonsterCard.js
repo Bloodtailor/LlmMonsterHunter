@@ -9,6 +9,7 @@ import MonsterCardOverview from './MonsterCardOverview.js';
 import MonsterCardDetails from './MonsterCardDetails.js';
 import './monsterCard.css';
 import { CARD_SIZES } from '../../shared/constants/constants.js';
+import { getCardArtUrl } from '../../api/services/monster.js';
 
 function MonsterCard({
   monster,
@@ -22,9 +23,9 @@ function MonsterCard({
   hideFlipHint = false,
 }) {
   // Construct card art URL using clean monster object
-  const getCardArtUrl = () => {
-    if (!monster.cardArt.exists || !monster.cardArt.relativePath) return null;
-    return `http://localhost:5000/api/monsters/card-art/${monster.cardArt.relativePath}`;
+  const cardArtUrlForMonster = () => {
+    if (!monster.cardArt.exists) return null;
+    return getCardArtUrl(monster.cardArt.relativePath);
   };
 
   // Handle expand card - just call parent callback
@@ -44,7 +45,7 @@ function MonsterCard({
       size={size}
       showPartyToggle={showPartyToggle}
       onExpandCard={handleExpandCard}
-      getCardArtUrl={getCardArtUrl}
+      getCardArtUrl={cardArtUrlForMonster}
     />
   );
 

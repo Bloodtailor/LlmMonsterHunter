@@ -16,6 +16,11 @@ links to the per-domain files.
 
 ## Base URL
 - Development: `http://localhost:5000/api`
+- The frontend never hardcodes that address: in development it makes
+  relative `/api/...` requests (REST, SSE, and card-art images alike) and
+  the CRA dev server's proxy (`frontend/package.json` `"proxy"`) forwards
+  them to `:5000`. Everything stays same-origin on any dev-server port, so
+  the backend serves no CORS headers.
 
 ## Standard response format
 Every JSON endpoint returns an envelope:

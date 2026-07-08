@@ -4,12 +4,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardSection, LoadingSpinner } from '../../shared/ui/index.js';
-import { loadMonsterEvolutions } from '../../api/services/monster.js';
-
-function oldArtUrl(relativePath) {
-  if (!relativePath) return null;
-  return `http://localhost:5000/api/monsters/card-art/${relativePath}`;
-}
+import { loadMonsterEvolutions, getCardArtUrl } from '../../api/services/monster.js';
 
 /**
  * EvolutionLineage component
@@ -57,7 +52,7 @@ function EvolutionLineage({ monsterId, refreshToken }) {
         )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {evolutions.map((evolution) => {
-            const artUrl = oldArtUrl(evolution.oldCardArtPath);
+            const artUrl = getCardArtUrl(evolution.oldCardArtPath);
             return (
               <div
                 key={evolution.id}

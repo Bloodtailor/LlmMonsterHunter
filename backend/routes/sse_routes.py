@@ -47,8 +47,11 @@ def stream_events():
             sse_service.remove_connection(connection.id)
 
     response = Response(event_generator(), mimetype='text/event-stream')
-    response.headers['Cache-Control'] = 'no-cache'
+    # no-transform matters: the CRA dev proxy gzip-compresses responses by
+    # default, and gzip would buffer the event stream into silence - this
+    # tells every intermediary to pass events through untouched. The stream
+    # is same-origin through that proxy, so no Access-Control header needed.
+    response.headers['Cache-Control'] = 'no-cache, no-transform'
     response.headers['Connection'] = 'keep-alive'
-    response.headers['Access-Control-Allow-Origin'] = '*'
 
     return response
