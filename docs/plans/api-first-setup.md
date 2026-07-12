@@ -148,7 +148,7 @@ launches. The winget-ACCEPT path cannot be tested on a machine that
 already has everything — it needs the fresh-VM soak in the checklist at
 the bottom of this doc.
 
-### M3 — Guided MySQL, redesigned for a first-timer
+### M3 — Guided MySQL, redesigned for a first-timer — IMPLEMENTED
 
 The install stays manual (locked decision 5); everything around it gets
 easier:
@@ -174,6 +174,18 @@ easier:
 - Common failure modes (service didn't start, port occupied) get the
   short human version first, with the existing deep troubleshooting text
   demoted to "if that didn't work" detail.
+
+*Deviation (bigger than planned, in the plan's spirit):* setup now
+talks to MySQL the way the game does — **PyMySQL** (borrowing the
+venv's pure-Python copy when setup runs under system Python) plus a
+credential-free socket probe for "is the server up". The old checks
+shelled out to the `mysql` CLI, which the MSI installer usually leaves
+off PATH — making "edit your system PATH via sysdm.cpl" a required
+onboarding step for a tool the game never uses, and putting the root
+password into visible process arguments. The CLI check is demoted to
+informational, `handle_cli_path_issue` and both PATH-editing message
+cards are gone, and the MySQL requirement is exactly "a server the
+game can reach."
 
 ### M4 — The zero-question walkthrough
 

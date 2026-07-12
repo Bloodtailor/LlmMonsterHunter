@@ -13,51 +13,29 @@ from setup.constants import MYSQL_LOCATIONS, MYSQL_SERVICE_NAMES
 
 def check_mysql_server():
     """
-    Check if MySQL server is accessible (primary detection method)
-    Uses connection test - most reliable way to verify server is working
+    Check if MySQL server is accessible (primary detection method).
+    A plain socket probe: needs no credentials, no driver, and - unlike
+    the old `mysql` CLI probe - works even when the MSI installer left
+    the CLI off the system PATH (it usually does).
     """
-    try:
-        # Try to connect - we expect auth failure, which means server is working
-        result = subprocess.run(
-            ["mysql", "-h", "localhost", "-P", "3306", "-u", "nonexistentuser", "-e", "SELECT 1;"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
+    from setup.checks.database_checks import get_database_config
+    from setup.utils.mysql_client import probe_server
 
-        # If it succeeds somehow, great!
-        if result.returncode == 0:
-            return True, "MySQL server connection successful"
+    config = get_database_config() or {}
+    host = config.get('host', 'localhost')
+    port = config.get('port', 3306)
 
-        # If it fails with auth error, server is definitely working
-        if "Access denied" in result.stderr:
-            return True, "MySQL server responding (authentication required)"
-
-        # Other connection errors indicate server problems
-        if any(
-            error in result.stderr
-            for error in [
-                "Can't connect",
-                "Connection refused",
-                "Unknown MySQL server host",
-                "Lost connection",
-                "No connection could be made",
-            ]
-        ):
-            return False, "Cannot connect to MySQL server"
-
-        return False, "MySQL server connection unclear"
-
-    except FileNotFoundError:
-        return False, "Cannot test connection (mysql command not available)"
-    except subprocess.TimeoutExpired:
-        return False, "MySQL connection test timed out"
-    except Exception as e:
-        return False, f"MySQL connection test failed: {e}"
+    if probe_server(host, port):
+        return True, f"MySQL server is running ({host}:{port})"
+    return False, "Cannot connect to MySQL server"
 
 
 def check_mysql_cli():
-    """Check if MySQL command line client is available."""
+    """
+    Check if MySQL command line client is available.
+    Informational only: the game and setup both speak PyMySQL, so a
+    missing CLI never blocks anything - it just helps diagnostics.
+    """
     try:
         result = subprocess.run(["mysql", "--version"], capture_output=True, text=True, check=True)
         version_info = result.stdout.strip()
@@ -180,12 +158,15 @@ def get_mysql_service_name():
 
 
 def check_mysql_requirements():
-    """Check all MySQL related requirements (for orchestration)."""
+    """Check all MySQL related requirements (for orchestration).
+
+    A running server is the whole requirement: setup and the game both
+    connect via PyMySQL, so the CLI's presence/PATH no longer gates
+    anything.
+    """
 
     server_ok, _ = check_mysql_server()
-    cli_ok, _ = check_mysql_cli()
-
-    return server_ok and cli_ok
+    return server_ok
 
 
 def get_mysql_diagnostic(include_overall=False):

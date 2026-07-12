@@ -4,50 +4,32 @@ Database Installation Module
 Pure installation logic for database creation and configuration
 """
 
-import subprocess
-
 from setup.checks.database_checks import get_database_config
 from setup.utils.env_utils import update_env_config
+from setup.utils.mysql_client import run_statement
 
 
 def create_database():
     """
     Create the Monster Hunter database using configuration from .env file.
+    Uses PyMySQL (what the game uses) - works even when the MySQL CLI
+    is not on PATH, and keeps the password out of process arguments.
     Returns (success, message) tuple for clean UX handling.
     """
     config = get_database_config()
     if not config:
         return False, "Invalid or missing database configuration in .env file"
 
-    try:
-        # Build MySQL command to create database
-        cmd = [
-            "mysql",
-            f"-h{config['host']}",
-            f"-P{config['port']}",
-            f"-u{config['user']}",
-            f"-p{config['password']}",
-            "-e",
-            f"CREATE DATABASE IF NOT EXISTS {config['name']};",
-        ]
-
-        subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30)
+    success, error = run_statement(
+        config['host'],
+        config['port'],
+        config['user'],
+        config['password'],
+        f"CREATE DATABASE IF NOT EXISTS {config['name']};",
+    )
+    if success:
         return True, f"Database '{config['name']}' created successfully"
-
-    except subprocess.TimeoutExpired:
-        return False, "Database creation timed out"
-    except subprocess.CalledProcessError as e:
-        if "Access denied" in e.stderr:
-            return False, "Database creation failed: Access denied (check password and permissions)"
-        elif "Can't connect" in e.stderr or "Connection refused" in e.stderr:
-            return False, "Database creation failed: Cannot connect to MySQL server"
-        else:
-            error_msg = e.stderr.strip() or "Unknown MySQL error"
-            return False, f"Database creation failed: {error_msg}"
-    except FileNotFoundError:
-        return False, "Database creation failed: MySQL command line client not available"
-    except Exception as e:
-        return False, f"Database creation error: {e}"
+    return False, f"Database creation failed: {error}"
 
 
 def update_database_password(new_password):

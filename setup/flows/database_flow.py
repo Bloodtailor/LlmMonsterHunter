@@ -105,10 +105,10 @@ def handle_config_issues():
         print_error(".env file not found")
         print("Run basic setup first to create .env file")
         print()
-        print_warning("This componenet cannot be setup until the basic backend is setup.")
+        print_warning("This component cannot be set up until the basic backend is set up.")
         print_continue("Skipping this component.")
         print()
-        input("Press enter to continue to the next compnonent...")
+        input("Press Enter to continue to the next component...")
         return False
 
     password = env_vars.get('DB_PASSWORD', '')
@@ -118,10 +118,10 @@ def handle_config_issues():
         print_error("DB_PASSWORD already exists but config check failed for unknown reason")
         print("Please ensure that the .env was created correctly")
         print()
-        print_warning("This componenet cannot be setup until this error has been resolved.")
+        print_warning("This component cannot be set up until this error has been resolved.")
         print_continue("Skipping this component.")
         print()
-        input("Press enter to continue to the next compnonent...")
+        input("Press Enter to continue to the next component...")
         return False
 
 
@@ -131,7 +131,7 @@ def handle_missing_password():
     show_message('database_password_setup')
 
     while True:
-        choice = input("Enter your MySQL root password now? [Y/n]: ").strip()
+        choice = input("Enter it now? [Y/n]: ").strip()
         if choice.lower() in ['n', 'no']:
             print()
             print_continue("Skipping database password setup...")
@@ -139,14 +139,14 @@ def handle_missing_password():
             return False
 
         print()
-        password = input("Enter your MySQL root password: ").strip()
+        password = input("Type your MySQL password here: ").strip()
 
         if not password:
-            print("Empty password entered. Please try again.")
+            print("Nothing was typed. Please try again.")
             continue
 
         # Save password and test it
-        print("Saving password and testing connection...")
+        print("Saving the password and testing it...")
         success, message = update_database_password(password)
 
         if not success:
@@ -157,11 +157,14 @@ def handle_missing_password():
         connection_ok, connection_message = check_mysql_server_connection()
 
         if connection_ok:
-            print_success("Database password configured successfully!")
+            print_success("That worked - the game can reach MySQL!")
             print()
             return True
         else:
             print_warning(connection_message)
+            print("That password didn't work. It has to be the exact one from")
+            print("the MySQL install - let's try again.")
+            print()
 
 
 def handle_connection_issues(connection_message):
