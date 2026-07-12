@@ -35,16 +35,24 @@ COMPONENT_DIAGNOSTICS = {
 }
 
 
-def run_all_checks():
-    """Run all component checks and return results"""
+def run_all_checks(component_names=None):
+    """Run component checks and return results.
+
+    component_names limits the run (setup/components.py decides the
+    API-first vs local-extras split); None keeps the historical
+    check-everything behavior for callers that want the full picture.
+    """
 
     print("Please wait for all checks to complete")
     print()
 
+    if component_names is None:
+        component_names = list(COMPONENT_CHECKS.keys())
+
     results = {}
-    for name, check_func in COMPONENT_CHECKS.items():
+    for name in component_names:
         print(f"Checking {name} requirements...")
-        results[name] = check_func()
+        results[name] = COMPONENT_CHECKS[name]()
     return results
 
 

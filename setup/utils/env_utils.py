@@ -158,6 +158,8 @@ def create_env_file_from_template(template_path=".env.example"):
     Returns:
         tuple: (success, message)
     """
+    import secrets
+
     env_file = Path(".env")
     template = Path(template_path)
 
@@ -170,6 +172,12 @@ def create_env_file_from_template(template_path=".env.example"):
     try:
         with open(template) as src:
             content = src.read()
+        # A non-technical player never edits .env by hand, so the Flask
+        # secret must be real from the start, not a placeholder
+        content = content.replace(
+            "SECRET_KEY=your-secret-key-here",
+            f"SECRET_KEY={secrets.token_hex(32)}",
+        )
         with open(env_file, 'w') as dst:
             dst.write(content)
         return True, f".env file created from {template.name}"

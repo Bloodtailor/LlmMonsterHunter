@@ -12,7 +12,9 @@ from .mysql_flow import run_mysql_interactive_setup
 from .nodejs_flow import run_nodejs_interactive_setup
 from .vs_flow import run_visual_studio_interactive_setup
 
-# Interactive flow registry for orchestration
+# Interactive flow registry for orchestration. Which components a run
+# actually visits (required vs local extras) is decided by the canonical
+# registry in setup/components.py - this dict just maps name -> flow.
 COMPONENT_FLOWS = {
     'Basic Backend': run_basic_backend_interactive_setup,
     'Node.js & npm': run_nodejs_interactive_setup,
@@ -23,16 +25,6 @@ COMPONENT_FLOWS = {
     'Model Directory': run_llm_env_interactive_setup,
     'LLM Integration': run_llama_cpp_interactive_setup,
 }
-
-# The API-first game needs NONE of these: they serve the unsupported
-# local-LLM escape hatch (docs/plans/cloud-generation.md), so the
-# orchestrator gates the whole chain behind one opt-in question.
-LOCAL_EXTRA_COMPONENTS = (
-    'NVIDIA GPU & CUDA',
-    'Visual Studio Build Tools',
-    'Model Directory',
-    'LLM Integration',
-)
 
 
 def run_component_flow(component_name):

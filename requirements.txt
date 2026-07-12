@@ -1,5 +1,6 @@
-# Aggregator - `pip install -r requirements.txt` installs the full game.
-# base.txt: everything but the LLM engine (what CI installs)
-# llm.txt:  llama-cpp-python (CUDA wheel nuance documented there)
+# The API-first game needs only base.txt (text runs on DeepSeek, art on
+# Gemini - keys pasted in-game). The local-LLM escape hatch installs
+# llama-cpp-python separately via:
+#     python -m setup.setup_environment --local-extras
+# (see requirements/llm.txt for the CUDA wheel nuance).
 -r requirements/base.txt
--r requirements/llm.txt

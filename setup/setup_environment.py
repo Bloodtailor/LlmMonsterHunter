@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 """
 Monster Hunter Game - Interactive Environment Setup
-Walks user through setting up missing requirements
+Walks user through setting up missing requirements.
+
+Default run covers only what the API-first game needs (Python env,
+Node, MySQL, database). The unsupported local-LLM escape hatch
+(GPU/CUDA/Build Tools/GGUF model) is developer-facing and only runs
+with --local-extras - a new player never sees that vocabulary.
 """
 
 import sys
 
 from setup.check_requirements import check_requirements
 from setup.checks import COMPONENT_CHECKS, run_component_diagnostic
-from setup.flows import COMPONENT_FLOWS, LOCAL_EXTRA_COMPONENTS
+from setup.components import components_for
+from setup.flows import COMPONENT_FLOWS
 from setup.utils.ux_utils import (
     print_continue,
     print_error,
@@ -23,24 +29,10 @@ def auto_setup_basic_backend():
 
     from setup.flows.basic_backend_flow import auto_setup_basic_backend
 
-    auto_setup_basic_backend()
+    return auto_setup_basic_backend()
 
 
-def _ask_about_local_extras():
-    """One gate for the GPU/CUDA/Build-Tools/GGUF chain."""
-    print()
-    print_header("Optional: local-LLM extras")
-    print("The game is API-first: text runs on DeepSeek and card art on Gemini,")
-    print("both configured IN-GAME (gear icon -> Settings) with API keys.")
-    print("The remaining components (NVIDIA GPU & CUDA, Visual Studio Build")
-    print("Tools, a local GGUF model) only matter for the UNSUPPORTED")
-    print("local-model escape hatch: the game requires a 1M-token context")
-    print("window, and consumer GPUs don't run 1M-token models.")
-    print()
-    return prompt_user_confirmation("Set up the local-LLM extras anyway? [y/N]: ")
-
-
-def main_interactive_setup(dry_run=False):
+def main_interactive_setup(dry_run=False, include_local_extras=False):
     """Interactive setup for missing requirements."""
     print_header("Interactive Environment Setup")
     print("This will help you set up missing requirements for Monster Hunter Game.")
@@ -48,20 +40,10 @@ def main_interactive_setup(dry_run=False):
     print()
 
     # Get the list of components in setup order
-    component_names = list(COMPONENT_FLOWS.keys())
+    component_names = list(components_for(include_local_extras))
     total_components = len(component_names)
 
-    # The game is API-first: text (DeepSeek) and card art (Gemini) run on
-    # keys pasted IN-GAME, so the local-LLM chain is one opt-in question
-    include_local_extras = None
-
     for current, component_name in enumerate(component_names, 1):
-        if component_name in LOCAL_EXTRA_COMPONENTS:
-            if include_local_extras is None:
-                include_local_extras = _ask_about_local_extras()
-            if not include_local_extras:
-                continue
-
         # Check if already working
         check_function = COMPONENT_CHECKS[component_name]
         try:
@@ -107,12 +89,16 @@ def main_interactive_setup(dry_run=False):
     print_header("Interactive Environment Setup: FINISHED")
     print()
     if prompt_user_confirmation("Would you like to recheck requirments before exiting? [Y/n]: "):
-        check_requirements()
+        check_requirements(include_local_extras=include_local_extras)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "auto":
-        auto_setup_basic_backend()
+    args = sys.argv[1:]
+    if "auto" in args:
+        # start_game.bat gates on this exit code - report failures honestly
+        sys.exit(0 if auto_setup_basic_backend() else 1)
     else:
-        # from setup.utils.dry_run_utils import run_as_standalone_component
-        main_interactive_setup()
+        main_interactive_setup(
+            dry_run="--dry-run" in args,
+            include_local_extras="--local-extras" in args,
+        )

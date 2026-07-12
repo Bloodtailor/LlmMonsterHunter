@@ -27,6 +27,7 @@ SUITES = [
     'test_game_settings',
     'test_deepseek_provider',
     'test_gemini_provider',
+    'test_setup_registry',
 ]
 
 
