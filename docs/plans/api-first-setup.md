@@ -1,6 +1,7 @@
 # API-First Setup — Onboarding for Non-Technical Players — Plan
 
-**Status:** IN PROGRESS (July 2026) — approved by Aaron; M1 implemented.
+**Status:** IMPLEMENTED (July 2026) — all five milestones landed. Pending
+Aaron's fresh-machine soak: the verification checklist at the bottom.
 **Branch:** `feature/api-first-setup` — one milestone commit per milestone, prefix `Stp-M#`.
 
 The setup system was built for the local-model era: it assumes the player
@@ -214,7 +215,7 @@ set up X now?" question and the between-component "Press Enter to
 continue" pauses are gone; components that fail no longer stop the
 pass — they're collected and reported on the finish screen.
 
-### M5 — Docs for humans
+### M5 — Docs for humans — IMPLEMENTED
 
 - README Quick Start rewritten as three steps: **Download ZIP →
   double-click `start_game.bat` → paste your key in ⚙ Settings**, with
@@ -254,3 +255,27 @@ pass — they're collected and reported on the finish screen.
 - macOS/Linux launcher scripts.
 - Packaged one-file installer (PyInstaller/Electron-style) — the ZIP +
   bat bootstrap gets 90% of the value at 5% of the maintenance.
+
+## Verification checklist (Aaron's fresh-machine soak)
+
+The launcher's automated branches were tested with stubs; these need a
+machine (or Windows VM/Sandbox) that starts with NOTHING installed:
+
+1. Download the repo as ZIP (green Code button), unzip, double-click
+   `start_game.bat`.
+2. Accept the winget installs for Python and Node → the
+   "close this window and double-click again" message appears → rerun.
+3. Walkthrough reaches MySQL: browser opens the download page, the
+   install card's four answers are enough, setup waits and verifies
+   right after the wizard, and the password prompt accepts the
+   invented password (wrong password re-asks with the friendly line).
+4. Finish screen points at the gear icon; the launcher loops back,
+   passes the requirements check, and starts both server windows; the
+   game loads at localhost:3000.
+5. Paste a DeepSeek key in ⚙ Settings and generate a monster.
+6. Also worth a pass on THIS machine: decline winget once to see the
+   browser-fallback wording, and run
+   `python -m setup.setup_environment --local-extras` to confirm the
+   escape hatch still walks all 8 components.
+7. `start_backend.bat` / `start_frontend.bat` on a missing-prereq
+   machine point at `start_game.bat` instead of failing cryptically.

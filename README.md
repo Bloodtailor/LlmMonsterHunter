@@ -19,7 +19,7 @@ Where traditional games spend compute on rendering high-fidelity graphics, this 
 
 This is the **API-first** edition of the project: text generation runs on 1M-token-context cloud models (DeepSeek) and card art on the Gemini image API — a sibling repository, [LlmMonsterHunter-Local](https://github.com/Bloodtailor/LlmMonsterHunter-Local), explores the opposite bet: redesigning the game around small local models.
 
-This is a **personal project**, built solo for **educational purposes** and as part of my **portfolio**. If you've somehow found this repo — welcome! There's an **interactive setup** to guide you through installation, and the requirements are ordinary (Python, Node, MySQL, two API keys) — no GPU, no CUDA, no local models.
+This is a **personal project**, built solo for **educational purposes** and as part of my **portfolio**. If you've somehow found this repo — welcome! Setup is one double-click: the launcher installs what it can by itself and walks you through the rest — no GPU, no CUDA, no local models, no terminal skills needed. You bring two API keys (well, one — the art key is optional).
 
 ---
 
@@ -79,39 +79,23 @@ Read the full tour in [docs/architecture.md](docs/architecture.md), tweak anythi
 
 ## 🚀 **Quick Start**
 
-### Prerequisites
-(You'll need all of these installed before setup will work.)
+You don't need to be technical — if you can install a program, you can run this. Windows 10/11:
 
-- Python 3.9+
-- Node.js 16+ (includes npm)
-- MySQL Server
+1. **Download the game** — click the green **Code** button at the top of this page, choose **Download ZIP**, and unzip it anywhere (right-click → Extract All).
+2. **Double-click `start_game.bat`** inside the unzipped folder. The first run sets everything up: it offers to install the free software the game is built on (Python, Node.js), and walks you through the one step that needs you — installing MySQL, the free database that stores your monsters. Just follow what the window says; if it asks you to close it and double-click again, that's normal. After the first time, the same double-click simply starts the game.
+3. **Paste in your API key.** When the game opens in your browser (at `http://localhost:3000`), click the **⚙️ gear icon** and paste a [DeepSeek](https://platform.deepseek.com/) API key — that powers all the story text. Card art is optional: add a [Google Gemini](https://aistudio.google.com/) key whenever you like; the game plays fully art-less without one.
 
-### API Keys
-Both are pasted **in-game** (gear icon → Settings) — no env files, no restart:
+**What it costs:** the AI usage is pay-as-you-go — card art runs ~$0.07 per image on the default model (Nano Banana 2), so a heavy session is a dollar or two in images plus pennies of DeepSeek text. No subscription.
 
-- **Text:** a [DeepSeek](https://platform.deepseek.com/) API key (the v4 family carries the required 1M-token context window)
-- **Card art (optional):** a [Google Gemini](https://aistudio.google.com/) API key — the game plays fully art-less without one
-
-Cost ballpark: card art runs ~$0.07 per image on the default model (Nano Banana 2), so a heavy session is a dollar or two in images plus DeepSeek tokens.
-
-*The unsupported local escape hatch* (an NVIDIA GPU, CUDA 12.x, Visual Studio Build Tools, and a ≥1M-context GGUF model) still exists behind an opt-in question in the setup walkthrough — the game no longer supports models with smaller context windows.
-
-### Starting the Game
-
-- Run **`start_game.bat`** to launch the game.
-  - This will guide you through the setup walkthrough on first run.
-  - After the first setup, `start_game.bat` starts both the backend and frontend together.
-  - Once the game opens, paste your API keys under **⚙️ Settings**.
-- Or individually: **`start_backend.bat`** / **`start_frontend.bat`**
-
-⚡ *With everything installed, the game will be available at:*
-👉 `http://localhost:3000`
+**What you do NOT need:** no GPU, no CUDA, no local models, no gigabytes of downloads — the AI runs in the cloud.
 
 ### For Developers
 
+- Start pieces individually: **`start_backend.bat`** / **`start_frontend.bat`**
 - Offline test suites (LLM stubbed, dedicated test DB): `python -m pytest` or the in-app Developer screen
 - Every gameplay knob is cataloged in [docs/tuning.md](docs/tuning.md)
 - Working with an AI assistant? Conventions live in [CLAUDE.md](CLAUDE.md)
+- *The unsupported local escape hatch* (an NVIDIA GPU, CUDA 12.x, Visual Studio Build Tools, and a ≥1M-context GGUF model) is reachable via `python -m setup.setup_environment --local-extras` — it no longer appears in the normal setup at all, and the game no longer supports models with smaller context windows.
 
 ---
 

@@ -1,20 +1,17 @@
 # Try It Yourself
 
-Want to actually run it? Totally doable, but let's be honest about what's
-involved. This is a developer's project running on your own machine — not a
-polished app you download from a store.
+Want to actually run it? Totally doable — even if you've never used a
+terminal in your life. It's still a developer's project running on your own
+machine, not a polished app from a store, but the setup now does almost
+everything itself.
 
 ## What you'll need
 
-**On your computer:**
-
-- **Python** (3.9 or newer) — a programming language runtime
-- **Node.js** (16 or newer) — powers the web interface
-- **MySQL** — a database to store your monsters and progress
-
-If those words mean nothing to you, that's okay — they're free downloads,
-and the game includes an **interactive setup walkthrough** that checks what
-you have and guides you through the rest.
+**On your computer:** a Windows 10 or 11 PC. That's genuinely it — the
+game's launcher installs the free software it's built on (Python, Node.js)
+by itself, and walks you step-by-step through the one install that needs
+you (MySQL, the free database that stores your monsters). You never type a
+command.
 
 **Two API keys** (this is the part that costs a little money):
 
@@ -48,12 +45,18 @@ Worth calling out, because people assume otherwise:
 
 ## How to start it
 
-The project is Windows-friendly with simple launch scripts:
+Three steps, honestly:
 
-- Double-click **`start_game.bat`** — it runs the setup walkthrough the
-  first time, then launches everything together after that.
-- The game opens in your browser at **`http://localhost:3000`**.
-- Paste your API keys under **⚙️ Settings**, and you're playing.
+1. **Get the game folder** — on the GitHub page, click the green **Code**
+   button → **Download ZIP**, then unzip it anywhere (right-click →
+   Extract All).
+2. **Double-click `start_game.bat`** in that folder. The first run sets
+   everything up — just do what the window says. (If it asks you to close
+   it and double-click again after installing something, that's normal.)
+   Every run after that, the same double-click just starts the game.
+3. **Paste your key.** The game opens in your browser at
+   `http://localhost:3000` — click the **⚙️ gear icon**, paste your
+   DeepSeek key, and you're playing.
 
 ## Getting the code
 

@@ -170,7 +170,7 @@ frontend/src/
   screens/      game/ (the player's screens) + developer/ (dev tools)
   shared/       ui/ (the component library — see ui.md), styles/, constants, hooks
 docs/           architecture (this file), tuning.md, api/, design/ (historical), plans/
-setup/          interactive environment setup (checks / flows / installation)
+setup/          interactive environment setup (components / checks / flows / installation / messages)
 tools/          repo tooling (file-size checker, project stats)
 ```
 
