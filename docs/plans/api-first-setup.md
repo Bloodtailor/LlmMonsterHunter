@@ -187,7 +187,7 @@ informational, `handle_cli_path_issue` and both PATH-editing message
 cards are gone, and the MySQL requirement is exactly "a server the
 game can reach."
 
-### M4 — The zero-question walkthrough
+### M4 — The zero-question walkthrough — IMPLEMENTED
 
 Rework the interactive layer around auto-fix-first:
 
@@ -202,6 +202,17 @@ Rework the interactive layer around auto-fix-first:
   platform.deepseek.com). Card art is optional — add a Gemini key
   whenever you like."
 - Keep `--dry-run` working for every reworked flow.
+
+*Deviations:* the message relocation became a real split —
+`setup/user_messages.py` (1092-line grandfathered file) is now the
+`setup/messages/` package: `default_path.py` (everything a new player
+can be shown), `local_extras_gpu.py`, and `local_extras_llm.py`, each
+under the 500-line ceiling, message content moved verbatim. Its
+grandfather entry is retired (the list may only shrink — first
+retirement since the rule landed). The per-component "Do you want to
+set up X now?" question and the between-component "Press Enter to
+continue" pauses are gone; components that fail no longer stop the
+pass — they're collected and reported on the finish screen.
 
 ### M5 — Docs for humans
 

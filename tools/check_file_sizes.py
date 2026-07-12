@@ -33,7 +33,6 @@ GRANDFATHERED = {
     'backend/game/monster/evolution.py': 556,
     'backend/tests/test_chat_and_summaries.py': 548,
     'backend/tests/test_evolution.py': 522,
-    'setup/user_messages.py': 1092,
     # Dev/example screens, measured after prettier's one-time reformat
     'frontend/src/screens/developer/BYOComponentTestScreen.js': 1133,
     'frontend/src/screens/developer/ExplosionDemo.js': 801,
