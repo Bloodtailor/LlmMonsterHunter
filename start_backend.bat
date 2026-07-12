@@ -7,16 +7,17 @@ echo                Monster Hunter Game - Backend Server
 echo ================================================================
 echo.
 
-REM Activate virtual environment
-echo Activating Python virtual environment...
-call venv\Scripts\activate.bat
-
-if errorlevel 1 (
-    echo ERROR: Could not activate virtual environment
-    echo Make sure you ran setup_environment.py first
+REM The venv is created by the setup that start_game.bat runs - judge
+REM by the interpreter inside it, not the folder
+if not exist "venv\Scripts\python.exe" (
+    echo The game's Python environment is not set up yet.
+    echo Run start_game.bat first - it sets everything up for you.
     pause
     exit /b 1
 )
+
+echo Activating Python virtual environment...
+call venv\Scripts\activate.bat
 
 echo Virtual environment activated
 echo.

@@ -124,7 +124,7 @@ now judged by the interpreter inside it. (3) `setup_environment auto`
 now exits nonzero on failure (the launcher gates on that exit code; it
 previously always exited 0).
 
-### M2 — Double-click bootstrap (before Python exists)
+### M2 — Double-click bootstrap (before Python exists) — IMPLEMENTED
 
 Rewrite `start_game.bat` so the machine that has nothing still gets a
 friendly experience:
@@ -141,6 +141,12 @@ friendly experience:
 - Every failure path ends with `pause` and a plain-language message —
   no window ever flashes and vanishes.
 - `start_backend.bat` / `start_frontend.bat` get the same detection.
+
+*Verification note:* the happy path, the winget-declined manual route,
+and the requirements-missing prompt were exercised with stubbed server
+launches. The winget-ACCEPT path cannot be tested on a machine that
+already has everything — it needs the fresh-VM soak in the checklist at
+the bottom of this doc.
 
 ### M3 — Guided MySQL, redesigned for a first-timer
 
