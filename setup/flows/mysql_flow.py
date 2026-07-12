@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 """
 MySQL Interactive Setup Flow
-Orchestrates the complete MySQL setup experience with clean UX
+The one component a new player cannot skip and cannot fully automate:
+MySQL ships as a third-party installer wizard. The flow's job is to fix
+everything it can WITHOUT asking (a stopped service is the most common
+failure and needs zero user effort), and when the wizard truly is
+needed, to shrink it to the few answers that matter and then wait and
+verify right here - no "re-run the launcher and hope".
 """
 
 COMPONENT_NAME = "MySQL"
 
+MYSQL_DOWNLOAD_URL = "https://dev.mysql.com/downloads/mysql/"
+
 from setup.checks.mysql_checks import (
-    check_mysql_cli,
-    check_mysql_installations,
     check_mysql_server,
-    check_mysql_service,
-    check_mysql_service_exists,
     get_mysql_installations_list,
     get_mysql_service_name,
 )
@@ -21,260 +24,139 @@ from setup.utils.ux_utils import *
 
 def run_mysql_interactive_setup(current=None, total=None, dry_run=False):
     """
-    Interactive setup flow for MySQL server and CLI
+    Interactive setup flow for the MySQL server.
 
     Returns:
-        bool: True if setup completed successfully, False otherwise
+        bool: True if MySQL is up and reachable when we're done.
     """
 
-    # ================================================================
-    # SECTION 1: INITIAL STATUS CHECK AND DISPLAY
-    # ================================================================
-
-    # Show clean component header
     show_component_header(
         component_name="MySQL Server",
         current=current,
         total=total,
-        description="Required for database operations and game data storage",
+        description="The game stores your monsters and progress in a MySQL database",
     )
 
-    print("Checking current status of MySQL setup...")
-
-    # Initial status check
+    print("Checking whether MySQL is running...")
     server_ok, server_message = check_mysql_server()
-    cli_ok, cli_message = check_mysql_cli()
 
-    # Dry run mode - set check results to custom values
+    # Dry run mode - simulate the initial check instead of probing
     if dry_run:
         print_dry_run_header()
 
         from setup.utils.dry_run_utils import set_dry_run
 
         server_ok, server_message = set_dry_run('check_mysql_server')
-        cli_ok, cli_message = set_dry_run('check_mysql_cli')
 
-    # Package results for display
-    check_results = {
-        "MySQL Server": (server_ok, server_message),
-        "MySQL CLI": (cli_ok, cli_message),
-    }
-
-    # Display results beautifully
-    overall_ok = display_check_results("MYSQL", check_results)
-
-    # ================================================================
-    # SECTION 2: INTERACTIVE SETUP FLOWS AND LOGIC
-    # ================================================================
-
-    # If everything is working, we're done!
-    if overall_ok:
-        print("All MySQL components are ready!")
+    if server_ok:
+        print_success(server_message)
         return True
 
-    # If CLI is the only problem and server works, handle PATH issue
-    if server_ok and not cli_ok:
-        return handle_cli_path_issue()
-
-    # If server fails, run diagnostic to determine the problem
-    if not server_ok:
-        return handle_server_issue()
-
-    # ================================================================
-    # SECTION 3: FINAL CHECKS AND DISPLAY
-    # ================================================================
-
-    print("Checking final status of MySQL setup...")
-
-    # Final status check
-    server_ok, server_message = check_mysql_server()
-    cli_ok, cli_message = check_mysql_cli()
-
-    # Package results for display
-    final_check_results = {
-        "MySQL Server": (server_ok, server_message),
-        "MySQL CLI": (cli_ok, cli_message),
-    }
-
-    # Display results beautifully
-    overall_ok = display_check_results("MYSQL", final_check_results)
-
-    return bool(overall_ok)
-
-
-def handle_server_issue():
-    """Handle MySQL server not responding"""
-
-    print("MySQL server is not responding.")
+    print(server_message)
     print()
 
-    # Ask user if they want diagnostic
-    choice = input("Run diagnostic to check if MySQL is installed? [Y/n]: ").strip()
-    if choice.lower() in ['n', 'no']:
+    # Fix it ourselves when we can: MySQL installed but not running is
+    # the most common failure, and starting the service needs nothing
+    # from the user
+    if not dry_run and get_mysql_service_name():
+        print("MySQL is installed on this computer - it just isn't running.")
+        print("Starting it for you...")
         print()
-        print_continue("Skipping MySQL diagnostic...")
-        return False
 
-    print()
-    print("Running diagnostic...")
+        success, message = start_mysql_service()
+        if success:
+            print_success(message)
+            return verify_mysql_setup(dry_run)
 
-    # Run diagnostic checks
-    service_ok, service_message = check_mysql_service()
-    installations_ok, installations_message = check_mysql_installations()
-    service_exists_ok, service_exists_message = check_mysql_service_exists()
-
-    # Package diagnostic results
-    diagnostic_results = {
-        "MySQL Installations": (installations_ok, installations_message),
-        "MySQL Service": (service_exists_ok, service_exists_message),
-        "Service Status": (service_ok, service_message),
-    }
-
-    # Show diagnostic results
-    print()
-    display_check_results("MYSQL DIAGNOSTIC", diagnostic_results)
-
-    # Determine what kind of problem this is
-    mysql_appears_installed = installations_ok or service_exists_ok
-
-    if not mysql_appears_installed:
-        # MySQL not installed
-        print("MySQL does not appear to be installed on this system.")
+        print(message)
         print()
-        return handle_mysql_not_installed()
+        return handle_service_wont_start(dry_run)
 
+    # Installed somewhere but no service registered: genuinely unusual,
+    # hand over the troubleshooting guide rather than the install card
+    if not dry_run and get_mysql_installations_list():
+        print("MySQL files were found on this computer, but the server isn't")
+        print("set up as a Windows service, so the game can't start it.")
+        print()
+        show_message_and_wait('mysql_troubleshooting', "Press Enter after fixing MySQL... ")
+        return verify_mysql_setup(dry_run)
+
+    # Nothing found: the guided fresh install
+    return handle_fresh_install(dry_run)
+
+
+def handle_fresh_install(dry_run=False):
+    """Walk a first-timer through the MySQL installer, then wait and verify."""
+
+    print("MySQL isn't installed yet. It's free, and this is the one step of")
+    print("the whole setup that uses an installer wizard - here's exactly")
+    print("what to do.")
+    print()
+
+    if dry_run:
+        print_dry_run(f"(dry run: would open {MYSQL_DOWNLOAD_URL} in the browser)")
     else:
-        # MySQL installed but not working
-        print("MySQL appears to be installed but not working properly.")
+        import webbrowser
+
+        webbrowser.open(MYSQL_DOWNLOAD_URL)
+
+    show_message('mysql_installation')
+
+    # Wait right here and verify, instead of ending the walkthrough and
+    # hoping the player re-runs the launcher
+    while True:
+        input("Press Enter when the installer says it's finished... ")
         print()
-        return handle_mysql_repair()
+        print("Checking...")
+
+        if verify_mysql_setup(dry_run):
+            return True
+
+        print("MySQL doesn't seem to be running yet. That's usually one of:")
+        print("  - the installer is still working (give it another minute)")
+        print("  - the final 'Configurator' step hasn't been run yet - it's a")
+        print("    separate wizard that appears near the end of the install")
+        print()
+        if not prompt_user_confirmation("Check again? (N shows more help) [Y/n]: "):
+            show_message_and_wait('mysql_troubleshooting', "Press Enter after fixing MySQL... ")
+            return verify_mysql_setup(dry_run)
 
 
-def handle_mysql_not_installed():
-    """Handle case where MySQL is not installed"""
+def handle_service_wont_start(dry_run=False):
+    """The service exists but refused to start automatically."""
 
-    print_error("MySQL Server installation required.")
+    print("The MySQL service exists but didn't start automatically.")
+    print("Starting it by hand usually works:")
     print()
-
-    show_message_and_wait('mysql_installation', "Press Enter after installing MySQL...")
-
-    # Check if installation worked
-    return verify_mysql_setup()
+    show_message_and_wait('mysql_service_start', "Press Enter after starting MySQL... ")
+    return verify_mysql_setup(dry_run)
 
 
-def handle_mysql_repair():
-    """Handle case where MySQL is installed but broken"""
+def verify_mysql_setup(dry_run=False):
+    """Final verification that the MySQL server is reachable."""
 
-    # Check if it's a service issue that we can fix
-    service_name = get_mysql_service_name()
-    service_running, _ = check_mysql_service()
+    # The MSI's configurator usually starts the service itself; cover
+    # the case where it didn't before declaring failure
+    server_ok, _ = (False, None) if dry_run else check_mysql_server()
+    if not dry_run and not server_ok and get_mysql_service_name():
+        start_mysql_service()
 
-    if service_name and not service_running:
-        # Try automated service start
-        print("MySQL service exists but is not running.")
-        print()
+    if dry_run:
+        from setup.utils.dry_run_utils import set_dry_run
 
-        choice = input("Attempt to start the MySQL service automatically? [Y/n]: ").strip()
-        if choice.lower() not in ['n', 'no']:
-            print()
-            print("Starting MySQL service...")
-
-            success, message = start_mysql_service()
-
-            if success:
-                print_success(message)
-                print()
-                return verify_mysql_setup()
-            else:
-                print_error(message)
-                print()
-                return handle_service_start_failed()
-        else:
-            print()
-            print_continue("Skipping automatic service start...")
-            return handle_manual_mysql_repair()
-
+        server_ok, server_message = set_dry_run('check_mysql_server')
     else:
-        # Some other kind of problem
-        return handle_manual_mysql_repair()
+        server_ok, server_message = check_mysql_server()
 
-
-def handle_service_start_failed():
-    """Handle case where automatic service start failed"""
-
-    print("Automatic service start failed.")
-    print()
-
-    show_message_and_wait('mysql_service_start', "Press Enter after starting MySQL service...")
-
-    return verify_mysql_setup()
-
-
-def handle_manual_mysql_repair():
-    """Handle case where manual MySQL repair is needed"""
-
-    print("Manual MySQL troubleshooting required.")
-    print()
-
-    show_message_and_wait('mysql_troubleshooting', "Press Enter after fixing MySQL...")
-
-    return verify_mysql_setup()
-
-
-def handle_cli_path_issue():
-    """Handle case where server works but CLI is missing from PATH"""
-
-    print_error("MySQL CLI needs to be added to your system PATH.")
-    print()
-
-    # Try to find installation for PATH guidance
-    installations = get_mysql_installations_list()
-
-    if installations:
-        mysql_path = installations[0]  # Use first found
-        print(f"Found MySQL installation at: {mysql_path}")
-        print()
-
-        show_message_and_wait('mysql_cli_path', "Press Enter after adding MySQL to PATH...")
-
-        return verify_mysql_setup()
-
-    else:
-        print_warning("Cannot locate MySQL installation for PATH configuration.")
-        print()
-
-        show_message_and_wait('mysql_cli_path_generic', "Press Enter after configuring PATH...")
-
-        return verify_mysql_setup()
-
-
-def verify_mysql_setup():
-    """Final verification that MySQL setup is working"""
-
-    print("Verifying MySQL setup...")
-
-    # Re-check everything
-    server_ok, server_message = check_mysql_server()
-    cli_ok, cli_message = check_mysql_cli()
-
-    # Package results for display
-    check_results = {
-        "MySQL Server": (server_ok, server_message),
-        "MySQL CLI": (cli_ok, cli_message),
-    }
-
-    # Show final results
-    overall_ok = display_check_results("MYSQL", check_results)
-
-    if overall_ok:
-        print_success("MySQL setup completed successfully!")
+    if server_ok:
+        print_success(f"{server_message} - MySQL is ready!")
         print()
         return True
-    else:
-        print_warning("MySQL setup verification failed.")
-        print_info("You may need to complete the setup manually.")
-        print()
-        return False
+
+    print_warning(server_message)
+    print_info("MySQL setup isn't finished - the walkthrough can be re-run anytime.")
+    print()
+    return False
 
 
 if __name__ == "__main__":

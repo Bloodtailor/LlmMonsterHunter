@@ -107,9 +107,8 @@ DRY_RUN_SCENARIOS = {
     ],
     # For mysql_flow.py
     'check_mysql_server': [
-        (True, "MySQL server responding (authentication required)"),
+        (True, "MySQL server is running (localhost:3306)"),
         (False, "Cannot connect to MySQL server"),
-        (False, "Cannot test connection (mysql command not available)"),
     ],
     'check_mysql_cli': [
         (True, "MySQL CLI: mysql Ver 8.0.34 for Win64"),

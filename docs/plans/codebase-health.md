@@ -160,7 +160,16 @@ the full verification block. One commit: `Hth-M1 …`.
 
 ---
 
-## Hth-M2 — Split `setup/user_messages.py` (~1092 lines)
+## Hth-M2 — Split `setup/user_messages.py` (~1092 lines) — DONE (via Stp-M4)
+
+> **Landed early** as part of the API-first setup initiative
+> ([api-first-setup.md](api-first-setup.md), Stp-M4, July 2026), with a
+> different boundary than sketched below: split **by audience**, not by
+> setup phase — `setup/messages/default_path.py` (everything a new
+> player can be shown) vs `local_extras_gpu.py` / `local_extras_llm.py`
+> (the `--local-extras` escape hatch). No back-compat re-export was
+> needed (`setup/utils/ux_utils.py` was the only importer). Grandfather
+> entry retired. Original sketch kept below for the record.
 
 This is a prose catalog (every message the interactive setup prints),
 not logic — which is why it grew unbounded. Read `setup/` first to see

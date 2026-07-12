@@ -1,21 +1,40 @@
 #!/usr/bin/env python3
 """
 Monster Hunter Game - Interactive Environment Setup
-Walks user through setting up missing requirements
+Walks a new player through whatever their machine is missing.
+
+The happy path asks ZERO questions: each step checks itself, fixes what
+it can silently, and only involves the user when something genuinely
+needs them (like the MySQL installer wizard). The unsupported local-LLM
+escape hatch (GPU/CUDA/Build Tools/GGUF model) is developer-facing and
+only runs with --local-extras - a new player never sees that
+vocabulary.
 """
 
 import sys
 
-from setup.check_requirements import check_requirements
-from setup.checks import COMPONENT_CHECKS, run_component_diagnostic
-from setup.flows import COMPONENT_FLOWS, LOCAL_EXTRA_COMPONENTS
+from setup.checks import COMPONENT_CHECKS
+from setup.components import components_for
+from setup.flows import COMPONENT_FLOWS
 from setup.utils.ux_utils import (
-    print_continue,
     print_error,
     print_header,
     print_success,
-    prompt_user_confirmation,
+    print_warning,
 )
+
+# Plain-English step names: the walkthrough says what each component
+# MEANS to the player; the component flows narrate what they're doing
+STEP_DESCRIPTIONS = {
+    'Basic Backend': "the game's engine (Python packages)",
+    'Node.js & npm': "the game's interface (Node.js)",
+    'MySQL Server': "the database that stores your monsters (MySQL)",
+    'Database Connection': "connecting the game to its database",
+    'NVIDIA GPU & CUDA': "local-LLM extra: NVIDIA GPU & CUDA toolkit",
+    'Visual Studio Build Tools': "local-LLM extra: Visual Studio Build Tools",
+    'Model Directory': "local-LLM extra: the GGUF model file",
+    'LLM Integration': "local-LLM extra: llama-cpp-python",
+}
 
 
 def auto_setup_basic_backend():
@@ -23,96 +42,93 @@ def auto_setup_basic_backend():
 
     from setup.flows.basic_backend_flow import auto_setup_basic_backend
 
-    auto_setup_basic_backend()
+    return auto_setup_basic_backend()
 
 
-def _ask_about_local_extras():
-    """One gate for the GPU/CUDA/Build-Tools/GGUF chain."""
-    print()
-    print_header("Optional: local-LLM extras")
-    print("The game is API-first: text runs on DeepSeek and card art on Gemini,")
-    print("both configured IN-GAME (gear icon -> Settings) with API keys.")
-    print("The remaining components (NVIDIA GPU & CUDA, Visual Studio Build")
-    print("Tools, a local GGUF model) only matter for the UNSUPPORTED")
-    print("local-model escape hatch: the game requires a 1M-token context")
-    print("window, and consumer GPUs don't run 1M-token models.")
-    print()
-    return prompt_user_confirmation("Set up the local-LLM extras anyway? [y/N]: ")
-
-
-def main_interactive_setup(dry_run=False):
-    """Interactive setup for missing requirements."""
-    print_header("Interactive Environment Setup")
-    print("This will help you set up missing requirements for Monster Hunter Game.")
-    print("You'll be asked before each setup step.")
+def main_interactive_setup(dry_run=False, include_local_extras=False):
+    """Auto-fix-first setup pass over whatever this machine is missing."""
+    print_header("Setting up Monster Hunter Game")
+    print("This checks what's already in place and fixes what's missing.")
+    print("Most steps run by themselves - you'll only be asked to help when")
+    print("something genuinely needs you (like the MySQL install).")
     print()
 
-    # Get the list of components in setup order
-    component_names = list(COMPONENT_FLOWS.keys())
+    component_names = list(components_for(include_local_extras))
     total_components = len(component_names)
-
-    # The game is API-first: text (DeepSeek) and card art (Gemini) run on
-    # keys pasted IN-GAME, so the local-LLM chain is one opt-in question
-    include_local_extras = None
+    unresolved = []
 
     for current, component_name in enumerate(component_names, 1):
-        if component_name in LOCAL_EXTRA_COMPONENTS:
-            if include_local_extras is None:
-                include_local_extras = _ask_about_local_extras()
-            if not include_local_extras:
-                continue
+        step = STEP_DESCRIPTIONS.get(component_name, component_name)
+        print(f"Step {current} of {total_components} - {step}...")
 
-        # Check if already working
+        # Already working? Say so in one line and move on
         check_function = COMPONENT_CHECKS[component_name]
         try:
-            is_working = check_function()
-            if is_working and not dry_run:
+            if check_function() and not dry_run:
+                print_success("Already good - nothing to do.")
+                print()
                 continue
         except Exception as e:
-            print_error(f"\nError checking {component_name}: {e}\n")
+            print_error(f"Error checking {component_name}: {e}")
 
-        # Ask user if they want to set this up
-        print(
-            f"\n{component_name} needs to be set up. (component {current} of {total_components})\n"
-        )
-        run_component_diagnostic(component_name)
-
-        if prompt_user_confirmation(f"Do you want to set up {component_name} now? [Y/n]: "):
-            try:
-                print()
-                print(f"\nSetting up {component_name}...")
-
-                # Run the interactive setup flow
-                setup_function = COMPONENT_FLOWS[component_name]
-                result = setup_function(current=current, total=total_components, dry_run=dry_run)
-
-                if result:
-                    print_success(f"{component_name} setup completed successfully.")
-                else:
-                    print(f"❌ {component_name} setup failed.")
-            except Exception as e:
-                print()
-                print_error(f"Error during {component_name} setup: {e}")
-
+        # Needs attention: run the component's flow directly - it fixes
+        # what it can and only involves the user when it must
+        try:
             print()
-            print_header(f"{component_name} setup complete!")
-            print()
-            input("Press Enter to continue to the next component...")
+            setup_function = COMPONENT_FLOWS[component_name]
+            result = setup_function(current=current, total=total_components, dry_run=dry_run)
+        except Exception as e:
+            print_error(f"Error during {component_name} setup: {e}")
+            result = False
+
+        if result:
+            print_success(f"Done - {step} is ready.")
         else:
-            print()
-            print_continue(f"Skipping {component_name} setup.")
+            unresolved.append(component_name)
+            print_warning(f"{component_name} isn't finished yet - continuing with the rest.")
+        print()
 
-    # Final summary
+    show_finish_screen(unresolved)
+
+
+def show_finish_screen(unresolved):
+    """End on the one action that matters: the gear icon and the API key."""
+
+    if unresolved:
+        print_header("Setup finished - with loose ends")
+        print("Almost there! These still need attention:")
+        for name in unresolved:
+            print(f"   - {name}")
+        print()
+        print("The messages above say what to do. Once that's done, double-click")
+        print("start_game.bat and it will pick up right where this left off.")
+        print()
+        return
+
+    print_header("All set!")
+    print("Everything the game needs is ready. When the game opens in your")
+    print("browser, there's one last thing only you can do:")
     print()
-    print_header("Interactive Environment Setup: FINISHED")
+    print("   Click the GEAR ICON (top of the screen) and paste in your")
+    print("   DeepSeek API key - that powers all the story text.")
+    print("   Get one at: https://platform.deepseek.com")
     print()
-    if prompt_user_confirmation("Would you like to recheck requirments before exiting? [Y/n]: "):
-        check_requirements()
+    print("   Card art is optional: add a Google Gemini key from")
+    print("   https://aistudio.google.com whenever you like. The game plays")
+    print("   fully art-less without it.")
+    print()
+    print("Costs are pay-as-you-go and small: a heavy session is a dollar or")
+    print("two, mostly in card art - just pennies of text without it.")
+    print()
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "auto":
-        auto_setup_basic_backend()
+    args = sys.argv[1:]
+    if "auto" in args:
+        # start_game.bat gates on this exit code - report failures honestly
+        sys.exit(0 if auto_setup_basic_backend() else 1)
     else:
-        # from setup.utils.dry_run_utils import run_as_standalone_component
-        main_interactive_setup()
+        main_interactive_setup(
+            dry_run="--dry-run" in args,
+            include_local_extras="--local-extras" in args,
+        )

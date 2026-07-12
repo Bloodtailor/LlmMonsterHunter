@@ -16,7 +16,10 @@ def create_virtual_environment():
     """Create virtual environment."""
     venv_path = Path("venv")
 
-    if venv_path.exists():
+    # A bare folder is not a venv: judge by the interpreter inside, so an
+    # empty/half-deleted venv gets rebuilt instead of wedging setup
+    # (python -m venv happily populates an existing directory)
+    if (venv_path / "Scripts" / "python.exe").exists():
         return True, "Virtual environment already exists"
 
     try:

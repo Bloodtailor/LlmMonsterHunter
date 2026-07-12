@@ -7,25 +7,34 @@ echo              Monster Hunter Game - React Frontend
 echo ================================================================
 echo.
 
+REM Node.js is installed by start_game.bat's bootstrap - check before
+REM npm so the error is "run the launcher", not a cryptic npm failure
+node --version >nul 2>&1
+if errorlevel 1 (
+    echo Node.js is not installed on this computer.
+    echo Run start_game.bat first - it can install it for you.
+    pause
+    exit /b 1
+)
+
 REM Check if node_modules exists
 if not exist "frontend\node_modules" (
-    echo ❌ Frontend dependencies not installed
+    echo Frontend dependencies not installed
     echo.
     echo Installing React dependencies...
     cd frontend
     npm install
     if errorlevel 1 (
         echo ERROR: npm install failed
-        echo Make sure Node.js and npm are installed
         pause
         exit /b 1
     )
-    echo ✅ Dependencies installed successfully
+    echo Dependencies installed successfully
     echo.
     cd ..
 )
 
-echo ✅ Frontend dependencies found
+echo Frontend dependencies found
 echo.
 
 REM Start the React development server

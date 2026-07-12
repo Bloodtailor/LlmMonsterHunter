@@ -37,9 +37,10 @@ def auto_setup_basic_backend():
         install_basic_dependencies,
     )
 
-    # Create virtual environment if needed
-    venv_path = Path("venv")
-    if not venv_path.exists():
+    # Create virtual environment if needed (judged by the interpreter
+    # inside, not the folder - an empty stub folder must not count)
+    venv_python = Path("venv/Scripts/python.exe")
+    if not venv_python.exists():
         print("Creating virtual environment...")
         success, message = create_virtual_environment()
         if success:

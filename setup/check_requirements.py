@@ -1,42 +1,46 @@
 #!/usr/bin/env python3
 """
 Monster Hunter Game - Requirements Checker
-Checks all system requirements and reports status
-Returns 0 if all requirements met, 1 if some are missing
+Checks system requirements and reports status.
+
+By default this checks only what the API-first game needs (Python env,
+Node, MySQL, database) - the local-LLM extras are an unsupported escape
+hatch and only appear with --local-extras (setup/components.py is the
+single source of that split).
+
+Returns 0 if the checked requirements are met, 1 if some are missing.
 """
 
 import sys
 
 from setup.checks import run_all_checks
+from setup.components import components_for
 from setup.utils.ux_utils import print_header, show_status_table
 
 
-def check_requirements():
-    """Check all requirements and report status."""
+def check_requirements(include_local_extras=False):
+    """Check requirements and report status."""
 
     print_header("System Requirements Check")
-    print("Checking all requirements for Monster Hunter Game...")
+    print("Checking everything Monster Hunter Game needs to run...")
     print()
 
-    # Run all checks - they return clean data now
-    results = run_all_checks()
+    component_names = components_for(include_local_extras)
+    results = run_all_checks(component_names)
     ready_components, total_components = show_status_table(results)
 
-    # Determine overall status and show appropriate message
     if ready_components == total_components:
-        print("🎉 All requirements met! Ready to run the game.")
+        print("🎉 Everything the game needs is ready!")
+        if not include_local_extras:
+            print("(Local-LLM extras not checked - the API-first game doesn't need them.")
+            print(" Developers: add --local-extras to include them.)")
         return 0  # Success
-    elif ready_components >= total_components * 0.75:  # At least 75% passed
-        print(f"⚠️  Most requirements met ({ready_components}/{total_components})")
-        print("Please setup the final components.")
-        return 1  # Partial success
-    else:
-        print(
-            f"❌ Many requirements missing ({total_components - ready_components}/{total_components} failed)"
-        )
-        print("Game likely won't work without setup.")
-        return 1  # Many failures
+
+    missing = total_components - ready_components
+    print(f"⚠️  {missing} of {total_components} components still need setup.")
+    print("The launcher can walk you through fixing them.")
+    return 1
 
 
 if __name__ == "__main__":
-    sys.exit(check_requirements())
+    sys.exit(check_requirements(include_local_extras="--local-extras" in sys.argv[1:]))

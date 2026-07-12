@@ -4,7 +4,7 @@ UX Utilities for Setup System
 Provides shared utility functions for consistent, scannable user experience
 """
 
-from setup.user_messages import get_message
+from setup.messages import get_message
 
 
 def print_header(text):
