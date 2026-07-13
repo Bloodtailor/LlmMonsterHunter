@@ -55,8 +55,14 @@ def check_frontend_dependencies():
     if not frontend_path.exists():
         return False, "Frontend directory not found"
 
-    if node_modules_path.exists():
+    # Probe for react-scripts (what "npm start" runs), not the bare folder:
+    # npm creates node_modules immediately and fills it afterward, so an
+    # interrupted install leaves an empty node_modules that would pass an
+    # existence check forever while the frontend dies on startup.
+    if (node_modules_path / "react-scripts").exists():
         return True, "Frontend dependencies installed"
+    elif node_modules_path.exists():
+        return False, "Frontend dependencies incomplete (interrupted install?)"
     else:
         return False, "Frontend dependencies not installed"
 

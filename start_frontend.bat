@@ -17,8 +17,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Check if node_modules exists
-if not exist "frontend\node_modules" (
+REM Check for react-scripts specifically, not just the node_modules folder:
+REM npm creates node_modules first and fills it afterward, so an interrupted
+REM install leaves an empty folder that would skip this install forever and
+REM make "npm start" die with "react-scripts is not recognized"
+if not exist "frontend\node_modules\react-scripts" (
     echo Frontend dependencies not installed
     echo.
     echo Installing React dependencies...
