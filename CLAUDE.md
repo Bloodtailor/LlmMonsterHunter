@@ -40,12 +40,13 @@ when he wants detail.
 ./venv/Scripts/python.exe backend/run.py            # start on :5000
 PYTHONIOENCODING=utf-8 ./venv/Scripts/python.exe -m backend.tests.test_evolution   # one suite
 ./venv/Scripts/python.exe -m pytest                 # all offline suites
-./venv/Scripts/python.exe -m ruff check backend setup tools   # lint
+./venv/Scripts/python.exe -m ruff check backend setup tools          # lint
+./venv/Scripts/python.exe -m ruff format --check backend setup tools # format
 ./venv/Scripts/python.exe tools/check_file_sizes.py # 500-line ceiling
 
 # Frontend (from frontend/)
 npm start          # dev server on :3000
-npm test           # jest
+npm test -- --watchAll=false   # jest, the way CI runs it
 npx prettier --check src
 
 # Or start_game.bat / start_backend.bat / start_frontend.bat from Explorer
@@ -55,6 +56,12 @@ Offline suites stub the LLM and the image API, and use the dedicated
 test DB (`DB_NAME_TEST`, auto-created via `backend/tests/harness.py`) —
 safe to run anytime. MySQL must be running; nothing else is (no local
 model, no image service — generation is cloud-API-first).
+
+**Before pushing, run all six checks above** (lint, format, file sizes,
+pytest, prettier, jest). Those six *are* CI — `.github/workflows/ci.yml`
+runs exactly them, so a green local run means a green PR. `ruff check`
+and `ruff format --check` are different tools; passing one says nothing
+about the other.
 
 ## The hard rules
 

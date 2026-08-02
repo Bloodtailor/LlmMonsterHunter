@@ -37,9 +37,7 @@ STEP_DEFAULT_PATTERN = re.compile(r"""self\.name\s*=\s*['"]([a-z_]+)['"]""")
 
 # Frontend references steps two ways: label maps keyed by step name, and
 # inline comparisons in the event hooks.
-STEP_LABEL_MAP_PATTERN = re.compile(
-    r"""[A-Z_]*STEP_LABELS\s*=\s*\{(.*?)\}""", re.DOTALL
-)
+STEP_LABEL_MAP_PATTERN = re.compile(r"""[A-Z_]*STEP_LABELS\s*=\s*\{(.*?)\}""", re.DOTALL)
 STEP_LABEL_KEY_PATTERN = re.compile(r"""^\s*([a-z_]+)\s*:""", re.MULTILINE)
 STEP_COMPARISON_PATTERN = re.compile(r"""\bstep\s*(?:===|!==)\s*['"]([a-z_]+)['"]""")
 
@@ -139,7 +137,9 @@ def main():
     # A reference to a step that no longer exists never fires: the label
     # stays blank, or the branch never runs, and nothing errors.
     print('\n-- frontend -> backend --')
-    dangling = {step: where for step, where in referenced_steps.items() if step not in emitted_steps}
+    dangling = {
+        step: where for step, where in referenced_steps.items() if step not in emitted_steps
+    }
     check(
         'every referenced step is one the backend emits',
         not dangling,

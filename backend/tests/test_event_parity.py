@@ -22,7 +22,9 @@ FAILED = 0
 # behaves the same from pytest, the command line, and the Developer screen
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HANDLER_DIR = REPO_ROOT / 'frontend' / 'src' / 'api' / 'events'
-EVENT_PROVIDER = REPO_ROOT / 'frontend' / 'src' / 'app' / 'contexts' / 'EventContext' / 'EventProvider.js'
+EVENT_PROVIDER = (
+    REPO_ROOT / 'frontend' / 'src' / 'app' / 'contexts' / 'EventContext' / 'EventProvider.js'
+)
 EVENT_CATALOG_DOC = REPO_ROOT / 'docs' / 'api' / 'events-and-sse.md'
 
 # An event name is always dotted and lower-case ('monster.art_ready',
@@ -83,7 +85,11 @@ def main():
     check('backend registry declares SSE events', bool(sse_events), 'registry came back empty')
     check('frontend handler files found', bool(handlers_by_file), f'looked in {HANDLER_DIR}')
     check('EventProvider is where we expect it', EVENT_PROVIDER.exists(), str(EVENT_PROVIDER))
-    check('event catalog doc is where we expect it', EVENT_CATALOG_DOC.exists(), str(EVENT_CATALOG_DOC))
+    check(
+        'event catalog doc is where we expect it',
+        EVENT_CATALOG_DOC.exists(),
+        str(EVENT_CATALOG_DOC),
+    )
 
     # ===== Backend declares it -> frontend handles it =====
     # This is the drift that ships silently: the backend announces something
