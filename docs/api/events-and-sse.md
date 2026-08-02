@@ -94,6 +94,11 @@ and the item-consumption flows:
   mid-run was taken back — the run's spoils were forfeited on defeat/abandon)
 
 ### Game-state domain events
+- `game.party_updated` — `{ monster_id, monster_name, joined_party, party_ids }`:
+  the backend reshaped the roster on its own (a new follower, possibly
+  auto-seated into an open party slot). `party_ids` is the lineup after
+  the change, player first. PartyContext refetches the following list and
+  the active party on it.
 - `game.world_erased` — `{ deleted_rows }` (per-table counts): New Game
   wiped the world. Emitted AFTER the wipe transaction commits, so
   listeners that refetch on it read the empty world (PartyContext empties

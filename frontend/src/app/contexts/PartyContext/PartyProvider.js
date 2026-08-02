@@ -102,6 +102,13 @@ function PartyProvider({ children }) {
     );
   });
 
+  // Trust climbed a tier mid-run - patch just that field so the party
+  // panel's affinity badge stops showing the old tier
+  useEventSubscription('monsterAffinityChanged', ({ monsterId, affinity }) => {
+    if (!monsterId || !affinity) return;
+    patchRosterLists((monster) => (monster.id === monsterId ? { ...monster, affinity } : monster));
+  });
+
   useEventSubscription('monsterArtReady', ({ monsterId, imagePath }) => {
     if (!monsterId || !imagePath) return;
     patchRosterLists((monster) =>

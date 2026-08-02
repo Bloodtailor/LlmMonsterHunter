@@ -28,6 +28,7 @@ SUITES = [
     'test_deepseek_provider',
     'test_gemini_provider',
     'test_setup_registry',
+    'test_event_parity',
 ]
 
 
