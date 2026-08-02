@@ -57,11 +57,19 @@ test DB (`DB_NAME_TEST`, auto-created via `backend/tests/harness.py`) —
 safe to run anytime. MySQL must be running; nothing else is (no local
 model, no image service — generation is cloud-API-first).
 
-**Before pushing, run all six checks above** (lint, format, file sizes,
-pytest, prettier, jest). Those six *are* CI — `.github/workflows/ci.yml`
-runs exactly them, so a green local run means a green PR. `ruff check`
-and `ruff format --check` are different tools; passing one says nothing
-about the other.
+**Before pushing, run all six checks** (lint, format, file sizes, pytest,
+prettier, jest) — or just run them in one go:
+
+```bash
+./venv/Scripts/python.exe tools/check_all.py           # all six, ~10s
+./venv/Scripts/python.exe tools/check_all.py backend   # skip the npm ones
+```
+
+(`check_all.bat` does the same from Explorer.) Those six *are* CI —
+`.github/workflows/ci.yml` runs exactly them, so a green local run means
+a green PR. Add any new workflow step to `tools/check_all.py` too. Note
+that `ruff check` and `ruff format --check` are different tools: passing
+one says nothing about the other.
 
 ## The hard rules
 
