@@ -1,6 +1,6 @@
 # Monster Requests — Implementation Plan
 
-**Status: PLANNED** (not started)
+**Status:** PLANNED (not started)
 **Branch:** `feature/monster-requests` · **Commit prefix:** `Req-M#`
 **Written:** 2026-07-07, from `docs/roadmap.md` initiative #1 + a full read
 of the run-end, memory, affinity, goal, and chat subsystems. Intended to be

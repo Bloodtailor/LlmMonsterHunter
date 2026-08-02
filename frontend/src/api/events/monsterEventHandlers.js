@@ -56,6 +56,18 @@ export const monsterEventHandlers = {
     broadcastEvent('monsterMemoryAdded', transformedData);
   },
 
+  // The monster's trust in the party climbed a tier. Affinity gates real
+  // behavior (a wary monster acts on its own in battle), so the roster has
+  // to learn about it the moment it changes rather than at the next refetch
+  'monster.affinity_changed': (eventData) => {
+    const transformedData = {
+      monsterId: eventData.monster_id || null,
+      affinity: eventData.affinity || null,
+      reason: eventData.reason || null,
+    };
+    broadcastEvent('monsterAffinityChanged', transformedData);
+  },
+
   // The evolution ceremony's transform moment - identity, stats, and
   // rarity just flipped in place; the record carries the old form
   'monster.evolved': (eventData) => {

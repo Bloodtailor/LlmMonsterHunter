@@ -83,9 +83,7 @@ def check_mysql_server_connection():
     if not config:
         return False, "Invalid or missing database configuration"
 
-    connection, error = connect(
-        config['host'], config['port'], config['user'], config['password']
-    )
+    connection, error = connect(config['host'], config['port'], config['user'], config['password'])
     if connection is None:
         return False, f"MySQL connection failed: {error}"
 
@@ -104,7 +102,10 @@ def check_database_exists():
         return False, "Invalid or missing database configuration"
 
     connection, error = connect(
-        config['host'], config['port'], config['user'], config['password'],
+        config['host'],
+        config['port'],
+        config['user'],
+        config['password'],
         database=config['name'],
     )
     if connection is None:

@@ -8,15 +8,30 @@ when he wants detail.
 
 ## Read these before big changes
 
+- [docs/README.md](docs/README.md) — **the docs map.** Six categories with
+  opposite maintenance rules; only eleven files are binding. Read this
+  before trusting or updating anything in `docs/`.
 - [docs/architecture.md](docs/architecture.md) — layers, the async
   workflow/SSE model, the referee philosophy. **The step-name contract
   matters:** frontend event hooks key off workflow `on_update` step
-  strings — renaming one is a breaking change.
+  strings — renaming one is a breaking change, and
+  `tests/test_step_contract.py` will fail if you do.
 - [docs/tuning.md](docs/tuning.md) — every gameplay knob and where it lives.
 - [docs/api/README.md](docs/api/README.md) — HTTP surface; async endpoints
-  return `{ workflow_id }` and results arrive over SSE.
+  return `{ workflow_id }` and results arrive over SSE. The event catalog
+  is asserted against the registry by `tests/test_event_parity.py`.
 - [docs/plans/](docs/plans/) — one plan doc per initiative, kept current
-  (status, deviations). `docs/design/` is the historical design phase.
+  (status, deviations). `docs/design/` is *mixed*: the Feb 2025
+  deliverables and the retrospective are frozen history; the engine
+  musings and the wish engine are unbuilt proposals.
+- **Directory contracts.** Four subtrees carry their own `CLAUDE.md` with
+  the rules for working there — the ones no suite can enforce:
+  [backend/game/](backend/game/CLAUDE.md),
+  [backend/tests/](backend/tests/CLAUDE.md),
+  [frontend/src/shared/](frontend/src/shared/CLAUDE.md),
+  [frontend/src/components/](frontend/src/components/CLAUDE.md).
+  Read the nearest one before editing in its subtree; this file holds the
+  repo-wide rules and they hold the local ones.
 
 ## Commands
 
@@ -25,12 +40,13 @@ when he wants detail.
 ./venv/Scripts/python.exe backend/run.py            # start on :5000
 PYTHONIOENCODING=utf-8 ./venv/Scripts/python.exe -m backend.tests.test_evolution   # one suite
 ./venv/Scripts/python.exe -m pytest                 # all offline suites
-./venv/Scripts/python.exe -m ruff check backend setup tools   # lint
+./venv/Scripts/python.exe -m ruff check backend setup tools          # lint
+./venv/Scripts/python.exe -m ruff format --check backend setup tools # format
 ./venv/Scripts/python.exe tools/check_file_sizes.py # 500-line ceiling
 
 # Frontend (from frontend/)
 npm start          # dev server on :3000
-npm test           # jest
+npm test -- --watchAll=false   # jest, the way CI runs it
 npx prettier --check src
 
 # Or start_game.bat / start_backend.bat / start_frontend.bat from Explorer
@@ -40,6 +56,20 @@ Offline suites stub the LLM and the image API, and use the dedicated
 test DB (`DB_NAME_TEST`, auto-created via `backend/tests/harness.py`) —
 safe to run anytime. MySQL must be running; nothing else is (no local
 model, no image service — generation is cloud-API-first).
+
+**Before pushing, run all six checks** (lint, format, file sizes, pytest,
+prettier, jest) — or just run them in one go:
+
+```bash
+./venv/Scripts/python.exe tools/check_all.py           # all six, ~10s
+./venv/Scripts/python.exe tools/check_all.py backend   # skip the npm ones
+```
+
+(`check_all.bat` does the same from Explorer.) Those six *are* CI —
+`.github/workflows/ci.yml` runs exactly them, so a green local run means
+a green PR. Add any new workflow step to `tools/check_all.py` too. Note
+that `ruff check` and `ruff format --check` are different tools: passing
+one says nothing about the other.
 
 ## The hard rules
 
