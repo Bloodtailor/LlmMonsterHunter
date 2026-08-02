@@ -1,6 +1,8 @@
 # Congruence Tripwires (Cng)
 
-**Status:** IN PROGRESS
+**Status:** IMPLEMENTED (August 2026) — all four milestones landed.
+Pending Aaron's live soak: the affinity badge updating mid-run, which
+needs a real dungeon run and could not be driven from a dev session.
 **Branch:** `feature/congruence-tripwires` · **Commit prefix:** `Cng-M#`
 **Written:** 2026-08-01
 
@@ -137,18 +139,37 @@ wrong rule would have been misleading in both directions. Fixed, and
 The map also records which docs are tripwired rather than trusted, so a
 reader can tell at a glance which claims are enforced.
 
-### Cng-M4 — Contract docs for the unverifiable rules — **PLANNED**
+### Cng-M4 — Contract docs for the unverifiable rules — **IMPLEMENTED**
 
-The rules no test can enforce — routes never contain logic, services are
-the trust boundary, the LLM picks words and code owns numbers — get
-proximity as their only available lever: a short contract doc in the
-directory where the temptation to violate them lives.
+Four subtrees now carry a `CLAUDE.md` holding the rules no suite can
+enforce: `backend/game/`, `backend/tests/`, `frontend/src/shared/`,
+`frontend/src/components/`. Root `CLAUDE.md` indexes them and instructs
+that the nearest one be read before editing in its subtree.
 
-Scope to decide at the time: which directories earn one (`backend/game/`,
-`frontend/src/shared/`, `frontend/src/components/`, `backend/tests/` are
-the candidates), and whether they are named `AGENTS.md` or `CLAUDE.md` —
-the latter is auto-loaded by Claude Code when working in that subtree,
-which is most of the point. Test the loading behavior before choosing.
+Each states rules only — the file-role conventions inside a game domain,
+the suite shape and the registration trap in `test_offline_suites.py`,
+what earns a place in `shared/` versus a feature folder, where component
+state and live updates come from. Narrative explanation stays in
+`docs/architecture.md`; repo-wide rules stay in root `CLAUDE.md`; nothing
+is restated in two places.
 
-These files state rules only. Narrative explanation stays in
-`docs/architecture.md`; enumerable facts stay tripwired. No duplication.
+**Naming: `CLAUDE.md`, and the deciding test was inconclusive.** Probe
+files were planted at `backend/game/AGENTS.md` and
+`backend/game/CLAUDE.md` and files in that subtree were read; neither
+marker appeared in context. That does not prove nested auto-load is
+unsupported — context files are plausibly discovered at session start, so
+a file created mid-session would not be picked up either way, and the
+test cannot tell those cases apart from inside one session.
+
+The choice was therefore made on other grounds: this is a solo project
+worked through Claude Code, `CLAUDE.md` is the name that toolchain is
+built around, and cross-tool portability is speculative value. Because
+auto-load could not be confirmed, **the root file names the four docs
+explicitly** — the chain is read by instruction, not by hoping the
+harness injects it. That holds whichever way auto-load actually behaves,
+and the decision is a rename away from being reversed.
+
+**Correction to M3:** the docs map listed only `docs/` and root
+`CLAUDE.md` as binding. Five binding docs live in the code — these four
+plus `frontend/src/shared/ui/ui.md`, the prop reference for the UI
+primitives. The map now says so.

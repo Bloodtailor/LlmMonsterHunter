@@ -24,6 +24,14 @@ when he wants detail.
   (status, deviations). `docs/design/` is *mixed*: the Feb 2025
   deliverables and the retrospective are frozen history; the engine
   musings and the wish engine are unbuilt proposals.
+- **Directory contracts.** Four subtrees carry their own `CLAUDE.md` with
+  the rules for working there — the ones no suite can enforce:
+  [backend/game/](backend/game/CLAUDE.md),
+  [backend/tests/](backend/tests/CLAUDE.md),
+  [frontend/src/shared/](frontend/src/shared/CLAUDE.md),
+  [frontend/src/components/](frontend/src/components/CLAUDE.md).
+  Read the nearest one before editing in its subtree; this file holds the
+  repo-wide rules and they hold the local ones.
 
 ## Commands
 

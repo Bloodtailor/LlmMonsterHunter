@@ -6,8 +6,9 @@ equally binding, which makes the whole folder feel perpetually out of
 date — so before reading or updating anything here, find its category.
 
 **Only the first category owns you.** Eleven of the 44 files in `docs/`
-have to be true (plus root `CLAUDE.md`). The rest are records, plans, or
-daydreams, and several would be damaged by being brought "up to date".
+have to be true, plus root `CLAUDE.md` and five docs that live in the
+code. The rest are records, plans, or daydreams, and several would be
+damaged by being brought "up to date".
 
 ---
 
@@ -22,6 +23,13 @@ bug: fix it in the same commit.
 | [tuning.md](tuning.md) | Every gameplay knob, where it lives, its default |
 | [api/](api/) (9 files) | The HTTP surface, as a reference for working the frontend without reading backend code |
 | `CLAUDE.md` (repo root) | Conventions, commands, the hard rules |
+
+Four more binding docs live **in the code**, not here — the rules for
+working in a subtree, kept next to the subtree because nothing can test
+them: `backend/game/CLAUDE.md`, `backend/tests/CLAUDE.md`,
+`frontend/src/shared/CLAUDE.md`, `frontend/src/components/CLAUDE.md`.
+`frontend/src/shared/ui/ui.md` is a fifth — the prop reference for every
+UI primitive. Root `CLAUDE.md` indexes them all.
 
 **Parts of this category are enforced, not trusted.**
 `backend/tests/test_event_parity.py` asserts that the event catalog in
