@@ -70,16 +70,42 @@ event registry:
 Verification: `python -m backend.tests.test_event_parity` (11 checks),
 registered in `test_offline_suites.py` so pytest and CI cover it.
 
-### Cng-M2 — The step-name contract — **IN PROGRESS**
+### Cng-M2 — The step-name contract — **IMPLEMENTED**
 
-Workflow `on_update` step strings are the contract `docs/architecture.md`
-calls out as breaking-if-renamed, and they are the least protected thing
-in the repo: bare literals assigned to a local `step` variable in each
-workflow, hand-copied into label maps on the frontend — sometimes in a
-different domain folder than the workflow that emits them.
+`backend/tests/test_step_contract.py` asserts every step string the
+frontend keys off is one the backend can actually emit.
 
-Milestone: give the frontend's references a suite that proves every step
-string it keys off is one the backend can actually emit.
+The contract is **one-directional** by design. A backend step nothing
+displays is ordinary — 76 of the 96 steps are progress pings with no
+frontend reference. A frontend reference to a step the backend cannot
+emit is the bug, because nothing errors: the label just stays blank or
+the branch never runs.
+
+Both emission styles are scanned — the older local `step = "name"`
+variable and the `WorkflowStep` pointer (`step.emit/.mark/.emit_event`)
+used by workflows split across handler modules — as are both reference
+styles: `*_STEP_LABELS` maps and inline `step === 'name'` comparisons in
+the event hooks.
+
+**Deviation from the original plan:** no new registry was introduced. The
+first sketch was to give workflows a declared step manifest, but
+`backend/core/workflow_steps.py` already carries the pointer, and adding
+a second place to name a step would have created one more mirror to keep
+congruent — the exact problem this initiative exists to remove. The
+workflow source stays the source of truth and the suite reads it.
+
+**No drift found** — unlike M1, the step contract was intact. The suite
+was therefore verified by mutation instead: renaming `designing_form` in
+`game/monster/registered_workflows.py` turned it red and named the file
+that would have broken (`useMonsterEvolution.js`). The rename was
+reverted; a tripwire nobody has seen fail is not yet a tripwire.
+
+The suite also guards its own scanners — if a refactor changes how steps
+are written, the step counts fall below their floors and it fails loudly
+rather than passing vacuously forever.
+
+Verification: `python -m backend.tests.test_step_contract` (4 checks),
+registered in `test_offline_suites.py`.
 
 ### Cng-M3 — The docs map — **PLANNED**
 

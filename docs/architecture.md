@@ -102,7 +102,10 @@ The pieces:
 - **Step names are a contract.** The frontend's event hooks key off each
   workflow's `on_update` step strings (`useDungeonEvents.js`,
   `useBattleEvents.js`). Renaming a step is a breaking change; treat step
-  names and payload keys like an API.
+  names and payload keys like an API. Guarded by
+  `tests/test_step_contract.py`: every step the frontend keys off must be
+  one the backend can emit, so a rename fails the suite instead of
+  silently blanking a label.
 
 ## The event system
 
@@ -115,6 +118,11 @@ The pieces:
   `useEventSubscription` / `useStreamedGeneration` and update the moment
   their datum arrives (live card reveal, auto-refreshing Sanctuary).
 - Catalog: [api/events-and-sse.md](api/events-and-sse.md).
+- The four surfaces above are mirrored by hand, so
+  `tests/test_event_parity.py` holds them together: every
+  `send_to_frontend` event needs a handler, every handler file must be
+  spread into `EventProvider`, and the catalog doc must match the
+  registry exactly. The doc is checked like code — it cannot fall behind.
 
 ## The referee philosophy (why there are no numbers in prompts)
 

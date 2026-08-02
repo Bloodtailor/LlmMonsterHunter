@@ -29,6 +29,7 @@ SUITES = [
     'test_gemini_provider',
     'test_setup_registry',
     'test_event_parity',
+    'test_step_contract',
 ]
 
 
