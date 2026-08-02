@@ -1,6 +1,6 @@
 # Codebase Health — consolidation pass (Hth)
 
-**Status: PLANNED** (not started)
+**Status:** PLANNED (not started)
 **Branch:** `feature/codebase-health` · **Commit prefix:** `Hth-M#`
 **Written:** 2026-07-07, from a full-repo review. Intended to be executable
 by an AI assistant working autonomously — every task names its files, its

@@ -1,7 +1,7 @@
 # Monster Depth: Expanded Persona + CMDTS — Implementation Plan
 
-Branch: `feature/monster-depth-cmdts`
-Status: IMPLEMENTED (M1–M5, July 2026). Curated trees approved as drafted; both
+**Branch:** `feature/monster-depth-cmdts`
+**Status:** IMPLEMENTED (M1–M5, July 2026). Curated trees approved as drafted; both
 §10 flags resolved as planned (code-derived stats, progressive save). Verify
 offline with `python -m backend.tests.test_monster_templates`; judge generation
 quality with `python -m backend.tests.generate_monster_profiles` (backend running).

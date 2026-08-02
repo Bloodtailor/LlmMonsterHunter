@@ -8,15 +8,22 @@ when he wants detail.
 
 ## Read these before big changes
 
+- [docs/README.md](docs/README.md) — **the docs map.** Six categories with
+  opposite maintenance rules; only eleven files are binding. Read this
+  before trusting or updating anything in `docs/`.
 - [docs/architecture.md](docs/architecture.md) — layers, the async
   workflow/SSE model, the referee philosophy. **The step-name contract
   matters:** frontend event hooks key off workflow `on_update` step
-  strings — renaming one is a breaking change.
+  strings — renaming one is a breaking change, and
+  `tests/test_step_contract.py` will fail if you do.
 - [docs/tuning.md](docs/tuning.md) — every gameplay knob and where it lives.
 - [docs/api/README.md](docs/api/README.md) — HTTP surface; async endpoints
-  return `{ workflow_id }` and results arrive over SSE.
+  return `{ workflow_id }` and results arrive over SSE. The event catalog
+  is asserted against the registry by `tests/test_event_parity.py`.
 - [docs/plans/](docs/plans/) — one plan doc per initiative, kept current
-  (status, deviations). `docs/design/` is the historical design phase.
+  (status, deviations). `docs/design/` is *mixed*: the Feb 2025
+  deliverables and the retrospective are frozen history; the engine
+  musings and the wish engine are unbuilt proposals.
 
 ## Commands
 

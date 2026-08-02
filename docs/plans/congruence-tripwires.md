@@ -1,6 +1,6 @@
 # Congruence Tripwires (Cng)
 
-**Status: IN PROGRESS**
+**Status:** IN PROGRESS
 **Branch:** `feature/congruence-tripwires` · **Commit prefix:** `Cng-M#`
 **Written:** 2026-08-01
 
@@ -107,17 +107,35 @@ rather than passing vacuously forever.
 Verification: `python -m backend.tests.test_step_contract` (4 checks),
 registered in `test_offline_suites.py`.
 
-### Cng-M3 — The docs map — **PLANNED**
+### Cng-M3 — The docs map — **IMPLEMENTED**
 
-`docs/` holds six kinds of document with different audiences and
-different maintenance rules — binding, historical, aspirational, work
-orders, for humans, for curiosity — with no signal about which is which.
-The cost is not size, it is that everything reads as equally binding, so
-nothing feels reliably current.
+`docs/README.md` sorts every documentation surface into its six
+categories and states each one's maintenance rule. Every file was
+classified from its own header rather than from memory.
 
-Milestone: a `docs/README.md` that names each category, lists what is in
-it, and states its maintenance rule (must be true / must not be updated /
-congruent with nothing).
+The headline it exists to deliver: **eleven of the 44 files in `docs/`
+are binding** (`architecture.md`, `tuning.md`, the nine `api/` files),
+plus root `CLAUDE.md`. The rest are records, plans, or daydreams, and
+several — the Feb 2025 design deliverables, the retrospective — would be
+damaged by being brought "up to date". The folder felt like a standing
+debt because nothing said which was which.
+
+Plan-doc status lines were also normalised to one markup, `**Status:**`
+followed by the value. Three files wrapped the value inside the bold
+(`**Status: PLANNED**`) and one had no bold at all, so any reader — or
+future tripwire — scanning statuses would have missed them. All 13 now
+match, which is what lets the map state the counts as fact.
+
+**Correction found while classifying:** `CLAUDE.md` described
+`docs/design/` as "the historical design phase". It is mixed — the Feb
+2025 deliverables and `vision-vs-reality.md` are frozen history, while
+`wish-engine.md`, `imagination-engine/`, and `setting-engine/` are
+unbuilt proposals that are congruent with nothing. Reading them under the
+wrong rule would have been misleading in both directions. Fixed, and
+`CLAUDE.md` now points at the map first.
+
+The map also records which docs are tripwired rather than trusted, so a
+reader can tell at a glance which claims are enforced.
 
 ### Cng-M4 — Contract docs for the unverifiable rules — **PLANNED**
 
