@@ -1,3 +1,6 @@
+# playtest corpus + transcripts (tools are committed, their output is not)
+playtest_results/
+
 # image generation output
 backend/ai/image/outputs/**
 !backend/ai/image/outputs/.gitkeep
