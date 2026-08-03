@@ -87,6 +87,14 @@ def main() -> int:
         check('the probe generation succeeded', bool(result.get('success')), str(result))
         check('the model answered with text', bool((result.get('text') or '').strip()))
 
+        # The worker thread wrote the tokens in ITS session - end this
+        # session's read transaction so the row below shows them (MySQL
+        # REPEATABLE READ would otherwise serve the pre-write snapshot
+        # and fail the token checks against a perfectly good row)
+        from tools.playtest.rig import refresh_session
+
+        refresh_session()
+
         log_row = LLMLog.get_by_generation_id(result['generation_id'])
         check('an llm_logs row exists for the probe', log_row is not None)
         if log_row:
