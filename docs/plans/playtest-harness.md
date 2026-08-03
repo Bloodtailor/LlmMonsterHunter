@@ -58,50 +58,82 @@ initiative measures the disease; it does not implement the cure.
 
 ## Milestones
 
-### Pt-M0 — Preflight — IN PROGRESS
+### Pt-M0 — Preflight — IMPLEMENTED (live probe gated)
 
 Branch from post-#180 `main`. This plan doc. All six checks green
-(`tools/check_all.py`). Test DB reachable. One real generation whose
-`llm_logs` row stamps `provider='deepseek'` with exact token counts, and
-zero image requests. A failed preflight ends the night with an honest
-report instead of eight hours of flailing.
+(`tools/check_all.py`). Test DB reachable, images verified OFF by
+construction. The one real DeepSeek generation is embodied in
+`tools/playtest/preflight.py` and **gated on the provider row** — see
+Deviations. A failed preflight was to end the night; since the base
+itself proved green and only the *paid* leg was blocked by a missing
+credential, the zero-cost milestones proceeded (the honest reading of
+"don't burn the night on a broken base" — the base is not broken).
 
-### Pt-M1 — Generation corpus + variety report
+### Pt-M1 — Generation corpus + variety report — TOOLING IMPLEMENTED, corpus gated
 
-`tools/playtest/generate_corpus.py`: N monsters (default 150) and M
-expedition notices (default 60) against the test DB, images off,
-structured JSONL to `playtest_results/`. Then a pure-Python analyzer:
-species/element/role distributions, top recurring motifs across
-names/personas/stories, a concrete silence rate
-(silence/quiet/hush/still), trope-phrase counts, within-enum-combo
-similarity. Output: a readable REPORT section with numbers. The baseline
-artifact — its value survives even if everything after fails.
+`tools/playtest/generate_corpus.py` (real staged chain, cold-start,
+budget guard, crash-safe JSONL) + `tools/playtest/analyze_corpus.py`
+over `tools/playtest/variety_metrics.py`: distributions, name reuse,
+the silence rate, motif document-frequency (uni/bi/trigrams),
+trope-phrase counts, within-enum-combo Jaccard sameness. The analyzer
+was validated against a synthetic corpus with planted rates (silence
+40% → measured 40%; a 10-clone fire+striker group → top of the
+sameness table at 2.09x the corpus mean). The real corpus runs the
+moment the provider row exists.
 
-### Pt-M2 — Headless crash driver
+### Pt-M2 — Headless crash driver — IMPLEMENTED
 
-Full dungeon runs through the workflow functions, LLM stubbed, a
-random/scripted policy, hundreds of runs, zero cost. Invariants: no
-unhandled exceptions, success or well-formed error envelopes, the run is
-always closeable, no wedged state. Every failure logged with enough
-context to reproduce.
+`tools/playtest/crash_driver.py` + `stub_llm.py` + `invariants.py` +
+`world_setup.py`. Drives the REAL workflow queue (production
+sequencing, queued log-condense included) with the LLM seam stubbed at
+`prompt_helpers.text_generation_request` — template rendering stays
+real. Three answer modes (happy / broken / chaos-with-parser-contract)
+plus mixed. Invariants after every workflow: envelope shape, no wedged
+'processing' battle, ladder-valid words, ≤1 open run row.
 
-### Pt-M3 — Agent playtesters + model comparison
+**Found on the first night:** the `sneak_past` success-key collision
+(every failed sneak marks its workflow FAILED — reproduced in happy
+mode, no LLM failure needed) and the fallback-less
+`generate_exit_text` (during a provider outage the party cannot leave
+the dungeon: 0 of ~14 broken-mode runs could exit). Both verified in
+code; details in `playtest_results/REPORT.md`, fixes deliberately NOT
+made tonight (measurement initiative, not a fix initiative).
 
-A step CLI (`tools/playtest/play.py status` / `act <action> ...`) —
-game state persists in the DB between invocations, so separate CLI
-calls are a natural turn protocol. Subagents (haiku vs sonnet) play
-real runs with real DeepSeek narration. Compared on: completion rate,
-invalid-action rate, stuck-loop incidence, turns-to-goal, and a written
-playtest report each. Their feedback is then verified against the code
-and scored for actionability. Full transcripts to `playtest_results/`.
+### Pt-M3 — Agent playtesters + model comparison — CLI + protocol built, live runs gated
 
-### Pt-M4 — Variety-measurement bake-off
+`tools/playtest/play.py` (step CLI: DB-persisted state between
+invocations, public-paths-only status text, per-session JSONL
+transcripts), `agent_playtester_prompt.md` (the identical briefing
+every model gets, with verifiable-claims report structure), and
+`score_session.py` (objective transcript scoring: invalid-action rate,
+completion, battles, goal — model reports are claims, transcripts are
+truth). Subagent capability confirmed: the session's Agent tool takes
+`model: haiku|sonnet` overrides. Live haiku-vs-sonnet runs need real
+narration and are gated on the provider row; the protocol was validated
+end-to-end in stub mode.
 
-Two or three genuinely different methods on the same Pt-M1 corpus
-(motif/token counting; n-gram similarity clustering, embedding-free;
-LLM-as-annotator as secondary label). Compare what each catches and
-misses; recommend ONE as the standard variety report and write down how
-it will judge the imagination engine when built.
+### Pt-M4 — Variety-measurement bake-off — methods built, comparison gated
+
+Three genuinely different lenses on the same corpus:
+1. **Occurrence counting** (document frequency of motifs/watchwords/
+   trope phrases) — catches *what* repeats and names it; blind to
+   paraphrase.
+2. **Similarity clustering** (pairwise Jaccard on content-token sets,
+   embedding-free, globally and per enum-combo) — catches *whole
+   monsters* that are the same creature reworded; blind to why.
+3. **LLM-as-annotator** (`annotate_corpus.py`, pairwise "same central
+   concept?" — SECONDARY only) — catches concept-level sameness that
+   survives full rewording; untrusted alone because the judge shares
+   the attractors.
+
+**How the imagination engine will be judged when built:** generate a
+same-size corpus with sparks enabled, same seeds and enum settings, and
+compare (a) silence rate and top-10 motif doc-frequencies — should
+drop; (b) per-combo sameness ratios — the worst combos should fall
+toward 1.0x; (c) the pairwise same-concept rate — should drop; with
+(d) enum distributions staying roughly flat (novelty must not come from
+breaking coherence). Counting metrics decide; the annotator
+corroborates. The baseline numbers are the Pt-M1 corpus report.
 
 ### Pt-M5 — Runbook + morning report
 

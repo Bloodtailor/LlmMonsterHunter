@@ -42,43 +42,14 @@ class RunAbort(Exception):
     """A run cannot continue (workflow lost, queue refused, etc.)"""
 
 
-def _refresh_session():
-    """End the driver's read transaction so the next query sees the
-    worker thread's commits. The running game never needs this - each
-    HTTP request gets a fresh session - but this driver holds one app
-    context all night, and MySQL's REPEATABLE READ would otherwise pin
-    every read to the first snapshot."""
-    from backend.models.core import db
-
-    db.session.rollback()
-
-
 def run_workflow(queue, workflow_type: str, context: dict) -> dict:
-    """Submit through the production gateway and wait for a terminal status"""
-    from backend.workflow.workflow_gateway import request_workflow
+    """rig.run_workflow with failures mapped onto this driver's RunAbort"""
+    from tools.playtest import rig
 
-    success, workflow_id = request_workflow(workflow_type, context=context)
-    if not success:
-        raise RunAbort(f"queue refused {workflow_type}")
-
-    started = time.time()
-    while time.time() - started < WORKFLOW_WAIT_SECONDS:
-        status = queue.get_workflow_status(workflow_id)
-        if status and status['status'] in ('completed', 'failed'):
-            _refresh_session()
-            return status
-        time.sleep(0.05)
-    raise RunAbort(f"{workflow_type} never finished (workflow_id={workflow_id})")
-
-
-def drain_queue(queue, timeout_seconds: int = 60):
-    """Wait out queued housekeeping (log condense) before swapping stubs"""
-    started = time.time()
-    while time.time() - started < timeout_seconds:
-        counts = queue.get_queue_status().get('status_counts', {})
-        if not counts.get('pending') and not counts.get('processing'):
-            return
-        time.sleep(0.05)
+    try:
+        return rig.run_workflow(queue, workflow_type, context, WORKFLOW_WAIT_SECONDS)
+    except (RuntimeError, TimeoutError) as rig_error:
+        raise RunAbort(str(rig_error))
 
 
 def battle_action(rng: random.Random, state: dict) -> dict:
@@ -248,16 +219,9 @@ def main() -> int:
     failures_path = results_dir / f'crash_driver_{stamp}.jsonl'
     failures_file = failures_path.open('w', encoding='utf-8')
 
-    from backend.tests.harness import build_test_app
+    from tools.playtest.rig import build_rig
 
-    app = build_test_app()
-
-    from backend.ai.queue import get_ai_queue
-    from backend.workflow.workflow_queue import get_queue
-
-    get_ai_queue().set_flask_app(app)
-    queue = get_queue()
-    queue.set_flask_app(app)
+    app, queue = build_rig()
 
     totals = {'runs': 0, 'exited': 0, 'hit_cap': 0, 'violations': 0, 'workflow_failures': 0}
     print(f"🧪 CRASH DRIVER - {args.runs} runs, mode={args.mode}, seed={seed}")
@@ -327,7 +291,9 @@ def main() -> int:
                 failures_file.flush()
                 print(f"  ❌ run {run_index + 1} aborted: {abort}")
             finally:
-                drain_queue(queue)
+                from tools.playtest.rig import drain_queue
+
+                drain_queue(queue, timeout_seconds=60)
                 stub.uninstall()
 
     failures_file.close()

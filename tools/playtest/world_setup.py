@@ -14,8 +14,15 @@ def build_world(rng: random.Random, companion_count: int = 2) -> dict[str, Any]:
     from backend.game.player.manager import PLAYER_MONSTER_KEY
     from backend.game.state.manager import add_following_monster, reset_game_state
     from backend.models.global_variables import GlobalVariable
+    from backend.models.item import Item
 
     reset_game_state()
+
+    # reset_game_state clears party/followers/globals but not inventory -
+    # items from earlier driver runs would pile up in the fresh world's
+    # pack (the test DB is disposable by contract, so a hard clear is fine)
+    for stale_item in Item.query.all():
+        stale_item.delete()
 
     player = _make_monster(
         rng,
