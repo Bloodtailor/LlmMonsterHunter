@@ -1,6 +1,11 @@
 # Automated Playtesting (Pt)
 
-**Status:** IN PROGRESS (August 2026) — overnight autonomous session.
+**Status:** IMPLEMENTED (August 2026) — overnight autonomous session;
+every milestone's tooling landed and was exercised. The three PAID
+artifacts (real corpus + its variety numbers, live model comparison,
+the one-call preflight probe) are gated on Aaron running
+`tools/playtest/seed_provider.py` once — see Deviations. Morning
+report: `playtest_results/REPORT.md`.
 **Branch:** `feature/playtest-harness` · **Commit prefix:** `Pt-M#`
 **Written:** 2026-08-03
 
@@ -135,13 +140,13 @@ toward 1.0x; (c) the pairwise same-concept rate — should drop; with
 breaking coherence). Counting metrics decide; the annotator
 corroborates. The baseline numbers are the Pt-M1 corpus report.
 
-### Pt-M5 — Runbook + morning report
+### Pt-M5 — Runbook + morning report — IMPLEMENTED
 
-`playtest_results/REPORT.md`: outcome first — the exact commands Aaron
-can now run on demand, verified bugs in `docs/bug-hunt.md` format, the
-variety numbers and what they say about the silence problem, the model
-recommendation with costs, actual token/call spend, next steps. Plan-doc
-statuses updated, branch pushed, PR opened.
+`playtest_results/REPORT.md`: outcome first — the exact commands, the
+two verified bugs in bug-hunt format, the 201-run crash results, the
+stub-mode haiku/sonnet comparison with claim-by-claim verification,
+budget accounting (0 of 2,500 calls spent), and the ordered next
+steps. This plan doc updated; branch pushed; PR opened.
 
 ## Deviations
 
@@ -165,3 +170,24 @@ statuses updated, branch pushed, PR opened.
   Pt-M4) are gated on that row appearing; the zero-cost milestones
   proceeded regardless. `tools/playtest/preflight.py` verifies the rig
   end-to-end the moment the row exists.
+
+- **2026-08-03 (Pt-M3): the stub-mode agent validation changed two
+  harness behaviors.** A sonnet playtest agent crashed on its first CLI
+  call (Windows cp1252 console vs the backend's emoji prints) — the CLI
+  now reconfigures stdout/stderr to UTF-8 itself. The same agent walked
+  paths belonging to the junction it had already left: `choose_path`
+  never refreshes `available_paths` (only `continue_exploring` does),
+  and the CLI was rendering the stale list the real frontend hides —
+  status now shows paths only when no encounter is active. Logged as
+  observations in the report: stale paths remain takeable at the
+  workflow level, and the shared test DB lets earlier harness worlds'
+  monsters return as wild creatures (an artifact, and accidental proof
+  the returning system works).
+
+- **2026-08-03 (Pt-M2/M5): bugs found were reported, not fixed.** The
+  two verified defects (the `sneak_past` success-key collision; the
+  fallback-less `generate_exit_text`) are written up in
+  `playtest_results/REPORT.md` in bug-hunt format with repro commands,
+  and offered as one-click follow-up tasks — this initiative measures;
+  fixing mid-measure would have muddied the baseline the night was
+  built to establish.

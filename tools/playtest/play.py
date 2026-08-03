@@ -32,6 +32,14 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+# Windows consoles default to cp1252, and the backend prints emoji on
+# import - reconfigure stdout/stderr so the CLI works without the
+# caller having to know about PYTHONIOENCODING (found by a playtest
+# agent that crashed on the very first invocation)
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, 'reconfigure'):
+        stream.reconfigure(encoding='utf-8', errors='replace')
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
@@ -135,13 +143,23 @@ def render_status() -> str:
         camped = ' (already camped here)' if encounter.get('camped') else ''
         lines.append(f'The area is clear{camped}.')
 
-    paths = manager.get_public_paths()
-    if paths:
-        lines.append('Paths from here:')
-        for path_id, path in paths.items():
-            marker = ' [EXIT]' if path.get('type') == 'exit' else ''
-            lines.append(f"  - {path_id}{marker}: {path.get('name')} - {path.get('description')}")
-    actions = ['`act path <path_id>` to take a path']
+    # Paths are shown only when NO encounter is active. After an arrival
+    # the stored path list still belongs to the PREVIOUS junction (only
+    # continue_exploring refreshes it - run_lifecycle.py:161), and the
+    # real frontend funnels the player through Continue Exploring at that
+    # point. Showing the stale list here let a playtest agent walk paths
+    # no real player could see - the CLI now mirrors the frontend.
+    actions = []
+    if not encounter:
+        paths = manager.get_public_paths()
+        if paths:
+            lines.append('Paths from here:')
+            for path_id, path in paths.items():
+                marker = ' [EXIT]' if path.get('type') == 'exit' else ''
+                lines.append(
+                    f"  - {path_id}{marker}: {path.get('name')} - {path.get('description')}"
+                )
+            actions.append('`act path <path_id>` to take a path')
     if event == 'location_explore' and not encounter.get('camped'):
         actions.append('`act camp` to rest')
     actions.append('`act explore` for fresh paths')
