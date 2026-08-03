@@ -184,6 +184,22 @@ steps. This plan doc updated; branch pushed; PR opened.
   monsters return as wild creatures (an artifact, and accidental proof
   the returning system works).
 
+- **2026-08-03 (afternoon, at Aaron's direction): the silence trope was
+  FIXED and the fix measured — the first full measure→change→re-measure
+  loop.** Three REGISTER RULE lines added to `monster_generation.json`
+  (inner_life, social_self, creative_text; the prompts never contained
+  the trope — it is the model's attractor). Verification corpus v1
+  exposed a cost: the livelier answers blew the 350/450 token caps and
+  7/40 generations died at the parser ("No JSON found", out_tokens ==
+  max_tokens), so the three caps rose to 500/650/650. Verification v2
+  (40/40, zero failures): any-silence-mention 99%→90%, "stillness"
+  79%→25%, description mentions 70%→20%, backstory 69%→30%, "ancient"
+  49%→18%, unique names 57%→88%. The persona stage remains the
+  stronghold (85%) — squeezing further likely needs Python-rolled
+  temperament seeds, which is imagination-engine territory
+  (playtest-suite-expansion.md). Kingdom monoculture untouched by
+  design (~52–65% Verdant), same reason.
+
 - **2026-08-03 (Pt-M2/M5): bugs found were reported, not fixed.** The
   two verified defects (the `sneak_past` success-key collision; the
   fallback-less `generate_exit_text`) are written up in
