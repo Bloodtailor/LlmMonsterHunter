@@ -265,7 +265,9 @@ def watchword_rate(texts: list, words=SILENCE_WORDS) -> tuple:
         found = pattern.findall(text or '')
         if found:
             hits += 1
-            per_word.update(word.lower() for word in set(found))
+            # Lowercase BEFORE deduping - 'Stillness' and 'stillness' in
+            # one document must count that document once, not twice
+            per_word.update({word.lower() for word in found})
     return hits / total, dict(per_word.most_common())
 
 
