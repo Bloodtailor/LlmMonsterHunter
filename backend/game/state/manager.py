@@ -167,6 +167,28 @@ def get_party_summary() -> str:
         return f"{', '.join(party_names[:-1])}, and {party_names[-1]}"
 
 
+def get_party_roster() -> str:
+    """The party as a short LLM roster: one line per member carrying the
+    description prose that establishes how each is referred to.
+
+    Arrival-narration prompts use this instead of get_party_summary():
+    a bare name list made the narrator GUESS pronouns from names (a live
+    playtest narrated a 'she' player as 'his' and an 'it' companion as
+    'her'). The description is the same prose the battle prompts include
+    - the one place each character's pronouns are canon.
+    """
+    party_ids = get_party_monster_ids()
+    if not party_ids:
+        return "No active party"
+
+    lines = []
+    for monster_id in party_ids:
+        monster = Monster.get_monster_by_id(monster_id)
+        if monster:
+            lines.append(f"- {monster.name} ({monster.species}): {monster.description}")
+    return "\n".join(lines) if lines else "No active party"
+
+
 def get_party_monster_ids() -> list[int]:
     """IDs of everyone in the active party: the player character first
     (when one exists), then the companion rows in position order"""

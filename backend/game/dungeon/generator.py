@@ -12,7 +12,7 @@ from backend.game.dungeon.events import (
 )
 from backend.game.dungeon.fallbacks import get_fallback_location, get_fallback_path
 from backend.game.dungeon.run_context import expedition_brief
-from backend.game.state.manager import get_party_summary
+from backend.game.state.manager import get_party_roster, get_party_summary
 from backend.game.utils import build_and_generate, build_and_stream, clamp_context
 
 # ===== CONTEXT BUILDERS =====
@@ -234,7 +234,7 @@ def generate_encounter_vanity_text(location: dict[str, Any], workflow_name: str)
     """Queue streamed vanity text for arriving where a monster waits - returns generation_id"""
 
     variables = {
-        'party_summary': get_party_summary(),
+        'party_roster': get_party_roster(),
         'location_name': location.get('name', 'Unknown Location'),
         'location_description': clamp_context(
             'location_description', location.get('description', '')
@@ -262,7 +262,7 @@ def generate_look_around_text(
     )
 
     variables = {
-        'party_summary': get_party_summary(),
+        'party_roster': get_party_roster(),
         'location_name': location.get('name', 'Unknown Location'),
         'location_description': clamp_context(
             'location_description', location.get('description', '')

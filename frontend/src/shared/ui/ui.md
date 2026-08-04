@@ -692,7 +692,9 @@ export const SCROLL_SIZES = {
  * @param {string} props.color - Color name from color system (e.g., 'red-intense', 'blue-electric')
  * @param {string} props.size - Size variant ('sm', 'md', 'lg', 'xl')
  * @param {string} props.emoji - Emoji to display on the card (required)
- * @param {Function} props.onActivate - Callback when card completes its animation
+ * @param {Function} props.onActivate - Callback when the pickup ceremony completes; the card then
+ *   settles into a static collected keepsake instead of disappearing (parents that want it gone
+ *   can unmount it in onActivate)
  * @param {boolean} props.disabled - Disable interaction
  * @param {string} props.className - Additional CSS classes
  * @param {object} props.style - Inline styles

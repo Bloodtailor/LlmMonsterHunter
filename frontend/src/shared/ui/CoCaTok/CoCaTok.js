@@ -1,7 +1,7 @@
 // CoCaTok Component - Interactive 3D spinning Collectable Card Tokens
 // Always spinning, bouncing cards that stop and face you on hover
-// Click to spin fast, face forward, explode dramatically, and disappear forever
-// Perfect for rare collectibles found in dungeons
+// Click to spin fast, explode dramatically, then settle into a static
+// collected keepsake - the ceremony never leaves a hole in the layout
 
 import React, { useState } from 'react';
 import HueBasedExplosion from '../Explosion/HueBasedExplosion';
@@ -14,7 +14,7 @@ import './coCaTok.css';
  * @param {string} props.color - Color name from color system (e.g., 'red-intense', 'blue-electric')
  * @param {string} props.size - Size variant ('sm', 'md', 'lg', 'xl')
  * @param {string} props.emoji - Emoji to display on the card (required)
- * @param {Function} props.onActivate - Callback when card completes its animation
+ * @param {Function} props.onActivate - Callback when the pickup ceremony completes (the card settles into its collected keepsake state)
  * @param {boolean} props.disabled - Disable interaction
  * @param {string} props.className - Additional CSS classes
  * @param {object} props.style - Inline styles
@@ -32,6 +32,7 @@ function CoCaTok({
 }) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [isExploding, setIsExploding] = useState(false);
+  const [isCollected, setIsCollected] = useState(false);
 
   // Extract hue from color name (e.g., 'red-intense' → 'red')
   const extractHue = (colorName) => {
@@ -48,7 +49,7 @@ function CoCaTok({
 
   // Handle card click - trigger the full animation sequence
   const handleClick = async () => {
-    if (disabled || isSpinning) return;
+    if (disabled || isSpinning || isCollected) return;
 
     setIsSpinning(true);
 
@@ -56,10 +57,14 @@ function CoCaTok({
     setTimeout(() => {
       setIsExploding(true);
 
-      // Wait for explode animation (1.5 seconds), then trigger callback but DON'T reset
+      // Wait for the explosion fade (1.5 seconds), then settle into the
+      // collected keepsake state - the card returns as a static trophy,
+      // never an invisible hole in the layout
       setTimeout(() => {
+        setIsSpinning(false);
+        setIsExploding(false);
+        setIsCollected(true);
         onActivate(color, emoji); // Pass color and emoji to callback
-        // Card stays exploded/gone forever - no reset!
       }, 1500);
     }, 3000);
   };
@@ -70,6 +75,7 @@ function CoCaTok({
     `cocatok-${size}`,
     isSpinning && 'cocatok-spinning',
     isExploding && 'cocatok-exploding',
+    isCollected && 'cocatok-collected',
     disabled && 'cocatok-disabled',
     className,
   ]
@@ -102,7 +108,7 @@ function CoCaTok({
       style={dynamicStyle}
       onClick={handleClick}
       role="button"
-      tabIndex={disabled ? -1 : 0}
+      tabIndex={disabled || isCollected ? -1 : 0}
       aria-label={`${color} collectible card token with ${emoji} - explodes with ${cardHue} themed effects`}
       onKeyDown={(e) => e.key === 'Enter' && handleClick()}
       {...rest}

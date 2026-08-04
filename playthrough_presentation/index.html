@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Keeper and the Beacon — a played-through review</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <nav class="rail" aria-label="Sections">
+        <div class="rail-title">
+          <span>Live playthrough review</span>
+          The Keeper<br />and the Beacon
+        </div>
+        <ul class="chapters" id="chapters"></ul>
+      </nav>
+
+      <main class="main">
+        <div class="slide-head">
+          <div id="slide-eyebrow"></div>
+          <h1 id="slide-title"></h1>
+        </div>
+        <div class="stage" id="stage" aria-live="polite"></div>
+        <div class="caption" id="caption"></div>
+      </main>
+
+      <div class="transport">
+        <button class="control primary" id="play" type="button">Play</button>
+        <button class="control" id="prev" type="button">Back</button>
+        <button class="control" id="next" type="button">Next</button>
+        <div class="scrub" id="scrub" role="slider" aria-label="Seek within section" tabindex="0">
+          <div class="scrub-fill" id="scrub-fill"></div>
+        </div>
+        <div class="time" id="time">0:00 / 0:00</div>
+        <div class="hint">space · ← →</div>
+      </div>
+    </div>
+
+    <audio id="narration" preload="metadata"></audio>
+    <script src="data.js"></script>
+    <script src="player.js"></script>
+  </body>
+</html>

@@ -220,7 +220,16 @@ export function useDungeonActions(stateHook) {
       setErrorState(null);
       setIsMonsterResponding(true);
       setDialogue((prev) => [...prev, { speaker: 'The party', text: message }]);
-      await respondApi.respondToMonster(message);
+      try {
+        await respondApi.respondToMonster(message);
+      } catch (respondError) {
+        // The backend refused the message (e.g. over the 500-char cap).
+        // Roll back the optimistic party line and surface the real reason
+        // instead of letting the rejection escape as an uncaught error.
+        setDialogue((prev) => prev.slice(0, -1));
+        setIsMonsterResponding(false);
+        setErrorState(respondError?.message || 'Dungeon request failed');
+      }
     },
     [
       respondApi.isLoading,

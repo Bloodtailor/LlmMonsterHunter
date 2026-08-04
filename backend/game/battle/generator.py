@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from backend.game.battle.constants import IMPACT_STEPS, RESOURCE_DELTAS
 from backend.game.battle.context_blocks import build_battle_situation, build_recent_log
-from backend.game.state.manager import get_party_summary
+from backend.game.state.manager import get_party_roster
 from backend.game.utils import build_and_generate, build_and_stream, clamp_context
 
 
@@ -30,7 +30,7 @@ def generate_battle_arrival_text(location: dict[str, Any], workflow_name: str) -
     """Queue streamed hostile arrival text - returns generation_id"""
 
     variables = {
-        'party_summary': get_party_summary(),
+        'party_roster': get_party_roster(),
         'location_name': location.get('name', 'Unknown Location'),
         'location_description': location.get('description', ''),
     }

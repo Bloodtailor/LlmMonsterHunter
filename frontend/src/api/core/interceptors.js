@@ -79,8 +79,16 @@ export async function processResponse(response, endpoint = 'unknown') {
           endpoint,
         );
       }
+      // Real backend refusals arrive as Flask JSON with the reason in
+      // body.error (e.g. "Message too long (max 500 characters)") -
+      // surface that instead of a bare status line
+      let backendError = null;
+      if (contentType.includes('application/json')) {
+        const body = await response.json().catch(() => null);
+        backendError = typeof body?.error === 'string' ? body.error : null;
+      }
       throw new ApiError(
-        `API request failed: ${response.status} ${response.statusText}`,
+        backendError || `API request failed: ${response.status} ${response.statusText}`,
         response.status,
         response,
         endpoint,

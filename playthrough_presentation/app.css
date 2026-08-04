@@ -1,0 +1,275 @@
+/* The Keeper and the Beacon - deck styles. Dark theater around real
+   gameplay screenshots; the motion comes from the kb-a/kb-b Ken Burns
+   keyframes the player toggles per screenshot. */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+:root {
+  --bg: #0b1020;
+  --panel: #121a30;
+  --panel-2: #0e1526;
+  --ink: #e8ecf8;
+  --muted: #93a0c0;
+  --accent: #f0a834;
+  --accent-2: #4f83e0;
+  --line: #223052;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: radial-gradient(1200px 700px at 70% -10%, #17224066, transparent),
+    var(--bg);
+  color: var(--ink);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+}
+
+/* ---- chapter rail ---- */
+
+.rail {
+  grid-row: 1 / 3;
+  background: var(--panel-2);
+  border-right: 1px solid var(--line);
+  padding: 22px 16px;
+  overflow-y: auto;
+}
+
+.rail-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 18px;
+}
+
+.rail-title span {
+  display: block;
+  color: var(--accent);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+
+.chapters {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chapters button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.chapters button:hover {
+  background: #1a2440;
+  color: var(--ink);
+}
+
+.chapters .num {
+  color: var(--accent-2);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+}
+
+.chapters li.active button {
+  background: #1d2a4d;
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* ---- stage ---- */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 22px 28px 0;
+  gap: 14px;
+}
+
+.slide-head #slide-eyebrow {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.slide-head #slide-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 60px #00000088;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.layer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.layer.active {
+  opacity: 1;
+}
+
+/* The literal keyframes: slow drift + zoom, two directions. Only the
+   active layer animates; 26s outlasts any single keyframe's screen time
+   so the motion never visibly loops. */
+
+.layer.kb-a img {
+  animation: kb-a 26s ease-out forwards;
+}
+
+.layer.kb-b img {
+  animation: kb-b 26s ease-out forwards;
+}
+
+@keyframes kb-a {
+  from {
+    transform: scale(1) translate(0, 0);
+  }
+  to {
+    transform: scale(1.08) translate(-1.5%, -2.5%);
+  }
+}
+
+@keyframes kb-b {
+  from {
+    transform: scale(1.06) translate(1.2%, -1%);
+  }
+  to {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+.caption {
+  position: relative;
+  min-height: 34px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-style: italic;
+  padding: 2px 4px 10px;
+}
+
+.caption.pop {
+  animation: cap-in 0.6s ease both;
+}
+
+@keyframes cap-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- transport ---- */
+
+.transport {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 28px 18px;
+}
+
+.control {
+  background: #1a2440;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.control:hover {
+  background: #223055;
+}
+
+.control.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1c1400;
+  font-weight: 700;
+  min-width: 88px;
+}
+
+.scrub {
+  flex: 1;
+  height: 8px;
+  background: #1a2440;
+  border-radius: 999px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.scrub-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  border-radius: 999px;
+}
+
+.time {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 92px;
+  text-align: right;
+}
+
+.hint {
+  color: #5a688c;
+  font-size: 0.72rem;
+}

@@ -7,7 +7,7 @@
       "type": "text",
       "parser_name": "none"
     },
-    "prompt_template": "You are the narrator of a fantasy dungeon adventure.\n\n========== CONTEXT ==========\n\n--- Location the party just arrived at ---\n{location_name}: {location_description}\n\n--- The player's party ---\n{party_summary}\n\n--- The party's adventure so far ---\n{dungeon_log}\n\n========== YOUR TASK ==========\nWrite 2-3 sentences of atmospheric text describing the party's arrival, ending with the unmistakable sense that some creature is here with them - movement in the shadows, a sound, a presence. Do NOT describe the creature itself; only build the tension of its presence.\n\nResponse:"
+    "prompt_template": "You are the narrator of a fantasy dungeon adventure.\n\n========== CONTEXT ==========\n\n--- Location the party just arrived at ---\n{location_name}: {location_description}\n\n--- The player's party (each description shows how that member is referred to) ---\n{party_roster}\n\n--- The party's adventure so far ---\n{dungeon_log}\n\n========== YOUR TASK ==========\nWrite 2-3 sentences of atmospheric text describing the party's arrival, ending with the unmistakable sense that some creature is here with them - movement in the shadows, a sound, a presence. Do NOT describe the creature itself; only build the tension of its presence. Refer to each party member by name, and use exactly the pronouns that member's description above uses - a member described as 'it' stays 'it', one described as 'she' stays 'she'. If a description shows no pronoun, use the name or 'they'. Never guess or switch pronouns.\n\nResponse:"
   },
 
   "monster_question": {

@@ -16,6 +16,7 @@ import {
 } from '../../shared/ui/index.js';
 import { useParty } from '../../app/contexts/PartyContext/index.js';
 import { useMonsterChat } from './hooks/useMonsterChat.js';
+import { PLAYER_TEXT_MAX_CHARS } from '../../shared/constants/constants.js';
 
 // Everything the monster says shares one voice
 const monsterSpeechStyles = {
@@ -219,7 +220,17 @@ function MonsterChatPanel({ monster }) {
             onChange={(e) => setDraft(e.target.value)}
             placeholder={`Talk with ${monster.name} - ask about its past, the last dungeon run, its dreams... it remembers what matters.`}
             rows={3}
+            maxLength={PLAYER_TEXT_MAX_CHARS}
           />
+          <div
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-text-muted)',
+              textAlign: 'right',
+            }}
+          >
+            {draft.length}/{PLAYER_TEXT_MAX_CHARS}
+          </div>
           <div>
             <Button
               size="md"

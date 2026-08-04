@@ -8,6 +8,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Badge, Button, Card, CardSection } from '../../shared/ui/index.js';
 import { useEventSubscription } from '../../api/events/useEventSubscription.js';
 import { getDungeonDebugContext } from '../../api/services/dungeon.js';
+import { usePersistedState } from '../../shared/hooks/usePersistedState.js';
 import './debugPanel.css';
 
 /**
@@ -24,8 +25,9 @@ function ContextBlock({ title, text, note }) {
 }
 
 function DungeonContextPanel() {
-  // Start minimized - this is a monitoring tool, not the main show
-  const [isMinimized, setIsMinimized] = useState(true);
+  // Start minimized - this is a monitoring tool, not the main show;
+  // localStorage remembers the developer's preference across reloads
+  const [isMinimized, setIsMinimized] = usePersistedState('devPanel.context.minimized', true);
   const [context, setContext] = useState(null);
   const [lastRefreshed, setLastRefreshed] = useState(null);
 
