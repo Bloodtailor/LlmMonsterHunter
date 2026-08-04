@@ -44,188 +44,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 import backend  # noqa: F401 - loads .env
+from tools.playtest.play_render import inherited_world_warning, render_result, render_status
 from tools.playtest.rig import build_rig, drain_queue, run_workflow
-
-
-def render_status() -> str:
-    """The world as the player sees it - the text agents will read"""
-    from backend.game.battle import manager as battle
-    from backend.game.dungeon import manager, run_context
-    from backend.game.dungeon.goal import goal_snapshot
-    from backend.game.state.manager import get_party_monster_ids
-    from backend.models.item import Item
-    from backend.models.monster import Monster
-
-    lines = ['=== EXPEDITION STATUS ===']
-
-    party_ids = get_party_monster_ids()
-    conditions = manager.get_party_conditions()
-    resources = manager.get_party_resources()
-    party_bits = []
-    for monster_id in party_ids:
-        monster = Monster.get_monster_by_id(monster_id)
-        if not monster:
-            continue
-        condition = conditions.get(str(monster_id), 'fresh')
-        pools = resources.get(str(monster_id)) or {}
-        party_bits.append(
-            f"  - {monster.name} ({monster.species}) [id {monster.id}] "
-            f"condition={condition} stamina={pools.get('stamina', '?')} "
-            f"mana={pools.get('mana', '?')}"
-        )
-    lines.append('Party:')
-    lines.extend(party_bits or ['  (no party - run new-world first)'])
-
-    items = Item.query.filter(Item.uses_remaining > 0).limit(10).all()
-    if items:
-        lines.append('Inventory:')
-        lines.extend(
-            f"  - [id {item.id}] {item.name} (uses left: {item.uses_remaining}) - "
-            f"{item.description}"
-            for item in items
-        )
-
-    battle_state = battle.get_battle_state()
-    if battle_state.get('in_battle'):
-        lines.extend(_render_battle(battle_state))
-        lines.extend(_render_actions_battle(battle_state))
-        return '\n'.join(lines)
-
-    if not manager.is_in_dungeon():
-        lines.append('Location: outside the dungeon (home base).')
-        board = run_context.get_pending_notices()
-        if board:
-            lines.append('Expedition notices posted:')
-            for notice in board:
-                lines.append(
-                    f"  - {notice.get('id')}: {notice.get('title')} "
-                    f"[danger: {notice.get('danger')}] - {notice.get('pitch')}"
-                )
-            lines.append('Actions: `enter <notice_id>` to answer a notice.')
-        else:
-            lines.append('Actions: `notices` to post the expedition board.')
-        return '\n'.join(lines)
-
-    location = manager.get_current_location() or {}
-    lines.append(f"Location: {location.get('name', 'Unknown')} - {location.get('description', '')}")
-
-    goal = goal_snapshot()
-    if goal:
-        lines.append(f"Run goal ({goal.get('status')}): {goal.get('text')}")
-
-    log_entries = manager.get_dungeon_log_entries()
-    if log_entries:
-        lines.append('Recently:')
-        lines.extend(f'  * {entry}' for entry in log_entries[-6:])
-
-    encounter = manager.get_active_encounter() or {}
-    event = encounter.get('event')
-
-    if event == 'monster_dialogue':
-        lines.append('A conversation is underway:')
-        for spoken in (encounter.get('dialogue') or [])[-6:]:
-            lines.append(f"  {spoken.get('speaker')}: \"{spoken.get('text')}\"")
-        lines.append(
-            'Actions: `act talk "<your words>"` to keep talking, or `act explore` to walk away.'
-        )
-        return '\n'.join(lines)
-
-    if event == 'location_explore' and encounter.get('monster_ids'):
-        names = _monster_names(encounter['monster_ids'])
-        lines.append(f"Creatures here (they have NOT noticed you): {names}")
-        lines.append(
-            'Actions: `act talk "<words>"` to approach, `act sneak` to slip past, '
-            '`act ambush` to strike first, `act explore` to move on.'
-        )
-        return '\n'.join(lines)
-
-    if event == 'location_explore':
-        camped = ' (already camped here)' if encounter.get('camped') else ''
-        lines.append(f'The area is clear{camped}.')
-
-    # Paths are shown only when NO encounter is active. After an arrival
-    # the stored path list still belongs to the PREVIOUS junction (only
-    # continue_exploring refreshes it - run_lifecycle.py:161), and the
-    # real frontend funnels the player through Continue Exploring at that
-    # point. Showing the stale list here let a playtest agent walk paths
-    # no real player could see - the CLI now mirrors the frontend.
-    actions = []
-    if not encounter:
-        paths = manager.get_public_paths()
-        if paths:
-            lines.append('Paths from here:')
-            for path_id, path in paths.items():
-                marker = ' [EXIT]' if path.get('type') == 'exit' else ''
-                lines.append(
-                    f"  - {path_id}{marker}: {path.get('name')} - {path.get('description')}"
-                )
-            actions.append('`act path <path_id>` to take a path')
-    if event == 'location_explore' and not encounter.get('camped'):
-        actions.append('`act camp` to rest')
-    actions.append('`act explore` for fresh paths')
-    actions.append('`act ability <monster_id> <ability_id> [target words]`')
-    actions.append('`act item <item_id> [target words]`')
-    lines.append('Actions: ' + ', '.join(actions) + '.')
-    return '\n'.join(lines)
-
-
-def _render_battle(state: dict) -> list:
-    lines = [f"IN BATTLE - phase: {state.get('phase')}"]
-    for side, label in (('allies', 'Your side'), ('enemies', 'Enemies')):
-        lines.append(f'{label}:')
-        for entry_id, entry in (state.get(side) or {}).items():
-            flags = []
-            if entry.get('fled'):
-                flags.append('fled')
-            if entry.get('defending'):
-                flags.append('defending')
-            flag_text = f" ({', '.join(flags)})" if flags else ''
-            lines.append(
-                f"  - {entry.get('name')} [id {entry_id}] condition={entry.get('condition')}"
-                + flag_text
-            )
-    if state.get('pending_talk'):
-        talk = state['pending_talk']
-        speaker = (state.get('enemies') or {}).get(str(talk.get('speaker_id')), {})
-        lines.append(f"{speaker.get('name', 'An enemy')} says: \"{talk.get('dialogue')}\"")
-    return lines
-
-
-def _render_actions_battle(state: dict) -> list:
-    phase = state.get('phase')
-    if phase == 'awaiting_player_response':
-        return ['Actions: `act reply "<your answer>"`.']
-    if phase == 'awaiting_player_turn':
-        from backend.models.monster import Monster
-
-        actor_id = state.get('pending_actor')
-        actor = Monster.get_monster_by_id(int(actor_id)) if actor_id else None
-        ability_bits = ''
-        if actor and actor.abilities:
-            named = ', '.join(f'"{a.name}"' for a in actor.abilities)
-            ability_bits = f' Abilities: {named}.'
-        return [
-            f"It is {actor.name if actor else 'your monster'}'s turn.{ability_bits}",
-            'Actions: `act battle attack|defend [--target "<name>"]`, '
-            '`act battle ability --ability "<name>" [--target "<name>"]`, '
-            '`act battle custom --text "<what they try>"`, '
-            '`act battle talk --text "<words>"`, '
-            '`act battle item --item <id> [--target "<name>"]`.',
-        ]
-    if phase in ('victory', 'defeat'):
-        return [f'The battle ended in {phase}. Actions: `act explore` to move on.']
-    return ['Actions: `act battle continue` to let the battle open.']
-
-
-def _monster_names(monster_ids) -> str:
-    from backend.models.monster import Monster
-
-    names = []
-    for monster_id in monster_ids:
-        monster = Monster.get_monster_by_id(int(monster_id))
-        if monster:
-            names.append(f'{monster.name} ({monster.species}) [id {monster.id}]')
-    return ', '.join(names) or 'unknown creatures'
 
 
 def _battle_target_id(state: dict, name: str):
@@ -302,10 +122,14 @@ def build_action(args) -> tuple:
     raise SystemExit(f'Unknown action: {action}')
 
 
+def session_path(session: str) -> Path:
+    return REPO_ROOT / 'playtest_results' / 'play_sessions' / f'{session}.jsonl'
+
+
 def append_transcript(session: str, entry: dict):
-    sessions_dir = REPO_ROOT / 'playtest_results' / 'play_sessions'
-    sessions_dir.mkdir(parents=True, exist_ok=True)
-    with (sessions_dir / f'{session}.jsonl').open('a', encoding='utf-8') as handle:
+    path = session_path(session)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open('a', encoding='utf-8') as handle:
         handle.write(json.dumps(entry, default=str) + '\n')
 
 
@@ -362,6 +186,7 @@ def main() -> int:
             create_tables()
 
             workflow_type, context, status = None, None, None
+            warning = inherited_world_warning(args.session)
 
             if args.command == 'status':
                 pass
@@ -399,7 +224,12 @@ def main() -> int:
                     exit_code = 1
                     print(f"WORKFLOW FAILED: {json.dumps(status.get('error'), default=str)}")
 
+            narration = render_result(status)
             state_text = render_status()
+            if warning:
+                print(warning)
+            if narration:
+                print(narration)
             print(state_text)
 
             append_transcript(
@@ -411,6 +241,7 @@ def main() -> int:
                     'context': context,
                     'workflow_status': (status or {}).get('status'),
                     'workflow_error': (status or {}).get('error'),
+                    'narration': narration,
                     'status_text': state_text,
                 },
             )

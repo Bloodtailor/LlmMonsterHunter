@@ -292,7 +292,7 @@ export function useDungeonEvents(stateHook) {
       case 'sneak_past':
         setIsSneaking(false);
         setSneakResult({
-          success: !!result.success,
+          success: !!result.sneak_success,
           narration: result.narration || '',
         });
         // On failure the battle starts - the BattleContext picks up the snapshot

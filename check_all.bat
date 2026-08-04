@@ -6,7 +6,7 @@ echo ================================================================
 echo            Monster Hunter Game - Pre-Push Checks
 echo ================================================================
 echo.
-echo Runs the same six checks GitHub runs on a pull request.
+echo Runs the same seven checks GitHub runs on a pull request.
 echo All green here means a green PR.
 echo.
 

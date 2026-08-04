@@ -21,12 +21,10 @@ def run_monster_battle(step: WorkflowStep, location: dict, workflow_name: str) -
     )
     from backend.game.dungeon import manager
     from backend.game.dungeon.run_context import danger_knob
-    from backend.game.monster.card_art import generate_card_art
-    from backend.game.monster.generator import (
-        generate_ability,
-        generate_contextual_monster,
-    )
+    from backend.game.monster.generator import generate_contextual_monster
     from backend.game.state.manager import get_party_details
+
+    from .encounter_staging import equip_encounter_monster
 
     # Step 3 - queue streamed hostile arrival text
     step.emit("queue_encounter_text")
@@ -55,9 +53,8 @@ def run_monster_battle(step: WorkflowStep, location: dict, workflow_name: str) -
     for i in range(enemy_count):
         step.emit(f"generate_enemy_{i + 1}")
         enemy = generate_contextual_monster(location)
-        generate_ability(enemy)
-        generate_ability(enemy)
-        generate_card_art(enemy)
+        # Abilities and art never end an arrival (encounter_staging)
+        equip_encounter_monster(enemy)
         enemies.append(enemy)
 
     from backend.game.memory.manager import mark_seen

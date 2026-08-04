@@ -12,11 +12,9 @@ def run_location_explore(step: WorkflowStep, location: dict, workflow_name: str)
     from backend.game.dungeon import manager
     from backend.game.dungeon.events import roll_explore_monster_count, roll_monsters_present
     from backend.game.dungeon.generator import generate_look_around_text
-    from backend.game.monster.card_art import generate_card_art
-    from backend.game.monster.generator import (
-        generate_ability,
-        generate_contextual_monster,
-    )
+    from backend.game.monster.generator import generate_contextual_monster
+
+    from .encounter_staging import equip_encounter_monster
 
     # Python decides whether creatures dwell here
     monsters_present = roll_monsters_present()
@@ -48,9 +46,8 @@ def run_location_explore(step: WorkflowStep, location: dict, workflow_name: str)
         for i in range(monster_count):
             step.emit(f"generate_area_monster_{i + 1}")
             monster = generate_contextual_monster(location)
-            generate_ability(monster)
-            generate_ability(monster)
-            generate_card_art(monster)
+            # Abilities and art never end an arrival (encounter_staging)
+            equip_encounter_monster(monster)
             monsters.append(monster)
 
     # The explore encounter holds what the party found here

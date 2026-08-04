@@ -7,9 +7,14 @@
 # received from a well-behaved model.
 
 # fmt: off
+# NOTE: no word here may also be a variety WATCHWORD (variety_metrics.
+# SILENCE_WORDS). The stub's vocabulary ends up inside anything measured
+# from a stubbed run - a chronicle corpus once read as 88% silence-obsessed
+# purely because 'quiet' lived in this list. The harness must never be
+# able to answer its own question.
 WORDS = [
-    'ashen', 'bright', 'cold', 'drowned', 'echoing', 'frozen', 'gilded', 'hollow',
-    'iron', 'luminous', 'mossy', 'quiet', 'rusted', 'sunken', 'twisting', 'veiled', 'woven',
+    'ashen', 'brackish', 'bright', 'cold', 'drowned', 'frozen', 'gilded', 'hollow',
+    'iron', 'lichen', 'mossy', 'rusted', 'sunken', 'twisting', 'veiled', 'woven',
 ]
 NOUNS = [
     'archive', 'belfry', 'cistern', 'causeway', 'gallery', 'grotto', 'hall', 'lantern',

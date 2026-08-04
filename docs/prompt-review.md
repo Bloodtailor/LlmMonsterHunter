@@ -205,16 +205,12 @@ formatting:
   present enums: "exactly one of: attack, defense, support, special,
   movement, utility".
 
-### 3.2 `dungeon_generation.json` → `location_event` — wrong POV, no context **[needs code]**
+### 3.2 `dungeon_generation.json` → `location_event` — RESOLVED by deletion (2026-08-03)
 
-The one prompt in the suite written in second person ("You and your
-party have entered…"), with no scaffold, no `{party_summary}`, no
-`{expedition_brief}`, no `{dungeon_log}` — so its output can't honor
-the expedition theme and occasionally clashes in voice with every
-neighboring narration. Rewrite to house scaffold, third person
-("the party"), and pass at minimum `{expedition_brief}`; the
-call site is `generate_location_event_text` in
-`backend/game/dungeon/generator.py` (post-split: `generation/locations.py`).
+Resolved during the playtest-suite expansion (Px-M1): its only call
+site, `generate_location_event_text`, was confirmed dead code (zero
+callers) and removed alongside the B2 exit-fallback fix, so the
+orphaned prompt was deleted rather than rewritten. Nothing renders it.
 
 ### 3.3 `dungeon_generation.json` → `door_choices` — legacy, contradicts the path philosophy **[needs code, investigate first]**
 
@@ -335,7 +331,7 @@ found in the suite.
 2. §2 field reordering (text-only; one pytest run to confirm parsers)
 3. §4 temperatures + §5 anchor hygiene + §6.2 (text-only batch)
 4. §3.1 ability generator rewrite (needs code; biggest single diff)
-5. §3.2 location_event + §6.3 exit_narrative (needs code, small)
+5. §6.3 exit_narrative (needs code, small; §3.2 resolved by deletion 2026-08-03)
 6. §3.3 door_choices investigation (delete or rewrite)
 7. §6.1 next_turn proposal (separate PR discussion — gameplay-affecting)
 

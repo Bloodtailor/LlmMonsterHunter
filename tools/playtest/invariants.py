@@ -119,6 +119,55 @@ def check_battle_state(after_workflow: bool) -> list[str]:
     return violations
 
 
+def check_player_has_an_action(after_workflow_status: dict[str, Any] = None) -> list[str]:
+    """THE DEAD-END CHECK: a party inside a dungeon can always do
+    something next.
+
+    This is the invariant whose absence cost a real playthrough. The
+    suites treated a workflow that returned an honest error envelope as
+    acceptable - the game had "failed politely". But `choose_path`
+    applies the move BEFORE staging the event, so a polite failure left
+    the party in a room with no encounter, no paths and no battle: the
+    run was over, and every check still said green.
+
+    An error is only acceptable if the player can still act afterwards.
+    The rule is about FAILED workflows specifically, and the difference
+    matters. A workflow that COMPLETES hands the client a result, and
+    the screen renders a panel with its own way onward - the sneak-past
+    card and the dialogue box both offer "Continue Exploring" even
+    though the encounter has been cleared behind them. A workflow that
+    FAILS hands the client nothing: no panel, no button, and "Continue
+    to the Paths" still disabled because the paths never arrived. That
+    is the state a real expedition died in.
+
+    So: after a failure, one of these must still hold -
+      - a battle is live (fight it)
+      - an encounter is active (talk, sneak, ambush, camp, press on)
+      - paths are on offer (walk one)
+    """
+    if after_workflow_status is None or after_workflow_status.get('status') != 'failed':
+        return []
+
+    from backend.game.battle import manager as battle
+    from backend.game.dungeon import manager
+
+    state = manager.get_dungeon_state()
+    if not state.get('in_dungeon'):
+        return []
+
+    if battle.get_battle_state().get('in_battle'):
+        return []
+    if state.get('active_encounter'):
+        return []
+    if state.get('available_paths'):
+        return []
+
+    return [
+        'DEAD END: a workflow failed and left the party in a dungeon with no battle, '
+        'no encounter and no paths - the interface has nothing to offer the player'
+    ]
+
+
 def check_run_rows() -> list[str]:
     """The run history never holds two live runs at once"""
     from backend.models.dungeon_run import DungeonRun
@@ -140,5 +189,6 @@ def check_all(after_workflow_status: dict[str, Any] = None) -> list[str]:
         violations.extend(check_workflow_result(after_workflow_status))
     violations.extend(check_dungeon_state())
     violations.extend(check_battle_state(after_workflow=after_workflow_status is not None))
+    violations.extend(check_player_has_an_action(after_workflow_status))
     violations.extend(check_run_rows())
     return violations

@@ -54,6 +54,12 @@ jobs:
       - name: Offline suites
         run: python -m pytest
 
+      # The gauntlets drive the real workflow queue with the LLM stubbed,
+      # asserting promises the unit suites cannot reach (softlock valve,
+      # defeat stakes, evolution identity). Seeded, zero cost, ~20s.
+      - name: Playtest gauntlets
+        run: python tools/playtest/run_gauntlets.py
+
   frontend:
     runs-on: ubuntu-latest
     defaults:

@@ -44,10 +44,11 @@ Deliberately diary-like: they carry a status line, log deviations as they
 happen, and stay after shipping as the record of what was decided and
 why. **Do not tidy the history out of them.**
 
-- [plans/](plans/) — one doc per initiative, 13 of them. Every file states
-  `**Status:**` at the top: IMPLEMENTED (10), PLANNED (2 —
+- [plans/](plans/) — one doc per initiative, 15 of them. Every file states
+  `**Status:**` at the top: IMPLEMENTED (12), PLANNED (2 —
   `codebase-health`, `monster-requests`), IN PROGRESS (1 —
-  `congruence-tripwires`). The status line is the thing to keep truthful.
+  `playtest-suite-expansion`). The status line is the thing to keep
+  truthful.
 - [bug-hunt.md](bug-hunt.md) — verified bugs and cleared hypotheses from a
   line-level correctness read
 - [prompt-review.md](prompt-review.md) — per-template critique of
@@ -55,6 +56,13 @@ why. **Do not tidy the history out of them.**
 
 Check these before starting a new initiative; they are written to be
 picked up and executed.
+
+**The playtest suite is how these get verified.** `tools/playtest/` holds
+the harness (every file heavily commented); its runbook is
+`playtest_results/REPORT.md`, which stays the single list of what you can
+run and what it found. Zero-cost suites (crash driver, three gauntlets)
+run in seconds against the test DB; the corpus and live-model tools spend
+real provider calls and say so.
 
 ## 3. Aspirational — what might be
 

@@ -76,7 +76,7 @@ def run_sneak_past(context: dict, step: WorkflowStep) -> dict[str, Any]:
             )
         append_party_journal(f"Slipped past {monster_names} unseen at {location_name}.")
 
-        return success_response({"success": True, "narration": attempt['narration']})
+        return success_response({"sneak_success": True, "narration": attempt['narration']})
 
     # Noticed! The monsters are on them - battle
     step.emit("start_battle")
@@ -88,9 +88,12 @@ def run_sneak_past(context: dict, step: WorkflowStep) -> dict[str, Any]:
         f"The party tried to sneak past {monster_names} but was noticed - a battle began!"
     )
 
+    # The gameplay flag is named sneak_success, NOT success: the envelope's
+    # own success key decides workflow completed/failed, and a caught sneak
+    # is a completed workflow whose outcome happens to be a battle
     return success_response(
         {
-            "success": False,
+            "sneak_success": False,
             "narration": attempt['narration'],
             "battle_intro": attempt['narration'],
             "enemy_ids": [m.id for m in monsters],

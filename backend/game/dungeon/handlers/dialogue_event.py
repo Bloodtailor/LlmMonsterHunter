@@ -14,11 +14,9 @@ def run_monster_dialogue(step: WorkflowStep, location: dict, workflow_name: str)
         generate_encounter_vanity_text,
         generate_monster_question,
     )
-    from backend.game.monster.card_art import generate_card_art
-    from backend.game.monster.generator import (
-        generate_ability,
-        generate_contextual_monster,
-    )
+    from backend.game.monster.generator import generate_contextual_monster
+
+    from .encounter_staging import equip_encounter_monster
 
     # Step 3 - queue streamed vanity text
     step.emit("queue_encounter_text")
@@ -42,16 +40,10 @@ def run_monster_dialogue(step: WorkflowStep, location: dict, workflow_name: str)
         monster = generate_contextual_monster(location)
         step.data.update({"monster_id": monster.id})
 
-        # Steps 6-7 - abilities (emit monster.ability_added)
-        step.emit("generate_first_ability")
-        generate_ability(monster)
-
-        step.emit("generate_second_ability")
-        generate_ability(monster)
-
-        # Step 8 - card art, full reveal before it speaks (emits monster.art_ready)
-        step.emit("generate_card_art")
-        generate_card_art(monster)
+        # Steps 6-8 - abilities (emit monster.ability_added) then card
+        # art, the full reveal before it speaks (emits monster.art_ready).
+        # None of it may end the arrival - see encounter_staging.
+        equip_encounter_monster(monster, step)
 
     # Step 9 - the monster speaks: greeting with its own reason for
     # stopping the party, then its question. What the party answers

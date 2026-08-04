@@ -43,6 +43,7 @@ PYTHONIOENCODING=utf-8 ./venv/Scripts/python.exe -m backend.tests.test_evolution
 ./venv/Scripts/python.exe -m ruff check backend setup tools          # lint
 ./venv/Scripts/python.exe -m ruff format --check backend setup tools # format
 ./venv/Scripts/python.exe tools/check_file_sizes.py # 500-line ceiling
+PYTHONIOENCODING=utf-8 ./venv/Scripts/python.exe tools/playtest/run_gauntlets.py  # playtest gauntlets
 
 # Frontend (from frontend/)
 npm start          # dev server on :3000
@@ -57,15 +58,16 @@ test DB (`DB_NAME_TEST`, auto-created via `backend/tests/harness.py`) —
 safe to run anytime. MySQL must be running; nothing else is (no local
 model, no image service — generation is cloud-API-first).
 
-**Before pushing, run all six checks** (lint, format, file sizes, pytest,
-prettier, jest) — or just run them in one go:
+**Before pushing, run all seven checks** (lint, format, file sizes,
+pytest, the playtest gauntlets, prettier, jest) — or just run them in
+one go:
 
 ```bash
-./venv/Scripts/python.exe tools/check_all.py           # all six, ~10s
+./venv/Scripts/python.exe tools/check_all.py           # all seven, ~30s
 ./venv/Scripts/python.exe tools/check_all.py backend   # skip the npm ones
 ```
 
-(`check_all.bat` does the same from Explorer.) Those six *are* CI —
+(`check_all.bat` does the same from Explorer.) Those seven *are* CI —
 `.github/workflows/ci.yml` runs exactly them, so a green local run means
 a green PR. Add any new workflow step to `tools/check_all.py` too. Note
 that `ruff check` and `ruff format --check` are different tools: passing

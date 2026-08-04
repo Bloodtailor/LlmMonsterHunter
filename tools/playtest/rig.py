@@ -22,6 +22,31 @@ def build_rig():
     return app, workflow_queue
 
 
+def require_cloud_provider() -> bool:
+    """Refuse to run a PAID tool against the local-model floor.
+
+    The test DB's llm_provider row is deleted by the offline suites
+    (test_deepseek_provider.py clears the key as part of its own
+    teardown), so any `pytest` / `check_all.py` run between seeding and
+    a live run silently drops the harness back to 'local' - where the
+    llama_cpp import fails and every generation returns nothing. A live
+    corpus run then produces empty text instead of an error, which is
+    the worst possible failure. Tools that spend real calls call this
+    first and say the one command that fixes it."""
+    from backend.ai.llm.provider_settings import resolve_llm_settings
+
+    settings = resolve_llm_settings()
+    if settings.get('provider') != 'local':
+        return True
+    print(
+        "❌ The provider resolves to 'local' - this tool needs the cloud provider.\n"
+        "   The offline suites delete the test DB's llm_provider row, so re-seed it:\n"
+        "     ./venv/Scripts/python.exe tools/playtest/seed_provider.py\n"
+        "     ./venv/Scripts/python.exe tools/playtest/preflight.py"
+    )
+    return False
+
+
 def refresh_session():
     """End the driver's read transaction so the next query sees the
     worker thread's commits. The running game never needs this - each

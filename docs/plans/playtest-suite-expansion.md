@@ -1,9 +1,12 @@
 # Playtest Suite Expansion (Px)
 
-**Status:** PLANNED — written 2026-08-03 as the handoff for a fresh
-session. The founding harness (Pt-M0..M5, `feature/playtest-harness`,
-PR #181) is built, exercised, and documented; this initiative grows it
-into a comprehensive, reusable suite covering EVERY aspect of the game.
+**Status:** IMPLEMENTED (2026-08-03) — all five milestones landed on
+`feature/playtest-suite-expansion` (branched from
+`feature/playtest-harness`; PR #181 was still open). Every surface in
+the inventory below is covered, the zero-cost suites run in CI, and the
+runbook is `playtest_results/REPORT.md`. Three game defects and one CI
+flake were fixed and re-verified; two prompt problems now have numbers
+attached. The founding harness (Pt-M0..M5) is the base this grew from.
 **Mandate (Aaron, verbatim intent):** decide everything that needs to
 be playtested and create playtests for each; try many methods per
 surface; decide which model is best for each job; DELETE the
@@ -39,9 +42,10 @@ Agents, tokens, and wall-time are explicitly unconstrained.
 - **Money:** DeepSeek v4-pro measured at **$0.41 per 920 calls** (the
   150-monster corpus). Cost is a non-issue; latency is the real
   budget (~48s per monster, serialized queue). The dedicated playtest
-  key lives in the TEST DB's `llm_provider` row; restore it after any
-  `seed_provider.py` run with `tools/playtest/set_playtest_key.py
-  <key>` (ask Aaron for the key; never store it in the repo).
+  key lives in the TEST DB's `llm_provider` row. **`pytest` deletes
+  that row** (test_deepseek_provider.py clears the key in teardown), so
+  re-run `seed_provider.py` after any `check_all.py`; paid tools now
+  refuse to start without it (`rig.require_cloud_provider()`).
 - **One world at a time:** all playtests share the test DB's single
   game state. Agent sessions, crash batches, and corpus runs must be
   SEQUENTIAL. Old harness worlds' monsters can RETURN as wild
@@ -58,56 +62,81 @@ Agents, tokens, and wall-time are explicitly unconstrained.
   use two `-m` flags. Never pipe `play.py` through `Select-Object
   -First` (kills the pipe). `PYTHONIOENCODING` not needed for
   play.py (it self-configures UTF-8).
-- **Known bugs to fix FIRST** (they pollute playtest signal): the
-  `sneak_past` success-key collision and the fallback-less
-  `generate_exit_text` — both written up in REPORT.md with repro
-  commands; task chips may already exist. Re-verify each fix with
-  `crash_driver.py --runs 6`.
-- **In flight at handoff:** the silence-trope fix (3 REGISTER RULE
-  lines in `monster_generation.json`, uncommitted) with a 40-monster
-  verification corpus at `playtest_results/corpus_after_register_fix.jsonl`
-  — check its silence rate vs the 99% baseline
-  (`corpus_20260803_variety_report.md`) and commit or revise the
-  prompt accordingly.
+- **Known bugs — FIXED (Px-M1, 2026-08-03).** B1 (`sneak_past`
+  success-key collision → renamed to `sneak_success`) verified by a
+  forced-caught-sneak scenario + 20 happy runs, 0 violations; B2
+  (fallback-less `generate_exit_text` → canned line) verified by
+  broken-mode runs going from 0-can-exit to 4/6 exiting. Dead
+  `generate_location_event_text` + its orphaned prompt removed.
+- **Silence verdict — already landed before this session** (commit
+  5a072e0): register rules + token caps, verified on a 40-monster
+  corpus; any-silence 99%→90%, "stillness" 79%→25%, unique names
+  57%→88%. Numbers live in REPORT.md's "first fix loop" section.
+  Persona stage (85%) remains the stronghold — imagination-engine
+  territory, not prompt territory.
 
 ## The surface inventory (what needs playtests)
 
 Legend: ✅ covered by founding harness · 🟡 partial · ❌ uncovered
 
-1. ✅ **Dungeon exploration loop** — crash driver (3 modes) + agents.
-   Gap: rare paths (treasure, returning, use_dungeon_ability/item) get
-   only random coverage → add SCRIPTED policies that force each event.
-2. 🟡 **Battle system** — random actions only. Build a battle gauntlet:
-   forced long battles (softlock valve + fairness guardrail
-   assertions), item/ability-heavy policies, full negotiation trees
-   (every talk decision), defeat path, stakes, autonomy (wary allies).
-3. ❌ **Campfire chat** (`chat_with_monster`) — multi-turn chats with
-   real narration; memory-extraction quality (are extracted memories
-   faithful to the transcript? verify by comparison, not by asking).
-4. ❌ **Evolution altar** (`evolve_monster`) — the ceremony end-to-end
-   headless; identity-preservation checks (same id, memories survive).
-5. 🟡 **Cross-run memory & returning** — observed accidentally; build a
-   deliberate multi-run scenario: befriend → exit → re-enter → verify
-   the returning monster remembers truthfully.
-6. ❌ **New Game + character creation** (`player_generation` flows).
-7. ❌ **Chronicle quality** — a chronicle corpus (many runs → variety
-   metrics over the chronicles themselves).
-8. 🟡 **Variety corpora beyond monsters/notices** — abilities, items,
-   locations/paths deserve the same counting treatment (ability text
-   already shows pseudo-mechanics leakage: "next three turns" ×14 —
-   also a prompt-fix candidate).
-9. ❌ **Adversarial player** — the boundary-pusher persona: prompt
-   injection via talk/custom text, referee exploit probing
-   (docs/prompt-review.md §1 context). Cap text at the service
-   boundary is tested; CONTENT-level defense is not.
-10. ❌ **Frontend/UI layer** — browser computer-use sessions through
-    the real React app with the backend pointed at the test DB
-    (set DB_NAME env when launching; never the dev world).
-11. ❌ **Live model bake-off** — haiku vs sonnet (vs opus?) as testers
-    with REAL narration: completion, invalid-action rate, report
-    actionability after verification. Pick the standard tester(s).
-12. ❌ **Cost/latency benchmarking** — tokens and seconds per workflow
-    from `llm_logs` (the data is already recorded; nobody reads it).
+1. ✅ **Dungeon exploration loop** — crash driver (3 modes) + agents,
+   PLUS `tools/playtest/dungeon_gauntlet.py` (Px-M2): directed
+   scenarios force every rare path — treasure spoils kept on exit, the
+   full six-outcome dialogue tree with memory assertions, the
+   out-of-battle referee (ability/item heals, costs, reveal), camp
+   rest + one-camp valve, the victory-exit ceremony, and the goal's
+   completion valve + reward (the valve itself was surfaced by the
+   gauntlet's first run).
+2. ✅ **Battle system** — `tools/playtest/battle_gauntlet.py`: seven
+   directed scenarios over the scripted stub — softlock valve,
+   fairness guardrail, turn-cost bound, all five negotiation
+   decisions, defeat path with spoils forfeiture + bond_broken
+   memories, resource-ladder drain/clamp + item spend, wary-ally
+   autonomy flipping at familiar. Seconds, zero cost.
+3. ✅ **Campfire chat** — `tools/playtest/life_gauntlet.py` (Px-M2)
+   drives the full pipeline offline (thread → housekeeping →
+   extraction with sources → watermark → affinity), and
+   `tools/playtest/chat_faithfulness.py` scores extracted memories by
+   COUNTING content-word overlap against the exact message span — the
+   checker is validated against planted faithful/fabricated memories.
+   Live extraction quality runs the same checker in Px-M3+.
+4. ✅ **Evolution altar** — life_gauntlet `evolution_identity`: same
+   id, memories + abilities survive, lineage row, stage complete.
+5. ✅ **Cross-run memory & returning** — life_gauntlet
+   `yield_return_remembers`: yield in run 1 → exit → forced
+   returning_monster event in run 2 → the SAME monster returns with a
+   memory naming the true place of the yield.
+6. 🟡 **New Game + character creation** (`player_generation` flows) —
+   the Px-M5 browser session verified the title screen, the
+   abandoned-run recovery path, home base and campfire against the
+   test DB with zero console errors. The creation WIZARD itself was
+   not walked (each step is a real generation and the session's
+   remaining budget went to consolidation) — the one honest gap left.
+7. ✅ **Chronicle quality** — 16-chronicle corpus via passthrough
+   harvesting: overlap 0.288 (3x the monster corpus), a fixed
+   `Run N: <player>…` opening in 100%, "expedition ended" in 50%,
+   silence 56% strict. The samest prose the game writes.
+8. ✅ **Variety corpora beyond monsters/notices** — abilities (57%
+   pseudo-mechanics leak, 33% naming turn counts, 65% echoing the
+   "deepest wish") and items (healthy: 0.059 overlap, zero leak), both
+   re-measurable in seconds by `analyze_text_corpus.py`.
+9. ✅ **Adversarial player** — `adversarial_probe.py` (fixed hostile
+   inputs, code-owned assertions, 50 live checks / 0 failures) plus
+   `adversarial_agent_prompt.md` for attacks a fixed list cannot
+   invent. CONTENT-level defense is now tested, not assumed.
+10. ✅ **Frontend/UI layer** — browser session against
+    `backend-testdb` + the real React app: abandoned-run recovery
+    narrated correctly, home base and campfire screens render the
+    harness world, zero console errors, every request 200. It also
+    exposed a harness bug (`current_health` 100 vs `max_health` 52).
+11. ✅ **Live model bake-off** — haiku vs sonnet with real narration,
+    verified against transcripts. Standard tester: **sonnet** for
+    feedback worth acting on, haiku as a cheap play-monkey behind
+    `score_session.py`. Table in REPORT.md.
+12. ✅ **Cost/latency benchmarking** — `cost_report.py` reads the
+    ledger the game already writes: 2,442 calls, 5.16M tokens, $1.51,
+    225 minutes; input outweighs output 11:1; monster generation is
+    151 of those 225 minutes.
 
 ## Method rules (locked, carried from Pt)
 
@@ -122,16 +151,117 @@ Legend: ✅ covered by founding harness · 🟡 partial · ❌ uncovered
 - Everything must be one-command runnable at any future milestone,
   and REPORT.md stays the single runbook.
 
-## Suggested shape (the fresh session may re-plan)
+## Milestones (as shipped)
 
-- Px-M1: fix the two known bugs + silence-fix verdict + battle gauntlet
-- Px-M2: scripted-policy coverage of every dungeon event + chat +
-  evolution + multi-run memory scenarios
-- Px-M3: live model bake-off + adversarial persona (real narration)
-- Px-M4: variety corpora for abilities/items/chronicles + cost report
-- Px-M5: browser UI playtests + suite consolidation (delete losers,
-  finalize runbook, update this doc to IMPLEMENTED)
+- **Px-M1 — IMPLEMENTED.** B1 + B2 fixed and re-verified; silence-fix
+  verdict logged (already landed in 5a072e0); `scripted_stub.py` +
+  `gauntlet_rig.py` + `battle_gauntlet.py` (7 scenarios).
+- **Px-M2 — IMPLEMENTED.** `dungeon_gauntlet.py` (7 scenarios, every
+  path event), `life_gauntlet.py` (chat pipeline, evolution identity,
+  cross-run memory), `chat_faithfulness.py` (counting, validated
+  against planted memories).
+- **Px-M3 — IMPLEMENTED.** `adversarial_probe.py` (50 live checks, 0
+  failures) + `adversarial_agent_prompt.md`; live haiku-vs-sonnet
+  bake-off with transcript verification; B3 found and fixed; play.py
+  now prints narration, warns on an inherited world, and was split at
+  the 500-line ceiling; `run_gauntlets.py` wired into check_all + CI.
+- **Px-M4 — IMPLEMENTED.** `analyze_text_corpus.py` (abilities: 57%
+  pseudo-mechanics leak; chronicles: 0.288 overlap; items healthy),
+  `generate_text_corpus.py` (passthrough harvesting),
+  `cost_report.py`, plus the strict-silence metric and the
+  stub-vocabulary tripwire.
+- **Px-M5 — IMPLEMENTED.** Browser session through the real React app
+  on the test DB; suite consolidation; this doc and REPORT.md made
+  true. **Nothing was deleted:** every method built this session
+  survived its bake-off (see Deviations).
 
 ## Deviations
 
-(none yet)
+- **2026-08-03 (Px-M1): the silence-fix verdict was already done.**
+  The handoff listed it as in-flight/uncommitted, but commit 5a072e0
+  (same afternoon, before this session started) had already landed the
+  register rules + token caps with the 40-monster verification
+  numbers. Nothing to re-measure; the plan text above now points at
+  REPORT.md.
+- **2026-08-03 (Px-M1): game fixes went in their own commit** (per the
+  method rules), before the harness milestone commit: B1 + B2 + dead
+  `generate_location_event_text`/`location_event` removal, with
+  prompt-review §3.2 marked resolved-by-deletion in the same change.
+- **2026-08-03 (Px-M2): the goal completion valve surfaced as a
+  "failure" first.** The dungeon gauntlet's goal scenario scripted an
+  immediate referee "complete" and the goal stayed pending —
+  `GOAL_MIN_EVENTS` downgrades early completions by design. The
+  scenario now walks the valve's length first and asserts completion
+  *after* it; the valve got its first direct regression coverage in
+  the bargain.
+- **2026-08-03 (Px-M2): chat-extraction faithfulness split into
+  offline + live halves.** Offline (stubbed) runs can't judge a real
+  model's extraction quality, so the gauntlet validates the CHECKER
+  (planted faithful vs fabricated memories, same pattern as Pt-M1's
+  synthetic-corpus validation) and the live suites reuse it as-is.
+- **2026-08-03 (Px-M2): New Game/character creation deferred to the
+  Px-M5 browser sessions** rather than a headless scenario — the
+  wizard is a frontend flow first, and the browser leg exercises it
+  for real.
+- **2026-08-03 (Px-M3): the first live adversarial run cost an hour and
+  aborted.** One `battle_turn` exceeded the harness's 900s patience
+  because a live workflow resolves every NPC turn before returning. The
+  probe now carries a per-injection timeout and records a slow workflow
+  as a finding; a `turn_cost_bound` gauntlet scenario measures the
+  mechanism for free. Live runs use `--battle-injections 2`.
+- **2026-08-03 (Px-M4): the harness was measuring itself.** The stub's
+  word pool contained `quiet`, `echoing` and `luminous` - all variety
+  watchwords - so a stubbed chronicle corpus read as 88% silence-obsessed
+  and 75% "luminous". Words replaced; `run_gauntlets.py` now tripwires
+  the collision so it cannot come back. Any corpus harvested from
+  stubbed runs before this fix should be re-measured.
+- **2026-08-03 (Px-M4): `pytest` deletes the playtest provider row.**
+  `test_deepseek_provider.py` clears the `llm_provider` key in its own
+  teardown, so any `check_all.py` run between seeding and a live run
+  silently drops the harness to the local floor - which produced a
+  corpus of empty chronicles before anyone noticed. Paid tools now call
+  `rig.require_cloud_provider()` and refuse to start.
+- **2026-08-03 (Px-M5): nothing was deleted, which needs saying.** The
+  method rules call for deleting experimental methods that lose their
+  bake-off. Every method built this session earned its place: counting
+  and clustering answer different questions, the fixed-input probe and
+  the adversarial agent catch different attacks, and both models stay
+  in the suite with different jobs. The one thing that WAS cut is the
+  dead `generate_location_event_text` + its prompt (Px-M1).
+- **2026-08-03 (Px-M5): the gauntlets joined CI, making it seven checks.**
+  `tools/check_all.py`, `.github/workflows/ci.yml`, root `CLAUDE.md` and
+  `check_all.bat` all updated together. A `test_new_game` flake found
+  while doing it (the wipe guard reads the live queue; a sibling suite's
+  queued housekeeping made it refuse) was fixed in the same pass.
+- **2026-08-04 (post-ship): a player found what the suite passed.**
+  Aaron's first expedition after this initiative shipped was unplayable:
+  `generate_ability` returned prose three times, `choose_path` raised
+  after the party had already moved, and the run had no encounter, no
+  paths and nothing to click. The suites had passed it because the
+  workflow returned a well-formed error envelope - and because the
+  founding night saw the same shape live and filed it as an
+  "observation" rather than a bug. Fixed in three layers (decoration
+  never ends an arrival; arrivals play inside a net; the error alert
+  offers a way onward) and covered by
+  `dungeon_gauntlet.py --scenario arrival_survives_a_broken_generation`,
+  which fails without the fix. The missing invariant -
+  `check_player_has_an_action()` - now runs after every workflow in
+  every suite.
+
+  **The method correction that matters:** "the workflow returned an
+  honest error" was treated as sufficient. It is not. The question an
+  invariant must ask is whether the PLAYER can still act, through the
+  interface, after the failure. Politeness is not playability.
+- **2026-08-04 (post-ship): the gauntlets went red on CI, and the bug
+  was a comment.** `chat_memory_pipeline` asserted on what
+  `chat_housekeeping` produced, but that workflow is QUEUED BEHIND the
+  chat - `run_workflow` waits for the chat, not for it. A comment in
+  the scenario claimed the housekeeping "has already run", which was
+  true on this machine every single time and false on a GitHub runner:
+  CI snapshotted the extraction mid-write (one memory saved, watermark
+  not yet advanced, affinity not yet stepped) and failed four checks.
+  Fixed with `Rig.settle()` - drain the queue, then re-read - and
+  reproduced first by slowing the stubbed extraction to 2.5s, which
+  turns the old code's result into 0 memories and the new one's into 2.
+  **Rule for the suite: any assertion about queued follow-up work must
+  settle first.** Local timing is not evidence.
