@@ -64,11 +64,17 @@ def grant_starter_item(rng: random.Random):
 def _make_monster(rng: random.Random, name: str, species: str, description: str):
     from backend.models.monster import Monster
 
+    # current_health must be set alongside max_health: the column
+    # defaults to 100, so a harness monster with max_health 52 rendered
+    # as "Health: 100/52" in the real UI - visible the moment a browser
+    # session looked at the party the harness had built
+    health = rng.randint(40, 70)
     monster = Monster(
         name=name,
         species=species,
         description=description,
-        max_health=rng.randint(40, 70),
+        max_health=health,
+        current_health=health,
         attack=rng.randint(8, 14),
         defense=rng.randint(8, 14),
         speed=rng.randint(8, 14),
