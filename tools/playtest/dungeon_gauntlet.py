@@ -93,12 +93,16 @@ def dialogue_tree(rig: Rig, stub: ScriptedStub):
         result.get('outcome') == 'continue_dialogue' and active_monster_id() == speaker_id,
     )
 
-    # allow_passage resolves it peacefully and leaves a warm memory
+    # allow_passage resolves it peacefully and leaves a warm memory.
+    # Counted as a DELTA: dialogue encounters can blend in a monster the
+    # test DB already remembers, so an absolute count of 1 is only true
+    # on a virgin database.
+    passes_before = MonsterMemory.count_kind(speaker_id, 'let_party_pass')
     result = talk_expecting('allow_passage')
     rig.checks.ok('allow_passage clears the encounter', active_monster_id() is None, result)
     rig.checks.ok(
         'allow_passage remembered as let_party_pass',
-        MonsterMemory.count_kind(speaker_id, 'let_party_pass') == 1,
+        MonsterMemory.count_kind(speaker_id, 'let_party_pass') == passes_before + 1,
     )
 
     # begin_battle turns words into a fight
@@ -131,26 +135,58 @@ def dialogue_tree(rig: Rig, stub: ScriptedStub):
     # reward grants a real, provisional item
     rig.walk_onto('monster_dialogue')
     giver_id = active_monster_id()
+    rewards_before = MonsterMemory.count_kind(giver_id, 'gave_reward')
     result = talk_expecting('reward')
     item = result.get('item') or {}
     rig.checks.ok('reward delivered an item', bool(item), result)
     rig.checks.ok(
         'reward item is provisional + remembered as gave_reward',
         item.get('id') in get_run_spoils()['run_item_ids']
-        and MonsterMemory.count_kind(giver_id, 'gave_reward') == 1,
+        and MonsterMemory.count_kind(giver_id, 'gave_reward') == rewards_before + 1,
     )
 
     # punish resolves the encounter and leaves the sour memory
     rig.walk_onto('monster_dialogue')
     punisher_id = active_monster_id()
+    punishments_before = MonsterMemory.count_kind(punisher_id, 'punished_party')
     result = talk_expecting('punish')
     rig.checks.ok(
         'punish resolves peacefully with the sour memory',
         active_monster_id() is None
-        and MonsterMemory.count_kind(punisher_id, 'punished_party') == 1,
+        and MonsterMemory.count_kind(punisher_id, 'punished_party') == punishments_before + 1,
         result,
     )
     rig.checks.ok('the run itself continues', dungeon.is_in_dungeon())
+
+
+@scenario
+def paths_retire_on_arrival(rig: Rig, stub: ScriptedStub):
+    """Arriving somewhere RETIRES the junction just left. A live
+    playtester walked the previous location's paths because the state
+    kept offering them after choose_path (only continue_exploring ever
+    refreshed the list); the frontend hid that, no other client would."""
+    from backend.game.dungeon import manager as dungeon
+
+    rig.walk_onto('location_explore', monsters_present=False)
+    after_arrival = dungeon.get_dungeon_state().get('available_paths') or {}
+    rig.checks.ok(
+        'no paths are offered until the party looks around',
+        after_arrival == {},
+        list(after_arrival),
+    )
+
+    stale_id = 'path_1'
+    status = run_workflow(rig.queue, 'choose_path', {'path_id': stale_id})
+    error = status.get('error') or {}
+    rig.checks.ok(
+        'a retired path can no longer be taken',
+        status['status'] == 'failed' and 'Unknown path' in str(error.get('error', '')),
+        error,
+    )
+
+    run_workflow(rig.queue, 'continue_exploring', {})
+    fresh = dungeon.get_dungeon_state().get('available_paths') or {}
+    rig.checks.ok('looking around offers paths again', bool(fresh), list(fresh))
 
 
 @scenario
@@ -229,8 +265,13 @@ def referee_effects(rig: Rig, stub: ScriptedStub):
         conditions,
     )
 
-    # A reveal on a path passes the referee's word through untouched
+    # A reveal on a path passes the referee's word through untouched.
+    # Arriving retires the previous junction's paths (handlers/paths.py),
+    # so the party has to look around before there is a path to target -
+    # exactly what the frontend's "Continue to the Paths" does.
+    run_workflow(rig.queue, 'continue_exploring', {})
     paths = dungeon.get_dungeon_state().get('available_paths') or {}
+    rig.checks.ok('looking around produced fresh paths to target', bool(paths))
     path_id = next(iter(paths))
     stub.set(
         'dungeon_ability_use',

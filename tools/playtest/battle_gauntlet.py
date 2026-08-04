@@ -51,11 +51,20 @@ def softlock_valve(rig: Rig, stub: ScriptedStub):
         rig.checks.ok('control returned to the player', result.get('pending') == 'player_turn')
         status = rig.defend(status)
 
-    streak = hostile_streaks(battle.get_battle_state())
+    # The promise is the CAP. A short streak (even zero) just means the
+    # dice never gave the enemies a long run - only exceeding the cap is
+    # a defect, so asserting a MINIMUM made the suite flaky, not stricter.
+    state = battle.get_battle_state()
+    streak = hostile_streaks(state)
     rig.checks.ok(
-        f'enemy streak capped at {MAX_CONSECUTIVE_ENEMY_TURNS}',
-        0 < streak <= MAX_CONSECUTIVE_ENEMY_TURNS,
+        f'enemy streak never exceeds {MAX_CONSECUTIVE_ENEMY_TURNS} (saw {streak})',
+        streak <= MAX_CONSECUTIVE_ENEMY_TURNS,
         {'longest_streak': streak},
+    )
+    rig.checks.ok(
+        'the battle actually resolved turns',
+        state.get('turn_count', 0) > 0,
+        state.get('turn_count'),
     )
 
     stub.set('battle_talk', {'response': 'We are done here.', 'decision': 'enemies_yield'})
@@ -66,6 +75,63 @@ def softlock_valve(rig: Rig, stub: ScriptedStub):
         result.get('outcome') == 'victory' and result.get('resolution') == 'yielded',
         result,
     )
+
+
+@scenario
+def turn_cost_bound(rig: Rig, stub: ScriptedStub):
+    """ONE battle_turn resolves every NPC turn before the player is asked
+    again - and a WARY ally satisfies the softlock valve without handing
+    control back (director.py resets the streak counter when an
+    autonomous ally acts). Only the fairness guardrail guarantees the
+    player is reached. This measures how many turns that costs, because
+    every one of them is several REAL model calls in a live game: the
+    first live adversarial run had a single battle_turn exceed 900s."""
+    from backend.game.battle import manager as battle
+    from backend.game.battle.constants import OVERDUE_WAIT_MULTIPLIER
+    from backend.game.monster.affinity import get_affinity
+    from backend.game.player.manager import get_player_monster_id
+    from backend.game.state.manager import get_party_monster_ids
+    from backend.models.monster import Monster
+
+    stub.script.update(STALL)
+    # The director never volunteers the player's own monster
+    stub.set('next_turn', pick_enemy)
+    rig.start_forced_battle()
+
+    player_id = str(get_player_monster_id())
+    companions = [
+        Monster.get_monster_by_id(mid) for mid in get_party_monster_ids() if str(mid) != player_id
+    ]
+    rig.checks.ok(
+        'the default party is wary (autonomous) companions',
+        all(get_affinity(m) == 'wary' for m in companions if m),
+        [(m.name, get_affinity(m)) for m in companions if m],
+    )
+
+    status = rig.drive_to_pending()
+    state = battle.get_battle_state()
+    result = status.get('result') or {}
+    rig.checks.ok(
+        'the player is eventually asked to act',
+        result.get('pending') == 'player_turn' and str(result.get('pending_actor')) == player_id,
+        result.get('pending'),
+    )
+
+    living = len(battle.active_ids(state, 'allies')) + len(battle.active_ids(state, 'enemies'))
+    turns = state.get('turn_count', 0)
+    # The fairness guardrail force-picks anyone waiting this long, so the
+    # player cannot be starved past it (plus one cycle of slack)
+    bound = OVERDUE_WAIT_MULTIPLIER * living + living + 2
+    # Only the UPPER bound is a promise: being asked immediately (zero
+    # NPC turns) is a perfectly good roll, being asked never is not
+    rig.checks.ok(
+        f'NPC turns before the player acts stay under the fairness bound ({turns} <= {bound})',
+        turns <= bound,
+        {'turns': turns, 'bound': bound, 'living': living},
+    )
+
+    stub.set('battle_talk', {'response': 'Enough.', 'decision': 'enemies_yield'})
+    rig.talk('Stand down.')
 
 
 @scenario

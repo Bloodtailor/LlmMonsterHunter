@@ -193,8 +193,63 @@ TROPE_PHRASES = (
 )
 
 
+# PSEUDO-MECHANICS: ability text promising effects the engine does not
+# implement ("for the next three turns", "20% more damage"). The referee
+# never honors them, so every hit is a promise the game breaks - found
+# while reading the first corpus, now counted on every one.
+MECHANICS_PATTERNS = (
+    (r'\bnext\s+(?:\w+\s+)?turns?\b', 'turn-duration promise'),
+    (r'\b\d+\s*%', 'percentage'),
+    (r'\b(?:one|two|three|four|five|\d+)\s+turns?\b', 'turn count'),
+    (r'\b(?:doubl|tripl)(?:e|es|ed|ing)\b', 'multiplier'),
+    (r'\bamount of (?:health|damage|stamina|mana)\b', 'quantified pool'),
+    (r'\b(?:fire|water|earth|air|nature|shadow|light|ice)\s+damage\b', 'damage type'),
+    (r'\b(?:restores?|heals?|deals?)\s+\d+', 'numeric effect'),
+    (r'\b(?:hp|mp|hit points|mana points)\b', 'stat abbreviation'),
+    (r'\bcooldown\b', 'cooldown'),
+    (r'\bstacks?\b', 'stacking'),
+)
+
+
 def tokenize(text: str) -> list:
     return WORD_PATTERN.findall((text or '').lower())
+
+
+def mechanics_leak_rates(texts: list) -> tuple:
+    """(overall fraction of texts promising a mechanic, per-pattern rows).
+    The game's own rule is that power lives in WORDS - code owns numbers -
+    so any numeric or duration promise in generated text is a leak."""
+    total = len(texts)
+    if not total:
+        return 0.0, []
+    lowered = [(text or '').lower() for text in texts]
+    rows = []
+    leaking = set()
+    for pattern, label in MECHANICS_PATTERNS:
+        compiled = re.compile(pattern)
+        hits = [index for index, text in enumerate(lowered) if compiled.search(text)]
+        if hits:
+            rows.append((label, pattern, len(hits), len(hits) / total))
+            leaking.update(hits)
+    return len(leaking) / total, sorted(rows, key=lambda row: -row[2])
+
+
+def watchword_density_rate(texts: list, words=SILENCE_WORDS, minimum: int = 3) -> float:
+    """Fraction of documents using at least `minimum` DISTINCT watchwords.
+    The binary silence rate counts a monster that merely 'dislikes noisy
+    places' the same as one built entirely around silence; this separates
+    a glancing mention from an obsession (REPORT.md's requested
+    refinement after the register-rule fix)."""
+    total = len(texts)
+    if not total:
+        return 0.0
+    pattern = re.compile(r'\b(' + '|'.join(words) + r')\b', re.IGNORECASE)
+    dense = 0
+    for text in texts:
+        found = {word.lower() for word in pattern.findall(text or '')}
+        if len(found) >= minimum:
+            dense += 1
+    return dense / total
 
 
 def content_tokens(text: str) -> list:

@@ -5,7 +5,9 @@
 # "the sneak fails", "the enemies yield", "every path holds a battle".
 #
 # Two tools live here:
-#   ScriptedStub  - a StubLLM whose per-template answers can be pinned
+#   ScriptedStub  - a StubLLM whose per-template answers can be pinned,
+#                   and whose PASSTHROUGH set spends real calls on just
+#                   the templates under study
 #   ForcedEvents  - a context manager pinning the dungeon's random
 #                   event/exit/monster rolls (the Python-side dice)
 #
@@ -25,14 +27,42 @@ class ScriptedStub(StubLLM):
       - a list of the above: consumed one per call, falling back to the
         catalog when exhausted (perfect for "yield on the 3rd exchange")
     Unscripted templates fall through to the normal happy-mode catalog.
+
+    PASSTHROUGH is the corpus trick: name a template (or a few) and only
+    THOSE reach the real provider, while the rest of the run stays free.
+    A chronicle corpus then costs one real call per run instead of the
+    ~40 a fully-live run would spend - the same measure-by-counting
+    method, at a fraction of the latency that is the real budget.
     """
 
-    def __init__(self, seed: int = 0, mode: str = 'happy', script: dict = None):
+    def __init__(self, seed: int = 0, mode: str = 'happy', script: dict = None, passthrough=None):
         super().__init__(seed=seed, mode=mode)
         self.script = dict(script or {})
+        self.passthrough = set(passthrough or ())
+        self.passthrough_calls = 0
 
     def set(self, template: str, answer) -> None:
         self.script[template] = answer
+
+    def _fake_text_generation_request(self, prompt: str, prompt_type=None, prompt_name=None, **kw):
+        """Real provider for passthrough templates, stub for everything
+        else. The real call goes through the ORIGINAL seam, so prompt
+        rendering, parsing, logging and token accounting are untouched."""
+        if prompt_name in self.passthrough and self._real_request is not None:
+            self.passthrough_calls += 1
+            return self._real_request(
+                prompt, prompt_type=prompt_type, prompt_name=prompt_name, **kw
+            )
+        return super()._fake_text_generation_request(
+            prompt, prompt_type=prompt_type, prompt_name=prompt_name, **kw
+        )
+
+    def _fake_wait_for_streamed_text(self, generation_id: int, timeout: int = 0) -> str:
+        """Streamed passthrough generations are not in the stub's parked
+        texts - they are real queue entries, so wait on them for real"""
+        if generation_id not in self._stream_texts and self._real_wait is not None:
+            return self._real_wait(generation_id, timeout)
+        return super()._fake_wait_for_streamed_text(generation_id, timeout)
 
     def _fabricate(self, template: str) -> dict:
         pinned = self.script.get(template)

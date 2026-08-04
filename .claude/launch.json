@@ -16,6 +16,12 @@
       "port": 5000
     },
     {
+      "name": "presentation",
+      "runtimeExecutable": "./venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "http.server", "8088", "--directory", "playtest_presentation"],
+      "port": 8088
+    },
+    {
       "name": "backend-testdb",
       "runtimeExecutable": "cmd",
       "runtimeArgs": [

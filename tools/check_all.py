@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Run every check CI runs, in one command, before pushing.
 
-    ./venv/Scripts/python.exe tools/check_all.py            # all six
+    ./venv/Scripts/python.exe tools/check_all.py            # everything
     ./venv/Scripts/python.exe tools/check_all.py backend    # skip npm
     ./venv/Scripts/python.exe tools/check_all.py frontend   # only npm
 
-`.github/workflows/ci.yml` runs exactly these six checks, so a green run
+`.github/workflows/ci.yml` runs exactly these checks, so a green run
 here means a green PR. This script is a local convenience only - CI does
 not call it, so the workflow stays the source of truth for what must pass.
 If you add a step to the workflow, add it here too.
@@ -48,6 +48,10 @@ def backend_checks():
         ),
         ('file sizes', [PYTHON, 'tools/check_file_sizes.py'], REPO_ROOT),
         ('offline suites', [PYTHON, '-m', 'pytest'], REPO_ROOT),
+        # The playtest gauntlets drive the real workflow queue with the
+        # LLM stubbed - they catch regressions in promises no unit test
+        # reaches (softlock valve, defeat stakes, evolution identity)
+        ('playtest gauntlets', [PYTHON, 'tools/playtest/run_gauntlets.py'], REPO_ROOT),
     ]
 
 
