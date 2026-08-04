@@ -234,6 +234,16 @@ def mechanics_leak_rates(texts: list) -> tuple:
     return len(leaking) / total, sorted(rows, key=lambda row: -row[2])
 
 
+# 'still' and 'mute' carry innocent senses ("still empty", "the point is
+# moot") that have nothing to do with the trope. They stay in
+# SILENCE_WORDS so the founding baseline's numbers remain comparable,
+# but a STRICT rate that drops them separates a real silence obsession
+# from ordinary English: on a chronicle corpus the two differ by 19
+# points (88% vs 69%), and the strict number is the honest one.
+AMBIGUOUS_SILENCE_WORDS = ('still', 'mute')
+SILENCE_WORDS_STRICT = tuple(w for w in SILENCE_WORDS if w not in AMBIGUOUS_SILENCE_WORDS)
+
+
 def watchword_density_rate(texts: list, words=SILENCE_WORDS, minimum: int = 3) -> float:
     """Fraction of documents using at least `minimum` DISTINCT watchwords.
     The binary silence rate counts a monster that merely 'dislikes noisy

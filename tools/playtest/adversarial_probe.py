@@ -397,6 +397,11 @@ def main() -> int:
         from tools.playtest.world_setup import build_world, grant_starter_item
 
         create_tables()
+        if not args.stub:
+            from tools.playtest.rig import require_cloud_provider
+
+            if not require_cloud_provider():
+                return 1
         random_module.seed(args.seed)
         rng = random_module.Random(args.seed)
         build_world(rng)

@@ -19,8 +19,33 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 GAUNTLETS = ('battle_gauntlet.py', 'dungeon_gauntlet.py', 'life_gauntlet.py')
 
 
+def check_stub_vocabulary_is_neutral() -> int:
+    """The harness must never be able to answer its own question.
+
+    Anything measured from a stubbed run inherits the stub's vocabulary,
+    so a stub word that is also a variety WATCHWORD makes the metrics
+    report the harness instead of the game. A chronicle corpus once read
+    as 88% silence-obsessed because 'quiet' was in the stub's word pool.
+    This is enumerable, so it is a tripwire rather than a comment.
+    """
+    import sys as _sys
+
+    _sys.path.insert(0, str(REPO_ROOT))
+    from tools.playtest.stub_answers import CREATURES, NOUNS, WORDS
+    from tools.playtest.variety_metrics import SILENCE_WORDS, TROPE_PHRASES
+
+    watchwords = set(SILENCE_WORDS) | {p for p in TROPE_PHRASES if ' ' not in p}
+    collisions = sorted(set(WORDS + NOUNS + CREATURES) & watchwords)
+    if collisions:
+        print(f"  ❌ stub vocabulary collides with variety watchwords: {collisions}")
+        print("       (stubbed corpora would measure the harness, not the game)")
+        return 1
+    print('  ✅ stub vocabulary is neutral (no watchword collisions)')
+    return 0
+
+
 def main() -> int:
-    failures = 0
+    failures = check_stub_vocabulary_is_neutral()
     for gauntlet in GAUNTLETS:
         result = subprocess.run(
             [sys.executable, str(Path('tools/playtest') / gauntlet)],

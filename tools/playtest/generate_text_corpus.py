@@ -28,7 +28,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 import backend  # noqa: F401 - loads .env
-from tools.playtest.rig import build_rig, drain_queue, refresh_session, run_workflow
+from tools.playtest.rig import (
+    build_rig,
+    drain_queue,
+    refresh_session,
+    require_cloud_provider,
+    run_workflow,
+)
 from tools.playtest.scripted_stub import ForcedEvents, ScriptedStub
 from tools.playtest.world_setup import build_world
 
@@ -92,6 +98,10 @@ def harvest_items(queue, rng, wanted: int) -> list:
         run_workflow(queue, 'generate_expedition_notices', {})
         run_workflow(queue, 'enter_dungeon', {})
 
+    # Every junction is regenerated INSIDE the pin: arriving retires the
+    # previous location's paths, and paths rolled outside the pin carry
+    # random events (which is how a first attempt harvested one treasure
+    # and fifteen shrugs)
     while len(harvested) < wanted:
         with ForcedEvents(event='treasure', include_exit=False):
             state = dungeon.get_dungeon_state()
@@ -118,7 +128,6 @@ def harvest_items(queue, rng, wanted: int) -> list:
             )
         else:
             harvested.append({'kind': 'item_failure', 'error': str(status.get('error'))})
-        run_workflow(queue, 'continue_exploring', {})
     return harvested
 
 
@@ -155,6 +164,8 @@ def main() -> int:
         from backend.models.llm_log import LLMLog
 
         create_tables()
+        if not args.dry_run and not require_cloud_provider():
+            return 1
         calls_before = LLMLog.query.count()
 
         stub = ScriptedStub(seed=args.seed, mode='happy', passthrough=passthrough)

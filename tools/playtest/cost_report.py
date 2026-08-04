@@ -1,4 +1,4 @@
-# Cost and latency, per workflow and per prompt - reading data the game
+# Cost and latency, per caller and per template - reading data the game
 # has been recording all along and nobody has ever read.
 #
 # Every generation writes a generation_logs row (prompt_type, prompt_name,
@@ -6,8 +6,8 @@
 # tokens, provider, model). That is a complete cost-and-latency ledger;
 # this tool turns it into the two tables the roadmap actually needs:
 #
-#   BY WORKFLOW  - what one player action costs in calls, tokens, seconds
-#   BY PROMPT    - which template is the expensive one, and how often it
+#   BY CALLER    - what one player action costs in calls, tokens, seconds
+#   BY TEMPLATE  - which prompt is the expensive one, and how often it
 #                  fails to parse (a retry is a doubled bill)
 #
 # Prices are DeepSeek v4-pro list prices; --in-price/--out-price override
@@ -49,17 +49,26 @@ def collect(since: datetime = None) -> list:
         child = log.llm_log
         rows.append(
             {
-                # prompt_name is the WORKFLOW that asked (the game passes
-                # workflow_name there); prompt_type is the template file
-                'workflow': log.prompt_name or 'unknown',
-                'prompt': log.prompt_type or 'unknown',
+                # Checked against real rows rather than assumed:
+                # prompt_NAME holds the TEMPLATE (action_resolution,
+                # monster_social_self) and prompt_TYPE holds the CALLER -
+                # usually the workflow (battle_turn, choose_path), though
+                # the monster generator labels its calls with its own
+                # name. Reporting these the other way round would have
+                # been a confident lie in a table of hard numbers.
+                'caller': log.prompt_type or 'unknown',
+                'template': log.prompt_name or 'unknown',
                 'status': log.status,
                 'seconds': float(log.duration_seconds or 0.0),
                 'in_tokens': int(getattr(child, 'prompt_tokens', 0) or 0),
                 'out_tokens': int(getattr(child, 'response_tokens', 0) or 0),
                 'model': getattr(child, 'model_name', None) or 'unknown',
                 'provider': getattr(child, 'provider', None) or 'unknown',
-                'parse_ok': bool(getattr(child, 'parse_success', True)),
+                # A generation that FAILED never produced text to parse,
+                # so counting it as a parse failure double-counts one
+                # problem and slanders the template: 17 'run_chronicle
+                # parse failures' turned out to be one dead provider.
+                'parse_ok': log.status == 'failed' or bool(getattr(child, 'parse_success', True)),
             }
         )
     return rows
@@ -125,12 +134,13 @@ def render(rows: list, in_price: float, out_price: float) -> str:
         f"({total_seconds / max(len(rows), 1):.1f}s per call average)",
         f"- {failures} failed generations, {parse_failures} parse failures",
         '',
-        '## By workflow — what one player action costs',
+        '## By caller — what one player action costs',
+        '(the workflow that asked; monster generation labels its own calls)',
         '',
-        '| workflow | calls | tokens | $ | wall s | avg s/call |',
+        '| caller | calls | tokens | $ | wall s | avg s/call |',
         '|---|---:|---:|---:|---:|---:|',
     ]
-    for entry in summarize(rows, 'workflow'):
+    for entry in summarize(rows, 'caller'):
         lines.append(
             f"| {entry['name']} | {entry['calls']} | {entry['total_tokens']:,} | "
             f"{cost_usd(entry['in_tokens'], entry['out_tokens'], in_price, out_price):.4f} | "
@@ -139,12 +149,12 @@ def render(rows: list, in_price: float, out_price: float) -> str:
 
     lines += [
         '',
-        '## By prompt template — where the tokens actually go',
+        '## By template — where the tokens actually go',
         '',
-        '| prompt | calls | tokens | avg out | avg s | parse fails |',
+        '| template | calls | tokens | avg out | avg s | parse fails |',
         '|---|---:|---:|---:|---:|---:|',
     ]
-    for entry in summarize(rows, 'prompt'):
+    for entry in summarize(rows, 'template'):
         lines.append(
             f"| {entry['name']} | {entry['calls']} | {entry['total_tokens']:,} | "
             f"{entry['avg_out_tokens']} | {entry['avg_seconds']} | "

@@ -74,8 +74,13 @@ def text_block(section_title: str, texts: list, names: list, unit: str) -> list:
             lines.append(f'  - "{gram}": {count} ({fraction:.0%})')
 
     rate, per_word = metrics.watchword_rate(texts)
+    strict_rate, _ = metrics.watchword_rate(texts, metrics.SILENCE_WORDS_STRICT)
     dense = metrics.watchword_density_rate(texts)
-    lines.append(f'- silence-family mentions: {rate:.0%} (silence-DENSE, 3+ distinct: {dense:.0%})')
+    lines.append(
+        f'- silence-family mentions: {rate:.0%} '
+        f'(strict, without adverbial still/mute: {strict_rate:.0%}; '
+        f'silence-DENSE, 3+ distinct: {dense:.0%})'
+    )
 
     tropes = metrics.trope_phrase_rates(texts)[:8]
     if tropes:
