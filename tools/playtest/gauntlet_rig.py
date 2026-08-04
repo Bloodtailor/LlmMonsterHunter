@@ -11,13 +11,94 @@ from tools.playtest.invariants import check_all
 from tools.playtest.rig import run_workflow
 from tools.playtest.scripted_stub import ScriptedStub  # noqa: F401 - re-export for scenarios
 
-SCENARIOS = {}
+
+def scenario_registry():
+    """A per-suite (registry, decorator) pair - each gauntlet keeps its
+    own scenarios so suites can never collide in a shared namespace"""
+    registry = {}
+
+    def scenario(func):
+        registry[func.__name__] = func
+        return func
+
+    return registry, scenario
 
 
-def scenario(func):
-    """Register a gauntlet scenario under its function name"""
-    SCENARIOS[func.__name__] = func
-    return func
+def run_suite(icon: str, scenarios: dict, args, wrap_factory=None) -> int:
+    """The shared gauntlet runner: fresh world + scripted stub per
+    scenario, JSONL failure log, exit code = failed checks. Each suite
+    passes its own scenario registry; wrap_factory() may return a
+    context manager pinning event rolls suite-wide (the battle gauntlet
+    pins monster_battle) - scenarios can still layer their own."""
+    import json
+    import time
+    from contextlib import nullcontext
+    from datetime import datetime
+    from pathlib import Path
+
+    from tools.playtest.rig import build_rig, drain_queue
+    from tools.playtest.world_setup import build_world, grant_starter_item
+
+    repo_root = Path(__file__).resolve().parents[2]
+    results_dir = repo_root / 'playtest_results'
+    results_dir.mkdir(exist_ok=True)
+    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    failures_path = results_dir / f'{args.suite_name}_{stamp}.jsonl'
+    failures_file = failures_path.open('w', encoding='utf-8')
+
+    def log(payload: dict):
+        failures_file.write(json.dumps(payload, default=str) + '\n')
+        failures_file.flush()
+
+    app, queue = build_rig()
+    chosen = [args.scenario] if args.scenario else sorted(scenarios)
+    total_failed = 0
+    started = time.time()
+
+    with app.app_context():
+        from backend.models.core import create_tables
+
+        create_tables()
+
+        for scenario_index, name in enumerate(chosen):
+            print(f"\n{icon} {name}")
+            # The game rolls its own dice on the GLOBAL random module
+            # (enemy counts, monster stats) - seed it so a scenario's
+            # world is reproducible from the CLI seed alone
+            random.seed(args.seed * 1000 + scenario_index)
+            rng = random.Random(args.seed)
+            stub = ScriptedStub(seed=args.seed, mode='happy')
+            checks = Checks(name, log)
+            stub.install()
+            try:
+                with wrap_factory() if wrap_factory else nullcontext():
+                    build_world(rng)
+                    grant_starter_item(rng)
+                    scenarios[name](Rig(queue, rng, checks), stub)
+            except Exception as scenario_error:
+                checks.ok('scenario ran to completion', False, repr(scenario_error))
+            finally:
+                drain_queue(queue, timeout_seconds=60)
+                stub.uninstall()
+            total_failed += checks.failed
+
+    failures_file.close()
+    print('\n' + '=' * 50)
+    print(f"scenarios={len(chosen)} failed_checks={total_failed} ({time.time() - started:.0f}s)")
+    print(f"failure log: {failures_path}")
+    return total_failed
+
+
+def suite_args(scenarios: dict, suite_name: str):
+    """The shared CLI: --scenario and --seed, tagged with the suite name"""
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--scenario', choices=sorted(scenarios), default=None)
+    parser.add_argument('--seed', type=int, default=99)
+    args = parser.parse_args()
+    args.suite_name = suite_name
+    return args
 
 
 # Nobody ever lands a blow - the battle can only end the way the
@@ -141,3 +222,49 @@ class Rig:
 
     def talk(self, text: str) -> dict:
         return self.turn({'player_action': {'type': 'talk', 'text': text}})
+
+    def walk_onto(self, event: str, monsters_present=None) -> dict:
+        """Regenerate the junction under a pinned event, then take a path.
+        Events are stamped onto paths at junction-GENERATION time, so the
+        pin must cover enter/continue - not the choose itself."""
+        from backend.game.dungeon import manager as dungeon
+        from tools.playtest.scripted_stub import ForcedEvents
+
+        with ForcedEvents(event=event, monsters_present=monsters_present, include_exit=False):
+            if not dungeon.is_in_dungeon():
+                status = run_workflow(self.queue, 'enter_dungeon', {})
+                self.checks.ok(
+                    'entered the dungeon', status['status'] == 'completed', status.get('error')
+                )
+            else:
+                run_workflow(self.queue, 'continue_exploring', {})
+            state = dungeon.get_dungeon_state()
+            walk = [
+                pid
+                for pid, p in (state.get('available_paths') or {}).items()
+                if p.get('type') != 'exit'
+            ]
+            status = run_workflow(self.queue, 'choose_path', {'path_id': walk[0]})
+        self.checks.invariants(status)
+        return status
+
+    def exit_run(self) -> dict:
+        """Walk out alive: force an exit path into the junction, take it"""
+        from backend.game.dungeon import manager as dungeon
+        from tools.playtest.scripted_stub import ForcedEvents
+
+        with ForcedEvents(event='location_explore', monsters_present=False, include_exit=True):
+            for _ in range(3):
+                state = dungeon.get_dungeon_state()
+                exits = [
+                    pid
+                    for pid, p in (state.get('available_paths') or {}).items()
+                    if p.get('type') == 'exit'
+                ]
+                if exits:
+                    status = run_workflow(self.queue, 'choose_path', {'path_id': exits[0]})
+                    self.checks.invariants(status)
+                    return status
+                run_workflow(self.queue, 'continue_exploring', {})
+        self.checks.ok('found an exit path', False)
+        return {}

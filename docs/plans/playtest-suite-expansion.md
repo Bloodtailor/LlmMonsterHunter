@@ -78,24 +78,36 @@ Agents, tokens, and wall-time are explicitly unconstrained.
 
 Legend: ✅ covered by founding harness · 🟡 partial · ❌ uncovered
 
-1. ✅ **Dungeon exploration loop** — crash driver (3 modes) + agents.
-   Gap: rare paths (treasure, returning, use_dungeon_ability/item) get
-   only random coverage → add SCRIPTED policies that force each event.
+1. ✅ **Dungeon exploration loop** — crash driver (3 modes) + agents,
+   PLUS `tools/playtest/dungeon_gauntlet.py` (Px-M2): directed
+   scenarios force every rare path — treasure spoils kept on exit, the
+   full six-outcome dialogue tree with memory assertions, the
+   out-of-battle referee (ability/item heals, costs, reveal), camp
+   rest + one-camp valve, the victory-exit ceremony, and the goal's
+   completion valve + reward (the valve itself was surfaced by the
+   gauntlet's first run).
 2. ✅ **Battle system** — `tools/playtest/battle_gauntlet.py` (Px-M1):
    six directed scenarios over the scripted stub — softlock valve,
    fairness guardrail, all five negotiation decisions, defeat path
    with spoils forfeiture + bond_broken memories, resource-ladder
    drain/clamp + item spend, wary-ally autonomy flipping at familiar.
    42 checks, ~7s, zero cost.
-3. ❌ **Campfire chat** (`chat_with_monster`) — multi-turn chats with
-   real narration; memory-extraction quality (are extracted memories
-   faithful to the transcript? verify by comparison, not by asking).
-4. ❌ **Evolution altar** (`evolve_monster`) — the ceremony end-to-end
-   headless; identity-preservation checks (same id, memories survive).
-5. 🟡 **Cross-run memory & returning** — observed accidentally; build a
-   deliberate multi-run scenario: befriend → exit → re-enter → verify
-   the returning monster remembers truthfully.
-6. ❌ **New Game + character creation** (`player_generation` flows).
+3. ✅ **Campfire chat** — `tools/playtest/life_gauntlet.py` (Px-M2)
+   drives the full pipeline offline (thread → housekeeping →
+   extraction with sources → watermark → affinity), and
+   `tools/playtest/chat_faithfulness.py` scores extracted memories by
+   COUNTING content-word overlap against the exact message span — the
+   checker is validated against planted faithful/fabricated memories.
+   Live extraction quality runs the same checker in Px-M3+.
+4. ✅ **Evolution altar** — life_gauntlet `evolution_identity`: same
+   id, memories + abilities survive, lineage row, stage complete.
+5. ✅ **Cross-run memory & returning** — life_gauntlet
+   `yield_return_remembers`: yield in run 1 → exit → forced
+   returning_monster event in run 2 → the SAME monster returns with a
+   memory naming the true place of the yield.
+6. ❌ **New Game + character creation** (`player_generation` flows) —
+   deliberately deferred to the Px-M5 browser UI sessions, which
+   exercise the wizard end-to-end through the real frontend.
 7. ❌ **Chronicle quality** — a chronicle corpus (many runs → variety
    metrics over the chronicles themselves).
 8. 🟡 **Variety corpora beyond monsters/notices** — abilities, items,
@@ -150,3 +162,19 @@ Legend: ✅ covered by founding harness · 🟡 partial · ❌ uncovered
   method rules), before the harness milestone commit: B1 + B2 + dead
   `generate_location_event_text`/`location_event` removal, with
   prompt-review §3.2 marked resolved-by-deletion in the same change.
+- **2026-08-03 (Px-M2): the goal completion valve surfaced as a
+  "failure" first.** The dungeon gauntlet's goal scenario scripted an
+  immediate referee "complete" and the goal stayed pending —
+  `GOAL_MIN_EVENTS` downgrades early completions by design. The
+  scenario now walks the valve's length first and asserts completion
+  *after* it; the valve got its first direct regression coverage in
+  the bargain.
+- **2026-08-03 (Px-M2): chat-extraction faithfulness split into
+  offline + live halves.** Offline (stubbed) runs can't judge a real
+  model's extraction quality, so the gauntlet validates the CHECKER
+  (planted faithful vs fabricated memories, same pattern as Pt-M1's
+  synthetic-corpus validation) and the live suites reuse it as-is.
+- **2026-08-03 (Px-M2): New Game/character creation deferred to the
+  Px-M5 browser sessions** rather than a headless scenario — the
+  wizard is a frontend flow first, and the browser leg exercises it
+  for real.

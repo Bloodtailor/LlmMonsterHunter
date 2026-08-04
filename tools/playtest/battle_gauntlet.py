@@ -11,12 +11,7 @@
 # Exit code = number of failed checks. Failures also land in
 # playtest_results/battle_gauntlet_<stamp>.jsonl with full context.
 
-import argparse
-import json
-import random
 import sys
-import time
-from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -24,19 +19,18 @@ sys.path.insert(0, str(REPO_ROOT))
 
 import backend  # noqa: F401 - loads .env
 from tools.playtest.gauntlet_rig import (
-    SCENARIOS,
     STALL,
-    Checks,
     Rig,
     ScriptedStub,
     hostile_streaks,
     pick_enemy,
     pick_player,
-    scenario,
+    scenario_registry,
 )
-from tools.playtest.rig import build_rig, drain_queue, run_workflow
+from tools.playtest.rig import run_workflow
 from tools.playtest.scripted_stub import ForcedEvents
-from tools.playtest.world_setup import build_world, grant_starter_item
+
+SCENARIOS, scenario = scenario_registry()
 
 # ===== SCENARIOS =====
 
@@ -84,13 +78,20 @@ def fairness_guardrail(rig: Rig, stub: ScriptedStub):
     stub.set('next_turn', pick_enemy)  # always the SAME first enemy
     rig.start_forced_battle()
 
-    status = rig.drive_to_pending()
-    for _ in range(6):
-        status = rig.defend(status)
-
     state = battle.get_battle_state()
     living = [(s, mid) for s in ('allies', 'enemies') for mid in battle.active_ids(state, s)]
     threshold = OVERDUE_WAIT_MULTIPLIER * len(living) + len(living) + 1
+
+    # Defend until the battle has run long enough for the guardrail to
+    # have cycled EVERYONE at least once (3x the overdue threshold in
+    # recorded turns) - a fixed workflow count was flaky on unlucky dice
+    status = rig.drive_to_pending()
+    for _ in range(15):
+        if battle.get_battle_state().get('turn_count', 0) >= 3 * threshold:
+            break
+        status = rig.defend(status)
+
+    state = battle.get_battle_state()
     worst = max(battle.turns_waiting(state, mid) for _, mid in living)
     rig.checks.ok(
         'no living combatant starves past the overdue threshold',
@@ -359,54 +360,15 @@ def wary_autonomy(rig: Rig, stub: ScriptedStub):
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--scenario', choices=sorted(SCENARIOS), default=None)
-    parser.add_argument('--seed', type=int, default=99)
-    args = parser.parse_args()
+    from tools.playtest.gauntlet_rig import run_suite, suite_args
 
-    results_dir = REPO_ROOT / 'playtest_results'
-    results_dir.mkdir(exist_ok=True)
-    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    failures_path = results_dir / f'battle_gauntlet_{stamp}.jsonl'
-    failures_file = failures_path.open('w', encoding='utf-8')
-
-    def log(payload: dict):
-        failures_file.write(json.dumps(payload, default=str) + '\n')
-        failures_file.flush()
-
-    app, queue = build_rig()
-    chosen = [args.scenario] if args.scenario else sorted(SCENARIOS)
-    total_failed = 0
-    started = time.time()
-
-    with app.app_context():
-        from backend.models.core import create_tables
-
-        create_tables()
-
-        for name in chosen:
-            print(f"\n⚔️ {name}")
-            rng = random.Random(args.seed)
-            stub = ScriptedStub(seed=args.seed, mode='happy')
-            checks = Checks(name, log)
-            stub.install()
-            try:
-                with ForcedEvents(event='monster_battle', include_exit=False):
-                    build_world(rng)
-                    grant_starter_item(rng)
-                    SCENARIOS[name](Rig(queue, rng, checks), stub)
-            except Exception as scenario_error:
-                checks.ok('scenario ran to completion', False, repr(scenario_error))
-            finally:
-                drain_queue(queue, timeout_seconds=60)
-                stub.uninstall()
-            total_failed += checks.failed
-
-    failures_file.close()
-    print('\n' + '=' * 50)
-    print(f"scenarios={len(chosen)} failed_checks={total_failed} ({time.time() - started:.0f}s)")
-    print(f"failure log: {failures_path}")
-    return total_failed
+    args = suite_args(SCENARIOS, 'battle_gauntlet')
+    return run_suite(
+        '⚔️',
+        SCENARIOS,
+        args,
+        wrap_factory=lambda: ForcedEvents(event='monster_battle', include_exit=False),
+    )
 
 
 if __name__ == '__main__':
