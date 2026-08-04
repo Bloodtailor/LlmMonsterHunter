@@ -233,3 +233,22 @@ Legend: ✅ covered by founding harness · 🟡 partial · ❌ uncovered
   `check_all.bat` all updated together. A `test_new_game` flake found
   while doing it (the wipe guard reads the live queue; a sibling suite's
   queued housekeeping made it refuse) was fixed in the same pass.
+- **2026-08-04 (post-ship): a player found what the suite passed.**
+  Aaron's first expedition after this initiative shipped was unplayable:
+  `generate_ability` returned prose three times, `choose_path` raised
+  after the party had already moved, and the run had no encounter, no
+  paths and nothing to click. The suites had passed it because the
+  workflow returned a well-formed error envelope - and because the
+  founding night saw the same shape live and filed it as an
+  "observation" rather than a bug. Fixed in three layers (decoration
+  never ends an arrival; arrivals play inside a net; the error alert
+  offers a way onward) and covered by
+  `dungeon_gauntlet.py --scenario arrival_survives_a_broken_generation`,
+  which fails without the fix. The missing invariant -
+  `check_player_has_an_action()` - now runs after every workflow in
+  every suite.
+
+  **The method correction that matters:** "the workflow returned an
+  honest error" was treated as sufficient. It is not. The question an
+  invariant must ask is whether the PLAYER can still act, through the
+  interface, after the failure. Politeness is not playability.

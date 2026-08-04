@@ -160,6 +160,58 @@ def dialogue_tree(rig: Rig, stub: ScriptedStub):
 
 
 @scenario
+def arrival_survives_a_broken_generation(rig: Rig, stub: ScriptedStub):
+    """THE REGRESSION TEST FOR THE ONE THAT GOT THROUGH.
+
+    A real playthrough died on its first expedition: `generate_ability`
+    returned prose instead of JSON three times, `choose_path` raised
+    after the party had already moved, and the run was unplayable - no
+    encounter, no paths, nothing to click. The suites had called that
+    'an honest error envelope' and passed it.
+
+    Here every ability generation fails, on every kind of arrival. The
+    party must still be able to act afterwards, every time.
+    """
+    from backend.game.dungeon import manager as dungeon
+
+    def explode(stub_instance):
+        raise RuntimeError('Parsing failed: No JSON found')
+
+    stub.set('generate_ability', explode)
+
+    for event in ('location_explore', 'monster_dialogue', 'monster_battle'):
+        status = rig.walk_onto(event, monsters_present=True)
+        rig.checks.ok(
+            f'[{event}] the arrival still completed',
+            status['status'] == 'completed',
+            status.get('error'),
+        )
+
+        state = dungeon.get_dungeon_state()
+        from backend.game.battle import manager as battle
+
+        has_action = bool(
+            battle.get_battle_state().get('in_battle')
+            or state.get('active_encounter')
+            or state.get('available_paths')
+        )
+        rig.checks.ok(
+            f'[{event}] the player has something to do', has_action, state.get('active_encounter')
+        )
+        rig.checks.ok(f'[{event}] the party is still in the dungeon', dungeon.is_in_dungeon())
+
+        # And the standing escape hatch works from wherever they landed
+        onward = run_workflow(rig.queue, 'continue_exploring', {})
+        rig.checks.ok(
+            f'[{event}] looking around still works afterwards',
+            onward['status'] == 'completed',
+            onward.get('error'),
+        )
+        if battle.get_battle_state().get('in_battle'):
+            run_workflow(rig.queue, 'continue_exploring', {})
+
+
+@scenario
 def paths_retire_on_arrival(rig: Rig, stub: ScriptedStub):
     """Arriving somewhere RETIRES the junction just left. A live
     playtester walked the previous location's paths because the state
