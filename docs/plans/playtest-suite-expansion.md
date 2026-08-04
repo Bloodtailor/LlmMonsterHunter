@@ -1,9 +1,12 @@
 # Playtest Suite Expansion (Px)
 
-**Status:** PLANNED — written 2026-08-03 as the handoff for a fresh
-session. The founding harness (Pt-M0..M5, `feature/playtest-harness`,
-PR #181) is built, exercised, and documented; this initiative grows it
-into a comprehensive, reusable suite covering EVERY aspect of the game.
+**Status:** IN PROGRESS — Px-M1 landed 2026-08-03 (B1/B2 fixed and
+re-verified, battle gauntlet green, silence verdict logged). Branch:
+`feature/playtest-suite-expansion` (from `feature/playtest-harness`;
+PR #181 was still open). The founding harness (Pt-M0..M5,
+`feature/playtest-harness`, PR #181) is built, exercised, and
+documented; this initiative grows it into a comprehensive, reusable
+suite covering EVERY aspect of the game.
 **Mandate (Aaron, verbatim intent):** decide everything that needs to
 be playtested and create playtests for each; try many methods per
 surface; decide which model is best for each job; DELETE the
@@ -58,17 +61,18 @@ Agents, tokens, and wall-time are explicitly unconstrained.
   use two `-m` flags. Never pipe `play.py` through `Select-Object
   -First` (kills the pipe). `PYTHONIOENCODING` not needed for
   play.py (it self-configures UTF-8).
-- **Known bugs to fix FIRST** (they pollute playtest signal): the
-  `sneak_past` success-key collision and the fallback-less
-  `generate_exit_text` — both written up in REPORT.md with repro
-  commands; task chips may already exist. Re-verify each fix with
-  `crash_driver.py --runs 6`.
-- **In flight at handoff:** the silence-trope fix (3 REGISTER RULE
-  lines in `monster_generation.json`, uncommitted) with a 40-monster
-  verification corpus at `playtest_results/corpus_after_register_fix.jsonl`
-  — check its silence rate vs the 99% baseline
-  (`corpus_20260803_variety_report.md`) and commit or revise the
-  prompt accordingly.
+- **Known bugs — FIXED (Px-M1, 2026-08-03).** B1 (`sneak_past`
+  success-key collision → renamed to `sneak_success`) verified by a
+  forced-caught-sneak scenario + 20 happy runs, 0 violations; B2
+  (fallback-less `generate_exit_text` → canned line) verified by
+  broken-mode runs going from 0-can-exit to 4/6 exiting. Dead
+  `generate_location_event_text` + its orphaned prompt removed.
+- **Silence verdict — already landed before this session** (commit
+  5a072e0): register rules + token caps, verified on a 40-monster
+  corpus; any-silence 99%→90%, "stillness" 79%→25%, unique names
+  57%→88%. Numbers live in REPORT.md's "first fix loop" section.
+  Persona stage (85%) remains the stronghold — imagination-engine
+  territory, not prompt territory.
 
 ## The surface inventory (what needs playtests)
 
@@ -77,10 +81,12 @@ Legend: ✅ covered by founding harness · 🟡 partial · ❌ uncovered
 1. ✅ **Dungeon exploration loop** — crash driver (3 modes) + agents.
    Gap: rare paths (treasure, returning, use_dungeon_ability/item) get
    only random coverage → add SCRIPTED policies that force each event.
-2. 🟡 **Battle system** — random actions only. Build a battle gauntlet:
-   forced long battles (softlock valve + fairness guardrail
-   assertions), item/ability-heavy policies, full negotiation trees
-   (every talk decision), defeat path, stakes, autonomy (wary allies).
+2. ✅ **Battle system** — `tools/playtest/battle_gauntlet.py` (Px-M1):
+   six directed scenarios over the scripted stub — softlock valve,
+   fairness guardrail, all five negotiation decisions, defeat path
+   with spoils forfeiture + bond_broken memories, resource-ladder
+   drain/clamp + item spend, wary-ally autonomy flipping at familiar.
+   42 checks, ~7s, zero cost.
 3. ❌ **Campfire chat** (`chat_with_monster`) — multi-turn chats with
    real narration; memory-extraction quality (are extracted memories
    faithful to the transcript? verify by comparison, not by asking).
@@ -134,4 +140,13 @@ Legend: ✅ covered by founding harness · 🟡 partial · ❌ uncovered
 
 ## Deviations
 
-(none yet)
+- **2026-08-03 (Px-M1): the silence-fix verdict was already done.**
+  The handoff listed it as in-flight/uncommitted, but commit 5a072e0
+  (same afternoon, before this session started) had already landed the
+  register rules + token caps with the 40-monster verification
+  numbers. Nothing to re-measure; the plan text above now points at
+  REPORT.md.
+- **2026-08-03 (Px-M1): game fixes went in their own commit** (per the
+  method rules), before the harness milestone commit: B1 + B2 + dead
+  `generate_location_event_text`/`location_event` removal, with
+  prompt-review §3.2 marked resolved-by-deletion in the same change.
