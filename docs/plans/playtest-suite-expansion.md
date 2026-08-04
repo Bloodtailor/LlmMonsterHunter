@@ -252,3 +252,16 @@ Legend: ✅ covered by founding harness · 🟡 partial · ❌ uncovered
   honest error" was treated as sufficient. It is not. The question an
   invariant must ask is whether the PLAYER can still act, through the
   interface, after the failure. Politeness is not playability.
+- **2026-08-04 (post-ship): the gauntlets went red on CI, and the bug
+  was a comment.** `chat_memory_pipeline` asserted on what
+  `chat_housekeeping` produced, but that workflow is QUEUED BEHIND the
+  chat - `run_workflow` waits for the chat, not for it. A comment in
+  the scenario claimed the housekeeping "has already run", which was
+  true on this machine every single time and false on a GitHub runner:
+  CI snapshotted the extraction mid-write (one memory saved, watermark
+  not yet advanced, affinity not yet stepped) and failed four checks.
+  Fixed with `Rig.settle()` - drain the queue, then re-read - and
+  reproduced first by slowing the stubbed extraction to 2.5s, which
+  turns the old code's result into 0 memories and the new one's into 2.
+  **Rule for the suite: any assertion about queued follow-up work must
+  settle first.** Local timing is not evidence.

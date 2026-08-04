@@ -200,6 +200,27 @@ class Rig:
         self.checks.ok('forced path started a battle', bool(in_battle))
         return status
 
+    def settle(self, timeout_seconds: int = 120) -> None:
+        """Wait out QUEUED FOLLOW-UP WORK, then re-read the database.
+
+        `run_workflow` waits for the workflow it submitted - and several
+        workflows queue a second one behind themselves for the player's
+        benefit (chat_housekeeping after a chat, condense_dungeon_log
+        after a heavy dungeon action). Those run afterwards, on the
+        sequential worker.
+
+        So any assertion about what housekeeping PRODUCED has to settle
+        first. Skipping this is not a slow-machine problem you can get
+        away with locally: the chat scenario passed here every time and
+        failed on CI, which snapshotted the extraction mid-write - one
+        memory saved, the watermark not yet advanced, the affinity step
+        not yet taken.
+        """
+        from tools.playtest.rig import drain_queue, refresh_session
+
+        drain_queue(self.queue, timeout_seconds=timeout_seconds)
+        refresh_session()
+
     def turn(self, context: dict) -> dict:
         status = run_workflow(self.queue, 'battle_turn', context)
         self.checks.invariants(status)

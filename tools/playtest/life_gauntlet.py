@@ -26,7 +26,7 @@ from tools.playtest.gauntlet_rig import (
     scenario_registry,
     suite_args,
 )
-from tools.playtest.rig import refresh_session, run_workflow
+from tools.playtest.rig import run_workflow
 
 SCENARIOS, scenario = scenario_registry()
 
@@ -82,10 +82,13 @@ def chat_memory_pipeline(rig: Rig, stub: ScriptedStub):
             status.get('error'),
         )
 
-    # 4 exchanges = 8 lines = the extraction threshold; housekeeping was
-    # queued behind the last chat and has already run (queue drained by
-    # run_workflow's polling of the SEQUENTIAL worker)
-    refresh_session()
+    # 4 exchanges = 8 lines = the extraction threshold, so the last chat
+    # queued a chat_housekeeping workflow BEHIND itself. run_workflow
+    # waited for the chat, not for that - settle() waits for the worker
+    # to finish it. (This comment previously claimed the housekeeping
+    # "has already run". It had, on this machine, every time; CI caught
+    # the extraction mid-write and failed four checks.)
+    rig.settle()
     results = score_chat_memories(companion_id)
     rig.checks.ok('housekeeping extracted the two memories', len(results) == 2, results)
 
@@ -147,7 +150,7 @@ def evolution_identity(rig: Rig, stub: ScriptedStub):
     status = run_workflow(rig.queue, 'evolve_monster', {'monster_id': companion_id})
     rig.checks.ok('the ceremony completed', status['status'] == 'completed', status.get('error'))
 
-    refresh_session()
+    rig.settle()
     after = Monster.get_monster_by_id(companion_id)
     rig.checks.ok(
         'same id, transformed species',
