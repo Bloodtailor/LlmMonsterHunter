@@ -47,6 +47,14 @@ def run_choose_path(context: dict, step: WorkflowStep) -> dict[str, Any]:
         previous_location, path, workflow_name
     )
     manager.set_current_location(location)
+
+    # Arriving RETIRES the junction just left: those paths belong to the
+    # previous location and only continue_exploring generates new ones.
+    # The frontend already funnels the player through "Continue to the
+    # Paths" (arePathsReady goes false here), but the state itself kept
+    # offering the stale list - a live playtester walked it, and any
+    # future client could too. The state now matches the flow.
+    manager.set_available_paths({})
     manager.append_dungeon_log(
         f"The party took the path '{path.get('name', 'unknown')}' and arrived at "
         f"{location.get('name', 'an unknown place')}: {location.get('description', '')}"
