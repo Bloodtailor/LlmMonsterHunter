@@ -36,17 +36,6 @@
     "prompt_template": "Generate 2 mysterious locations for exploration. \n\nRespond with valid JSON in this exact format:\n{{\"door1\": {{\"name\": \"Door Name\", \"description\": \"1-2 sentence description of the location that this door leads to.\"}}, \"door2\": {{\"name\": \"Door Name\", \"description\": \"1-2 sentence description of the location that this door leads to.\"}}}}\n\nAvoid generic names and descriptions. JSON:"
   },
 
-  "location_event": {
-    "description": "Generate event text for exploring a specific location",
-    "max_tokens": 400,
-    "temperature": 0.8,
-    "parser": {
-      "type": "text",
-      "parser_name": "none"
-    },
-    "prompt_template": "You and your party have entered {location_name} in a dungeon. Write 1-2 sentences describing what happens when you explore this area. Make it atmospheric and interesting, focusing on discovery and exploration rather than danger. Describe what you find, see, or experience.\n\nResponse:"
-  },
-
   "exit_narrative": {
     "description": "Generate satisfying exit text for completing a dungeon adventure",
     "max_tokens": 400,

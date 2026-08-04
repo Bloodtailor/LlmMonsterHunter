@@ -91,7 +91,7 @@ The file already has clean section markers that ARE the split seams:
   `build_monsters_details`, `build_speaking_monsters_details`,
   `build_party_dungeon_details`, `_dungeon_log_text`
 - Core location/path generation — `generate_entry_text`,
-  `generate_random_location`, `generate_location_event_text`,
+  `generate_random_location`,
   `generate_exit_text`, `generate_paths`, `generate_arrival_location`,
   `generate_encounter_vanity_text`, and `build_door_choices` (currently
   at the bottom of the file; it belongs with paths)

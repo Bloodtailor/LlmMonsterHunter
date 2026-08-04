@@ -108,22 +108,19 @@ def generate_random_location(workflow_name) -> dict[str, Any]:
     return location
 
 
-def generate_location_event_text(location_name: str, workflow_name) -> dict[str, Any]:
-    """Generate event text - assumes valid location_name"""
-
-    variables = {'location_name': location_name}
-    location_event_text = build_and_generate('location_event', workflow_name, variables)
-
-    return location_event_text
-
-
 def generate_exit_text(party_summary: str, workflow_name) -> dict[str, Any]:
-    """Generate exit text - assumes valid party_summary"""
+    """Generate exit text - vanity prose, so a canned line on any failure.
+    This is the FIRST step of the run's only exit path: without the
+    fallback, a provider outage strands the party in the dungeon."""
 
     variables = {'party_summary': party_summary}
-    dungeon_exit_text = build_and_generate('exit_narrative', workflow_name, variables)
-
-    return dungeon_exit_text
+    try:
+        return build_and_generate('exit_narrative', workflow_name, variables)
+    except Exception:
+        return (
+            "The party climbs back toward the light, weary but alive, "
+            "and steps out of the dungeon into the open air."
+        )
 
 
 def generate_paths(location: dict[str, Any], workflow_name: str) -> dict[str, dict[str, Any]]:
