@@ -1,6 +1,12 @@
 # playtest corpus + transcripts (tools are committed, their output is not)
 playtest_results/
 
+# presentation narration - 14MB of generated MP3. The script IS committed
+# (playtest_presentation/script.md); regenerate the audio with
+# ELEVENLABS_API_KEY=... ./venv/Scripts/python.exe playtest_presentation/generate_audio.py
+playtest_presentation/audio/*.mp3
+playtest_presentation/audio/.hashes.json
+
 # image generation output
 backend/ai/image/outputs/**
 !backend/ai/image/outputs/.gitkeep

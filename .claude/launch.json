@@ -18,7 +18,7 @@
     {
       "name": "presentation",
       "runtimeExecutable": "./venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "http.server", "8088", "--directory", "playtest_presentation"],
+      "runtimeArgs": ["playtest_presentation/serve.py", "--no-browser"],
       "port": 8088
     },
     {
