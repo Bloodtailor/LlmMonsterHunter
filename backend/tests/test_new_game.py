@@ -24,6 +24,19 @@ def check(name: str, condition: bool, detail: str = ''):
         print(f"  ❌ {name}{f' - {detail}' if detail else ''}")
 
 
+def _wait_for_idle_queue(queue, timeout_seconds: float = 20.0):
+    """Wait until nothing is pending or processing in the LIVE queue"""
+    import time
+
+    deadline = time.time() + timeout_seconds
+    while time.time() < deadline:
+        counts = queue.get_queue_status().get('status_counts', {})
+        if not counts.get('pending') and not counts.get('processing'):
+            return True
+        time.sleep(0.05)
+    return False
+
+
 def seed_world():
     """One row in every game-domain table, wired like the real thing.
     Returns the pending workflow (the busy-guard prop)."""
@@ -220,6 +233,13 @@ def main():
                 'game.world_erased',
                 lambda event: erased_events.append(game_row_counts()['monsters']),
             )
+
+            # The wipe guard reads the LIVE queue, and pytest runs every
+            # suite in one process - a dungeon suite that queued
+            # housekeeping (condense_dungeon_log) just before this one
+            # made the wipe refuse, intermittently. Wait the queue out
+            # first: this suite is about the wipe, not about timing.
+            _wait_for_idle_queue(workflow_queue_module.get_queue())
 
             result = game_state_service.start_new_game()
             check('a stale table row never blocks the wipe', result['success'] is True)
