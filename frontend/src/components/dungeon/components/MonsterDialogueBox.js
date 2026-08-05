@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Card, CardSection, Button, Textarea, LoadingSpinner } from '../../../shared/ui/index.js';
 import { useNavigation } from '../../../app/contexts/NavigationContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/useDungeon.js';
+import { PLAYER_TEXT_MAX_CHARS } from '../../../shared/constants/constants.js';
 
 // How each resolved outcome is framed for the player
 const OUTCOME_HEADERS = {
@@ -145,7 +146,17 @@ function MonsterDialogueBox() {
               onChange={(e) => setMessage(e.target.value)}
               placeholder="What does your party say? Answer honestly, bargain, flatter, deceive... the monster will decide what to make of it."
               rows={3}
+              maxLength={PLAYER_TEXT_MAX_CHARS}
             />
+            <div
+              style={{
+                fontSize: 'var(--font-size-sm)',
+                color: 'var(--color-text-muted)',
+                textAlign: 'right',
+              }}
+            >
+              {message.length}/{PLAYER_TEXT_MAX_CHARS}
+            </div>
             <div>
               <Button
                 size="md"

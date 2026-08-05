@@ -3,11 +3,12 @@
 // (fight on, they yield, they flee, they join, or mercy is granted)
 
 import React, { useState } from 'react';
-import { Card, CardSection, Button, Textarea } from '../../../shared/ui/index.js';
+import { Card, CardSection, Button, Textarea, Alert } from '../../../shared/ui/index.js';
 import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
+import { PLAYER_TEXT_MAX_CHARS } from '../../../shared/constants/constants.js';
 
 function TalkResponsePanel() {
-  const { pendingTalk, isProcessing, outcome, respondToTalk } = useBattleContext();
+  const { pendingTalk, isProcessing, outcome, battleError, respondToTalk } = useBattleContext();
   const [reply, setReply] = useState('');
 
   if (!pendingTalk || isProcessing || outcome) return null;
@@ -55,7 +56,22 @@ function TalkResponsePanel() {
             onChange={(e) => setReply(e.target.value)}
             placeholder="What does your party say back?"
             rows={3}
+            maxLength={PLAYER_TEXT_MAX_CHARS}
           />
+          <div
+            style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-text-muted)',
+              textAlign: 'right',
+            }}
+          >
+            {reply.length}/{PLAYER_TEXT_MAX_CHARS}
+          </div>
+          {battleError && (
+            <Alert type="error" size="md">
+              {String(battleError)}
+            </Alert>
+          )}
           <div style={{ textAlign: 'center' }}>
             <Button
               size="lg"

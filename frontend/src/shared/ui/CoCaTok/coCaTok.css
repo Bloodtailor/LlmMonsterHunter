@@ -1,5 +1,6 @@
 /* CoCaTok (Collectable Card Tokens) - Interactive 3D spinning collectible cards */
-/* Always spinning, bouncing cards that explode dramatically and disappear forever */
+/* Always spinning, bouncing cards; the pickup ceremony explodes them and then
+   settles the card into a static collected keepsake (never an empty hole) */
 
 /* ===== COCATOK FOUNDATION ===== */
 
@@ -12,7 +13,7 @@
 }
 
 /* Card bouncing - stops when exploding */
-.cocatok:not(.cocatok-exploding) {
+.cocatok:not(.cocatok-exploding):not(.cocatok-collected) {
   animation: cardBounce 4s ease-in-out infinite;
 }
 
@@ -44,7 +45,9 @@
   }
 }
 
-.cocatok:hover:not(.cocatok-disabled):not(.cocatok-spinning):not(.cocatok-exploding) {
+.cocatok:hover:not(.cocatok-disabled):not(.cocatok-spinning):not(.cocatok-exploding):not(
+    .cocatok-collected
+  ) {
   animation: hoverEffect 0.6s ease-out forwards; /* Smooth lift that matches turn-around */
 }
 
@@ -71,12 +74,14 @@
 }
 
 /* Default gentle spinning animation - always active unless spinning fast, hovering, or exploding */
-.cocatok:not(.cocatok-spinning):not(:hover):not(.cocatok-exploding) .cocatok-inner {
+.cocatok:not(.cocatok-spinning):not(:hover):not(.cocatok-exploding):not(.cocatok-collected)
+  .cocatok-inner {
   animation: gentleSpin 4s linear infinite;
 }
 
 /* On hover - instantly face away, then quickly turn to face forward */
-.cocatok:hover:not(.cocatok-spinning):not(.cocatok-exploding) .cocatok-inner {
+.cocatok:hover:not(.cocatok-spinning):not(.cocatok-exploding):not(.cocatok-collected)
+  .cocatok-inner {
   animation: turnToFaceYou 0.6s ease-out forwards;
 }
 
@@ -330,6 +335,24 @@
     opacity: 0;
     transform: scale(0);
   }
+}
+
+/* ===== COLLECTED STATE ===== */
+/* After the pickup ceremony the card settles into a static keepsake:
+   facing forward, no bounce, no spin, inert - never an empty hole */
+
+.cocatok-collected {
+  cursor: default;
+  animation: none;
+}
+
+.cocatok-collected .cocatok-inner {
+  animation: none;
+  transform: rotateY(0deg);
+}
+
+.cocatok-collected .front-emoji {
+  animation: none;
 }
 
 /* ===== DISABLED STATE ===== */

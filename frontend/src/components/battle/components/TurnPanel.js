@@ -4,10 +4,19 @@
 // (negotiate with the enemies - the LLM decides what comes of it)
 
 import React from 'react';
-import { Card, CardSection, Button, Select, Input, Textarea } from '../../../shared/ui/index.js';
+import {
+  Card,
+  CardSection,
+  Button,
+  Select,
+  Input,
+  Textarea,
+  Alert,
+} from '../../../shared/ui/index.js';
 import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
 import { useParty } from '../../../app/contexts/PartyContext/index.js';
 import { useUsableItems } from '../../../app/hooks/useInventory.js';
+import { PLAYER_TEXT_MAX_CHARS } from '../../../shared/constants/constants.js';
 
 const MODE_OPTIONS = [
   { value: 'attack', label: '⚔️ Attack' },
@@ -27,6 +36,7 @@ function TurnPanel() {
     currentSelection,
     isProcessing,
     outcome,
+    battleError,
     updateSelection,
     executeTurn,
   } = useBattleContext();
@@ -207,28 +217,58 @@ function TurnPanel() {
                 onChange={(e) => updateSelection({ text: e.target.value })}
                 placeholder={`Describe what ${actorName} attempts... (the referee decides if it's possible - an impossible attempt wastes the turn)`}
                 rows={3}
+                maxLength={PLAYER_TEXT_MAX_CHARS}
               />
+              <div
+                style={{
+                  fontSize: 'var(--font-size-sm)',
+                  color: 'var(--color-text-muted)',
+                  textAlign: 'right',
+                }}
+              >
+                {(currentSelection.text || '').length}/{PLAYER_TEXT_MAX_CHARS}
+              </div>
               <Input
                 value={currentSelection.info || ''}
                 onChange={(e) => updateSelection({ info: e.target.value })}
                 placeholder="Additional information (optional)"
+                maxLength={PLAYER_TEXT_MAX_CHARS}
               />
             </>
           )}
 
           {/* Talk text */}
           {mode === 'talk' && (
-            <Textarea
-              value={currentSelection.text || ''}
-              onChange={(e) => updateSelection({ text: e.target.value })}
-              placeholder="What does your party say to the enemies? Bargain, threaten, invite them to join you, plead for mercy..."
-              rows={3}
-            />
+            <>
+              <Textarea
+                value={currentSelection.text || ''}
+                onChange={(e) => updateSelection({ text: e.target.value })}
+                placeholder="What does your party say to the enemies? Bargain, threaten, invite them to join you, plead for mercy..."
+                rows={3}
+                maxLength={PLAYER_TEXT_MAX_CHARS}
+              />
+              <div
+                style={{
+                  fontSize: 'var(--font-size-sm)',
+                  color: 'var(--color-text-muted)',
+                  textAlign: 'right',
+                }}
+              >
+                {(currentSelection.text || '').length}/{PLAYER_TEXT_MAX_CHARS}
+              </div>
+            </>
           )}
         </div>
       </CardSection>
 
       <CardSection type="content" alignment="center">
+        {battleError && (
+          <div style={{ marginBottom: '12px' }}>
+            <Alert type="error" size="md">
+              {String(battleError)}
+            </Alert>
+          </div>
+        )}
         <Button size="xl" icon="▶" variant="primary" disabled={!isComplete} onClick={executeTurn}>
           Take Turn
         </Button>

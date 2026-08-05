@@ -158,6 +158,17 @@ GENERATOR_VARIABLES = {
         'expedition_brief',
     },
     'exit_path': {'location_name', 'location_description', 'expedition_brief'},
+    # Arrival narration (dungeon/generator.py + battle/generator.py) -
+    # party_roster carries each member's description so pronouns are canon
+    'look_around': {
+        'party_roster',
+        'location_name',
+        'location_description',
+        'dungeon_log',
+        'monsters_hint',
+    },
+    'encounter_vanity': {'party_roster', 'location_name', 'location_description', 'dungeon_log'},
+    'battle_arrival': {'party_roster', 'location_name', 'location_description'},
     # Run goals (dungeon/goal.py + inventory/generator.py)
     'run_goal': {'expedition_brief', 'party_summary'},
     'goal_check': {'goal_text', 'recent_events', 'progress_so_far'},

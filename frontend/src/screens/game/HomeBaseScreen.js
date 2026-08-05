@@ -4,7 +4,6 @@
 
 import React from 'react';
 import PartyInventoryTabs from '../../components/cardDisplays/PartyInventoryTabs';
-import MonsterPoolDisplay from '../../components/cardDisplays/MonsterPoolDisplay';
 import { Card, CardSection, Button } from '../../shared/ui';
 import { useNavigation } from '../../app/contexts/NavigationContext/index.js';
 
@@ -58,8 +57,6 @@ function HomeBaseScreen() {
       </Card>
 
       <PartyInventoryTabs />
-
-      <MonsterPoolDisplay />
     </div>
   );
 }

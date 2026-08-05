@@ -25,8 +25,9 @@ function BattleOutcomeView() {
   const { continueExploring, resetDungeon } = useDungeon();
   const { navigateToGameScreen } = useNavigation();
 
-  // The pickup ceremony: the token spins until clicked, then explodes into
-  // the collection (it is already saved backend-side - this is the theater)
+  // The pickup ceremony: the token spins until clicked, explodes, then
+  // settles into a static collected keepsake on screen (it is already
+  // saved backend-side - this is the theater)
   const [cocatokCollected, setCocatokCollected] = useState(false);
 
   // Only once the player has clicked through the whole story
@@ -117,13 +118,16 @@ function BattleOutcomeView() {
                 ? `✨ "${victoryCocatok.title}" joins your collection!`
                 : '✨ A CoCaTok was minted for this victory - claim it!'}
             </p>
-            {!cocatokCollected && (
-              <CoCaTok
-                color={victoryCocatok.color}
-                emoji={victoryCocatok.emoji}
-                size="lg"
-                onActivate={() => setCocatokCollected(true)}
-              />
+            <CoCaTok
+              color={victoryCocatok.color}
+              emoji={victoryCocatok.emoji}
+              size="lg"
+              onActivate={() => setCocatokCollected(true)}
+            />
+            {cocatokCollected && (
+              <p style={{ fontWeight: 'bold', margin: 0 }}>
+                {victoryCocatok.emoji} {victoryCocatok.title}
+              </p>
             )}
             <p
               style={{

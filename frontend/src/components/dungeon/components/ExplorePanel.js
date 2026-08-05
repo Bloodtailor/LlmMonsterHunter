@@ -8,6 +8,7 @@ import { Card, CardSection, Button, Textarea, LoadingSpinner } from '../../../sh
 import { useNavigation } from '../../../app/contexts/NavigationContext/index.js';
 import { useDungeon } from '../../../app/contexts/DungeonContext/useDungeon.js';
 import { useBattleContext } from '../../../app/contexts/BattleContext/index.js';
+import { PLAYER_TEXT_MAX_CHARS } from '../../../shared/constants/constants.js';
 
 /**
  * ExplorePanel component
@@ -126,7 +127,17 @@ function ExplorePanel() {
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="The party steps into view. What do they say? A greeting, a question, an offer..."
                 rows={3}
+                maxLength={PLAYER_TEXT_MAX_CHARS}
               />
+              <div
+                style={{
+                  fontSize: 'var(--font-size-sm)',
+                  color: 'var(--color-text-muted)',
+                  textAlign: 'right',
+                }}
+              >
+                {message.length}/{PLAYER_TEXT_MAX_CHARS}
+              </div>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                 <Button
                   size="md"

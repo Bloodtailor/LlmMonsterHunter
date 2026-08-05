@@ -7,6 +7,13 @@ export const GAME_RULES = {
   MAX_FOLLOWING_MONSTERS: 1000, // Reasonable limit for UI performance
 };
 
+// Cap on player free-text sent to the backend: dungeon exchanges, battle
+// talk/custom actions, and campfire chat. Mirrors PLAYER_TEXT_MAX_CHARS
+// in backend/game/battle/constants.py (and player_text_max_chars in
+// backend/game/chat/manager.py) - the services reject longer text with
+// HTTP 400, so the UI enforces it before the request ever leaves.
+export const PLAYER_TEXT_MAX_CHARS = 500;
+
 /// Card sizes for all card components throughout the application
 // UNIFIED SYSTEM - works for both types of "cards" in this codebase:
 //

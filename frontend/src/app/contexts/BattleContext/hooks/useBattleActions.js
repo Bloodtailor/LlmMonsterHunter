@@ -148,6 +148,11 @@ export function useBattleActions(stateHook) {
       info: selection.info ?? null,
     };
 
+    // Captured so a backend refusal can hand the turn back instead of
+    // leaving the screen with no panel at all
+    const actorId = state.pendingActorId;
+    const actorName = state.pendingActorName;
+
     setBattleError(null);
     setPendingNarrations([]);
     setCurrentNarration(null);
@@ -157,15 +162,27 @@ export function useBattleActions(stateHook) {
     setTurnVanityText(''); // the acted monster's monologue is spent
     setIsProcessing(true);
 
-    const result = await turnApi.takeTurn(action);
-    if (result && result.success === false) {
+    try {
+      const result = await turnApi.takeTurn(action);
+      if (result && result.success === false) {
+        setIsProcessing(false);
+      }
+    } catch (turnError) {
+      // The backend refused the turn (e.g. text over the 500-char cap).
+      // Restore the panel so the player can fix the text and retry, and
+      // keep the refusal out of the unhandled-rejection path.
+      setPendingActorId(actorId);
+      setPendingActorName(actorName);
       setIsProcessing(false);
+      setBattleError(turnError?.message || 'Battle request failed');
     }
   }, [
     turnApi.isLoading,
     turnApi.takeTurn,
     state.isProcessing,
     state.currentSelection,
+    state.pendingActorId,
+    state.pendingActorName,
     setBattleError,
     setPendingNarrations,
     setCurrentNarration,
@@ -181,6 +198,9 @@ export function useBattleActions(stateHook) {
     async (text) => {
       if (respondApi.isLoading || state.isProcessing) return;
 
+      // Captured for the same restore-on-refusal treatment as executeTurn
+      const talk = state.pendingTalk;
+
       setBattleError(null);
       setPendingNarrations([]);
       setCurrentNarration(null);
@@ -188,15 +208,22 @@ export function useBattleActions(stateHook) {
       setPendingTalk(null);
       setIsProcessing(true);
 
-      const result = await respondApi.respondToTalk(text);
-      if (result && result.success === false) {
+      try {
+        const result = await respondApi.respondToTalk(text);
+        if (result && result.success === false) {
+          setIsProcessing(false);
+        }
+      } catch (talkError) {
+        setPendingTalk(talk);
         setIsProcessing(false);
+        setBattleError(talkError?.message || 'Battle request failed');
       }
     },
     [
       respondApi.isLoading,
       respondApi.respondToTalk,
       state.isProcessing,
+      state.pendingTalk,
       setBattleError,
       setPendingNarrations,
       setCurrentNarration,

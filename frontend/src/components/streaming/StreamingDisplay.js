@@ -2,12 +2,13 @@
 // Real-time AI generation monitoring with original fixed-position styling
 // Header + single scrollable Card with multiple CardSections
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Badge, Button, Card, CardSection, Alert, Scroll, Table } from '../../shared/ui/index.js';
 import { useEventContext } from '../../app/contexts/EventContext/useEventContext.js';
 import { useAiStatus } from '../../app/hooks/useAiStatus.js';
 import { useWorkflowStatus } from '../../app/hooks/useWorkflowStatus.js';
 import { formatTime, formatDuration } from '../../shared/utils/time.js';
+import { usePersistedState } from '../../shared/hooks/usePersistedState.js';
 import './streaming.css';
 
 function StreamingDisplay() {
@@ -19,8 +20,9 @@ function StreamingDisplay() {
   const { workflowQueueStatus, workflowStatus, currentStep, currentData, activeWorkflow } =
     useWorkflowStatus();
 
-  // UI state for main card minimization
-  const [isMinimized, setIsMinimized] = useState(false);
+  // Start minimized so a new player's first sight is the game, not this
+  // panel; localStorage remembers the developer's preference thereafter
+  const [isMinimized, setIsMinimized] = usePersistedState('devPanel.streaming.minimized', true);
 
   return (
     <div className={`streaming-display ${isMinimized ? 'streaming-display-minimized' : ''}`}>

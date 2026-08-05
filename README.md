@@ -1,8 +1,8 @@
 # LLM Monster Hunter Game
 
-![Project Header](docs/assets/images/moodboard/header_image.png)
+![Home base: the player's painted portrait beside a recruited companion](screenshots/home-base-party.png)
 
-*An AI-powered monster-catching adventure where every creature has a story to tell*
+*An AI-powered monster-catching adventure where every creature has a story to tell — everything above (the portrait, the moth-fey, the cards) was generated during one real playthrough*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
@@ -35,11 +35,21 @@ This is a **personal project**, built solo for **educational purposes** and as p
 - **Items & CoCaToks** — LLM-adjudicated consumables found in dungeons, gifted in dialogue, or earned as victory keepsakes
 - **Real-Time Everything** — LLM tokens and domain events stream over SSE, so the UI updates the moment each datum exists (live card reveals, streaming narration)
 
+### Seen in play
+
+Every image below is an unstaged screenshot from a real session — the full set lives in [screenshots/](screenshots/README.md).
+
+| | |
+|---|---|
+| ![Character creation: LLM-written archetypes plus a free-text box](screenshots/character-creation-wizard.png) *Character creation — pick an option or write your own; your words win* | ![An encounter card paints itself while the prose streams](screenshots/monster-card-auto-painted.png) *Encounter cards paint themselves while the narration is still streaming* |
+| ![Negotiating with a monster in free text](screenshots/monster-exchange-dialogue.png) *Monsters are recruited by dialogue — this one joined because we meant what we said* | ![The referee adjudicates a free-text battle action](screenshots/battle-custom-action.png) *Battles take free-text actions; the referee decides what's possible* |
+| ![The Evolution Altar rewrites a monster mid-ceremony](screenshots/evolution-ceremony.png) *The Evolution Altar — "the story tells itself"* | ![Evolution art regeneration keeps the same creature](screenshots/evolved-monster-card.png) *Art regen uses the old card as reference: same soul, new sky* |
+
 ---
 
 ## 🚧 **Development Status**
 
-All core mechanics are implemented and playable. Each initiative below has a full plan doc in [docs/plans/](docs/plans/):
+All core mechanics are implemented and playable — and as of **August 2026 the entire game has been played through end-to-end in a live review** (fresh save, image generation on, two full expeditions): character creation, recruitment by dialogue, refereed battle, sneaking, camping, items, evolution, campfire chat, memories, chronicles, and crash recovery all verified in real play. The handful of bugs that playthrough surfaced were fixed in the same session ([PR #183](https://github.com/Bloodtailor/LlmMonsterHunter/pull/183)). Each initiative below has a full plan doc in [docs/plans/](docs/plans/):
 
 | Initiative | What shipped |
 |---|---|
@@ -52,10 +62,11 @@ All core mechanics are implemented and playable. Each initiative below has a ful
 | [New Game & player character](docs/plans/new-game-experience.md) | New Game world wipe, character-creation wizard with portrait, player always in the party, chat-as-player |
 | [Settings + DeepSeek](docs/plans/game-settings.md) | In-game settings panel, DeepSeek cloud provider with live model discovery and exact token usage |
 | [Cloud generation](docs/plans/cloud-generation.md) | 1M-token context floor (absolute token caps, 70% ceiling), ComfyUI → Gemini image API, reference-image evolution repaints, Images settings section |
+| Live playtest fixes | Free-text caps made visible (counters + surfaced errors), CoCaTok claim keepsake, pronoun-canon party roster in arrival prompts, referee caption guards, dev panels default-collapsed |
 
-**What's next:** living on the cloud stack — tuning prompt budgets and art style in real play — alongside a [codebase health pass](docs/plans/codebase-health.md) (retiring the file-size grandfather list, consolidating the dev/demo surfaces). The gameplay direction after that is sketched in the [roadmap](docs/roadmap.md): monster requests, nemesis arcs, party bonds, regions.
+**What's next:** the taste notes from the live playthrough — the referee should sometimes say no to a good speech, encounters shouldn't wait on card art, battle cards' static health numbers read wrong next to the condition badges — alongside a [codebase health pass](docs/plans/codebase-health.md). The gameplay direction after that is sketched in the [roadmap](docs/roadmap.md): monster requests, nemesis arcs, party bonds, regions.
 
-![Monster Sanctuary](docs/assets/images/monster_sanctuary.png)
+![The Chronicle — a run's saga entry, written by the game](screenshots/run-chronicle.png)
 
 ---
 
